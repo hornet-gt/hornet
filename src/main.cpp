@@ -39,6 +39,7 @@ int main(const int argc, char *argv[])
 	allocGPUMemory(nv, ne, off, adj, &d_adjArray, &d_adjSizeUsed, &d_adjSizeMax);
 
 	int32_t** h_adjArray = (int32_t**)allocHostArray(nv, sizeof(int32_t*));
+
 	copyArrayDeviceToHost(d_adjArray,h_adjArray,nv, sizeof(int32_t*));
 
 	cout << "baabaa" << endl;
@@ -51,6 +52,7 @@ int main(const int argc, char *argv[])
 	freeDeviceArray(d_adjSizeUsed);
 	freeDeviceArray(d_adjSizeMax);
 
-    return 0;
+    return 0;	cout << "baabaa" << endl;
+
 }       
 

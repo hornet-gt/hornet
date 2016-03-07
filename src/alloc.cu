@@ -43,12 +43,12 @@ int32_t elementsPerVertex(int32_t elements){
 
 void copyArrayHostToDevice(void* hostSrc, void* devDst, int32_t elements, int32_t eleSize){
 	cudaError code=cudaMemcpy(devDst,hostSrc,elements*eleSize,cudaMemcpyHostToDevice);
-	cout << "H to D error : "<<  cudaGetErrorString(code) << endl;
+	// cout << "H to D error : "<<  cudaGetErrorString(code) << endl;
 }
 
 void copyArrayDeviceToHost(void* devSrc, void* hostDst, int32_t elements, int32_t eleSize){
 	cudaError code=cudaMemcpy(hostDst,devSrc,elements*eleSize,cudaMemcpyDeviceToHost);
-	cout << "D to H error : "<<  cudaGetErrorString(code) << endl;
+	// cout << "D to H error : "<<  cudaGetErrorString(code) << endl;
 }
 
 __global__ void devMakeGPUStinger(int32_t nv,int32_t ne,int32_t* d_off, int32_t* d_adj,
@@ -69,7 +69,7 @@ void hostMakeGPUStinger(int32_t nv,int32_t ne,int32_t* h_off, int32_t* h_adj,
 	copyArrayHostToDevice(h_off,d_off,nv,sizeof(int32_t));
 	copyArrayHostToDevice(h_adj,d_adj,nv,sizeof(int32_t));
 
-	devMakeGPUStinger<<<nv,32>>>(nv,ne,d_off,d_adj,d_adjArray, d_adjSizeUsed);
+	devMakeGPUStinger<<<nv,64>>>(nv,ne,d_off,d_adj,d_adjArray, d_adjSizeUsed);
 
 	freeDeviceArray(d_adj);	
 	freeDeviceArray(d_off);
@@ -97,8 +97,6 @@ void allocGPUMemory(int32_t nv,int32_t ne,int32_t* off, int32_t* adj,
 	copyArrayHostToDevice(h_sizeArrayUsed,*d_adjSizeUsed,nv,sizeof(int32_t));
 	copyArrayHostToDevice(h_sizeArrayMax,*d_adjSizeMax,nv,sizeof(int32_t));
 	copyArrayHostToDevice(h_arrayPtr,*d_adjArray,nv,sizeof(int32_t*));
-
-	hostMakeGPUStinger(nv,ne,off, adj,*d_adjArray,*d_adjSizeUsed,*d_adjSizeMax);
 
 	freeHostArray(h_arrayPtr);
 	freeHostArray(h_sizeArrayUsed);

@@ -20,6 +20,7 @@ cuda_add_executable(custinger
 					src/main.cpp
 					src/alloc.cu
 					src/graphreader.cpp
+					src/update.cu
 				   )
 
 TARGET_LINK_LIBRARIES(custinger /usr/local/cuda/lib64/libcudart.so)

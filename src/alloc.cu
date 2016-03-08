@@ -19,6 +19,9 @@ void* allocDeviceArray(int32_t elements,int32_t eleSize){
 		return NULL;
 	cudaError code=	cudaMalloc((void **)&ptr,eleSize*elements);
 
+	if (code!=cudaSuccess)
+		cout << "Allocation error : "<<  cudaGetErrorString(code) << endl;
+
 	return ptr;
 }
 

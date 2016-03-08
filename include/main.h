@@ -28,9 +28,7 @@ void copyArrayDeviceToHost(void* devSrc, void* hostDst, int32_t elements, int32_
 // 	int32_t* d_updatesSrc, int32_t* d_updatesDst);
 
 
+
 void update(int32_t nv,int32_t ne,
-	int32_tPtr* d_adjArray,int32_t* d_adjSizeUsed,int32_t* d_adjSizeMax,
-	BatchUpdate &bu);
-
-
+	int32_tPtr* d_adjArray,int32_t* d_adjSizeUsed,int32_t* d_adjSizeMax, BatchUpdate &bu);
 

@@ -29,6 +29,7 @@ TARGET_LINK_LIBRARIES(custinger /usr/local/cuda/lib64/libcudart.so)
 
 LIST(APPEND CUDA_NCCC_FLAGS --compiler-options -fno-strict-aliasing -use-fast-math)
 LIST(APPEND CUDA NVCC_FLAGS -gencode arch=compute_30,code=sm_30)
+LIST(APPEND CUDA NVCC_FLAGS -gencode arch=compute_21,code=sm_21)
 LIST(APPEND CUDA NVCC_FLAGS "-std=c++11;-03;-DVERBOSE")
 
 #include(CheckCXXCompilerFlag)

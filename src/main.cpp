@@ -1,7 +1,6 @@
  
 
-//#include <iostream>
-//#include <numeric>
+
 #include <stdlib.h>
 
 #include <cuda.h>
@@ -66,10 +65,19 @@ void generateEdgeUpdates(int32_t nv, int32_t numEdges, int32_t* edgeSrc, int32_t
 
 int main(const int argc, char *argv[])
 {
-    cudaSetDevice(0);
-	// cudaDeviceProp prop;
-	// cudaGetDeviceProperties(&prop, 0);
+	int device=0;
+    cudaSetDevice(device);
+	cudaDeviceProp prop;
+	cudaGetDeviceProperties(&prop, device);
  	// printf("  Device name: %s\n", prop.name);
+	cout << "Name : " << prop.name <<  endl;
+	// cout << "computeMode : " << prop.computeMode <<  endl;
+ // 	cout << "gridsize.x : " << prop.maxGridSize[0] <<  endl;
+ // 	cout << "gridsize.y : " << prop.maxGridSize[1] <<  endl;
+ // 	cout << "gridsize.z : " << prop.maxGridSize[2] <<  endl;
+ 
+ // 	cout << "Major      : " << prop.major <<  endl;
+ // 	cout << "Minor      : " << prop.minor <<  endl;
 
     int32_t nv, ne,*off,*adj;
 
@@ -99,23 +107,31 @@ int main(const int argc, char *argv[])
 		hostMakeGPUStinger(nv,ne,off, adj,d_adjArray,d_adjSizeUsed,d_adjSizeMax);
 	cout << "Copy time       : " << end_clock(ce_start, ce_stop) << endl;
 
-	// int32_t* h_edgesSrc=(int32_t*)allocHostArray(numEdges,sizeof(int32_t));	
-	// int32_t* h_edgesDst=(int32_t*)allocHostArray(numEdges,sizeof(int32_t));	
-
-	// BatchUpdate bu(numEdges);
-	// generateEdgeUpdates(nv, numEdges, bu.getHostSrcArray(),bu.getHostDstArray());
-	// bu.resetDeviceIndCount();
-	// bu.copyHostToDevice();
+	BatchUpdate bu(numEdges);
+	generateEdgeUpdates(nv, numEdges, bu.getHostSrcArray(),bu.getHostDstArray());
+	bu.resetHostIndCount();
+	bu.copyHostToDevice();
 
 
-	// start_clock(ce_start, ce_stop);
-	// 	update(nv,ne,d_adjArray,d_adjSizeUsed,d_adjSizeMax,numEdges, 
-	// 		&bu);
+	start_clock(ce_start, ce_stop);
+		update(nv,ne,d_adjArray,d_adjSizeUsed,d_adjSizeMax,bu);
 	cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
 
+	bu.copyDeviceToHost();
 
-	// freeHostArray(h_edgesSrc);
-	// freeHostArray(h_edgesDst);
+	cout << "Number of unsuccessful insertions : " << bu.getHostIndCount()[0] << endl;
+
+	int32_t sum=0, *tempsrc=bu.getHostSrcArray(),*tempdst=bu.getHostDstArray();
+
+	for(int i=0; i<numEdges; i++){
+		sum+=tempdst[i]+tempsrc[i];
+		if(sum!=0){
+			printf("First broken edge : %d\n",i);
+			break;
+		}
+	}
+
+	cout << "Checking that everything is zero : " << sum << endl;
 
 	int32_t** h_adjArray = (int32_t**)allocHostArray(nv, sizeof(int32_t*));
 	copyArrayDeviceToHost(d_adjArray,h_adjArray,nv, sizeof(int32_t*));

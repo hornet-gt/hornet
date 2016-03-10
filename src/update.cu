@@ -11,21 +11,12 @@ __global__ void devUpdates(
 	int32_t batchSize, int32_t updatesPerBlock ,int32_t* d_updatesSrc, int32_t* d_updatesDst, 
 	int32_t* d_indIncomplete,int32_t* d_indCount)
 {
-	// if(threadIdx.x==0 && blockIdx.x==0)
-	// 	printf("\nBatch size - \n%d\n", batchSize);
 	int32_t init_pos = blockIdx.x * updatesPerBlock;
-	// if(threadIdx.x==0 && blockIdx.x<100)
-	// 	printf("%d %d %d\n",pos, blockIdx.x, updatesPerBlock);
 	for(int i=threadIdx.x; i<updatesPerBlock; i+=blockDim.x){
-
 		int32_t pos=init_pos+i;
-
 		if(pos<batchSize){
-
-
 			int32_t src = d_updatesSrc[pos];
 			int32_t dst = d_updatesDst[pos];
-
 			int32_t ret =  atomicAdd(d_adjSizeUsed+src, 1);
 
 			if(ret<d_adjSizeMax[src]){
@@ -54,31 +45,37 @@ void update(int32_t nv,int32_t ne,
 	int32_tPtr* d_adjArray,int32_t* d_adjSizeUsed,int32_t* d_adjSizeMax,
 	BatchUpdate &bu)
 {	
-	dim3 numBlocks(1, 1,1);
+	dim3 numBlocks(1, 1);
 	int32_t threads=32;
-	dim3 threadsPerBlock(threads, 1,1);
+	dim3 threadsPerBlock(threads, 1);
 
 	int32_t batchSize = bu.getBatchSize();
 
 	numBlocks.x = ceil((float)batchSize/(float)threads);
-	if (numBlocks.x>65535){
-		numBlocks.x=65535;
+
+
+	if (numBlocks.x>16000){
+		numBlocks.x=16000;
 	}	
+
 	int32_t updatesPerBatch = ceil(float(batchSize)/float(numBlocks.x-1));
 
 	cout << numBlocks.x << " : " << threadsPerBlock.x << " : " << updatesPerBatch << endl;
 
+	cudaError_t error = cudaGetLastError();
+	if(error!=cudaSuccess) {
+		fprintf(stderr,"ERROR BEFORE: %s: %s - %d\n", "Update error", cudaGetErrorString(error), error );
+	}
 
-	// devUpdates<<<100,threadsPerBlock>>>(d_adjArray,d_adjSizeUsed,d_adjSizeMax,
-	// bu.getBatchSize(), bu.getDeviceSrcArray(), bu.getDeviceDstArray(),
-	// bu.getDeviceIndInCompleteArray(), bu.getDeviceIndCount());
 
 	devUpdates<<<numBlocks,threadsPerBlock>>>(d_adjArray,d_adjSizeUsed,d_adjSizeMax,
 	bu.getBatchSize(), updatesPerBatch, bu.getDeviceSrcArray(), bu.getDeviceDstArray(),
 	bu.getDeviceIndInCompleteArray(), bu.getDeviceIndCount());
-	cudaError_t error = cudaGetLastError();
+	// devUpdates<<<numBlocks,threadsPerBlock>>>(NULL,NULL,NULL,
+	// 1000, 10000, NULL, NULL, NULL, NULL);
+	error = cudaGetLastError();
 	if(error!=cudaSuccess) {
-		fprintf(stderr,"ERROR1: %s: %s\n", "Update error", cudaGetErrorString(error) );
+		fprintf(stderr,"ERROR1: %s: %s - %d\n", "Update error", cudaGetErrorString(error), error );
 	}
 
 
@@ -97,8 +94,10 @@ BatchUpdate::BatchUpdate(int32_t batchSize_){
 	d_edgeSrc       =  (int32_t*)allocDeviceArray(batchSize,sizeof(int32_t));
 	d_edgeDst       =  (int32_t*)allocDeviceArray(batchSize,sizeof(int32_t));
 	d_indIncomplete =  (int32_t*)allocDeviceArray(batchSize,sizeof(int32_t));
-	d_indCount      =  (int32_t*)allocDeviceArray(1,sizeof(int32_t));
+	d_indCount      =  (int32_t*)allocDeviceArray(batchSize,sizeof(int32_t));
 }
+
+
 
 BatchUpdate::~BatchUpdate(){
 	freeHostArray(h_edgeSrc);

@@ -17,11 +17,7 @@ void* allocDeviceArray(int32_t elements,int32_t eleSize){
 	int32_t* ptr=NULL;
 	if (elements==0 || eleSize==0)
 		return NULL;
-	cudaError code=	cudaMalloc((void **)&ptr,eleSize*elements);
-
-	if (code!=cudaSuccess)
-		cout << "Allocation error : "<<  cudaGetErrorString(code) << endl;
-
+	checkCudaErrors (cudaMalloc((void **)&ptr,eleSize*elements));
 	return ptr;
 }
 
@@ -30,7 +26,7 @@ void freeHostArray(void* array){
 }
 
 void freeDeviceArray(void* array){
-	cudaFree(array);
+	checkCudaErrors(cudaFree(array));
 }
 
 int32_t elementsPerVertex(int32_t elements){
@@ -45,23 +41,27 @@ int32_t elementsPerVertex(int32_t elements){
 }
 
 void copyArrayHostToDevice(void* hostSrc, void* devDst, int32_t elements, int32_t eleSize){
-	cudaError code=cudaMemcpy(devDst,hostSrc,elements*eleSize,cudaMemcpyHostToDevice);
-	// cout << "H to D error : "<<  cudaGetErrorString(code) << endl;
+	checkCudaErrors(cudaMemcpy(devDst,hostSrc,elements*eleSize,cudaMemcpyHostToDevice));
 }
 
 void copyArrayDeviceToHost(void* devSrc, void* hostDst, int32_t elements, int32_t eleSize){
-	cudaError code=cudaMemcpy(hostDst,devSrc,elements*eleSize,cudaMemcpyDeviceToHost);
+	checkCudaErrors(cudaMemcpy(hostDst,devSrc,elements*eleSize,cudaMemcpyDeviceToHost));
 	// cout << "D to H error : "<<  cudaGetErrorString(code) << endl;
 }
 
 __global__ void devMakeGPUStinger(int32_t nv,int32_t ne,int32_t* d_off, int32_t* d_adj,
-	int32_t** d_adjArray, int32_t* d_adjSizeUsed){
-	int32_t v=blockIdx.x;
-	for(int32_t e=threadIdx.x; e<d_adjSizeUsed[v]; e+=blockDim.x){
-		d_adjArray[v][e]=d_adj[d_off[v]+e];
+	int verticesPerThreadBlock,int32_t** d_adjArray, int32_t* d_adjSizeUsed){
+	int32_t v_init=blockIdx.x*verticesPerThreadBlock;
+	for (int v_hat=0; v_hat<verticesPerThreadBlock; v_hat++){
+		int32_t v=v_init+v_hat;
+		if(v>=nv)
+			break;
+
+		for(int32_t e=threadIdx.x; e<d_adjSizeUsed[v]; e+=blockDim.x){
+			d_adjArray[v][e]=d_adj[d_off[v]+e];
+		}
+
 	}
-	// if (threadIdx.x==0 && v <100 && d_adjSizeUsed[v])
-	// 	printf("%d %d %d %d\n", v,d_adjArray[v][d_adjSizeUsed[v]-1],d_off[v+1]-d_off[v], d_adjSizeUsed[v]);
 }
 
 void hostMakeGPUStinger(int32_t nv,int32_t ne,int32_t* h_off, int32_t* h_adj,
@@ -72,7 +72,20 @@ void hostMakeGPUStinger(int32_t nv,int32_t ne,int32_t* h_off, int32_t* h_adj,
 	copyArrayHostToDevice(h_off,d_off,nv,sizeof(int32_t));
 	copyArrayHostToDevice(h_adj,d_adj,nv,sizeof(int32_t));
 
-	devMakeGPUStinger<<<nv,64>>>(nv,ne,d_off,d_adj,d_adjArray, d_adjSizeUsed);
+
+	dim3 numBlocks(1, 1);
+	int32_t threads=64;
+	dim3 threadsPerBlock(threads, 1);
+
+	numBlocks.x = ceil((float)nv/(float)threads);
+	if (numBlocks.x>16000){
+		numBlocks.x=16000;
+	}	
+
+	int32_t verticesPerThreadBlock = ceil(float(nv)/float(numBlocks.x-1));
+
+
+	devMakeGPUStinger<<<numBlocks,threadsPerBlock>>>(nv,ne,d_off,d_adj,verticesPerThreadBlock,d_adjArray, d_adjSizeUsed);
 
 	freeDeviceArray(d_adj);	
 	freeDeviceArray(d_off);
@@ -105,5 +118,7 @@ void allocGPUMemory(int32_t nv,int32_t ne,int32_t* off, int32_t* adj,
 	freeHostArray(h_sizeArrayUsed);
 	freeHostArray(h_sizeArrayMax);
 }
+
+
 
 

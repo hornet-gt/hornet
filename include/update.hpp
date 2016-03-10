@@ -1,5 +1,6 @@
 #pragma once
 
+#include "main.h"
 
 class BatchUpdate{
 public:
@@ -19,7 +20,9 @@ public:
 	int32_t* getDeviceIndCount(){return d_indCount;}	
 
 	void resetHostIndCount(){h_indCount[0]=0;}
-	void resetDeviceIndCount(){cudaMemset(d_indCount,0,sizeof(int32_t));}
+	void resetDeviceIndCount(){
+		checkCudaErrors(cudaMemset(d_indCount,0,sizeof(int32_t)));
+	}
 
 	void copyHostToDevice();
 	void copyDeviceToHost();

@@ -18,20 +18,6 @@ using namespace std;
 
 void readGraphDIMACS(char* filePath, int32_t** prmoff, int32_t** prmind, int32_t* prmnv, int32_t* prmne);
 
-// This will output the proper CUDA error strings in the event that a CUDA host call returns an error
-#ifndef checkCudaErrors
-#define checkCudaErrors(err)  __checkCudaErrors (err, __FILE__, __LINE__)
-
-// These are the inline versions for all of the SDK helper functions
-inline void __checkCudaErrors(cudaError_t err, const char *file, const int line)
-{   
-    if (cudaSuccess != err)
-    {   
-        std::cerr << "CUDA Error = " << err << ": " << cudaGetErrorString(err) << " from file " << file  << ", line " << line << std::endl;
-        exit(EXIT_FAILURE);
-    }
-}
-#endif
 
 //Note: Times are returned in seconds
 void start_clock(cudaEvent_t &start, cudaEvent_t &end)
@@ -102,16 +88,15 @@ int main(const int argc, char *argv[])
 		allocGPUMemory(nv, ne, off, adj, &d_adjArray, &d_adjSizeUsed, &d_adjSizeMax);
 	cout << "Allocation time : " << end_clock(ce_start, ce_stop) << endl;
 
-	// hostMakeGPUStinger(nv,ne,off, adj,*d_adjArray,*d_adjSizeUsed,*d_adjSizeMax);
 	start_clock(ce_start, ce_stop);
 		hostMakeGPUStinger(nv,ne,off, adj,d_adjArray,d_adjSizeUsed,d_adjSizeMax);
 	cout << "Copy time       : " << end_clock(ce_start, ce_stop) << endl;
 
 	BatchUpdate bu(numEdges);
+
 	generateEdgeUpdates(nv, numEdges, bu.getHostSrcArray(),bu.getHostDstArray());
 	bu.resetHostIndCount();
 	bu.copyHostToDevice();
-
 
 	start_clock(ce_start, ce_stop);
 		update(nv,ne,d_adjArray,d_adjSizeUsed,d_adjSizeMax,bu);

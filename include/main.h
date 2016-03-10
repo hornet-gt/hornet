@@ -1,3 +1,20 @@
+// This will output the proper CUDA error strings in the event that a CUDA host call returns an error
+#ifndef checkCudaErrors
+#define checkCudaErrors(err)  __checkCudaErrors (err, __FILE__, __LINE__)
+
+// These are the inline versions for all of the SDK helper functions
+inline void __checkCudaErrors(cudaError_t err, const char *file, const int line)
+{   
+    if (cudaSuccess != err)
+    {   
+        std::cerr << "CUDA Error = " << err << ": " << cudaGetErrorString(err) << " from file " << file  << ", line " << line << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+#endif
+
+
+
 #pragma once
 
 #include "update.hpp"
@@ -31,4 +48,5 @@ void copyArrayDeviceToHost(void* devSrc, void* hostDst, int32_t elements, int32_
 
 void update(int32_t nv,int32_t ne,
 	int32_tPtr* d_adjArray,int32_t* d_adjSizeUsed,int32_t* d_adjSizeMax, BatchUpdate &bu);
+
 

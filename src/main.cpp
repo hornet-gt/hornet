@@ -13,6 +13,7 @@
 #include <thrust/host_vector.h>
 
 #include "main.h"
+// #include "cuStinger.hpp"
 
 using namespace std;
 
@@ -72,9 +73,7 @@ int main(const int argc, char *argv[])
 	int numEdges=10000;
 	if(argc>2)
 		numEdges=atoi(argv[2]);
-
 	srand(100);
-
 
     readGraphDIMACS(argv[1],&off,&adj,&nv,&ne);
 
@@ -84,27 +83,24 @@ int main(const int argc, char *argv[])
 	int32_t *d_adjSizeUsed,*d_adjSizeMax,**d_adjArray;
 
 	cudaEvent_t ce_start,ce_stop;
-	start_clock(ce_start, ce_stop);
-		allocGPUMemory(nv, ne, off, adj, &d_adjArray, &d_adjSizeUsed, &d_adjSizeMax);
-	cout << "Allocation time : " << end_clock(ce_start, ce_stop) << endl;
 
+	cuStinger custing;
 	start_clock(ce_start, ce_stop);
-		hostMakeGPUStinger(nv,ne,off, adj,d_adjArray,d_adjSizeUsed,d_adjSizeMax);
-	cout << "Copy time       : " << end_clock(ce_start, ce_stop) << endl;
+	custing.hostCsrTocuStinger(nv,ne,off,adj);
+	cout << "Allocation and Copy Time : " << end_clock(ce_start, ce_stop) << endl;
 
 	BatchUpdate bu(numEdges);
-
 	generateEdgeUpdates(nv, numEdges, bu.getHostSrcArray(),bu.getHostDstArray());
 	bu.resetHostIndCount();
 	bu.copyHostToDevice();
 
 	start_clock(ce_start, ce_stop);
-		update(nv,ne,d_adjArray,d_adjSizeUsed,d_adjSizeMax,bu);
+		update(custing,bu);
 	cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
 
 	bu.copyDeviceToHost();
 
-	cout << "Number of unsuccessful insertions : " << bu.getHostIndCount()[0] << endl;
+	cout << "Number of unsuccessful insertions : " << bu.getHostIndCount() << endl;
 
 	int32_t sum=0, *tempsrc=bu.getHostSrcArray(),*tempdst=bu.getHostDstArray();
 
@@ -118,18 +114,20 @@ int main(const int argc, char *argv[])
 
 	cout << "Checking that everything is zero : " << sum << endl;
 
-	int32_t** h_adjArray = (int32_t**)allocHostArray(nv, sizeof(int32_t*));
-	copyArrayDeviceToHost(d_adjArray,h_adjArray,nv, sizeof(int32_t*));
-	for(int v = 0; v < nv; v++){
-        freeDeviceArray(h_adjArray[v]); 
-    }
+	// int32_t** h_adjArray = (int32_t**)allocHostArray(nv, sizeof(int32_t*));
+	// copyArrayDeviceToHost(d_adjArray,h_adjArray,nv, sizeof(int32_t*));
+	// for(int v = 0; v < nv; v++){
+ //        freeDeviceArray(h_adjArray[v]); 
+ //    }
 
-	freeDeviceArray(d_adjArray);
-	freeDeviceArray(d_adjSizeUsed);
-	freeDeviceArray(d_adjSizeMax);
+	// freeDeviceArray(d_adjArray);
+	// freeDeviceArray(d_adjSizeUsed);
+	// freeDeviceArray(d_adjSizeMax);
 
-    return 0;	cout << "baabaa" << endl;
+	custing.freecuStinger();
 
+
+    return 0;	
 }       
 
 

@@ -51,8 +51,8 @@ __global__ void devUpdates(cuStinger* custing, BatchUpdate* bu,int32_t updatesPe
 				// printf("%d %d \n", inCompleteEdgeID,pos);
 				// printf("*");
 			}
-			d_updatesSrc[pos]=0;
-			d_updatesDst[pos]=0;
+			// d_updatesSrc[pos]=0;
+			// d_updatesDst[pos]=0;
 		}
 
 	}
@@ -77,7 +77,6 @@ void update(cuStinger &custing, BatchUpdate &bu)
 	int32_t updatesPerBatch = ceil(float(batchSize)/float(numBlocks.x-1));
 
 	cout << numBlocks.x << " : " << threadsPerBlock.x << " : " << updatesPerBatch << endl;
-
 	devUpdates<<<numBlocks,threadsPerBlock>>>(custing.devicePtr(), bu.devicePtr(),updatesPerBatch);
 
 	cudaError_t error = cudaGetLastError();

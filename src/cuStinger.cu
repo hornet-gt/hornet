@@ -22,6 +22,13 @@ cuStinger::~cuStinger(){
 }
 
 void cuStinger::freecuStinger(){
+
+	int32_t** h_adjArray = (int32_t**)allocHostArray(nv, sizeof(int32_t*));
+	copyArrayDeviceToHost(d_adjArray,h_adjArray,nv, sizeof(int32_t*));
+	for(int v = 0; v < nv; v++){
+        freeDeviceArray(h_adjArray[v]); 
+    }
+
 	freeDeviceArray(d_cuStinger);
 	freeDeviceArray(d_adjArray);
 	freeDeviceArray(d_adjSizeUsed);

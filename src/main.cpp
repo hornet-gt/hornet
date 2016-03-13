@@ -2,18 +2,21 @@
 
 
 #include <stdlib.h>
-
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <stdio.h>
 #include <inttypes.h>
 
+#include <unordered_map>
+#include <algorithm>
+ 
 
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 
 #include "main.h"
 // #include "cuStinger.hpp"
+
 
 using namespace std;
 
@@ -56,16 +59,12 @@ int main(const int argc, char *argv[])
     cudaSetDevice(device);
 	cudaDeviceProp prop;
 	cudaGetDeviceProperties(&prop, device);
- 	// printf("  Device name: %s\n", prop.name);
 	cout << "Name : " << prop.name <<  endl;
 	// cout << "computeMode : " << prop.computeMode <<  endl;
  // 	cout << "gridsize.x : " << prop.maxGridSize[0] <<  endl;
  // 	cout << "gridsize.y : " << prop.maxGridSize[1] <<  endl;
  // 	cout << "gridsize.z : " << prop.maxGridSize[2] <<  endl;
  
- // 	cout << "Major      : " << prop.major <<  endl;
- // 	cout << "Minor      : " << prop.minor <<  endl;
-
     int32_t nv, ne,*off,*adj;
 
     cout << argv[1] << endl;
@@ -103,26 +102,38 @@ int main(const int argc, char *argv[])
 	cout << "Number of unsuccessful insertions : " << bu.getHostIndCount() << endl;
 
 	int32_t sum=0, *tempsrc=bu.getHostSrcArray(),*tempdst=bu.getHostDstArray();
+	int32_t *incomplete = bu.getHostIndInCompleteArray();	
+	int32_t incompleteCount = bu.getHostIndCount();
 
-	for(int i=0; i<numEdges; i++){
-		sum+=tempdst[i]+tempsrc[i];
-		if(sum!=0){
-			printf("First broken edge : %d\n",i);
-			break;
+	unordered_map <int32_t, int32_t> h_hmap;
+
+	int32_t* requireUpdates=(int32_t*)allocHostArray(bu.getHostBatchSize(), sizeof(int32_t));
+
+	for (int32_t i=0; i<incompleteCount; i++){
+		int32_t temp = tempsrc[incomplete[i]];
+		h_hmap[temp]=temp;	
+	}
+	int countUnique=0;
+	for (int32_t i=0; i<incompleteCount; i++){
+		int32_t temp = tempsrc[incomplete[i]];
+		if(h_hmap[temp]!=-1){
+			requireUpdates[countUnique++]=h_hmap[temp];
+			h_hmap[temp]=-1;
 		}
 	}
+	sort(requireUpdates, requireUpdates + countUnique);
 
-	cout << "Checking that everything is zero : " << sum << endl;
+	for (int32_t i=0; i<incompleteCount; i++){
+		
+	}
+	copyArrayDeviceToHost(void* devSrc, void* hostDst, int32_t elements, int32_t eleSize){
 
-	// int32_t** h_adjArray = (int32_t**)allocHostArray(nv, sizeof(int32_t*));
-	// copyArrayDeviceToHost(d_adjArray,h_adjArray,nv, sizeof(int32_t*));
-	// for(int v = 0; v < nv; v++){
- //        freeDeviceArray(h_adjArray[v]); 
- //    }
 
-	// freeDeviceArray(d_adjArray);
-	// freeDeviceArray(d_adjSizeUsed);
-	// freeDeviceArray(d_adjSizeMax);
+
+
+	freeHostArray(requireUpdates);
+
+
 
 	custing.freecuStinger();
 

@@ -13,13 +13,15 @@ public:
 
 	void freecuStinger();
 
-// Not yet supported	
-//	void copyDeviceToHost(); 
 	__device__ __host__ int32_t** getAdjArray(){return d_adjArray;}
 	__device__ int32_t* getSizeUsedArray(){return d_adjSizeUsed;}
 	__device__ int32_t* getSizeMaxArray(){return d_adjSizeMax;}
 
 	cuStinger* devicePtr(){return d_cuStinger;}
+
+// Not yet supported	
+//	void copyDeviceToHost(); 
+
 
 public:
 
@@ -43,6 +45,11 @@ public:
 	void deviceAllocMemory(int32_t* off, int32_t* adj);
 	void initcuStinger(int32_t* off, int32_t* adj);
 };
+
+
+	// int32_t** d_adj;
+	// int32_t* d_utilized;
+	// int32_t* d_max;
 
 
 // TODO:

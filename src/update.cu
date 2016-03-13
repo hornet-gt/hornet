@@ -7,20 +7,20 @@
 using namespace std;
 
 // __global__ void devUpdates(
-// 	int32_tPtr* d_adjArray,int32_t* d_adjSizeUsed,int32_t* d_adjSizeMax,
+// 	int32_tPtr* d_adj,int32_t* d_utilized,int32_t* d_max,
 // 	int32_t batchSize, int32_t updatesPerBlock ,int32_t* d_updatesSrc, int32_t* d_updatesDst, 
 // 	int32_t* d_indIncomplete,int32_t* d_indCount)
 
 __global__ void devUpdates(cuStinger* custing, BatchUpdate* bu,int32_t updatesPerBlock)
-	// int32_tPtr* d_adjArray,int32_t* d_adjSizeUsed,int32_t* d_adjSizeMax,
+	// int32_tPtr* d_adj,int32_t* d_utilized,int32_t* d_max,
 	// int32_t batchSize, int32_t updatesPerBlock ,i(nt32_t* d_updatesSrc, int32_t* d_updatesDst, 
 		// int32_t* d_indIncomplete,int32_t* d_indCount)
 {
 	int32_t* d_updatesSrc = bu->getDeviceSrcArray();
 	int32_t* d_updatesDst = bu->getDeviceDstArray();
-	int32_t* d_adjSizeUsed = custing->getSizeUsedArray();
-	int32_t* d_adjSizeMax = custing->getSizeMaxArray();
-	int32_t** d_adjArray = custing->getAdjArray();
+	int32_t* d_utilized = custing->getSizeUsedArray();
+	int32_t* d_max = custing->getSizeMaxArray();
+	int32_t** d_adj = custing->getAdjArray();
 	int32_t batchSize = bu->getDeviceBatchSize();
 	int32_t* d_indCount = bu->getDeviceIndCount();
 	int32_t* d_indIncomplete = bu->getDeviceIndInCompleteArray();
@@ -39,10 +39,10 @@ __global__ void devUpdates(cuStinger* custing, BatchUpdate* bu,int32_t updatesPe
 			// }
 			int32_t src = d_updatesSrc[pos];
 			int32_t dst = d_updatesDst[pos];
-			int32_t ret =  atomicAdd(d_adjSizeUsed+src, 1);
+			int32_t ret =  atomicAdd(d_utilized+src, 1);
 
-			if(ret<d_adjSizeMax[src]){
-				d_adjArray[src][ret] = dst;
+			if(ret<d_max[src]){
+				d_adj[src][ret] = dst;
 			}
 			else{
 				int32_t inCompleteEdgeID =  atomicAdd(d_indCount, 1);
@@ -59,7 +59,7 @@ __global__ void devUpdates(cuStinger* custing, BatchUpdate* bu,int32_t updatesPe
 }
 
 // void update(int32_t nv,int32_t ne,
-// 	int32_tPtr* d_adjArray,int32_t* d_adjSizeUsed,int32_t* d_adjSizeMax,
+// 	int32_tPtr* d_adj,int32_t* d_utilized,int32_t* d_max,
 // 	int32_t numUpdates, int32_t* h_updatesSrc, int32_t* h_updatesDst, 
 // 	int32_t* d_updatesSrc, int32_t* d_updatesDst)
 

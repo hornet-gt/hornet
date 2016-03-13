@@ -13,9 +13,9 @@ public:
 
 	void freecuStinger();
 
-	__device__ __host__ int32_t** getAdjArray(){return d_adjArray;}
-	__device__ int32_t* getSizeUsedArray(){return d_adjSizeUsed;}
-	__device__ int32_t* getSizeMaxArray(){return d_adjSizeMax;}
+	__device__ __host__ int32_t** getAdjArray(){return d_adj;}
+	__device__ int32_t* getSizeUsedArray(){return d_utilized;}
+	__device__ int32_t* getSizeMaxArray(){return d_max;}
 
 	cuStinger* devicePtr(){return d_cuStinger;}
 
@@ -26,9 +26,9 @@ public:
 public:
 
 	// cuStinger(const cuStinger& custing)
-	// :d_adjArray(custing.d_adjArray),
-	// d_adjSizeUsed(custing.d_adjSizeUsed),
-	// d_adjSizeMax(custing.d_adjSizeMax)
+	// :d_adj(custing.d_adj),
+	// d_utilized(custing.d_utilized),
+	// d_max(custing.d_max)
 	// {
 	// }
 
@@ -36,9 +36,9 @@ public:
 	int ne;
 
 // Device memory
-	int32_t** d_adjArray;
-	int32_t* d_adjSizeUsed;
-	int32_t* d_adjSizeMax;
+	int32_t** d_adj;
+	int32_t* d_utilized;
+	int32_t* d_max;
 
 	cuStinger* d_cuStinger;
 

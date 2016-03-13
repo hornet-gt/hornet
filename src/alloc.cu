@@ -40,7 +40,7 @@ void copyArrayDeviceToHost(void* devSrc, void* hostDst, int32_t elements, int32_
 }
 
 void copyArrayDeviceToDevice(void* devSrc, void* devDst, int32_t elements, int32_t eleSize){
-	checkCudaErrors(cudaMemcpy(hostDst,devSrc,elements*eleSize,cudaMemcpyDeviceToDevice));
+	checkCudaErrors(cudaMemcpy(devDst,devSrc,elements*eleSize,cudaMemcpyDeviceToDevice));
 }
 
 

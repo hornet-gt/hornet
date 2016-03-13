@@ -79,7 +79,7 @@ int main(const int argc, char *argv[])
 	cout << "Vertices " << nv << endl;
 	cout << "Edges " << ne << endl;
 
-	int32_t *d_adjSizeUsed,*d_adjSizeMax,**d_adjArray;
+	int32_t *d_utilized,*d_max,**d_adj;
 
 	cudaEvent_t ce_start,ce_stop;
 
@@ -126,7 +126,7 @@ int main(const int argc, char *argv[])
 	for (int32_t i=0; i<incompleteCount; i++){
 		
 	}
-	copyArrayDeviceToHost(void* devSrc, void* hostDst, int32_t elements, int32_t eleSize){
+	// copyArrayDeviceToHost(void* devSrc, void* hostDst, int32_t elements, int32_t eleSize){
 
 
 

@@ -24,23 +24,23 @@ cuStinger::~cuStinger(){
 void cuStinger::freecuStinger(){
 
 	int32_t** h_adjArray = (int32_t**)allocHostArray(nv, sizeof(int32_t*));
-	copyArrayDeviceToHost(d_adjArray,h_adjArray,nv, sizeof(int32_t*));
+	copyArrayDeviceToHost(d_adj,h_adjArray,nv, sizeof(int32_t*));
 	for(int v = 0; v < nv; v++){
         freeDeviceArray(h_adjArray[v]); 
     }
 
 	freeDeviceArray(d_cuStinger);
-	freeDeviceArray(d_adjArray);
-	freeDeviceArray(d_adjSizeUsed);
-	freeDeviceArray(d_adjSizeMax);
+	freeDeviceArray(d_adj);
+	freeDeviceArray(d_utilized);
+	freeDeviceArray(d_max);
 }
 
 void cuStinger::deviceAllocMemory(int32_t* off, int32_t* adj)
 {	
-	d_adjArray = (int32_t**)allocDeviceArray(nv,sizeof(int32_t*));
+	d_adj = (int32_t**)allocDeviceArray(nv,sizeof(int32_t*));
 
-	d_adjSizeUsed = (int32_t*)allocDeviceArray(nv,sizeof(int32_t));
-	d_adjSizeMax =  (int32_t*)allocDeviceArray(nv,sizeof(int32_t));
+	d_utilized = (int32_t*)allocDeviceArray(nv,sizeof(int32_t));
+	d_max =  (int32_t*)allocDeviceArray(nv,sizeof(int32_t));
 
 	int32_t** h_arrayPtr =  (int32_t**)allocHostArray(nv,sizeof(int32_t*));
 	int32_t* h_sizeArrayUsed =  (int32_t*)allocHostArray(nv,sizeof(int32_t));
@@ -51,9 +51,9 @@ void cuStinger::deviceAllocMemory(int32_t* off, int32_t* adj)
 		h_sizeArrayMax[v] = elementsPerVertex(h_sizeArrayUsed[v]);
 		h_arrayPtr[v] =  (int32_t*)allocDeviceArray(h_sizeArrayMax[v], sizeof(int32_t));
 	}
-	copyArrayHostToDevice(h_sizeArrayUsed,d_adjSizeUsed,nv,sizeof(int32_t));
-	copyArrayHostToDevice(h_sizeArrayMax,d_adjSizeMax,nv,sizeof(int32_t));
-	copyArrayHostToDevice(h_arrayPtr,d_adjArray,nv,sizeof(int32_t*));
+	copyArrayHostToDevice(h_sizeArrayUsed,d_utilized,nv,sizeof(int32_t));
+	copyArrayHostToDevice(h_sizeArrayMax,d_max,nv,sizeof(int32_t));
+	copyArrayHostToDevice(h_arrayPtr,d_adj,nv,sizeof(int32_t*));
 
 	freeHostArray(h_arrayPtr);
 	freeHostArray(h_sizeArrayUsed);
@@ -73,9 +73,9 @@ void cuStinger::hostCsrTocuStinger(int32_t nv_,int32_t ne_,int32_t* off_, int32_
 	// copyArrayDeviceToHost(d_cuStinger,h_cuStinger,1, sizeof(cuStinger));	
 	// printf("nv: %d %d \n",h_cuStinger->nv,nv);	
 	// printf("ne: %d %d \n",h_cuStinger->ne,ne);	
-	// printf("Adj ptrs: %p %p \n",h_cuStinger->d_adjArray,d_adjArray);	
-	// printf("Adj ptrs: %p %p \n",h_cuStinger->d_adjSizeUsed,d_adjSizeUsed);	
-	// printf("Adj ptrs: %p %p \n",h_cuStinger->d_adjSizeMax,d_adjSizeMax);	
+	// printf("Adj ptrs: %p %p \n",h_cuStinger->d_adj,d_adj);	
+	// printf("Adj ptrs: %p %p \n",h_cuStinger->d_utilized,d_utilized);	
+	// printf("Adj ptrs: %p %p \n",h_cuStinger->d_max,d_max);	
 	// freeDeviceArray(h_cuStinger);
 
 	initcuStinger(off_,adj_);
@@ -85,16 +85,16 @@ void cuStinger::hostCsrTocuStinger(int32_t nv_,int32_t ne_,int32_t* off_, int32_
 __global__ void devMakeGPUStinger(int32_t* d_off, int32_t* d_adj,
 	int verticesPerThreadBlock,cuStinger* custing)
 {
-	int32_t** d_adjArray = custing->d_adjArray;
-	int32_t* d_adjSizeUsed = custing->d_adjSizeUsed;
+	int32_t** d_cuadj = custing->d_adj;
+	int32_t* d_utilized = custing->d_utilized;
 
 	int32_t v_init=blockIdx.x*verticesPerThreadBlock;
 	for (int v_hat=0; v_hat<verticesPerThreadBlock; v_hat++){
 		int32_t v=v_init+v_hat;
 		if(v>=custing->nv)
 			break;
-		for(int32_t e=threadIdx.x; e<d_adjSizeUsed[v]; e+=blockDim.x){
-			d_adjArray[v][e]=d_adj[d_off[v]+e];
+		for(int32_t e=threadIdx.x; e<d_utilized[v]; e+=blockDim.x){
+			d_cuadj[v][e]=d_adj[d_off[v]+e];
 		}
 	}
 }

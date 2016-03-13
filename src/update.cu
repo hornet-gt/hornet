@@ -16,14 +16,14 @@ __global__ void devUpdates(cuStinger* custing, BatchUpdate* bu,int32_t updatesPe
 	// int32_t batchSize, int32_t updatesPerBlock ,i(nt32_t* d_updatesSrc, int32_t* d_updatesDst, 
 		// int32_t* d_indIncomplete,int32_t* d_indCount)
 {
-	int32_t* d_updatesSrc = bu->getDeviceSrcArray();
-	int32_t* d_updatesDst = bu->getDeviceDstArray();
-	int32_t* d_utilized = custing->getSizeUsedArray();
-	int32_t* d_max = custing->getSizeMaxArray();
-	int32_t** d_adj = custing->getAdjArray();
+	int32_t* d_updatesSrc = bu->getDeviceSrc();
+	int32_t* d_updatesDst = bu->getDeviceDst();
+	int32_t* d_utilized = custing->getDeviceUtilized();
+	int32_t* d_max = custing->getDeviceMax();
+	int32_t** d_adj = custing->getDeviceAdj();
 	int32_t batchSize = bu->getDeviceBatchSize();
 	int32_t* d_indCount = bu->getDeviceIndCount();
-	int32_t* d_indIncomplete = bu->getDeviceIndInCompleteArray();
+	int32_t* d_indIncomplete = bu->getDeviceIndIncomplete();
 
 	// if(threadIdx.x==0 && blockIdx.x==0)
 	// 	printf("@@@@ %d", batchSize);

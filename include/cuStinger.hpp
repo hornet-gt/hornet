@@ -13,9 +13,9 @@ public:
 
 	void freecuStinger();
 
-	__device__ __host__ int32_t** getAdjArray(){return d_adj;}
-	__device__ int32_t* getSizeUsedArray(){return d_utilized;}
-	__device__ int32_t* getSizeMaxArray(){return d_max;}
+	__device__ __host__ int32_t** getDeviceAdj(){return d_adj;}
+	__device__ int32_t* getDeviceUtilized(){return d_utilized;}
+	__device__ int32_t* getDeviceMax(){return d_max;}
 
 	cuStinger* devicePtr(){return d_cuStinger;}
 

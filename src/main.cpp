@@ -89,7 +89,7 @@ int main(const int argc, char *argv[])
 	cout << "Allocation and Copy Time : " << end_clock(ce_start, ce_stop) << endl;
 
 	BatchUpdate bu(numEdges);
-	generateEdgeUpdates(nv, numEdges, bu.getHostSrcArray(),bu.getHostDstArray());
+	generateEdgeUpdates(nv, numEdges, bu.getHostSrc(),bu.getHostDst());
 	bu.resetHostIndCount();
 	bu.copyHostToDevice();
 
@@ -101,8 +101,8 @@ int main(const int argc, char *argv[])
 
 	cout << "Number of unsuccessful insertions : " << bu.getHostIndCount() << endl;
 
-	int32_t sum=0, *tempsrc=bu.getHostSrcArray(),*tempdst=bu.getHostDstArray();
-	int32_t *incomplete = bu.getHostIndInCompleteArray();	
+	int32_t sum=0, *tempsrc=bu.getHostSrc(),*tempdst=bu.getHostDst();
+	int32_t *incomplete = bu.getHostIndIncomplete();	
 	int32_t incompleteCount = bu.getHostIndCount();
 
 	unordered_map <int32_t, int32_t> h_hmap;

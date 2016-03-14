@@ -23,63 +23,53 @@ cuStinger::~cuStinger(){
 
 void cuStinger::freecuStinger(){
 
-	int32_t** h_adjArray = (int32_t**)allocHostArray(nv, sizeof(int32_t*));
-	copyArrayDeviceToHost(d_adj,h_adjArray,nv, sizeof(int32_t*));
 	for(int v = 0; v < nv; v++){
-        freeDeviceArray(h_adjArray[v]); 
+        freeDeviceArray(h_adj[v]); 
     }
 
 	freeDeviceArray(d_cuStinger);
 	freeDeviceArray(d_adj);
 	freeDeviceArray(d_utilized);
 	freeDeviceArray(d_max);
+
+	freeHostArray(h_adj);
+	freeHostArray(h_utilized);
+	freeHostArray(h_max);	
 }
 
 void cuStinger::deviceAllocMemory(int32_t* off, int32_t* adj)
 {	
 	d_adj = (int32_t**)allocDeviceArray(nv,sizeof(int32_t*));
-
 	d_utilized = (int32_t*)allocDeviceArray(nv,sizeof(int32_t));
 	d_max =  (int32_t*)allocDeviceArray(nv,sizeof(int32_t));
 
-	int32_t** h_arrayPtr =  (int32_t**)allocHostArray(nv,sizeof(int32_t*));
-	int32_t* h_sizeArrayUsed =  (int32_t*)allocHostArray(nv,sizeof(int32_t));
-	int32_t* h_sizeArrayMax =  (int32_t*)allocHostArray(nv,sizeof(int32_t));
+	h_adj =  (int32_t**)allocHostArray(nv,sizeof(int32_t*));
+	h_utilized =  (int32_t*)allocHostArray(nv,sizeof(int32_t));
+	h_max =  (int32_t*)allocHostArray(nv,sizeof(int32_t));
 
 	for(int v=0; v<nv; v++){
-		h_sizeArrayUsed[v]=off[v+1]-off[v];
-		h_sizeArrayMax[v] = elementsPerVertex(h_sizeArrayUsed[v]);
-		h_arrayPtr[v] =  (int32_t*)allocDeviceArray(h_sizeArrayMax[v], sizeof(int32_t));
+		h_utilized[v]=off[v+1]-off[v];
+		h_max[v] = elementsPerVertex(h_utilized[v]);
+		h_adj[v] =  (int32_t*)allocDeviceArray(h_max[v], sizeof(int32_t));
 	}
-	copyArrayHostToDevice(h_sizeArrayUsed,d_utilized,nv,sizeof(int32_t));
-	copyArrayHostToDevice(h_sizeArrayMax,d_max,nv,sizeof(int32_t));
-	copyArrayHostToDevice(h_arrayPtr,d_adj,nv,sizeof(int32_t*));
 
-	freeHostArray(h_arrayPtr);
-	freeHostArray(h_sizeArrayUsed);
-	freeHostArray(h_sizeArrayMax);
+	copyArrayHostToDevice(h_utilized,d_utilized,nv,sizeof(int32_t));
+	copyArrayHostToDevice(h_max,d_max,nv,sizeof(int32_t));
+	copyArrayHostToDevice(h_adj,d_adj,nv,sizeof(int32_t*));
+
+
 }
 
 
-void cuStinger::hostCsrTocuStinger(int32_t nv_,int32_t ne_,int32_t* off_, int32_t* adj_){
+void cuStinger::initializeCuStinger(int32_t nv_,int32_t ne_,int32_t* off_, int32_t* adj_){
 	nv=nv_;
-	ne=ne_;
+	ne=ne_;	
 	deviceAllocMemory(off_,adj_);
 
 	d_cuStinger=(cuStinger*) allocDeviceArray(1,sizeof(cuStinger));
 	copyArrayHostToDevice(this,d_cuStinger,1, sizeof(cuStinger));
 
-	// cuStinger* h_cuStinger=(cuStinger*) allocHostArray(1,sizeof(cuStinger));
-	// copyArrayDeviceToHost(d_cuStinger,h_cuStinger,1, sizeof(cuStinger));	
-	// printf("nv: %d %d \n",h_cuStinger->nv,nv);	
-	// printf("ne: %d %d \n",h_cuStinger->ne,ne);	
-	// printf("Adj ptrs: %p %p \n",h_cuStinger->d_adj,d_adj);	
-	// printf("Adj ptrs: %p %p \n",h_cuStinger->d_utilized,d_utilized);	
-	// printf("Adj ptrs: %p %p \n",h_cuStinger->d_max,d_max);	
-	// freeDeviceArray(h_cuStinger);
-
 	initcuStinger(off_,adj_);
-	cout << "after copying" << endl;
 }
 
 __global__ void devMakeGPUStinger(int32_t* d_off, int32_t* d_adj,
@@ -98,7 +88,6 @@ __global__ void devMakeGPUStinger(int32_t* d_off, int32_t* d_adj,
 		}
 	}
 }
-
 
 void cuStinger::initcuStinger(int32_t* h_off, int32_t* h_adj){
 	int32_t* d_off = (int32_t*)allocDeviceArray(nv+1,sizeof(int32_t));

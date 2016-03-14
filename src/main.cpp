@@ -45,13 +45,23 @@ float end_clock(cudaEvent_t &start, cudaEvent_t &end)
 
 
 void generateEdgeUpdates(int32_t nv, int32_t numEdges, int32_t* edgeSrc, int32_t* edgeDst){
-
 	for(int32_t e=0; e<numEdges; e++){
 		edgeSrc[e] = rand()%nv;
 		edgeDst[e] = rand()%nv;
 	}
-
 }
+
+int32_t elementsPerVertexOverLimit(int32_t elements, int32_t overLimit){
+	int32_t eleCount = elements+overLimit;
+	if(eleCount==0)
+		eleCount=1;
+	else if(eleCount < 5)
+		eleCount*=2;
+	else
+		eleCount*=1.5;
+	return eleCount;
+}
+
 
 int main(const int argc, char *argv[])
 {
@@ -85,7 +95,7 @@ int main(const int argc, char *argv[])
 
 	cuStinger custing;
 	start_clock(ce_start, ce_stop);
-	custing.hostCsrTocuStinger(nv,ne,off,adj);
+	custing.initializeCuStinger(nv,ne,off,adj);
 	cout << "Allocation and Copy Time : " << end_clock(ce_start, ce_stop) << endl;
 
 	BatchUpdate bu(numEdges);
@@ -108,35 +118,42 @@ int main(const int argc, char *argv[])
 	unordered_map <int32_t, int32_t> h_hmap;
 
 	int32_t* requireUpdates=(int32_t*)allocHostArray(bu.getHostBatchSize(), sizeof(int32_t));
+	int32_t* overLimit=(int32_t*)allocHostArray(bu.getHostBatchSize(), sizeof(int32_t));
 
+	start_clock(ce_start, ce_stop);
 	for (int32_t i=0; i<incompleteCount; i++){
 		int32_t temp = tempsrc[incomplete[i]];
-		h_hmap[temp]=temp;	
+		h_hmap[temp]++;
 	}
+
 	int countUnique=0;
 	for (int32_t i=0; i<incompleteCount; i++){
 		int32_t temp = tempsrc[incomplete[i]];
-		if(h_hmap[temp]!=-1){
-			requireUpdates[countUnique++]=h_hmap[temp];
-			h_hmap[temp]=-1;
+		if(h_hmap[temp]!=0){
+			requireUpdates[countUnique]=temp;
+			overLimit[countUnique]=h_hmap[temp];
+			countUnique++;
+			h_hmap[temp]=0;
 		}
 	}
 	sort(requireUpdates, requireUpdates + countUnique);
 
-	for (int32_t i=0; i<incompleteCount; i++){
-		
+	for (int32_t i=0; i<countUnique; i++){
+		int32_t tempVertex = requireUpdates[i];
+		int32_t newMax = elementsPerVertexOverLimit(custing.h_max[tempVertex] ,overLimit[i]);
+		int32_t* tempAdjacency = (int32_t*)allocDeviceArray(newMax, sizeof(int32_t));
+		copyArrayDeviceToHost(custing.h_adj[tempVertex], tempAdjacency, custing.h_max[tempVertex], sizeof(int32_t));
+
+		freeDeviceArray(custing.h_adj[tempVertex]);
+		custing.h_adj[tempVertex] = tempAdjacency;		
 	}
-	// copyArrayDeviceToHost(void* devSrc, void* hostDst, int32_t elements, int32_t eleSize){
 
-
-
+	cout << "Reallaction time: " << end_clock(ce_start, ce_stop) << endl;
 
 	freeHostArray(requireUpdates);
-
-
+	freeHostArray(overLimit);
 
 	custing.freecuStinger();
-
 
     return 0;	
 }       

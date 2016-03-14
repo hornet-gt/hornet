@@ -6,12 +6,50 @@
 
 using namespace std;
 
-// __global__ void devUpdates(
-// 	int32_tPtr* d_adj,int32_t* d_utilized,int32_t* d_max,
-// 	int32_t batchSize, int32_t updatesPerBlock ,int32_t* d_updatesSrc, int32_t* d_updatesDst, 
-// 	int32_t* d_indIncomplete,int32_t* d_indCount)
+// __global__ void devUpdates(cuStinger* custing, BatchUpdate* bu,int32_t updatesPerBlock)
+// 	// int32_tPtr* d_adj,int32_t* d_utilized,int32_t* d_max,
+// 	// int32_t batchSize, int32_t updatesPerBlock ,i(nt32_t* d_updatesSrc, int32_t* d_updatesDst, 
+// 		// int32_t* d_indIncomplete,int32_t* d_indCount)
+// {
+// 	int32_t* d_updatesSrc = bu->getDeviceSrc();
+// 	int32_t* d_updatesDst = bu->getDeviceDst();
+// 	int32_t* d_utilized = custing->getDeviceUtilized();
+// 	int32_t* d_max = custing->getDeviceMax();
+// 	int32_t** d_adj = custing->getDeviceAdj();
+// 	int32_t batchSize = bu->getDeviceBatchSize();
+// 	int32_t* d_indCount = bu->getDeviceIndCount();
+// 	int32_t* d_indIncomplete = bu->getDeviceIndIncomplete();
 
-__global__ void devUpdates(cuStinger* custing, BatchUpdate* bu,int32_t updatesPerBlock)
+// 	// if(threadIdx.x==0 && blockIdx.x==0)
+// 	// 	printf("@@@@ %d", batchSize);
+
+// 	// return;
+
+// 	int32_t init_pos = blockIdx.x * updatesPerBlock;
+// 	for(int i=threadIdx.x; i<updatesPerBlock; i+=blockDim.x){
+// 		int32_t pos=init_pos+i;
+// 		if(pos<batchSize){
+// 			int32_t src = d_updatesSrc[pos];
+// 			int32_t dst = d_updatesDst[pos];
+// 			int32_t ret =  atomicAdd(d_utilized+src, 1);
+
+// 			if(ret<d_max[src]){
+// 				d_adj[src][ret] = dst;
+// 			}
+// 			else{
+// 				// Out of space for this adjacency.
+// 				int32_t inCompleteEdgeID =  atomicAdd(d_indCount, 1);
+// 				d_indIncomplete[inCompleteEdgeID] = pos;
+// 			}
+// 			// d_updatesSrc[pos]=0;
+// 			// d_updatesDst[pos]=0;
+// 		}
+// 	}
+// }
+
+// No duplicates allowed
+
+__global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdate* bu,int32_t updatesPerBlock)
 	// int32_tPtr* d_adj,int32_t* d_utilized,int32_t* d_max,
 	// int32_t batchSize, int32_t updatesPerBlock ,i(nt32_t* d_updatesSrc, int32_t* d_updatesDst, 
 		// int32_t* d_indIncomplete,int32_t* d_indCount)
@@ -29,39 +67,40 @@ __global__ void devUpdates(cuStinger* custing, BatchUpdate* bu,int32_t updatesPe
 	// 	printf("@@@@ %d", batchSize);
 
 	// return;
-	int32_t init_pos = blockIdx.x * updatesPerBlock;
-	for(int i=threadIdx.x; i<updatesPerBlock; i+=blockDim.x){
-		int32_t pos=init_pos+i;
-		if(pos<batchSize){
-			// if (pos<0){
-			// 	printf("***** %d %d \n", init_pos, i);
-			// 	break;
-			// }
-			int32_t src = d_updatesSrc[pos];
-			int32_t dst = d_updatesDst[pos];
-			int32_t ret =  atomicAdd(d_utilized+src, 1);
 
+	int32_t init_pos = blockIdx.x * updatesPerBlock;
+
+	for (int32_t i=0; i<updatesPerBlock; i++){
+		int32_t pos=init_pos+i;
+		if(pos>=batchSize)
+			break;
+		int32_t src = d_updatesSrc[pos];
+		int32_t dst = d_updatesDst[pos];
+
+		int32_t srcInitSize = d_utilized[src];
+		int32_t found=0;
+		for (int32_t e=0; e<srcInitSize; e+=blockDim.x){
+			if(d_adj[src][e]==dst)
+				found=1;
+		}
+		if(!found && threadIdx.x==0){
+			int32_t ret =  atomicAdd(d_utilized+src, 1);
 			if(ret<d_max[src]){
 				d_adj[src][ret] = dst;
 			}
 			else{
+				// Out of space for this adjacency.
 				int32_t inCompleteEdgeID =  atomicAdd(d_indCount, 1);
 				d_indIncomplete[inCompleteEdgeID] = pos;
-				//RUN out of space
-				// printf("%d %d \n", inCompleteEdgeID,pos);
-				// printf("*");
 			}
 			// d_updatesSrc[pos]=0;
 			// d_updatesDst[pos]=0;
 		}
 
 	}
+
 }
 
-// void update(int32_t nv,int32_t ne,
-// 	int32_tPtr* d_adj,int32_t* d_utilized,int32_t* d_max,
-// 	int32_t numUpdates, int32_t* h_updatesSrc, int32_t* h_updatesDst, 
-// 	int32_t* d_updatesSrc, int32_t* d_updatesDst)
 
 void update(cuStinger &custing, BatchUpdate &bu)
 {	
@@ -77,7 +116,7 @@ void update(cuStinger &custing, BatchUpdate &bu)
 	int32_t updatesPerBatch = ceil(float(batchSize)/float(numBlocks.x-1));
 
 	cout << numBlocks.x << " : " << threadsPerBlock.x << " : " << updatesPerBatch << endl;
-	devUpdates<<<numBlocks,threadsPerBlock>>>(custing.devicePtr(), bu.devicePtr(),updatesPerBatch);
+	deviceUpdatesSweep1<<<numBlocks,threadsPerBlock>>>(custing.devicePtr(), bu.devicePtr(),updatesPerBatch);
 
 	cudaError_t error = cudaGetLastError();
 	if(error!=cudaSuccess) {

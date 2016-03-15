@@ -153,7 +153,9 @@ int main(const int argc, char *argv[])
 	freeHostArray(requireUpdates);
 	freeHostArray(overLimit);
 
+	cout << "just before custinger release " << endl;
 	custing.freecuStinger();
+	cout << "just after custinger release " << endl;
 
     return 0;	
 }       

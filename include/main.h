@@ -13,11 +13,25 @@ inline void __checkCudaErrors(cudaError_t err, const char *file, const int line)
 }
 #endif
 
+#ifndef checkLastCudaError
+#define checkLastCudaError(str)  __checkLastCudaError (str,__FILE__, __LINE__)
+
+// These are the inline versions for all of the SDK helper functions
+inline void __checkLastCudaError(const char* strError, const char *file, const int line)
+{   
+	cudaError_t error = cudaGetLastError();
+    if (cudaSuccess != error)
+    {   
+        std::cerr << "Execution error = " << strError << ": " << cudaGetErrorString(error) << " from file " << file  << ", line " << line << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+#endif
 
 
 #pragma once
 
-#include "update.hpp"
+// #include "update.hpp"
 #include "cuStinger.hpp"
 
 typedef int32_t* int32_tPtr;
@@ -47,6 +61,5 @@ void copyArrayDeviceToHost(void* devSrc, void* hostDst, int32_t elements, int32_
 
 
 
-void update(cuStinger &custing, BatchUpdate &bu);
 
 

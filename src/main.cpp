@@ -7,14 +7,13 @@
 #include <stdio.h>
 #include <inttypes.h>
 
-#include <unordered_map>
-#include <algorithm>
  
 
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 
 #include "main.h"
+#include "update.hpp"
 // #include "cuStinger.hpp"
 
 
@@ -49,17 +48,6 @@ void generateEdgeUpdates(int32_t nv, int32_t numEdges, int32_t* edgeSrc, int32_t
 		edgeSrc[e] = rand()%nv;
 		edgeDst[e] = rand()%nv;
 	}
-}
-
-int32_t elementsPerVertexOverLimit(int32_t elements, int32_t overLimit){
-	int32_t eleCount = elements+overLimit;
-	if(eleCount==0)
-		eleCount=1;
-	else if(eleCount < 5)
-		eleCount*=2;
-	else
-		eleCount*=1.5;
-	return eleCount;
 }
 
 
@@ -100,58 +88,15 @@ int main(const int argc, char *argv[])
 
 	BatchUpdate bu(numEdges);
 	generateEdgeUpdates(nv, numEdges, bu.getHostSrc(),bu.getHostDst());
-	bu.resetHostIndCount();
+	bu.resetHostIncCount();
 	bu.copyHostToDevice();
 
 	start_clock(ce_start, ce_stop);
 		update(custing,bu);
 	cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
 
-	bu.copyDeviceToHost();
 
-	cout << "Number of unsuccessful insertions : " << bu.getHostIndCount() << endl;
-
-	int32_t sum=0, *tempsrc=bu.getHostSrc(),*tempdst=bu.getHostDst();
-	int32_t *incomplete = bu.getHostIndIncomplete();	
-	int32_t incompleteCount = bu.getHostIndCount();
-
-	unordered_map <int32_t, int32_t> h_hmap;
-
-	int32_t* requireUpdates=(int32_t*)allocHostArray(bu.getHostBatchSize(), sizeof(int32_t));
-	int32_t* overLimit=(int32_t*)allocHostArray(bu.getHostBatchSize(), sizeof(int32_t));
-
-	start_clock(ce_start, ce_stop);
-	for (int32_t i=0; i<incompleteCount; i++){
-		int32_t temp = tempsrc[incomplete[i]];
-		h_hmap[temp]++;
-	}
-
-	int countUnique=0;
-	for (int32_t i=0; i<incompleteCount; i++){
-		int32_t temp = tempsrc[incomplete[i]];
-		if(h_hmap[temp]!=0){
-			requireUpdates[countUnique]=temp;
-			overLimit[countUnique]=h_hmap[temp];
-			countUnique++;
-			h_hmap[temp]=0;
-		}
-	}
-	sort(requireUpdates, requireUpdates + countUnique);
-
-	for (int32_t i=0; i<countUnique; i++){
-		int32_t tempVertex = requireUpdates[i];
-		int32_t newMax = elementsPerVertexOverLimit(custing.h_max[tempVertex] ,overLimit[i]);
-		int32_t* tempAdjacency = (int32_t*)allocDeviceArray(newMax, sizeof(int32_t));
-		copyArrayDeviceToHost(custing.h_adj[tempVertex], tempAdjacency, custing.h_max[tempVertex], sizeof(int32_t));
-
-		freeDeviceArray(custing.h_adj[tempVertex]);
-		custing.h_adj[tempVertex] = tempAdjacency;		
-	}
-
-	cout << "Reallaction time: " << end_clock(ce_start, ce_stop) << endl;
-
-	freeHostArray(requireUpdates);
-	freeHostArray(overLimit);
+	cout << "Number of unsuccessful insertions : " << bu.getHostIncCount() << endl;
 
 	cout << "just before custinger release " << endl;
 	custing.freecuStinger();

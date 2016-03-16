@@ -37,6 +37,19 @@ void cuStinger::freecuStinger(){
 	freeHostArray(h_max);	
 }
 
+void cuStinger::copyHostToDevice(){
+	copyArrayHostToDevice(h_utilized,d_utilized,nv,sizeof(int32_t));
+	copyArrayHostToDevice(h_max,d_max,nv,sizeof(int32_t));
+	copyArrayHostToDevice(h_adj,d_adj,nv,sizeof(int32_t*));
+}
+
+void cuStinger::copyDeviceToHost(){
+	copyArrayDeviceToHost(d_utilized,h_utilized,nv,sizeof(int32_t));
+	copyArrayDeviceToHost(d_max,h_max,nv,sizeof(int32_t));
+	copyArrayDeviceToHost(d_adj,h_adj,nv,sizeof(int32_t*));
+}
+
+
 void cuStinger::deviceAllocMemory(int32_t* off, int32_t* adj)
 {	
 	d_adj = (int32_t**)allocDeviceArray(nv,sizeof(int32_t*));
@@ -52,12 +65,7 @@ void cuStinger::deviceAllocMemory(int32_t* off, int32_t* adj)
 		h_max[v] = elementsPerVertex(h_utilized[v]);
 		h_adj[v] =  (int32_t*)allocDeviceArray(h_max[v], sizeof(int32_t));
 	}
-
-	copyArrayHostToDevice(h_utilized,d_utilized,nv,sizeof(int32_t));
-	copyArrayHostToDevice(h_max,d_max,nv,sizeof(int32_t));
-	copyArrayHostToDevice(h_adj,d_adj,nv,sizeof(int32_t*));
-
-
+	copyHostToDevice();
 }
 
 

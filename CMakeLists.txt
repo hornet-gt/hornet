@@ -21,6 +21,7 @@ cuda_add_executable(custinger
 					src/alloc.cu
 					src/graphreader.cpp
 					src/update.cu
+					src/update.cpp
 					src/cuStinger.cu
 				   )
 

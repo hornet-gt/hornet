@@ -8,8 +8,8 @@ public:
 
 	void initializeCuStinger(int32_t nv_,int32_t ne_,int32_t* off_, int32_t* adj_);
 
-
 	void copyHostToDevice();
+	void copyDeviceToHost(); 
 
 	void freecuStinger();
 
@@ -19,8 +19,6 @@ public:
 
 	cuStinger* devicePtr(){return d_cuStinger;}
 
-// Not yet supported	
-//	void copyDeviceToHost(); 
 
 	int32_t **h_adj,*h_utilized,*h_max;
 

@@ -7,7 +7,7 @@
 
 using namespace std;
 
-int32_t elementsPerVertex(int32_t elements){
+int32_t defaultInitAllocater(int32_t elements){
 	int32_t eleCount = elements;
 	if(eleCount==0)
 		eleCount=1;
@@ -16,6 +16,11 @@ int32_t elementsPerVertex(int32_t elements){
 	else
 		eleCount*=1.5;
 	return eleCount;
+}
+
+cuStinger::cuStinger(initAllocator iAllocator,updateAllocator uAllocator){
+	initVertexAllocator = iAllocator;
+	updateVertexAllocator = uAllocator;
 }
 
 cuStinger::~cuStinger(){
@@ -62,7 +67,7 @@ void cuStinger::deviceAllocMemory(int32_t* off, int32_t* adj)
 
 	for(int v=0; v<nv; v++){
 		h_utilized[v]=off[v+1]-off[v];
-		h_max[v] = elementsPerVertex(h_utilized[v]);
+		h_max[v] = initVertexAllocator(h_utilized[v]);
 		h_adj[v] =  (int32_t*)allocDeviceArray(h_max[v], sizeof(int32_t));
 	}
 	copyHostToDevice();

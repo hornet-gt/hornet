@@ -1,9 +1,16 @@
 #pragma once
 
 
+typedef int32_t (*initAllocator)(int32_t);
+int32_t defaultInitAllocater(int32_t elements);
+
+typedef int32_t (*updateAllocator)(int32_t, int32_t);
+int32_t defaultUpdateAllocater(int32_t elements, int32_t overLimit);
+
 class cuStinger{
 public:
-	cuStinger(){}
+	cuStinger(initAllocator iAllocator=defaultInitAllocater,
+		updateAllocator uAllocator=defaultUpdateAllocater);
 	~cuStinger();
 
 	void initializeCuStinger(int32_t nv_,int32_t ne_,int32_t* off_, int32_t* adj_);
@@ -18,9 +25,6 @@ public:
 	__device__ int32_t* getDeviceMax(){return d_max;}
 
 	cuStinger* devicePtr(){return d_cuStinger;}
-
-
-
 
 
 	int32_t getNumberEdgesAllocated();
@@ -40,14 +44,11 @@ public:
 
 	cuStinger* d_cuStinger;
 
+	initAllocator initVertexAllocator;
+	updateAllocator updateVertexAllocator;
 	void deviceAllocMemory(int32_t* off, int32_t* adj);
 	void initcuStinger(int32_t* off, int32_t* adj);
 };
-
-
-	// int32_t** d_adj;
-	// int32_t* d_utilized;
-	// int32_t* d_max;
 
 
 // TODO:

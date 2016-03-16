@@ -156,81 +156,6 @@ __global__ void deviceRemoveInsertedDuplicates(cuStinger* custing, BatchUpdate* 
 }
 
 
-
-
-BatchUpdate::BatchUpdate(int32_t batchSize_){
-	h_edgeSrc       =  (int32_t*)allocHostArray(batchSize_,sizeof(int32_t));
-	h_edgeDst       =  (int32_t*)allocHostArray(batchSize_,sizeof(int32_t));
-	h_indIncomplete =  (int32_t*)allocHostArray(batchSize_,sizeof(int32_t));
-	h_incCount      =  (int32_t*)allocHostArray(1,sizeof(int32_t));
-	h_batchSize     =  (int32_t*)allocHostArray(1,sizeof(int32_t));
-	h_indDuplicate  =  (int32_t*)allocHostArray(batchSize_,sizeof(int32_t));
-	h_dupCount      =  (int32_t*)allocHostArray(1,sizeof(int32_t));
-	h_dupRelPos     =  (int32_t*)allocHostArray(batchSize_,sizeof(int32_t));
-
-	d_edgeSrc       =  (int32_t*)allocDeviceArray(batchSize_,sizeof(int32_t));
-	d_edgeDst       =  (int32_t*)allocDeviceArray(batchSize_,sizeof(int32_t));
-	d_indIncomplete =  (int32_t*)allocDeviceArray(batchSize_,sizeof(int32_t));
-	d_incCount      =  (int32_t*)allocDeviceArray(1,sizeof(int32_t));
-	d_batchSize     =  (int32_t*)allocDeviceArray(1,sizeof(int32_t));
-	d_indDuplicate  =  (int32_t*)allocDeviceArray(batchSize_,sizeof(int32_t));
-	d_dupCount      =  (int32_t*)allocDeviceArray(1,sizeof(int32_t));
-	d_dupRelPos     =  (int32_t*)allocDeviceArray(batchSize_,sizeof(int32_t));
-
-	h_batchSize[0]=batchSize_;
-
-	resetHostIncCount();
-	resetHostDuplicateCount();
-
-	d_batchUpdate=(BatchUpdate*) allocDeviceArray(1,sizeof(BatchUpdate));
-	copyArrayHostToDevice(this,d_batchUpdate,1, sizeof(BatchUpdate));
-}
-
-
-BatchUpdate::~BatchUpdate(){
-	freeHostArray(h_edgeSrc);
-	freeHostArray(h_edgeDst);
-	freeHostArray(h_incCount);
-	freeHostArray(h_batchSize);
-	freeHostArray(h_indDuplicate);
-	freeHostArray(h_dupCount);
-	freeHostArray(h_dupRelPos);
-
-	freeDeviceArray(d_edgeSrc);
-	freeDeviceArray(d_edgeDst);
-	freeDeviceArray(d_incCount);
-	freeDeviceArray(d_batchSize);
-	freeDeviceArray(d_indDuplicate);
-	freeDeviceArray(d_dupCount);
-	freeDeviceArray(d_dupRelPos);
-
-	freeDeviceArray(d_batchUpdate);
-
-}
-
-void BatchUpdate::copyHostToDevice(){
-	copyArrayHostToDevice(h_batchSize, d_batchSize, 1, sizeof(int32_t));
-
-	copyArrayHostToDevice(h_edgeSrc, d_edgeSrc, h_batchSize[0], sizeof(int32_t));
-	copyArrayHostToDevice(h_edgeDst, d_edgeDst, h_batchSize[0], sizeof(int32_t));
-	copyArrayHostToDevice(h_indIncomplete, d_indIncomplete, h_batchSize[0], sizeof(int32_t));
-	copyArrayHostToDevice(h_incCount, d_incCount, 1, sizeof(int32_t));
-	copyArrayHostToDevice(h_indDuplicate, d_indDuplicate, h_batchSize[0], sizeof(int32_t));
-	copyArrayHostToDevice(h_dupRelPos, d_dupRelPos, h_batchSize[0], sizeof(int32_t));
-	copyArrayHostToDevice(h_dupCount, d_dupCount, 1, sizeof(int32_t));
-}
-
-void BatchUpdate::copyDeviceToHost(){
-	copyArrayDeviceToHost(d_edgeSrc, h_edgeSrc, h_batchSize[0], sizeof(int32_t));
-	copyArrayDeviceToHost(d_edgeDst, h_edgeDst, h_batchSize[0], sizeof(int32_t));
-	copyArrayDeviceToHost(d_indIncomplete, h_indIncomplete, h_batchSize[0], sizeof(int32_t));
-	copyArrayDeviceToHost(d_incCount, h_incCount, 1, sizeof(int32_t));
-	copyArrayDeviceToHost(d_indDuplicate, h_indDuplicate, h_batchSize[0], sizeof(int32_t));
-	copyArrayDeviceToHost(d_dupRelPos, h_dupRelPos, h_batchSize[0], sizeof(int32_t));
-	copyArrayDeviceToHost(d_dupCount, h_dupCount, 1, sizeof(int32_t));
-}
-
-
 void update(cuStinger &custing, BatchUpdate &bu)
 {	
 	dim3 numBlocks(1, 1);
@@ -265,15 +190,14 @@ void update(cuStinger &custing, BatchUpdate &bu)
 
 	reAllocateMemoryAfterSweep1(custing,bu);
 	
+	//--------
 	// Sweep 2
+	//--------
 	bu.copyDeviceToHostIncCount();
 	updateSize = bu.getHostIncCount();
 	bu.resetDeviceDuplicateCount();
 
-	cout << "The size of the second sweep is" <<  updateSize << endl;
-
 	if(updateSize>0){
-	
 		numBlocks.x = ceil((float)updateSize/(float)threads);
 		if (numBlocks.x>16000){
 			numBlocks.x=16000;
@@ -298,8 +222,53 @@ void update(cuStinger &custing, BatchUpdate &bu)
 		}
 	}
 
+	cout << "The number of duplicates in the second sweep : " << bu.getHostDuplicateCount();
+
 	bu.resetHostIncCount();
 	bu.resetHostDuplicateCount();		
 	bu.resetDeviceIncCount();
 	bu.resetDeviceDuplicateCount();
 }
+
+
+__global__ void deviceCopyMultipleAdjacencies(cuStinger* custing, BatchUpdate* bu, 
+	int32_t** d_newadj, int32_t* requireUpdates, int32_t requireCount ,int32_t verticesPerThreadBlock)
+{
+	int32_t** d_cuadj = custing->d_adj;
+	int32_t* d_utilized = custing->d_utilized;
+
+	int32_t v_init=blockIdx.x*verticesPerThreadBlock;
+	for (int v_hat=0; v_hat<verticesPerThreadBlock; v_hat++){
+		int32_t v= requireUpdates[v_init+v_hat];
+		if(v>=requireCount)
+			break;
+		for(int32_t e=threadIdx.x; e<d_utilized[v]; e+=blockDim.x){
+			d_newadj[v][e] = d_cuadj[v][e];
+			// d_cuadj[v][e] = d_cuadj[v][e];
+		}
+	}
+}
+
+void  copyMultipleAdjacencies(cuStinger& custing, BatchUpdate& bu,int32_t** d_newadj, 
+	int32_t* requireUpdates, int32_t requireCount){
+
+	dim3 numBlocks(1, 1);
+	int32_t threads=32;
+	dim3 threadsPerBlock(threads, 1);
+
+	numBlocks.x = ceil((float)requireCount);
+	if (numBlocks.x>16000){
+		numBlocks.x=16000;
+	}	
+	int32_t verticesPerThreadBlock = ceil(float(requireCount)/float(numBlocks.x-1));
+
+	cout << "### " << requireCount << " , " <<  numBlocks.x << " , " << verticesPerThreadBlock << " ###"  << endl; 
+
+	deviceCopyMultipleAdjacencies<<<numBlocks,threadsPerBlock>>>(custing.devicePtr(), bu.devicePtr(),
+		d_newadj, requireUpdates, requireCount, verticesPerThreadBlock);
+	checkLastCudaError("Error in the first update sweep");
+
+
+}
+
+

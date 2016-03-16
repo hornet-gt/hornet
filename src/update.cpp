@@ -76,10 +76,8 @@ void reAllocateMemoryAfterSweep1(cuStinger &custing, BatchUpdate &bu)
 		}
 		copyArrayHostToDevice(h_tempAdjacency,d_tempAdjacency, custing.nv, sizeof(int32_t));
 
-		void  copyMultipleAdjacencies(cuStinger& custing, BatchUpdate& bu,int32_t** d_newadj, 
-		int32_t* requireUpdates, int32_t requireCount);
 
-		copyMultipleAdjacencies(custing, bu, d_tempAdjacency,d_requireUpdates,countUnique);
+		custing.copyMultipleAdjacencies(d_tempAdjacency,d_requireUpdates,countUnique);
 
 		for (int32_t i=0; i<countUnique; i++){
 			int32_t tempVertex = requireUpdates[i];

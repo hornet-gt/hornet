@@ -16,16 +16,24 @@ INCLUDE_DIRECTORIES(include)
 
 #set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-g -fPIC")
 
-cuda_add_executable(custinger 
-					src/main.cpp
+cuda_add_library(cuUtils
 					src/alloc.cu
 					src/graphreader.cpp
+				)
+
+cuda_add_library(cuUpdate
 					src/update.cu
 					src/update.cpp
+				)
+
+
+cuda_add_executable(custinger 
+					src/main.cpp
+					src/cuStinger.cpp					
 					src/cuStinger.cu
 				   )
 
-TARGET_LINK_LIBRARIES(custinger /usr/local/cuda/lib64/libcudart.so)
+TARGET_LINK_LIBRARIES(custinger cuUtils cuUpdate /usr/local/cuda/lib64/libcudart.so)
 
 #LIST(APPEND CMAKE_CXX_FLAGS "std=c++0x -O3 -ffastmath -Wall")
 

@@ -27,6 +27,8 @@ public:
 	cuStinger* devicePtr(){return d_cuStinger;}
 
 
+	void copyMultipleAdjacencies(int32_t** d_newadj, int32_t* requireUpdates, int32_t requireCount);
+
 	int32_t getNumberEdgesAllocated();
 	int32_t getNumberEdgesUsed();
 
@@ -48,6 +50,8 @@ public:
 	updateAllocator updateVertexAllocator;
 	void deviceAllocMemory(int32_t* off, int32_t* adj);
 	void initcuStinger(int32_t* off, int32_t* adj);
+
+	int32_t sumDeviceArray(int32_t* arr);
 };
 
 

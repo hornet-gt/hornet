@@ -86,6 +86,8 @@ int main(const int argc, char *argv[])
 	custing.initializeCuStinger(nv,ne,off,adj);
 	cout << "Allocation and Copy Time : " << end_clock(ce_start, ce_stop) << endl;
 
+	custing.getNumberEdgesUsed();
+
 	BatchUpdate bu(numEdges);
 	generateEdgeUpdates(nv, numEdges, bu.getHostSrc(),bu.getHostDst());
 	bu.resetHostIncCount();
@@ -94,6 +96,8 @@ int main(const int argc, char *argv[])
 	start_clock(ce_start, ce_stop);
 		update(custing,bu);
 	cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
+
+	custing.getNumberEdgesUsed();
 
 
 	cout << "Number of unsuccessful insertions : " << bu.getHostIncCount() << endl;

@@ -56,6 +56,7 @@ __global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdate* bu,int32_t 
 				}
 			}
 			else{
+				atomicSub(d_utilized+src,1);
 				// Out of space for this adjacency.
 				int32_t inCompleteEdgeID =  atomicAdd(d_incCount, 1);
 				d_indIncomplete[inCompleteEdgeID] = pos;
@@ -63,36 +64,6 @@ __global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdate* bu,int32_t 
 		}
 	}
 }
-
-
-// __global__ void deviceUpdatesSweep2(cuStinger* custing, BatchUpdate* bu,int32_t updatesPerBlock)
-// {
-// 	int32_t* d_utilized      = custing->getDeviceUtilized();
-// 	int32_t* d_max           = custing->getDeviceMax();
-// 	int32_t** d_adj          = custing->getDeviceAdj();	
-// 	int32_t* d_updatesSrc    = bu->getDeviceSrc();
-// 	int32_t* d_updatesDst    = bu->getDeviceDst();
-// 	int32_t batchSize        = bu->getDeviceBatchSize();
-// 	int32_t* d_incCount      = bu->getDeviceIncCount();
-// 	int32_t* d_indIncomplete = bu->getDeviceIndIncomplete();
-// 	int32_t* d_indDuplicate  = bu->getDeviceIndDuplicate();
-// 	int32_t* d_dupCount      = bu->getDeviceDuplicateCount();
-// 	int32_t* d_dupRelPos     = bu->getDeviceDupRelPos();
-
-// 	int32_t init_pos = blockIdx.x * updatesPerBlock;
-// 	for(int i=threadIdx.x; i<updatesPerBlock; i+=blockDim.x){
-// 		int32_t pos=init_pos+i;
-// 		if(pos<batchSize){
-// 			int32_t indDup = d_indIncomplete[pos];
-
-// 			int32_t src = d_updatesSrc[indDup];
-// 			int32_t dst = d_updatesDst[indDup];
-// 			int32_t ret =  atomicAdd(d_utilized+src, 1);
-// 			d_adj[src][ret] = dst;
-// 		}
-
-// 	}
-// }
 
 __global__ void deviceUpdatesSweep2(cuStinger* custing, BatchUpdate* bu,int32_t updatesPerBlock)
 {
@@ -147,11 +118,8 @@ __global__ void deviceUpdatesSweep2(cuStinger* custing, BatchUpdate* bu,int32_t 
 				}
 			}
 			else{
-				// printf("This should never happen because of reallaction");
+				printf("This should never happen because of reallaction");
 				// printf("%d %d %d\n",src,ret ,d_max[src]);
-				// // Out of space for this adjacency.
-				// int32_t inCompleteEdgeID =  atomicAdd(d_incCount, 1);
-				// d_indIncomplete[inCompleteEdgeID] = pos;
 			}
 		}
 	}
@@ -184,9 +152,7 @@ __global__ void deviceRemoveInsertedDuplicates(cuStinger* custing, BatchUpdate* 
 				d_adj[src][relPos] = d_adj[src][ret-1];
 			}
 		}
-
 	}
-
 }
 
 
@@ -262,15 +228,7 @@ void BatchUpdate::copyDeviceToHost(){
 	copyArrayDeviceToHost(d_indDuplicate, h_indDuplicate, h_batchSize[0], sizeof(int32_t));
 	copyArrayDeviceToHost(d_dupRelPos, h_dupRelPos, h_batchSize[0], sizeof(int32_t));
 	copyArrayDeviceToHost(d_dupCount, h_dupCount, 1, sizeof(int32_t));
-
 }
-
-
-
-
-
-
-void reAllocateMemoryAfterSweep1(cuStinger &custing, BatchUpdate &bu);
 
 
 void update(cuStinger &custing, BatchUpdate &bu)
@@ -327,6 +285,7 @@ void update(cuStinger &custing, BatchUpdate &bu)
 
 		bu.copyDeviceToHostDupCount();
 		dupInBatch = bu.getHostDuplicateCount();
+		cout << "Dup 2nd sweep " << dupInBatch << endl;
 
 		if(dupInBatch>0){
 			numBlocks.x = ceil((float)dupInBatch/(float)threads);
@@ -337,8 +296,10 @@ void update(cuStinger &custing, BatchUpdate &bu)
 			deviceRemoveInsertedDuplicates<<<numBlocks,threadsPerBlock>>>(custing.devicePtr(), bu.devicePtr(),dupsPerBlock);
 			checkLastCudaError("Error in the second duplication sweep");
 		}
-
 	}
 
-
+	bu.resetHostIncCount();
+	bu.resetHostDuplicateCount();		
+	bu.resetDeviceIncCount();
+	bu.resetDeviceDuplicateCount();
 }

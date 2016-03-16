@@ -33,6 +33,7 @@ int32_t elementsPerVertexOverLimit(int32_t elements, int32_t overLimit){
 
 void reAllocateMemoryAfterSweep1(cuStinger &custing, BatchUpdate &bu)
 {
+
 	int32_t sum=0, *tempsrc=bu.getHostSrc(),*tempdst=bu.getHostDst();
 	int32_t *incomplete = bu.getHostIndIncomplete();	
 	int32_t incCount = bu.getHostIncCount();
@@ -61,6 +62,12 @@ void reAllocateMemoryAfterSweep1(cuStinger &custing, BatchUpdate &bu)
 			h_hmap[temp]=0;
 		}
 	}
+
+	custing.copyDeviceToHost();
+
+	for (int i=0; i<custing.nv; i++)
+		sum+=custing.h_utilized[i];
+	cout << "Host utilized " << sum << endl;
 
 	// sort(requireUpdates, requireUpdates + countUnique);
 

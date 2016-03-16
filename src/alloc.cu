@@ -2,7 +2,7 @@
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 
-#include "main.h"
+#include "utils.hpp"
 
 using namespace std;
 

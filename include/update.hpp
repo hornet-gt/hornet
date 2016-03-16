@@ -44,6 +44,8 @@ public:
 	void copyDeviceToHostDupCount(){copyArrayDeviceToHost(d_dupRelPos,h_dupRelPos,1,sizeof(int32_t));}
 	void copyDeviceToHostIncCount(){copyArrayDeviceToHost(d_incCount,h_incCount,1,sizeof(int32_t));}
 
+
+
 private:
 
 	BatchUpdate* d_batchUpdate;
@@ -54,6 +56,6 @@ private:
 };
 
 
-void update(cuStinger &custing, BatchUpdate &bu);
+
 
 

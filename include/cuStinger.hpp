@@ -20,8 +20,11 @@ public:
 	cuStinger* devicePtr(){return d_cuStinger;}
 
 
-	int32_t **h_adj,*h_utilized,*h_max;
 
+
+
+	int32_t getNumberEdgesAllocated();
+	int32_t getNumberEdgesUsed();
 
 public:
 
@@ -33,6 +36,7 @@ public:
 
 // Device memory
 	int32_t **d_adj,*d_utilized,*d_max;
+	int32_t **h_adj,*h_utilized,*h_max;
 
 	cuStinger* d_cuStinger;
 

@@ -3,9 +3,15 @@
 
 typedef int32_t (*initAllocator)(int32_t);
 int32_t defaultInitAllocater(int32_t elements);
+int32_t exactInitAllocater(int32_t elements);
+int32_t stingyInitAllocater(int32_t elements);
+
 
 typedef int32_t (*updateAllocator)(int32_t, int32_t);
 int32_t defaultUpdateAllocater(int32_t elements, int32_t overLimit);
+int32_t exactUpdateAllocater(int32_t elements, int32_t overLimit);
+int32_t stingyUpdateAllocater(int32_t elements, int32_t overLimit);
+
 
 class cuStinger{
 public:

@@ -1,8 +1,7 @@
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 
-#include "main.h"
-#include "update.hpp"
+#include "main.hpp"
 
 
 using namespace std;
@@ -188,7 +187,7 @@ void update(cuStinger &custing, BatchUpdate &bu)
 
 	bu.copyDeviceToHost();
 
-	reAllocateMemoryAfterSweep1(custing,bu);
+	bu.reAllocateMemoryAfterSweep1(custing);
 	
 	//--------
 	// Sweep 2
@@ -209,7 +208,7 @@ void update(cuStinger &custing, BatchUpdate &bu)
 
 		bu.copyDeviceToHostDupCount();
 		dupInBatch = bu.getHostDuplicateCount();
-		cout << "Dup 2nd sweep " << dupInBatch << endl;
+		// cout << "Dup 2nd sweep " << dupInBatch << endl;
 
 		if(dupInBatch>0){
 			numBlocks.x = ceil((float)dupInBatch/(float)threads);
@@ -222,7 +221,7 @@ void update(cuStinger &custing, BatchUpdate &bu)
 		}
 	}
 
-	cout << "The number of duplicates in the second sweep : " << bu.getHostDuplicateCount();
+	// cout << "The number of duplicates in the second sweep : " << bu.getHostDuplicateCount() << endl;
 
 	bu.resetHostIncCount();
 	bu.resetHostDuplicateCount();		

@@ -6,98 +6,10 @@
 #include <unordered_map>
 #include <algorithm>
 
-#include "main.h"
-#include "update.hpp"
+#include "main.hpp"
 
 
 using namespace std;
-
-
-int32_t defaultUpdateAllocater(int32_t elements, int32_t overLimit){
-	int32_t eleCount = elements+overLimit;
-	if(eleCount==0)
-		eleCount=1;
-	else if(eleCount < 5)
-		eleCount*=2;
-	else
-		eleCount*=1.5;
-	return eleCount;
-}
-
-void reAllocateMemoryAfterSweep1(cuStinger &custing, BatchUpdate &bu)
-{
-
-	int32_t sum=0, *tempsrc=bu.getHostSrc(),*tempdst=bu.getHostDst();
-	int32_t *incomplete = bu.getHostIndIncomplete();	
-	int32_t incCount = bu.getHostIncCount();
-
-	unordered_map <int32_t, int32_t> h_hmap;
-
-	int32_t* requireUpdates=(int32_t*)allocHostArray(bu.getHostBatchSize(), sizeof(int32_t));
-	int32_t* overLimit=(int32_t*)allocHostArray(bu.getHostBatchSize(), sizeof(int32_t));
-
-	for (int32_t i=0; i<incCount; i++){
-		int32_t temp = tempsrc[incomplete[i]];
-		h_hmap[temp]++;
-
-		// if (temp==536954)
-		// 	cout << "CPU 536954 " << tempdst[incomplete[i]] << endl;
-
-	}
-
-	int countUnique=0;
-	for (int32_t i=0; i<incCount; i++){
-		int32_t temp = tempsrc[incomplete[i]];
-		if(h_hmap[temp]!=0){
-			requireUpdates[countUnique]=temp;
-			overLimit[countUnique]=h_hmap[temp];
-			countUnique++;
-			h_hmap[temp]=0;
-		}
-	}
-
-	custing.copyDeviceToHost();
-
-	for (int i=0; i<custing.nv; i++)
-		sum+=custing.h_utilized[i];
-	cout << "Host utilized " << sum << endl;
-
-	if(countUnique>0){
-		int32_t ** h_tempAdjacency = (int32_t**) allocHostArray(custing.nv,sizeof(int32_t*));
-		int32_t ** d_tempAdjacency = (int32_t**) allocDeviceArray(custing.nv,sizeof(int32_t*));
-		int32_t * d_requireUpdates = (int32_t*) allocDeviceArray(countUnique, sizeof(int32_t));
-		copyArrayHostToDevice(requireUpdates,d_requireUpdates,countUnique,sizeof(int32_t));
-
-		for (int32_t i=0; i<countUnique; i++){
-			int32_t tempVertex = requireUpdates[i];
-			int32_t newMax = defaultUpdateAllocater(custing.h_max[tempVertex] ,overLimit[i]);
-			h_tempAdjacency[tempVertex] = (int32_t*)allocDeviceArray(newMax, sizeof(int32_t));
-			custing.h_max[tempVertex] = newMax;
-		}
-		copyArrayHostToDevice(h_tempAdjacency,d_tempAdjacency, custing.nv, sizeof(int32_t));
-
-
-		custing.copyMultipleAdjacencies(d_tempAdjacency,d_requireUpdates,countUnique);
-
-		for (int32_t i=0; i<countUnique; i++){
-			int32_t tempVertex = requireUpdates[i];
-			freeDeviceArray(custing.h_adj[tempVertex]);
-			custing.h_adj[tempVertex] = h_tempAdjacency[tempVertex];
-		}
-
-		custing.copyHostToDevice();
-
-		freeDeviceArray(d_requireUpdates);
-		freeHostArray(h_tempAdjacency);
-		freeDeviceArray(d_tempAdjacency);
-	}
-
-
-	freeHostArray(requireUpdates);
-	freeHostArray(overLimit);
-}
-
-
 
 BatchUpdate::BatchUpdate(int32_t batchSize_){
 	h_edgeSrc       =  (int32_t*)allocHostArray(batchSize_,sizeof(int32_t));
@@ -169,5 +81,74 @@ void BatchUpdate::copyDeviceToHost(){
 	copyArrayDeviceToHost(d_indDuplicate, h_indDuplicate, h_batchSize[0], sizeof(int32_t));
 	copyArrayDeviceToHost(d_dupRelPos, h_dupRelPos, h_batchSize[0], sizeof(int32_t));
 	copyArrayDeviceToHost(d_dupCount, h_dupCount, 1, sizeof(int32_t));
+}
+
+
+
+
+
+void BatchUpdate::reAllocateMemoryAfterSweep1(cuStinger &custing)
+{
+
+	int32_t sum=0, *tempsrc=getHostSrc(),*tempdst=getHostDst();
+	int32_t *incomplete = getHostIndIncomplete();	
+	int32_t incCount = getHostIncCount();
+
+	unordered_map <int32_t, int32_t> h_hmap;
+
+	int32_t* h_requireUpdates=(int32_t*)allocHostArray(getHostBatchSize(), sizeof(int32_t));
+	int32_t* h_overLimit=(int32_t*)allocHostArray(getHostBatchSize(), sizeof(int32_t));
+
+	for (int32_t i=0; i<incCount; i++){
+		int32_t temp = tempsrc[incomplete[i]];
+		h_hmap[temp]++;
+	}
+
+	int countUnique=0;
+	for (int32_t i=0; i<incCount; i++){
+		int32_t temp = tempsrc[incomplete[i]];
+		if(h_hmap[temp]!=0){
+			h_requireUpdates[countUnique]=temp;
+			h_overLimit[countUnique]=h_hmap[temp];
+			countUnique++;
+			h_hmap[temp]=0;
+		}
+	}
+
+	custing.copyDeviceToHost();
+
+	if(countUnique>0){
+		int32_t ** h_tempAdjacency = (int32_t**) allocHostArray(custing.nv,sizeof(int32_t*));
+		int32_t ** d_tempAdjacency = (int32_t**) allocDeviceArray(custing.nv,sizeof(int32_t*));
+		int32_t * d_requireUpdates = (int32_t*) allocDeviceArray(countUnique, sizeof(int32_t));
+
+		for (int32_t i=0; i<countUnique; i++){
+			int32_t tempVertex = h_requireUpdates[i];
+			int32_t newMax = custing.updateVertexAllocator(custing.h_max[tempVertex] ,h_overLimit[i]);
+			h_tempAdjacency[tempVertex] = (int32_t*)allocDeviceArray(newMax, sizeof(int32_t));
+			custing.h_max[tempVertex] = newMax;
+		}
+
+		sort(h_requireUpdates, h_requireUpdates + countUnique);
+		copyArrayHostToDevice(h_requireUpdates,d_requireUpdates,countUnique,sizeof(int32_t));
+		copyArrayHostToDevice(h_tempAdjacency,d_tempAdjacency, custing.nv, sizeof(int32_t*));
+
+		custing.copyMultipleAdjacencies(d_tempAdjacency,d_requireUpdates,countUnique);
+
+		for (int32_t i=0; i<countUnique; i++){
+			int32_t tempVertex = h_requireUpdates[i];
+			freeDeviceArray(custing.h_adj[tempVertex]);
+			custing.h_adj[tempVertex] = h_tempAdjacency[tempVertex];
+		}
+
+		custing.copyHostToDevice();
+
+		freeDeviceArray(d_requireUpdates);
+		freeHostArray(h_tempAdjacency);
+		freeDeviceArray(d_tempAdjacency);
+	}
+
+	freeHostArray(h_requireUpdates);
+	freeHostArray(h_overLimit);
 }
 

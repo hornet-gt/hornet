@@ -1,6 +1,6 @@
 #pragma once
 
-#include "main.h"
+#include "main.hpp"
 
 
 class BatchUpdate{
@@ -44,7 +44,7 @@ public:
 	void copyDeviceToHostDupCount(){copyArrayDeviceToHost(d_dupRelPos,h_dupRelPos,1,sizeof(int32_t));}
 	void copyDeviceToHostIncCount(){copyArrayDeviceToHost(d_incCount,h_incCount,1,sizeof(int32_t));}
 
-
+	void reAllocateMemoryAfterSweep1(cuStinger &custing);
 
 private:
 
@@ -52,6 +52,7 @@ private:
 
 	int32_t *h_batchSize,*h_edgeSrc,*h_edgeDst, *h_indIncomplete, *h_incCount, *h_indDuplicate, *h_dupRelPos,*h_dupCount;
 	int32_t *d_batchSize,*d_edgeSrc,*d_edgeDst, *d_indIncomplete, *d_incCount, *d_indDuplicate, *d_dupRelPos,*d_dupCount;
+
 
 };
 

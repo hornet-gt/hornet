@@ -16,6 +16,17 @@ INCLUDE_DIRECTORIES(include)
 
 #set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-g -fPIC")
 
+set(mgpu_INCLUDE_DIRS
+  ${CMAKE_SOURCE_DIR}/externals/moderngpu/include
+  CACHE PATH
+  "Directory to the Modern GPU include files")
+
+set(mgpu_SOURCE_DIRS
+  ${CMAKE_SOURCE_DIR}/externals/moderngpu/src
+  CACHE PATH
+  "Directory to the Modern GPU source files")
+
+
 cuda_add_library(cuUtils
 					src/alloc.cu
 					src/graphreader.cpp

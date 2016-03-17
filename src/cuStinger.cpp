@@ -8,8 +8,7 @@
 #include <iostream>
 #include <math.h>
 
-#include "main.h"
-#include "cuStinger.hpp"
+#include "main.hpp"
 
 using namespace std;
 
@@ -22,6 +21,33 @@ int32_t defaultInitAllocater(int32_t elements){
 	else
 		eleCount*=1.5;
 	return eleCount;
+}
+
+int32_t exactInitAllocater(int32_t elements){
+	return elements;
+}
+
+int32_t stingyInitAllocater(int32_t elements){
+	return elements+1;
+}
+
+int32_t defaultUpdateAllocater(int32_t elements, int32_t overLimit){
+	int32_t eleCount = elements+overLimit;
+	if(eleCount==0)
+		eleCount=1;
+	else if(eleCount < 5)
+		eleCount*=2;
+	else
+		eleCount*=1.5;
+	return eleCount;
+}
+
+int32_t exactUpdateAllocater(int32_t elements, int32_t overLimit){
+	return elements+overLimit;
+}
+
+int32_t stingyUpdateAllocater(int32_t elements, int32_t overLimit){
+	return elements+overLimit+1;
 }
 
 cuStinger::cuStinger(initAllocator iAllocator,updateAllocator uAllocator){

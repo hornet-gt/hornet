@@ -12,8 +12,8 @@
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 
-#include "main.h"
-#include "update.hpp"
+#include "main.hpp"
+// #include "update.hpp"
 // #include "cuStinger.hpp"
 
 
@@ -81,12 +81,15 @@ int main(const int argc, char *argv[])
 
 	cudaEvent_t ce_start,ce_stop;
 
+	// cuStinger custing(stingyInitAllocater,stingyUpdateAllocater);
 	cuStinger custing;
+
+
 	start_clock(ce_start, ce_stop);
 	custing.initializeCuStinger(nv,ne,off,adj);
 	cout << "Allocation and Copy Time : " << end_clock(ce_start, ce_stop) << endl;
 
-	custing.getNumberEdgesUsed();
+	cout << "Host utilized   : " << custing.getNumberEdgesUsed() << endl;
 
 	BatchUpdate bu(numEdges);
 	generateEdgeUpdates(nv, numEdges, bu.getHostSrc(),bu.getHostDst());
@@ -97,14 +100,10 @@ int main(const int argc, char *argv[])
 		update(custing,bu);
 	cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
 
-	custing.getNumberEdgesUsed();
 
+	cout << "Host utilized   : " << custing.getNumberEdgesUsed() << endl;
 
-	cout << "Number of unsuccessful insertions : " << bu.getHostIncCount() << endl;
-
-	cout << "just before custinger release " << endl;
 	custing.freecuStinger();
-	cout << "just after custinger release " << endl;
 
     return 0;	
 }       

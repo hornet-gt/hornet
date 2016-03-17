@@ -2,8 +2,7 @@
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 
-#include "main.h"
-#include "cuStinger.hpp"
+#include "main.hpp"
 
 using namespace std;
 
@@ -133,12 +132,12 @@ __global__ void deviceCopyMultipleAdjacencies(cuStinger* custing, int32_t** d_ne
 
 	int32_t v_init=blockIdx.x*verticesPerThreadBlock;
 	for (int v_hat=0; v_hat<verticesPerThreadBlock; v_hat++){
-		int32_t v= requireUpdates[v_init+v_hat];
-		if(v>=requireCount)
+		if((v_init+v_hat)>=requireCount)
 			break;
+		int32_t v=requireUpdates[v_init+v_hat];
+
 		for(int32_t e=threadIdx.x; e<d_utilized[v]; e+=blockDim.x){
 			d_newadj[v][e] = d_cuadj[v][e];
-			// d_cuadj[v][e] = d_cuadj[v][e];
 		}
 	}
 }

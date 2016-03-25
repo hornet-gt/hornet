@@ -21,6 +21,7 @@ __global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdate* bu,int32_t 
 	int32_t* d_dupCount      = bu->getDeviceDuplicateCount();
 	int32_t* d_dupRelPos     = bu->getDeviceDupRelPos();
 
+	__shared__ int32_t found[1];
 
 	int32_t init_pos = blockIdx.x * updatesPerBlock;
 
@@ -32,12 +33,16 @@ __global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdate* bu,int32_t 
 		int32_t dst = d_updatesDst[pos];
 
 		int32_t srcInitSize = d_utilized[src];
-		int32_t found=0;
+		if(threadIdx.x ==0)
+			*found=0;
+		__syncthreads();
+
 		for (int32_t e=0; e<srcInitSize; e+=blockDim.x){
 			if(d_adj[src][e]==dst)
-				found=1;
+				*found=1;
 		}
-		if(!found && threadIdx.x==0){
+		__syncthreads();
+		if(!(*found) && threadIdx.x==0){
 			int32_t ret =  atomicAdd(d_utilized+src, 1);
 			if(ret<d_max[src]){
 				int32_t dupInBatch=0;
@@ -78,6 +83,8 @@ __global__ void deviceUpdatesSweep2(cuStinger* custing, BatchUpdate* bu,int32_t 
 	int32_t* d_dupCount      = bu->getDeviceDuplicateCount();
 	int32_t* d_dupRelPos     = bu->getDeviceDupRelPos();
 
+	__shared__ int32_t found[1];
+
 
 	int32_t init_pos = blockIdx.x * updatesPerBlock;
 
@@ -90,16 +97,20 @@ __global__ void deviceUpdatesSweep2(cuStinger* custing, BatchUpdate* bu,int32_t 
 		int32_t dst = d_updatesDst[indInc];
 
 		int32_t srcInitSize = d_utilized[src];
-		int32_t found=0;
 
 		// if(threadIdx.x==0 && src==536954)
 		// 	printf("CUDA - %d %d\n ", src,dst);
 
+		if(threadIdx.x==0)
+			*found=0;
+
 		for (int32_t e=0; e<srcInitSize; e+=blockDim.x){
 			if(d_adj[src][e]==dst)
-				found=1;
+				*found=1;
 		}
-		if(!found && threadIdx.x==0){
+		__syncthreads();
+
+		if(!(*found) && threadIdx.x==0){
 			int32_t ret =  atomicAdd(d_utilized+src, 1);
 			if(ret<d_max[src]){
 				int32_t dupInBatch=0;

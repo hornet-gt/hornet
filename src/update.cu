@@ -37,9 +37,10 @@ __global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdate* bu,int32_t 
 			*found=0;
 		__syncthreads();
 
-		for (int32_t e=0; e<srcInitSize; e+=blockDim.x){
-			if(d_adj[src][e]==dst)
+		for (int32_t e=threadIdx.x; e<srcInitSize; e+=blockDim.x){
+			if(d_adj[src][e]==dst){
 				*found=1;
+			}
 		}
 		__syncthreads();
 		if(!(*found) && threadIdx.x==0){
@@ -57,6 +58,7 @@ __global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdate* bu,int32_t 
 					int32_t duplicateID =  atomicAdd(d_dupCount, 1);
 					d_indDuplicate[duplicateID] = pos;
 					d_dupRelPos[duplicateID] = ret;
+
 				}
 			}
 			else{
@@ -103,10 +105,12 @@ __global__ void deviceUpdatesSweep2(cuStinger* custing, BatchUpdate* bu,int32_t 
 
 		if(threadIdx.x==0)
 			*found=0;
+		__syncthreads();
 
-		for (int32_t e=0; e<srcInitSize; e+=blockDim.x){
-			if(d_adj[src][e]==dst)
+		for (int32_t e=threadIdx.x; e<srcInitSize; e+=blockDim.x){
+			if(d_adj[src][e]==dst){
 				*found=1;
+			}
 		}
 		__syncthreads();
 
@@ -186,6 +190,7 @@ void update(cuStinger &custing, BatchUpdate &bu)
 	bu.copyDeviceToHostDupCount();
 	dupInBatch = bu.getHostDuplicateCount();
 
+	cout << "The number of duplicates in the batch is : " << dupInBatch << endl;
 	if(dupInBatch>0){
 		numBlocks.x = ceil((float)dupInBatch/(float)threads);
 		if (numBlocks.x>1000){
@@ -219,7 +224,7 @@ void update(cuStinger &custing, BatchUpdate &bu)
 
 		bu.copyDeviceToHostDupCount();
 		dupInBatch = bu.getHostDuplicateCount();
-		// cout << "Dup 2nd sweep " << dupInBatch << endl;
+		cout << "The number of duplicates in the batch is : " << dupInBatch << endl;
 
 		if(dupInBatch>0){
 			numBlocks.x = ceil((float)dupInBatch/(float)threads);

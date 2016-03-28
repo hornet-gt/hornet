@@ -1,5 +1,13 @@
 #pragma once
 
+typedef int8_t vtype;
+typedef int8_t etype;
+typedef int32_t vweight_t;
+typedef int32_t weeight_t;
+typedef int32_t edgeId_t;
+typedef int32_t vertexId_t;
+typedef int32_t length_t;
+
 
 typedef int32_t (*initAllocator)(int32_t);
 int32_t defaultInitAllocater(int32_t elements);
@@ -41,13 +49,14 @@ public:
 public:
 
 
-	int nv;
-	int ne;
-
-// Host memory - this is a shallow copy that does not actually contain the adjacency lists themselves.
+	int nv,nvMax;
 
 // Device memory
 	int32_t **d_adj,*d_utilized,*d_max;
+
+
+// Host memory - this is a shallow copy that does not actually contain the adjacency lists themselves.
+
 	int32_t **h_adj,*h_utilized,*h_max;
 
 	cuStinger* d_cuStinger;
@@ -55,7 +64,7 @@ public:
 	initAllocator initVertexAllocator;
 	updateAllocator updateVertexAllocator;
 	void deviceAllocMemory(int32_t* off, int32_t* adj);
-	void initcuStinger(int32_t* off, int32_t* adj);
+	void initcuStinger(int32_t* off, int32_t* adj, int32_t ne);
 
 	int32_t sumDeviceArray(int32_t* arr);
 };

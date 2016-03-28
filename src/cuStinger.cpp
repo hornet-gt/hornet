@@ -108,13 +108,12 @@ void cuStinger::deviceAllocMemory(int32_t* off, int32_t* adj)
 
 void cuStinger::initializeCuStinger(int32_t nv_,int32_t ne_,int32_t* off_, int32_t* adj_){
 	nv=nv_;
-	ne=ne_;	
 	deviceAllocMemory(off_,adj_);
 
 	d_cuStinger=(cuStinger*) allocDeviceArray(1,sizeof(cuStinger));
 	copyArrayHostToDevice(this,d_cuStinger,1, sizeof(cuStinger));
 
-	initcuStinger(off_,adj_);
+	initcuStinger(off_,adj_,ne_);
 }
 
 

@@ -8,6 +8,7 @@ typedef int32_t vweight_t;
 typedef int32_t eweight_t;
 typedef int32_t vertexId_t;
 typedef int32_t length_t;
+typedef int32_t timestamp_t;
 
 typedef int32_t (*initAllocator)(int32_t);
 int32_t defaultInitAllocater(int32_t elements);
@@ -73,34 +74,37 @@ public:
 
 	void freecuStinger();
 
-	__device__ __host__ int32_t** getDeviceAdj(){return d_adj;}
-	__device__ int32_t* getDeviceUtilized(){return d_utilized;}
-	__device__ int32_t* getDeviceMax(){return d_max;}
+	__device__ __host__ vertexId_t** getDeviceAdj(){return d_adj;}
+	__device__ length_t* getDeviceUtilized(){return d_utilized;}
+	__device__ length_t* getDeviceMax(){return d_max;}
 
 	cuStinger* devicePtr(){return d_cuStinger;}
 
 
 	void copyMultipleAdjacencies(int32_t** d_newadj, int32_t* requireUpdates, int32_t requireCount);
 
-	int32_t getNumberEdgesAllocated();
-	int32_t getNumberEdgesUsed();
+	length_t getNumberEdgesAllocated();
+	length_t getNumberEdgesUsed();
 
 public:
 
-	int nv,nvMax;
+	int32_t nv;
+	bool isSemantic, useVWeight, useEWeight;
 
-// Device memory
-	int32_t **d_adj;
-	length_t *d_utilized,*d_max;
-	vweight_t *d_vweight;
-	vtype_t *d_vtype;
+	int32_t bytesPerEdge,bytesPerVertex;
 
 // Host memory - this is a shallow copy that does not actually contain the adjacency lists themselves.
-	int32_t **h_adj;
+	vertexId_t **h_adj;
 	length_t *h_utilized,*h_max;
 	vweight_t *h_vweight;
 	vtype_t *h_vtype;
 
+
+// Device memory
+	vertexId_t **d_adj;
+	length_t *d_utilized,*d_max;
+	vweight_t *d_vweight;
+	vtype_t *d_vtype;
 
 
 	cuStinger* d_cuStinger;
@@ -108,11 +112,17 @@ public:
 	initAllocator initVertexAllocator;
 	updateAllocator updateVertexAllocator;
 	void deviceAllocMemory(int32_t* off, int32_t* adj);
-	void internalInitcuStinger(int32_t* off, int32_t* adj, int32_t ne);
+
+	void internalEmptycuStinger(int NV);
+
+	void internalCSRcuStinger(int32_t* off, int32_t* adj, int32_t ne);
 
 	int32_t sumDeviceArray(int32_t* arr);
 };
 
+
+#define CUSTINGER_WARNING(W) cout << "cuStinge Warning : " << W << endl;
+#define CUSTINGER_ERROR(E)   cout << "cuStinge Error   : " << E << endl;
 
 // TODO:
 // * Add option to send a different element allocator.

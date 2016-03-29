@@ -10,6 +10,8 @@
 
 #include "main.hpp"
 
+
+
 using namespace std;
 
 int32_t defaultInitAllocater(int32_t elements){
@@ -82,7 +84,7 @@ void cuStinger::freecuStinger(){
 void cuStinger::copyHostToDevice(){
 	copyArrayHostToDevice(h_utilized,d_utilized,nv,sizeof(length_t));
 	copyArrayHostToDevice(h_max,d_max,nv,sizeof(length_t));
-	copyArrayHostToDevice(h_adj,d_adj,nv,sizeof(int32_t*));
+	copyArrayHostToDevice(h_adj,d_adj,nv,sizeof(vertexId_t*));
 	copyArrayHostToDevice(h_vweight,d_vweight,nv,sizeof(vweight_t));
 	copyArrayHostToDevice(h_vtype,d_vtype,nv,sizeof(vtype_t));
 }
@@ -90,7 +92,7 @@ void cuStinger::copyHostToDevice(){
 void cuStinger::copyDeviceToHost(){
 	copyArrayDeviceToHost(d_utilized,h_utilized,nv,sizeof(length_t));
 	copyArrayDeviceToHost(d_max,h_max,nv,sizeof(length_t));
-	copyArrayDeviceToHost(d_adj,h_adj,nv,sizeof(int32_t*));
+	copyArrayDeviceToHost(d_adj,h_adj,nv,sizeof(vertexId_t*));
 	copyArrayDeviceToHost(d_vweight,h_vweight,nv,sizeof(vweight_t));
 	copyArrayDeviceToHost(d_vtype,h_vtype,nv,sizeof(vtype_t));
 }
@@ -109,14 +111,25 @@ void cuStinger::deviceAllocMemory(int32_t* off, int32_t* adj)
 	h_vweight = (vweight_t*)allocHostArray(nv,sizeof(vweight_t));
 	h_vtype = (vtype_t*)allocHostArray(nv,sizeof(vtype_t));
 
-	for(int v=0; v<nv; v++){
+	bytesPerEdge = sizeof (vertexId_t);
+	if(isSemantic){
+		bytesPerEdge += sizeof(eweight_t) + sizeof(etype_t) + 2*sizeof(timestamp_t);
+	}
+	else if (useEWeight){
+		bytesPerEdge += sizeof(eweight_t);
+	}
+
+	for(vertexId_t v=0; v<nv; v++){
 		h_utilized[v]=off[v+1]-off[v];
 		h_max[v] = initVertexAllocator(h_utilized[v]);
-		h_adj[v] =  (int32_t*)allocDeviceArray(h_max[v], sizeof(int32_t));
-
+		h_adj[v] =  (int32_t*)allocDeviceArray(h_max[v], bytesPerEdge);
 	}
 	copyHostToDevice();
 }
+
+// void cuStinger::internalEmptycuStinger(int NV){
+
+// }
 
 
 void cuStinger::initializeCuStinger(int32_t nv_,int32_t ne_,int32_t* off_, int32_t* adj_){
@@ -126,11 +139,36 @@ void cuStinger::initializeCuStinger(int32_t nv_,int32_t ne_,int32_t* off_, int32
 	d_cuStinger=(cuStinger*) allocDeviceArray(1,sizeof(cuStinger));
 	copyArrayHostToDevice(this,d_cuStinger,1, sizeof(cuStinger));
 
-	internalInitcuStinger(off_,adj_,ne_);
+	internalCSRcuStinger(off_,adj_,ne_);
 }
 
 
-	// void initializeCuStinger(cuStingerConfig);
+void cuStinger::initializeCuStinger(cuStingerConfig cuCS){
+
+	isSemantic=cuCS.isSemantic;
+	useVWeight=cuCS.useVWeight;
+	useEWeight=cuCS.useEWeight;
+
+	nv = cuCS.maxNV;
+
+	if(cuCS.initState==eInitStateEmpty){
+
+	}
+	else if(cuCS.initState==eInitStateCSR){
+		if (cuCS.maxNV<cuCS.csrNV){
+			nv=cuCS.csrNV;
+			CUSTINGER_WARNING("In the initialization of cuStinger with a CSR graph a maximal NV smaller than the CSR's NV was given")
+		}
+	}
+	else if(cuCS.initState==eInitStateEdgeList){
+		CUSTINGER_ERROR("No support for edge list initialization just yet");
+		exit(0);
+	}
+	else{
+		CUSTINGER_ERROR("An illegal state was given to the cuStinger initialization function");
+		exit(0);
+	}
+}
 
 
 

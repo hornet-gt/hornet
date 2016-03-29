@@ -28,7 +28,7 @@ __global__ void devMakeGPUStinger(int32_t* d_off, int32_t* d_adj,
 }
 
 
-void cuStinger::internalInitcuStinger(int32_t* h_off, int32_t* h_adj, int ne){
+void cuStinger::internalCSRcuStinger(int32_t* h_off, int32_t* h_adj, int ne){
 	int32_t* d_off = (int32_t*)allocDeviceArray(nv+1,sizeof(int32_t));
 	int32_t* d_adj = (int32_t*)allocDeviceArray(ne,sizeof(int32_t));
 	copyArrayHostToDevice(h_off,d_off,nv,sizeof(int32_t));

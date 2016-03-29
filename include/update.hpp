@@ -3,6 +3,23 @@
 #include "main.hpp"
 
 
+class BatchUpdateData{
+	void* mem;
+	int64_t numberBytes;
+	length_t batchSize;
+private:
+	vertexId_t* edgeSrc;
+	vertexId_t* edgeDst;
+	vertexId_t* indIncomplete;
+	vertexId_t* indDuplicate;
+	length_t* dupRelPos; 
+	length_t incCount; 
+	length_t dupCount;
+	length_t sbatchSize;
+};
+
+
+
 class BatchUpdate{
 public:
 	BatchUpdate(int32_t batchSize_);

@@ -46,23 +46,26 @@ cuda_add_executable(custinger
 
 TARGET_LINK_LIBRARIES(custinger cuUtils cuUpdate /usr/local/cuda/lib64/libcudart.so)
 
-#LIST(APPEND CMAKE_CXX_FLAGS "std=c++0x -O3 -ffastmath -Wall")
+#LIST(APPEND CMAKE_CXX_FLAGS "std=c++11 -O3 -ffastmath -Wall")
 
 LIST(APPEND CUDA_NCCC_FLAGS --compiler-options -fno-strict-aliasing -use-fast-math)
 LIST(APPEND CUDA NVCC_FLAGS -gencode arch=compute_35,code=sm_35)
 LIST(APPEND CUDA NVCC_FLAGS "-std=c++11;-03;-DVERBOSE")
 
 
+if(CMAKE_COMPILER_IS_GNUCXX)
+   execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+   if (GCC_VERSION VERSION_GREATER 4.7 OR GCC_VERSION VERSION_EQUAL 4.7)
+        message(STATUS "C++11 activated.")
+        add_definitions("-std=gnu++11")
+        add_definitions("-Wall")
 
-
-include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-if(COMPILER_SUPPORTS_CXX11)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-elseif(COMPILER_SUPPORTS_CXX0X)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-else()
-        message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+   elseif(GCC_VERSION VERSION_GREATER 4.3 OR GCC_VERSION VERSION_EQUAL 4.3)
+        message(WARNING "C++0x activated. If you get any errors update to a compiler which fully supports C++11")
+        add_definitions("-std=gnu++0x")
+   else ()
+        message(FATAL_ERROR "C++11 needed. Therefore a gcc compiler with a version higher than 4.3 is needed.")   
+   endif()
+else(CMAKE_COMPILER_IS_GNUCXX)
+   add_definitions("-std=c++0x") 
 endif()
-

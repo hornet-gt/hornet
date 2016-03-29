@@ -6,16 +6,38 @@
 class BatchUpdateData{
 	void* mem;
 	int64_t numberBytes;
-	length_t batchSize;
+
+	BatchUpdateData(length_t batchSize_){
+		numberBytes = sizeof(BatchUpdateData);
+		numberBytes += batchSize_* (4 + sizeof(vertexId_t)+ 1* sizeof(length_t)) + 3*sizeof (length_t);
+
+		mem = (void*)allocHostArray(numberBytes,sizeof(int8_t));
+
+		// batchSize=batchSize_;
+		
+	}
+
+	__host__ __device__ vertexId_t* getSrc(){return edgeSrc;}	
+	__host__ __device__ vertexId_t* getDst(){return edgeDst;}	
+	__host__ __device__ vertexId_t* getIndIncomplete(){return indIncomplete;}	
+	__host__ __device__ vertexId_t* getIndDuplicate(){return indDuplicate;}	
+	__host__ __device__ length_t* getDupRelPos(){return dupRelPos;}	
+	// Single element values
+	__host__ __device__ length_t* getIncCount(){return incCount;}	
+	__host__ __device__ length_t* getBatchSize(){return batchSize;}
+	__host__ __device__ length_t* getDuplicateCount(){return dupCount;}	
+
 private:
 	vertexId_t* edgeSrc;
 	vertexId_t* edgeDst;
+	vertexId_t* edgeWeight;
 	vertexId_t* indIncomplete;
 	vertexId_t* indDuplicate;
 	length_t* dupRelPos; 
-	length_t incCount; 
-	length_t dupCount;
-	length_t sbatchSize;
+	// Single element values
+	length_t* incCount; 
+	length_t* dupCount;
+	length_t* batchSize;
 };
 
 
@@ -72,8 +94,6 @@ private:
 
 
 };
-
-
 
 
 

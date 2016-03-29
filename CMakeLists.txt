@@ -58,7 +58,9 @@ if(CMAKE_COMPILER_IS_GNUCXX)
    if (GCC_VERSION VERSION_GREATER 4.7 OR GCC_VERSION VERSION_EQUAL 4.7)
         message(STATUS "C++11 activated.")
         add_definitions("-std=gnu++11")
-        add_definitions("-Wall")
+#        add_definitions("-Wall")
+        add_definitions("-Wno-cpp")
+
 
    elseif(GCC_VERSION VERSION_GREATER 4.3 OR GCC_VERSION VERSION_EQUAL 4.3)
         message(WARNING "C++0x activated. If you get any errors update to a compiler which fully supports C++11")

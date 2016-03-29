@@ -32,11 +32,26 @@ public:
 		*dupCount=0;
 		*batchSize=batchSize_;
 
+		if(!isHost){
+			dPtr=(BatchUpdateData*) allocDeviceArray(1,sizeof(BatchUpdateData));
+			copyArrayHostToDevice(this,dPtr,1, sizeof(BatchUpdateData));
+		}
 		cout << "The size of the allocated memory is : " << numberBytes << endl;
 	}
+
 	~BatchUpdateData(){
-		freeHostArray(mem);
+		if(isHost){
+			freeHostArray(mem);
+		}
+		else{
+			free(dPtr);
+			freeDeviceArray(mem);
+		}
+		cout << "free successfully called" << endl;
 	}
+
+	__device__ BatchUpdateData* devicePtr(){return dPtr;}
+
 
 	__host__ __device__ vertexId_t* getSrc(){return edgeSrc;}	
 	__host__ __device__ vertexId_t* getDst(){return edgeDst;}	
@@ -64,6 +79,9 @@ private:
 	length_t* incCount; 
 	length_t* dupCount;
 	length_t* batchSize;
+
+	// Used only by device copies of this class
+	BatchUpdateData* dPtr;
 };
 
 
@@ -119,7 +137,6 @@ private:
 	int32_t *d_batchSize,*d_edgeSrc,*d_edgeDst, *d_indIncomplete, *d_incCount, *d_indDuplicate, *d_dupRelPos,*d_dupCount;
 
 	BatchUpdateData *hData, *dData;
-
 };
 
 

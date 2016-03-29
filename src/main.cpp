@@ -91,13 +91,17 @@ int main(const int argc, char *argv[])
 
 	cout << "Host utilized   : " << custing.getNumberEdgesUsed() << endl;
 
+	length_t numEdgesL = numEdges;
+	BatchUpdateData bud(numEdgesL,true);
+
+
 	BatchUpdate bu(numEdges);
 	generateEdgeUpdates(nv, numEdges, bu.getHostSrc(),bu.getHostDst());
 	bu.resetHostIncCount();
 	bu.copyHostToDevice();
 
 	start_clock(ce_start, ce_stop);
-		update(custing,bu);
+		// update(custing,bu);
 	cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
 
 

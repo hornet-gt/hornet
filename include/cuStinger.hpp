@@ -121,8 +121,8 @@ public:
 };
 
 
-#define CUSTINGER_WARNING(W) cout << "cuStinge Warning : " << W << endl;
-#define CUSTINGER_ERROR(E)   cout << "cuStinge Error   : " << E << endl;
+#define CUSTINGER_WARNING(W) std::cout << "cuStinge Warning : " << W << std::endl;
+#define CUSTINGER_ERROR(E)   std::cerr << "cuStinge Error   : " << E << std::endl;
 
 // TODO:
 // * Add option to send a different element allocator.

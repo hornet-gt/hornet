@@ -35,6 +35,13 @@ BatchUpdate::BatchUpdate(int32_t batchSize_){
 	resetHostIncCount();
 	resetHostDuplicateCount();
 
+
+	hData = new BatchUpdateData(batchSize_,true);
+	dData = new BatchUpdateData(batchSize_,true);
+	// dData->dPtr = (BatchUpdateData*)allocDeviceArray(1,sizeof(BatchUpdateData));
+	// copyArrayHostToDevice(dData,dData->dPtr,1, sizeof(BatchUpdateData));
+
+
 	d_batchUpdate=(BatchUpdate*) allocDeviceArray(1,sizeof(BatchUpdate));
 	copyArrayHostToDevice(this,d_batchUpdate,1, sizeof(BatchUpdate));
 }
@@ -59,6 +66,10 @@ BatchUpdate::~BatchUpdate(){
 
 	freeDeviceArray(d_batchUpdate);
 
+
+	// freeDeviceArray(dData->dPtr);
+	delete hData;
+	delete dData;
 }
 
 void BatchUpdate::copyHostToDevice(){

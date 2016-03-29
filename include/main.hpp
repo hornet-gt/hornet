@@ -3,6 +3,8 @@
 #ifndef _CUSTINGER_INCLUDE_H
 #define _CUSTINGER_INCLUDE_H
 
+#include <iostream>
+using namespace std;
 
 #include "utils.hpp"
 #include "cuStinger.hpp"

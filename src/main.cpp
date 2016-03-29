@@ -77,7 +77,7 @@ int main(const int argc, char *argv[])
 	cout << "Vertices " << nv << endl;
 	cout << "Edges " << ne << endl;
 
-	int32_t *d_utilized,*d_max,**d_adj;
+	// int32_t *d_utilized,*d_max,**d_adj;
 
 	cudaEvent_t ce_start,ce_stop;
 

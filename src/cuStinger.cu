@@ -6,11 +6,15 @@
 
 using namespace std;
 
+
+	void initializeCuStinger(cuStingerConfig);
+
+
 __global__ void devMakeGPUStinger(int32_t* d_off, int32_t* d_adj,
 	int verticesPerThreadBlock,cuStinger* custing)
 {
 	int32_t** d_cuadj = custing->d_adj;
-	int32_t* d_utilized = custing->d_utilized;
+	length_t* d_utilized = custing->d_utilized;
 
 	int32_t v_init=blockIdx.x*verticesPerThreadBlock;
 	for (int v_hat=0; v_hat<verticesPerThreadBlock; v_hat++){
@@ -24,7 +28,7 @@ __global__ void devMakeGPUStinger(int32_t* d_off, int32_t* d_adj,
 }
 
 
-void cuStinger::initcuStinger(int32_t* h_off, int32_t* h_adj, int ne){
+void cuStinger::internalInitcuStinger(int32_t* h_off, int32_t* h_adj, int ne){
 	int32_t* d_off = (int32_t*)allocDeviceArray(nv+1,sizeof(int32_t));
 	int32_t* d_adj = (int32_t*)allocDeviceArray(ne,sizeof(int32_t));
 	copyArrayHostToDevice(h_off,d_off,nv,sizeof(int32_t));
@@ -75,20 +79,20 @@ __global__ void total(int32_t * input, int32_t * output, int32_t len) {
 }
 
 
-int32_t cuStinger::sumDeviceArray(int32_t* arr){
+int32_t cuStinger::sumDeviceArray(length_t* arr){
 	int32_t numOutputElements = nv / (SUM_BLOCK_SIZE<<1);
     if (nv % (SUM_BLOCK_SIZE<<1)) {
         numOutputElements++;
     }
 
-	int32_t* d_out = (int32_t*)allocDeviceArray(nv, sizeof(int32_t*));
+	length_t* d_out = (length_t*)allocDeviceArray(nv, sizeof(int32_t*));
 
 	total<<<numOutputElements,SUM_BLOCK_SIZE>>>(d_utilized,d_out,nv);
 
-	int32_t* h_out = (int32_t*)allocHostArray(nv, sizeof(int32_t*));
+	length_t* h_out = (int32_t*)allocHostArray(nv, sizeof(length_t*));
 	
-	int32_t sum=0;
-	copyArrayDeviceToHost(d_out, h_out, nv, sizeof(int32_t));
+	length_t sum=0;
+	copyArrayDeviceToHost(d_out, h_out, nv, sizeof(length_t));
 	for(int i=0; i<numOutputElements; i++){
 		 // cout << h_out[i] << ", ";
 		sum+=h_out[i];
@@ -104,7 +108,7 @@ __global__ void deviceCopyMultipleAdjacencies(cuStinger* custing, int32_t** d_ne
 	int32_t* requireUpdates, int32_t requireCount ,int32_t verticesPerThreadBlock)
 {
 	int32_t** d_cuadj = custing->d_adj;
-	int32_t* d_utilized = custing->d_utilized;
+	length_t* d_utilized = custing->d_utilized;
 
 	int32_t v_init=blockIdx.x*verticesPerThreadBlock;
 	for (int v_hat=0; v_hat<verticesPerThreadBlock; v_hat++){

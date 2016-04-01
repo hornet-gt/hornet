@@ -189,7 +189,6 @@ void update(cuStinger &custing, BatchUpdate &bu)
 	deviceUpdatesSweep1<<<numBlocks,threadsPerBlock>>>(custing.devicePtr(), bu.getDeviceBUD()->devicePtr(),updatesPerBlock);
 	checkLastCudaError("Error in the first update sweep");
 
-	cout << "ODED YOU STILL NEED to add back some additional functionality below into BU" << endl;
 	bu.getHostBUD()->copyDeviceToHostDupCount(*bu.getDeviceBUD());
 	// bu.copyDeviceToHostDupCount();
 //	dupInBatch = bu.getHostDuplicateCount();
@@ -205,17 +204,20 @@ void update(cuStinger &custing, BatchUpdate &bu)
 		checkLastCudaError("Error in the first duplication sweep");
 	}
 
-	cout << "ODED YOU STILL NEED to add back some additional functionality below into BU" << endl;
-	// bu.copyDeviceToHost();
-	// bu.reAllocateMemoryAfterSweep1(custing);
+	bu.getHostBUD()->copyDeviceToHost(*bu.getDeviceBUD());
+	bu.reAllocateMemoryAfterSweep1(custing);
 	
+	// return;
 	//--------
 	// Sweep 2
 	//--------
-	cout << "ODED YOU STILL NEED to add back some additional functionality below into BU" << endl;	
+	// cout << "ODED YOU STILL NEED to add back some additional functionality below into BU" << endl;	
 	// bu.copyDeviceToHostIncCount();
 	// updateSize = bu.getHostIncCount();
 	// bu.resetDeviceDuplicateCount();
+
+	updateSize = *(bu.getHostBUD()->getIncCount());
+	bu.getDeviceBUD()->resetDuplicateCount();
 
 	if(updateSize>0){
 		numBlocks.x = ceil((float)updateSize/(float)threads);
@@ -227,9 +229,11 @@ void update(cuStinger &custing, BatchUpdate &bu)
 		deviceUpdatesSweep2<<<numBlocks,threadsPerBlock>>>(custing.devicePtr(), bu.getDeviceBUD()->devicePtr(),updatesPerBlock);
 		checkLastCudaError("Error in the second update sweep");
 
-		cout << "ODED YOU STILL NEED to add back some additional functionality below into BU" << endl;
-		// bu.copyDeviceToHostDupCount();
-		// dupInBatch = bu.getHostDuplicateCount();
+	
+		bu.getHostBUD()->copyDeviceToHost(*bu.getDeviceBUD());
+		dupInBatch = *(bu.getHostBUD()->getDuplicateCount());
+
+	
 		cout << "The number of duplicates in the batch is : " << dupInBatch << endl;
 
 		if(dupInBatch>0){
@@ -246,13 +250,11 @@ void update(cuStinger &custing, BatchUpdate &bu)
 	// cout << "The number of duplicates in the second sweep : " << bu.getHostDuplicateCount() << endl;
 
 
-	cout << "ODED YOU STILL NEED to add back some additional functionality below into BU" << endl;
-/*
-	bu.resetHostIncCount();
-	bu.resetHostDuplicateCount();		
-	bu.resetDeviceIncCount();
-	bu.resetDeviceDuplicateCount();
-*/
+
+	bu.getHostBUD()->resetIncCount();
+	bu.getDeviceBUD()->resetIncCount();
+	bu.getHostBUD()->resetDuplicateCount();
+	bu.getDeviceBUD()->resetDuplicateCount();
 
 }
 

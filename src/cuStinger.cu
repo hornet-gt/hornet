@@ -133,7 +133,11 @@ void cuStinger::copyMultipleAdjacencies(int32_t** d_newadj,
 	if (numBlocks.x>16000){
 		numBlocks.x=16000;
 	}	
-	int32_t verticesPerThreadBlock = ceil(float(requireCount)/float(numBlocks.x-1));
+	int32_t verticesPerThreadBlock;
+	if(numBlocks.x == requireCount)
+		verticesPerThreadBlock=1;
+	else
+		verticesPerThreadBlock = ceil(float(requireCount)/float(numBlocks.x-1));
 
 	cout << "### " << requireCount << " , " <<  numBlocks.x << " , " << verticesPerThreadBlock << " ###"  << endl; 
 

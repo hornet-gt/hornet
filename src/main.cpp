@@ -93,18 +93,11 @@ int main(const int argc, char *argv[])
 	length_t numEdgesL = numEdges;
 	BatchUpdateData bud(numEdgesL,true);
 
-
-	// BatchUpdate bu(numEdges);
-
 	generateEdgeUpdates(nv, numEdges, bud.getSrc(),bud.getDst());
-
-	// bu.resetHostIncCount();
-	// bu.copyHostToDevice();
-
 	BatchUpdate bu(bud);
 
 	start_clock(ce_start, ce_stop);
-		// update(custing,bu);
+		update(custing,bu);
 	cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
 
 

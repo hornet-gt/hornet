@@ -7,7 +7,7 @@
 using namespace std;
 
 
-	void initializeCuStinger(cuStingerConfig);
+// void initializeCuStinger(cuStingerConfig);
 
 
 __global__ void devMakeGPUStinger(int32_t* d_off, int32_t* d_adj,
@@ -28,11 +28,11 @@ __global__ void devMakeGPUStinger(int32_t* d_off, int32_t* d_adj,
 }
 
 
-void cuStinger::internalCSRcuStinger(int32_t* h_off, int32_t* h_adj, int ne){
-	int32_t* d_off = (int32_t*)allocDeviceArray(nv+1,sizeof(int32_t));
-	int32_t* d_adj = (int32_t*)allocDeviceArray(ne,sizeof(int32_t));
-	copyArrayHostToDevice(h_off,d_off,nv,sizeof(int32_t));
-	copyArrayHostToDevice(h_adj,d_adj,ne,sizeof(int32_t));
+void cuStinger::internalCSRcuStinger(length_t* h_off, vertexId_t* h_adj, int ne){
+	length_t* d_off = (length_t*)allocDeviceArray(nv+1,sizeof(int32_t));
+	vertexId_t* d_adj = (length_t*)allocDeviceArray(ne,sizeof(int32_t));
+	copyArrayHostToDevice(h_off,d_off,nv,sizeof(length_t));
+	copyArrayHostToDevice(h_adj,d_adj,ne,sizeof(vertexId_t));
 
 	dim3 numBlocks(1, 1);
 	int32_t threads=64;
@@ -54,39 +54,39 @@ void cuStinger::internalCSRcuStinger(int32_t* h_off, int32_t* h_adj, int ne){
 
 
 #define SUM_BLOCK_SIZE 512
-__global__ void total(int32_t * input, int32_t * output, int32_t len) {
-    __shared__ int32_t partialSum[2 * SUM_BLOCK_SIZE];
+__global__ void total(length_t * input, length_t * output, length_t len) {
+    __shared__ length_t partialSum[2 * SUM_BLOCK_SIZE];
     //Load a segment of the input vector into shared memory
-    int32_t t = threadIdx.x, start = 2 * blockIdx.x * SUM_BLOCK_SIZE;
-    if (start + t < len)
-       partialSum[t] = input[start + t];
+    length_t tid = threadIdx.x, start = 2 * blockIdx.x * SUM_BLOCK_SIZE;
+    if (start + tid < len)
+       partialSum[tid] = input[start + tid];
     else
-       partialSum[t] = 0;
+       partialSum[tid] = 0;
 
-    if (start + SUM_BLOCK_SIZE + t < len)
-       partialSum[SUM_BLOCK_SIZE + t] = input[start + SUM_BLOCK_SIZE + t];
+    if (start + SUM_BLOCK_SIZE + tid < len)
+       partialSum[SUM_BLOCK_SIZE + tid] = input[start + SUM_BLOCK_SIZE + tid];
     else
-       partialSum[SUM_BLOCK_SIZE + t] = 0;
+       partialSum[SUM_BLOCK_SIZE + tid] = 0;
 
     //Traverse the reduction tree
     for (int stride = SUM_BLOCK_SIZE; stride >= 1; stride >>= 1) {
        __syncthreads();
-       if (t < stride)
-          partialSum[t] += partialSum[t+stride];
+       if (tid < stride)
+          partialSum[tid] += partialSum[tid+stride];
     }
     //Write the computed sum of the block to the output vector at the correct index
-    if (t == 0)
+    if (tid == 0)
        output[blockIdx.x] = partialSum[0];
 }
 
 
-int32_t cuStinger::sumDeviceArray(length_t* arr){
-	int32_t numOutputElements = nv / (SUM_BLOCK_SIZE<<1);
+length_t cuStinger::sumDeviceArray(length_t* arr){
+	length_t numOutputElements = nv / (SUM_BLOCK_SIZE<<1);
     if (nv % (SUM_BLOCK_SIZE<<1)) {
         numOutputElements++;
     }
 
-	length_t* d_out = (length_t*)allocDeviceArray(nv, sizeof(int32_t*));
+	length_t* d_out = (length_t*)allocDeviceArray(nv, sizeof(length_t*));
 
 	total<<<numOutputElements,SUM_BLOCK_SIZE>>>(d_utilized,d_out,nv);
 
@@ -105,26 +105,26 @@ int32_t cuStinger::sumDeviceArray(length_t* arr){
 
 
 
-__global__ void deviceCopyMultipleAdjacencies(cuStinger* custing, int32_t** d_newadj, 
-	int32_t* requireUpdates, int32_t requireCount ,int32_t verticesPerThreadBlock)
+__global__ void deviceCopyMultipleAdjacencies(cuStinger* custing, vertexId_t** d_newadj, 
+	vertexId_t* requireUpdates, length_t requireCount ,length_t verticesPerThreadBlock)
 {
 	int32_t** d_cuadj = custing->d_adj;
 	length_t* d_utilized = custing->d_utilized;
 
-	int32_t v_init=blockIdx.x*verticesPerThreadBlock;
+	length_t v_init=blockIdx.x*verticesPerThreadBlock;
 	for (int v_hat=0; v_hat<verticesPerThreadBlock; v_hat++){
 		if((v_init+v_hat)>=requireCount)
 			break;
-		int32_t v=requireUpdates[v_init+v_hat];
+		vertexId_t v=requireUpdates[v_init+v_hat];
 
-		for(int32_t e=threadIdx.x; e<d_utilized[v]; e+=blockDim.x){
+		for(length_t e=threadIdx.x; e<d_utilized[v]; e+=blockDim.x){
 			d_newadj[v][e] = d_cuadj[v][e];
 		}
 	}
 }
 
-void cuStinger::copyMultipleAdjacencies(int32_t** d_newadj, 
-	int32_t* requireUpdates, int32_t requireCount){
+void cuStinger::copyMultipleAdjacencies(vertexId_t** d_newadj, 
+	vertexId_t* requireUpdates, length_t requireCount){
 
 	dim3 numBlocks(1, 1);
 	int32_t threads=32;

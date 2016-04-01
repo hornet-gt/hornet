@@ -14,8 +14,8 @@
 
 using namespace std;
 
-int32_t defaultInitAllocater(int32_t elements){
-	int32_t eleCount = elements;
+length_t defaultInitAllocater(length_t elements){
+	length_t eleCount = elements;
 	if(eleCount==0)
 		eleCount=1;
 	else if(eleCount < 5)
@@ -25,16 +25,16 @@ int32_t defaultInitAllocater(int32_t elements){
 	return eleCount;
 }
 
-int32_t exactInitAllocater(int32_t elements){
+length_t exactInitAllocater(length_t elements){
 	return elements;
 }
 
-int32_t stingyInitAllocater(int32_t elements){
+length_t stingyInitAllocater(length_t elements){
 	return elements+1;
 }
 
-int32_t defaultUpdateAllocater(int32_t elements, int32_t overLimit){
-	int32_t eleCount = elements+overLimit;
+length_t defaultUpdateAllocater(length_t elements, length_t overLimit){
+	length_t eleCount = elements+overLimit;
 	if(eleCount==0)
 		eleCount=1;
 	else if(eleCount < 5)
@@ -44,11 +44,11 @@ int32_t defaultUpdateAllocater(int32_t elements, int32_t overLimit){
 	return eleCount;
 }
 
-int32_t exactUpdateAllocater(int32_t elements, int32_t overLimit){
+length_t exactUpdateAllocater(length_t elements, length_t overLimit){
 	return elements+overLimit;
 }
 
-int32_t stingyUpdateAllocater(int32_t elements, int32_t overLimit){
+length_t stingyUpdateAllocater(length_t elements, length_t overLimit){
 	return elements+overLimit+1;
 }
 
@@ -97,15 +97,15 @@ void cuStinger::copyDeviceToHost(){
 	copyArrayDeviceToHost(d_vtype,h_vtype,nv,sizeof(vtype_t));
 }
 
-void cuStinger::deviceAllocMemory(int32_t* off, int32_t* adj)
+void cuStinger::deviceAllocMemory(length_t* off, vertexId_t* adj)
 {	
-	d_adj = (int32_t**)allocDeviceArray(nv,sizeof(int32_t*));
+	d_adj = (vertexId_t**)allocDeviceArray(nv,sizeof(vertexId_t*));
 	d_utilized = (length_t*)allocDeviceArray(nv,sizeof(length_t));
 	d_max =  (length_t*)allocDeviceArray(nv,sizeof(length_t));
 	d_vweight = (vweight_t*)allocDeviceArray(nv,sizeof(vweight_t));
 	d_vtype = (vtype_t*)allocDeviceArray(nv,sizeof(vtype_t));
 
-	h_adj =  (int32_t**)allocHostArray(nv,sizeof(int32_t*));
+	h_adj =  (vertexId_t**)allocHostArray(nv,sizeof(vertexId_t*));
 	h_utilized =  (length_t*)allocHostArray(nv,sizeof(length_t));
 	h_max =  (length_t*)allocHostArray(nv,sizeof(length_t));
 	h_vweight = (vweight_t*)allocHostArray(nv,sizeof(vweight_t));
@@ -132,7 +132,7 @@ void cuStinger::deviceAllocMemory(int32_t* off, int32_t* adj)
 // }
 
 
-void cuStinger::initializeCuStinger(int32_t nv_,int32_t ne_,int32_t* off_, int32_t* adj_){
+void cuStinger::initializeCuStinger(length_t nv_,length_t ne_,length_t* off_, int32_t* adj_){
 	nv=nv_;
 	deviceAllocMemory(off_,adj_);
 
@@ -172,11 +172,11 @@ void cuStinger::initializeCuStinger(cuStingerConfig cuCS){
 
 
 
-int32_t cuStinger::getNumberEdgesAllocated(){
+length_t cuStinger::getNumberEdgesAllocated(){
 	return sumDeviceArray(d_max);
 }
 
-int32_t cuStinger::getNumberEdgesUsed(){
+length_t cuStinger::getNumberEdgesUsed(){
 	return sumDeviceArray(d_utilized);
 }
 

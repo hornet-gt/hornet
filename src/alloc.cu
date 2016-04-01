@@ -10,13 +10,13 @@
 using namespace std;
 
 
-void* allocHostArray(int32_t elements,int32_t eleSize){
+void* allocHostArray(length_t elements,int32_t eleSize){
 	if (elements==0 || eleSize==0)
 		return NULL;
 	return malloc(eleSize*elements);
 }
 
-void* allocDeviceArray(int32_t elements,int32_t eleSize){
+void* allocDeviceArray(length_t elements,int32_t eleSize){
 	int32_t* ptr=NULL;
 	if (elements==0 || eleSize==0)
 		return NULL;
@@ -33,19 +33,19 @@ void freeDeviceArray(void* array){
 }
 
 
-void copyArrayHostToHost(void* hostSrc,  void* hostDst, int32_t elements, int32_t eleSize){
+void copyArrayHostToHost(void* hostSrc,  void* hostDst, length_t elements, int32_t eleSize){
 	memcpy(hostDst,hostSrc,elements*eleSize);
 }
 
-void copyArrayHostToDevice(void* hostSrc, void* devDst, int32_t elements, int32_t eleSize){
+void copyArrayHostToDevice(void* hostSrc, void* devDst, length_t elements, int32_t eleSize){
 	checkCudaErrors(cudaMemcpy(devDst,hostSrc,elements*eleSize,cudaMemcpyHostToDevice));
 }
 
-void copyArrayDeviceToHost(void* devSrc, void* hostDst, int32_t elements, int32_t eleSize){
+void copyArrayDeviceToHost(void* devSrc, void* hostDst, length_t elements, int32_t eleSize){
 	checkCudaErrors(cudaMemcpy(hostDst,devSrc,elements*eleSize,cudaMemcpyDeviceToHost));
 }
 
-void copyArrayDeviceToDevice(void* devSrc, void* devDst, int32_t elements, int32_t eleSize){
+void copyArrayDeviceToDevice(void* devSrc, void* devDst, length_t elements, int32_t eleSize){
 	checkCudaErrors(cudaMemcpy(devDst,devSrc,elements*eleSize,cudaMemcpyDeviceToDevice));
 }
 

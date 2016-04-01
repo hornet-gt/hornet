@@ -43,7 +43,7 @@ float end_clock(cudaEvent_t &start, cudaEvent_t &end)
 }
 
 
-void generateEdgeUpdates(int32_t nv, int32_t numEdges, int32_t* edgeSrc, int32_t* edgeDst){
+void generateEdgeUpdates(length_t nv, length_t numEdges, vertexId_t* edgeSrc, vertexId_t* edgeDst){
 	for(int32_t e=0; e<numEdges; e++){
 		edgeSrc[e] = rand()%nv;
 		edgeDst[e] = rand()%nv;
@@ -63,7 +63,8 @@ int main(const int argc, char *argv[])
  // 	cout << "gridsize.y : " << prop.maxGridSize[1] <<  endl;
  // 	cout << "gridsize.z : " << prop.maxGridSize[2] <<  endl;
  
-    int32_t nv, ne,*off,*adj;
+    length_t nv, ne,*off;
+    vertexId_t *adj;
 
     cout << argv[1] << endl;
 
@@ -100,12 +101,10 @@ int main(const int argc, char *argv[])
 		update(custing,bu);
 	cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
 
-
 	cout << "Host utilized   : " << custing.getNumberEdgesUsed() << endl;
 
 	custing.freecuStinger();
 
     return 0;	
 }       
-
 

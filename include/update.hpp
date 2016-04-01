@@ -57,7 +57,6 @@ private:
 class BatchUpdate{
 public:
 	BatchUpdate(BatchUpdateData &h_bua);
-	BatchUpdate(int32_t batchSize_);
 	~BatchUpdate();
 
 

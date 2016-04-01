@@ -10,16 +10,16 @@ typedef int32_t vertexId_t;
 typedef int32_t length_t;
 typedef int32_t timestamp_t;
 
-typedef int32_t (*initAllocator)(int32_t);
-int32_t defaultInitAllocater(int32_t elements);
-int32_t exactInitAllocater(int32_t elements);
-int32_t stingyInitAllocater(int32_t elements);
+typedef length_t (*initAllocator)(length_t);
+length_t defaultInitAllocater(length_t elements);
+length_t exactInitAllocater(length_t elements);
+length_t stingyInitAllocater(length_t elements);
 
 
-typedef int32_t (*updateAllocator)(int32_t, int32_t);
-int32_t defaultUpdateAllocater(int32_t elements, int32_t overLimit);
-int32_t exactUpdateAllocater(int32_t elements, int32_t overLimit);
-int32_t stingyUpdateAllocater(int32_t elements, int32_t overLimit);
+typedef length_t (*updateAllocator)(length_t, length_t);
+length_t defaultUpdateAllocater(length_t elements, length_t overLimit);
+length_t exactUpdateAllocater(length_t elements, length_t overLimit);
+length_t stingyUpdateAllocater(length_t elements, length_t overLimit);
 
 enum cuStingerInitState{
 	eInitStateEmpty,
@@ -29,7 +29,7 @@ enum cuStingerInitState{
 
 class cuStingerConfig{
 public:
-	// 
+
 	cuStingerInitState initState;
 
 	int maxNV = INT_MAX; // maxNV>csrNV
@@ -68,7 +68,7 @@ public:
 	void initializeCuStinger(cuStingerConfig);
 
 
-	void initializeCuStinger(int32_t nv_,int32_t ne_,int32_t* off_, int32_t* adj_);
+	void initializeCuStinger(length_t nv_,length_t ne_,length_t* off_, vertexId_t* adj_);
 	void copyHostToDevice();
 	void copyDeviceToHost(); 
 
@@ -81,14 +81,14 @@ public:
 	cuStinger* devicePtr(){return d_cuStinger;}
 
 
-	void copyMultipleAdjacencies(int32_t** d_newadj, int32_t* requireUpdates, int32_t requireCount);
+	void copyMultipleAdjacencies(vertexId_t** d_newadj, vertexId_t* requireUpdates, length_t requireCount);
 
 	length_t getNumberEdgesAllocated();
 	length_t getNumberEdgesUsed();
 
 public:
 
-	int32_t nv;
+	vertexId_t nv;
 	bool isSemantic, useVWeight, useEWeight;
 
 	int32_t bytesPerEdge,bytesPerVertex;
@@ -98,7 +98,6 @@ public:
 	length_t *h_utilized,*h_max;
 	vweight_t *h_vweight;
 	vtype_t *h_vtype;
-
 
 // Device memory
 	vertexId_t **d_adj;
@@ -111,13 +110,13 @@ public:
 
 	initAllocator initVertexAllocator;
 	updateAllocator updateVertexAllocator;
-	void deviceAllocMemory(int32_t* off, int32_t* adj);
+	void deviceAllocMemory(length_t* off, vertexId_t* adj);
 
 	void internalEmptycuStinger(int NV);
 
-	void internalCSRcuStinger(int32_t* off, int32_t* adj, int32_t ne);
+	void internalCSRcuStinger(length_t* off, vertexId_t* adj, length_t ne);
 
-	int32_t sumDeviceArray(int32_t* arr);
+	length_t sumDeviceArray(length_t* arr);
 };
 
 

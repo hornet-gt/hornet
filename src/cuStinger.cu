@@ -55,25 +55,26 @@ void cuStinger::internalCSRcuStinger(int32_t* h_off, int32_t* h_adj, int ne){
 
 #define SUM_BLOCK_SIZE 512
 __global__ void total(int32_t * input, int32_t * output, int32_t len) {
-    //@@ Load a segment of the input vector into shared memory
     __shared__ int32_t partialSum[2 * SUM_BLOCK_SIZE];
+    //Load a segment of the input vector into shared memory
     int32_t t = threadIdx.x, start = 2 * blockIdx.x * SUM_BLOCK_SIZE;
     if (start + t < len)
        partialSum[t] = input[start + t];
     else
        partialSum[t] = 0;
+
     if (start + SUM_BLOCK_SIZE + t < len)
        partialSum[SUM_BLOCK_SIZE + t] = input[start + SUM_BLOCK_SIZE + t];
     else
        partialSum[SUM_BLOCK_SIZE + t] = 0;
-    //@@ Traverse the reduction tree
+
+    //Traverse the reduction tree
     for (int stride = SUM_BLOCK_SIZE; stride >= 1; stride >>= 1) {
        __syncthreads();
        if (t < stride)
           partialSum[t] += partialSum[t+stride];
     }
-    //@@ Write the computed sum of the block to the output vector at the 
-    //@@ correct index
+    //Write the computed sum of the block to the output vector at the correct index
     if (t == 0)
        output[blockIdx.x] = partialSum[0];
 }

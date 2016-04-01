@@ -183,21 +183,21 @@ void BatchUpdate::reAllocateMemoryAfterSweep1(cuStinger &custing)
 {
 	int32_t sum=0; 
 	vertexId_t *tempsrc=getHostBUD()->getSrc(),*tempdst=getHostBUD()->getDst(),*incomplete = getHostBUD()->getIndIncomplete();
-	int32_t incCount = *(getHostBUD()->getIncCount());
+	length_t incCount = *(getHostBUD()->getIncCount());
 
-	unordered_map <int32_t, int32_t> h_hmap;
+	unordered_map <vertexId_t, length_t> h_hmap;
 
-	int32_t* h_requireUpdates=(int32_t*)allocHostArray(*(getHostBUD()->getBatchSize()), sizeof(int32_t));
-	int32_t* h_overLimit=(int32_t*)allocHostArray(*(getHostBUD()->getBatchSize()), sizeof(int32_t));
+	vertexId_t* h_requireUpdates=(vertexId_t*)allocHostArray(*(getHostBUD()->getBatchSize()), sizeof(vertexId_t));
+	length_t* h_overLimit=(length_t*)allocHostArray(*(getHostBUD()->getBatchSize()), sizeof(length_t));
 
-	for (int32_t i=0; i<incCount; i++){
-		int32_t temp = tempsrc[incomplete[i]];
+	for (length_t i=0; i<incCount; i++){
+		vertexId_t temp = tempsrc[incomplete[i]];
 		h_hmap[temp]++;
 	}
 
-	int countUnique=0;
-	for (int32_t i=0; i<incCount; i++){
-		int32_t temp = tempsrc[incomplete[i]];
+	length_t countUnique=0;
+	for (length_t i=0; i<incCount; i++){
+		vertexId_t temp = tempsrc[incomplete[i]];
 		if(h_hmap[temp]!=0){
 			h_requireUpdates[countUnique]=temp;
 			h_overLimit[countUnique]=h_hmap[temp];
@@ -209,25 +209,25 @@ void BatchUpdate::reAllocateMemoryAfterSweep1(cuStinger &custing)
 	custing.copyDeviceToHost();
 
 	if(countUnique>0){
-		int32_t ** h_tempAdjacency = (int32_t**) allocHostArray(custing.nv,sizeof(int32_t*));
-		int32_t ** d_tempAdjacency = (int32_t**) allocDeviceArray(custing.nv,sizeof(int32_t*));
-		int32_t * d_requireUpdates = (int32_t*) allocDeviceArray(countUnique, sizeof(int32_t));
+		vertexId_t ** h_tempAdjacency = (vertexId_t**) allocHostArray(custing.nv,sizeof(vertexId_t*));
+		vertexId_t ** d_tempAdjacency = (vertexId_t**) allocDeviceArray(custing.nv,sizeof(vertexId_t*));
+		vertexId_t * d_requireUpdates = (vertexId_t*) allocDeviceArray(countUnique, sizeof(vertexId_t));
 
-		for (int32_t i=0; i<countUnique; i++){
-			int32_t tempVertex = h_requireUpdates[i];
-			int32_t newMax = custing.updateVertexAllocator(custing.h_max[tempVertex] ,h_overLimit[i]);
-			h_tempAdjacency[tempVertex] = (int32_t*)allocDeviceArray(newMax, sizeof(int32_t));
+		for (length_t i=0; i<countUnique; i++){
+			vertexId_t tempVertex = h_requireUpdates[i];
+			length_t newMax = custing.updateVertexAllocator(custing.h_max[tempVertex] ,h_overLimit[i]);
+			h_tempAdjacency[tempVertex] = (vertexId_t*)allocDeviceArray(newMax, sizeof(vertexId_t));
 			custing.h_max[tempVertex] = newMax;
 		}
 
 		sort(h_requireUpdates, h_requireUpdates + countUnique);
-		copyArrayHostToDevice(h_requireUpdates,d_requireUpdates,countUnique,sizeof(int32_t));
-		copyArrayHostToDevice(h_tempAdjacency,d_tempAdjacency, custing.nv, sizeof(int32_t*));
+		copyArrayHostToDevice(h_requireUpdates,d_requireUpdates,countUnique,sizeof(vertexId_t));
+		copyArrayHostToDevice(h_tempAdjacency,d_tempAdjacency, custing.nv, sizeof(vertexId_t*));
 
 		custing.copyMultipleAdjacencies(d_tempAdjacency,d_requireUpdates,countUnique);
 
-		for (int32_t i=0; i<countUnique; i++){
-			int32_t tempVertex = h_requireUpdates[i];
+		for (length_t i=0; i<countUnique; i++){
+			vertexId_t tempVertex = h_requireUpdates[i];
 			freeDeviceArray(custing.h_adj[tempVertex]);
 			custing.h_adj[tempVertex] = h_tempAdjacency[tempVertex];
 		}

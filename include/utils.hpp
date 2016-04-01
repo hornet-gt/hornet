@@ -3,6 +3,9 @@
 
 #include <cuStinger.hpp>
 
+void start_clock(cudaEvent_t &start, cudaEvent_t &end);
+float end_clock(cudaEvent_t &start, cudaEvent_t &end);
+
 void* allocHostArray(length_t elements,int32_t eleSize);
 void* allocDeviceArray(length_t elements,int32_t eleSize);
 void freeHostArray(void* array);

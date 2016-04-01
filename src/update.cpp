@@ -206,7 +206,14 @@ void BatchUpdate::reAllocateMemoryAfterSweep1(cuStinger &custing)
 		}
 	}
 
+	cudaEvent_t ce_start,ce_stop;
+
+	start_clock(ce_start, ce_stop);
 	custing.copyDeviceToHost();
+
+	cout << "Copy time from device to host of util arrays : " << end_clock(ce_start, ce_stop) << endl;
+	// custing.copyDeviceToHost();
+
 
 	if(countUnique>0){
 		vertexId_t ** h_tempAdjacency = (vertexId_t**) allocHostArray(custing.nv,sizeof(vertexId_t*));

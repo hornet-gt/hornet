@@ -27,15 +27,16 @@ enum cuStingerInitState{
 	eInitStateEdgeList,
 };
 
-class cuStingerConfig{
+class cuStingerInitConfig{
 public:
 
 	cuStingerInitState initState;
 
 	int maxNV = INT_MAX; // maxNV>csrNV
 
-	bool isSemantic = false;  // Use edge types and vertex types
 	bool useVWeight = false;
+
+	bool isSemantic = false;  // Use edge types and vertex types
 	bool useEWeight = false;
 
 	// CSR data
@@ -59,14 +60,34 @@ public:
 
 };
 
+class cuEdgeData{
+public:
+	vertexId_t* 	adj;
+	eweight_t   	ew;
+	etype_t*    	et;
+	timestamp_t*	t1;
+	timestamp_t* 	t2;
+
+
+};
+
+class cuVertexData{
+public:
+	cuEdgeData* edge;
+	// vertexId_t* adj;
+	length_t*   utilized;
+	length_t*   max;
+	vweight_t   vw;
+	vtype_t*    vt;
+};
+
 class cuStinger{
 public:
 	cuStinger(initAllocator iAllocator=defaultInitAllocater,
 		updateAllocator uAllocator=defaultUpdateAllocater);
 	~cuStinger();
 
-	void initializeCuStinger(cuStingerConfig);
-
+	void initializeCuStinger(cuStingerInitConfig &cuInit);
 
 	void initializeCuStinger(length_t nv_,length_t ne_,length_t* off_, vertexId_t* adj_);
 	void copyHostToDevice();
@@ -86,12 +107,19 @@ public:
 	length_t getNumberEdgesAllocated();
 	length_t getNumberEdgesUsed();
 
+	bool getisSemantic(){return isSemantic;}
+	bool getuseVWeight(){return useVWeight;}
+	bool getuseEweight(){return useEWeight;}
+	vertexId_t getMaxNV(){return nv;}
+
 public:
 
 	vertexId_t nv;
 	bool isSemantic, useVWeight, useEWeight;
 
 	int32_t bytesPerEdge,bytesPerVertex;
+
+	cuVertexData hVD,dVD;
 
 // Host memory - this is a shallow copy that does not actually contain the adjacency lists themselves.
 	vertexId_t **h_adj;
@@ -108,13 +136,15 @@ public:
 
 	cuStinger* d_cuStinger;
 
+private:
 	initAllocator initVertexAllocator;
 	updateAllocator updateVertexAllocator;
 	void deviceAllocMemory(length_t* off, vertexId_t* adj);
 
 	void internalEmptycuStinger(int NV);
-
 	void internalCSRcuStinger(length_t* off, vertexId_t* adj, length_t ne);
+
+
 
 	length_t sumDeviceArray(length_t* arr);
 };
@@ -123,5 +153,3 @@ public:
 #define CUSTINGER_WARNING(W) std::cout << "cuStinge Warning : " << W << std::endl;
 #define CUSTINGER_ERROR(E)   std::cerr << "cuStinge Error   : " << E << std::endl;
 
-// TODO:
-// * Add option to send a different element allocator.

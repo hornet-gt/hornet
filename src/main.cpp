@@ -83,6 +83,30 @@ int main(const int argc, char *argv[])
 	cudaEvent_t ce_start,ce_stop;
 
 	// cuStinger custing(stingyInitAllocater,stingyUpdateAllocater);
+
+	// cuStinger custing2;
+
+	// cuStingerInitConfig cuInit;
+	// cuInit.initState =eInitStateCSR;
+	// cuInit.maxNV = nv+1;
+	// cuInit.useVWeight = false;
+	// cuInit.isSemantic = false;  // Use edge types and vertex types
+	// cuInit.useEWeight = false;
+
+	// // CSR data
+	// cuInit.csrNV 			= nv;
+	// cuInit.csrNe   			= ne;
+	// cuInit.csrOff 			= off;
+	// cuInit.csrAdj 			= adj;
+	// cuInit.csrVW 			= NULL;
+	// cuInit.csrEW			= NULL;
+
+	// start_clock(ce_start, ce_stop);
+	// custing2.initializeCuStinger(cuInit);
+	// cout << "Allocation and Copy Time : " << end_clock(ce_start, ce_stop) << endl;
+
+
+
 	cuStinger custing;
 
 	start_clock(ce_start, ce_stop);
@@ -98,12 +122,14 @@ int main(const int argc, char *argv[])
 	BatchUpdate bu(bud);
 
 	start_clock(ce_start, ce_stop);
-		update(custing,bu);
+		// update(custing,bu);
 	cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
 
 	cout << "Host utilized   : " << custing.getNumberEdgesUsed() << endl;
 
 	custing.freecuStinger();
+	
+	// custing2.freecuStinger();
 
     return 0;	
 }       

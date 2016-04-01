@@ -201,15 +201,10 @@ void update(cuStinger &custing, BatchUpdate &bu)
 
 	bu.getHostBUD()->copyDeviceToHost(*bu.getDeviceBUD());
 	bu.reAllocateMemoryAfterSweep1(custing);
-	
-	// return;
+
 	//--------
 	// Sweep 2
 	//--------
-	// cout << "ODED YOU STILL NEED to add back some additional functionality below into BU" << endl;	
-	// bu.copyDeviceToHostIncCount();
-	// updateSize = bu.getHostIncCount();
-	// bu.resetDeviceDuplicateCount();
 
 	updateSize = *(bu.getHostBUD()->getIncCount());
 	bu.getDeviceBUD()->resetDuplicateCount();

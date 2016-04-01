@@ -7,19 +7,19 @@
 using namespace std;
 
 // No duplicates allowed
-__global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdate* bu,int32_t updatesPerBlock)
+__global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdateData* bud,int32_t updatesPerBlock)
 {
 	int32_t* d_utilized      = custing->getDeviceUtilized();
 	int32_t* d_max           = custing->getDeviceMax();
 	int32_t** d_adj          = custing->getDeviceAdj();	
-	int32_t* d_updatesSrc    = bu->getDeviceSrc();
-	int32_t* d_updatesDst    = bu->getDeviceDst();
-	int32_t batchSize        = bu->getDeviceBatchSize();
-	int32_t* d_incCount      = bu->getDeviceIncCount();
-	int32_t* d_indIncomplete = bu->getDeviceIndIncomplete();
-	int32_t* d_indDuplicate  = bu->getDeviceIndDuplicate();
-	int32_t* d_dupCount      = bu->getDeviceDuplicateCount();
-	int32_t* d_dupRelPos     = bu->getDeviceDupRelPos();
+	vertexId_t* d_updatesSrc    = bud->getSrc();
+	vertexId_t* d_updatesDst    = bud->getDst();
+	length_t batchSize          = *(bud->getBatchSize());
+	length_t* d_incCount        = bud->getIncCount();
+	vertexId_t* d_indIncomplete = bud->getIndIncomplete();
+	length_t* d_indDuplicate    = bud->getIndDuplicate();
+	length_t* d_dupCount        = bud->getDuplicateCount();
+	length_t* d_dupRelPos       = bud->getDupPosBatch();
 
 	__shared__ int32_t found[1];
 
@@ -71,19 +71,22 @@ __global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdate* bu,int32_t 
 	}
 }
 
-__global__ void deviceUpdatesSweep2(cuStinger* custing, BatchUpdate* bu,int32_t updatesPerBlock)
+__global__ void deviceUpdatesSweep2(cuStinger* custing, BatchUpdateData* bud,int32_t updatesPerBlock)
 {
 	int32_t* d_utilized      = custing->getDeviceUtilized();
 	int32_t* d_max           = custing->getDeviceMax();
 	int32_t** d_adj          = custing->getDeviceAdj();	
-	int32_t* d_updatesSrc    = bu->getDeviceSrc();
-	int32_t* d_updatesDst    = bu->getDeviceDst();
-	int32_t batchSize        = bu->getDeviceBatchSize();
-	int32_t* d_incCount      = bu->getDeviceIncCount();
-	int32_t* d_indIncomplete = bu->getDeviceIndIncomplete();
-	int32_t* d_indDuplicate  = bu->getDeviceIndDuplicate();
-	int32_t* d_dupCount      = bu->getDeviceDuplicateCount();
-	int32_t* d_dupRelPos     = bu->getDeviceDupRelPos();
+	vertexId_t* d_updatesSrc    = bud->getSrc();
+	vertexId_t* d_updatesDst    = bud->getDst();
+	length_t batchSize          = *(bud->getBatchSize());
+	length_t* d_incCount        = bud->getIncCount();
+	vertexId_t* d_indIncomplete = bud->getIndIncomplete();
+	length_t* d_indDuplicate    = bud->getIndDuplicate();
+	length_t* d_dupCount        = bud->getDuplicateCount();
+	length_t* d_dupRelPos       = bud->getDupPosBatch();
+
+
+
 
 	__shared__ int32_t found[1];
 
@@ -99,9 +102,6 @@ __global__ void deviceUpdatesSweep2(cuStinger* custing, BatchUpdate* bu,int32_t 
 		int32_t dst = d_updatesDst[indInc];
 
 		int32_t srcInitSize = d_utilized[src];
-
-		// if(threadIdx.x==0 && src==536954)
-		// 	printf("CUDA - %d %d\n ", src,dst);
 
 		if(threadIdx.x==0)
 			*found=0;
@@ -133,22 +133,22 @@ __global__ void deviceUpdatesSweep2(cuStinger* custing, BatchUpdate* bu,int32_t 
 			}
 			else{
 				printf("This should never happen because of reallaction");
-				// printf("%d %d %d\n",src,ret ,d_max[src]);
 			}
 		}
 	}
 }
 
 // Currently using a single thread in the warp for duplicate edge removal
-__global__ void deviceRemoveInsertedDuplicates(cuStinger* custing, BatchUpdate* bu,int32_t dupsPerBlock){
+__global__ void deviceRemoveInsertedDuplicates(cuStinger* custing, BatchUpdateData* bud,int32_t dupsPerBlock){
 
-	int32_t* d_updatesSrc = bu->getDeviceSrc();
-	int32_t* d_updatesDst = bu->getDeviceDst();
-	int32_t* d_utilized = custing->getDeviceUtilized();
-	int32_t** d_adj = custing->getDeviceAdj();
-	int32_t* d_indDuplicate = bu->getDeviceIndDuplicate();
-	int32_t* d_dupCount = bu->getDeviceDuplicateCount();
-	int32_t* d_dupRelPos= bu->getDeviceDupRelPos();
+	int32_t* d_utilized      = custing->getDeviceUtilized();
+	int32_t** d_adj          = custing->getDeviceAdj();	
+	vertexId_t* d_updatesSrc    = bud->getSrc();
+	vertexId_t* d_updatesDst    = bud->getDst();
+	length_t* d_indDuplicate    = bud->getIndDuplicate();
+	length_t* d_dupCount        = bud->getDuplicateCount();
+	length_t* d_dupRelPos       = bud->getDupPosBatch();
+
 
 	int32_t init_pos = blockIdx.x * dupsPerBlock;
 
@@ -175,21 +175,25 @@ void update(cuStinger &custing, BatchUpdate &bu)
 	dim3 numBlocks(1, 1);
 	int32_t threads=32;
 	dim3 threadsPerBlock(threads, 1);
-	int32_t updatesPerBlock,dupsPerBlock,updateSize, dupInBatch;
+	int32_t updatesPerBlock,dupsPerBlock;
+	length_t updateSize,dupInBatch;
 
-	updateSize = bu.getHostBatchSize();
+	updateSize = *(bu.getHostBUD()->getBatchSize());
 	numBlocks.x = ceil((float)updateSize/(float)threads);
 	if (numBlocks.x>16000){
 		numBlocks.x=16000;
 	}	
 	updatesPerBlock = ceil(float(updateSize)/float(numBlocks.x-1));
 
-	deviceUpdatesSweep1<<<numBlocks,threadsPerBlock>>>(custing.devicePtr(), bu.devicePtr(),updatesPerBlock);
+	// deviceUpdatesSweep1<<<numBlocks,threadsPerBlock>>>(custing.devicePtr(), bu.devicePtr(),updatesPerBlock);
+	deviceUpdatesSweep1<<<numBlocks,threadsPerBlock>>>(custing.devicePtr(), bu.getDeviceBUD()->devicePtr(),updatesPerBlock);
 	checkLastCudaError("Error in the first update sweep");
 
-	bu.copyDeviceToHostDupCount();
-	dupInBatch = bu.getHostDuplicateCount();
-
+	cout << "ODED YOU STILL NEED to add back some additional functionality below into BU" << endl;
+	bu.getHostBUD()->copyDeviceToHostDupCount(*bu.getDeviceBUD());
+	// bu.copyDeviceToHostDupCount();
+//	dupInBatch = bu.getHostDuplicateCount();
+	dupInBatch = *(bu.getHostBUD()->getDuplicateCount());
 	cout << "The number of duplicates in the batch is : " << dupInBatch << endl;
 	if(dupInBatch>0){
 		numBlocks.x = ceil((float)dupInBatch/(float)threads);
@@ -197,20 +201,21 @@ void update(cuStinger &custing, BatchUpdate &bu)
 			numBlocks.x=1000;
 		}	
 		dupsPerBlock = ceil(float(dupInBatch)/float(numBlocks.x-1));
-		deviceRemoveInsertedDuplicates<<<numBlocks,threadsPerBlock>>>(custing.devicePtr(), bu.devicePtr(),dupsPerBlock);
+		deviceRemoveInsertedDuplicates<<<numBlocks,threadsPerBlock>>>(custing.devicePtr(), bu.getDeviceBUD()->devicePtr(),dupsPerBlock);
 		checkLastCudaError("Error in the first duplication sweep");
 	}
 
-	bu.copyDeviceToHost();
-
-	bu.reAllocateMemoryAfterSweep1(custing);
+	cout << "ODED YOU STILL NEED to add back some additional functionality below into BU" << endl;
+	// bu.copyDeviceToHost();
+	// bu.reAllocateMemoryAfterSweep1(custing);
 	
 	//--------
 	// Sweep 2
 	//--------
-	bu.copyDeviceToHostIncCount();
-	updateSize = bu.getHostIncCount();
-	bu.resetDeviceDuplicateCount();
+	cout << "ODED YOU STILL NEED to add back some additional functionality below into BU" << endl;	
+	// bu.copyDeviceToHostIncCount();
+	// updateSize = bu.getHostIncCount();
+	// bu.resetDeviceDuplicateCount();
 
 	if(updateSize>0){
 		numBlocks.x = ceil((float)updateSize/(float)threads);
@@ -219,11 +224,12 @@ void update(cuStinger &custing, BatchUpdate &bu)
 		}	
 		updatesPerBlock = ceil(float(updateSize)/float(numBlocks.x-1));
 
-		deviceUpdatesSweep2<<<numBlocks,threadsPerBlock>>>(custing.devicePtr(), bu.devicePtr(),updatesPerBlock);
+		deviceUpdatesSweep2<<<numBlocks,threadsPerBlock>>>(custing.devicePtr(), bu.getDeviceBUD()->devicePtr(),updatesPerBlock);
 		checkLastCudaError("Error in the second update sweep");
 
-		bu.copyDeviceToHostDupCount();
-		dupInBatch = bu.getHostDuplicateCount();
+		cout << "ODED YOU STILL NEED to add back some additional functionality below into BU" << endl;
+		// bu.copyDeviceToHostDupCount();
+		// dupInBatch = bu.getHostDuplicateCount();
 		cout << "The number of duplicates in the batch is : " << dupInBatch << endl;
 
 		if(dupInBatch>0){
@@ -232,17 +238,22 @@ void update(cuStinger &custing, BatchUpdate &bu)
 				numBlocks.x=1000;
 			}	
 			dupsPerBlock = ceil(float(dupInBatch)/float(numBlocks.x-1));
-			deviceRemoveInsertedDuplicates<<<numBlocks,threadsPerBlock>>>(custing.devicePtr(), bu.devicePtr(),dupsPerBlock);
+			deviceRemoveInsertedDuplicates<<<numBlocks,threadsPerBlock>>>(custing.devicePtr(), bu.getDeviceBUD()->devicePtr()	,dupsPerBlock);
 			checkLastCudaError("Error in the second duplication sweep");
 		}
 	}
 
 	// cout << "The number of duplicates in the second sweep : " << bu.getHostDuplicateCount() << endl;
 
+
+	cout << "ODED YOU STILL NEED to add back some additional functionality below into BU" << endl;
+/*
 	bu.resetHostIncCount();
 	bu.resetHostDuplicateCount();		
 	bu.resetDeviceIncCount();
 	bu.resetDeviceDuplicateCount();
+*/
+
 }
 
 

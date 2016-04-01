@@ -73,17 +73,16 @@ int main(const int argc, char *argv[])
 	srand(100);
 
     readGraphDIMACS(argv[1],&off,&adj,&nv,&ne);
-
+// 
 	cout << "Vertices " << nv << endl;
 	cout << "Edges " << ne << endl;
 
-	// int32_t *d_utilized,*d_max,**d_adj;
+	// int32t *d_utilized,*d_max,**d_adj;
 
 	cudaEvent_t ce_start,ce_stop;
 
 	// cuStinger custing(stingyInitAllocater,stingyUpdateAllocater);
 	cuStinger custing;
-
 
 	start_clock(ce_start, ce_stop);
 	custing.initializeCuStinger(nv,ne,off,adj);
@@ -95,10 +94,14 @@ int main(const int argc, char *argv[])
 	BatchUpdateData bud(numEdgesL,true);
 
 
-	BatchUpdate bu(numEdges);
-	generateEdgeUpdates(nv, numEdges, bu.getHostSrc(),bu.getHostDst());
-	bu.resetHostIncCount();
-	bu.copyHostToDevice();
+	// BatchUpdate bu(numEdges);
+
+	generateEdgeUpdates(nv, numEdges, bud.getSrc(),bud.getDst());
+
+	// bu.resetHostIncCount();
+	// bu.copyHostToDevice();
+
+	BatchUpdate bu(bud);
 
 	start_clock(ce_start, ce_stop);
 		// update(custing,bu);

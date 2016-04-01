@@ -2,6 +2,9 @@
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 
+#include <stdio.h>
+#include <string.h>
+
 #include "utils.hpp"
 
 using namespace std;
@@ -30,6 +33,9 @@ void freeDeviceArray(void* array){
 }
 
 
+void copyArrayHostToHost(void* hostSrc,  void* hostDst, int32_t elements, int32_t eleSize){
+	memcpy(hostDst,hostSrc,elements*eleSize);
+}
 
 void copyArrayHostToDevice(void* hostSrc, void* devDst, int32_t elements, int32_t eleSize){
 	checkCudaErrors(cudaMemcpy(devDst,hostSrc,elements*eleSize,cudaMemcpyHostToDevice));

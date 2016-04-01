@@ -4,6 +4,8 @@
 #define _CUSTINGER_INCLUDE_H
 
 #include <iostream>
+#include <string>
+
 using namespace std;
 
 #include "utils.hpp"

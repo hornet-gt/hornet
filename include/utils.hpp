@@ -8,10 +8,10 @@ void* allocDeviceArray(int32_t elements,int32_t eleSize);
 void freeHostArray(void* array);
 void freeDeviceArray(void* array);
 
-void copyArrayHostToDevice(void* hostSrc, void* devDst, int32_t elements, int32_t eleSize);
-void copyArrayDeviceToHost(void* devSrc, void* hostDst, int32_t elements, int32_t eleSize);
-
-
+void copyArrayHostToHost    (void* hostSrc,  void* hostDst, int32_t elements, int32_t eleSize);
+void copyArrayHostToDevice  (void* hostSrc,  void* devDst,  int32_t elements, int32_t eleSize);
+void copyArrayDeviceToHost  (void* devSrc,   void* hostDst, int32_t elements, int32_t eleSize);
+void copyArrayDeviceToDevice(void* devSrc,   void* devtDst, int32_t elements, int32_t eleSize);
 
 // This will output the proper CUDA error strings in the event that a CUDA host call returns an error
 #ifndef checkCudaErrors

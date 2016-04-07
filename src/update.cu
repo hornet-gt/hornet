@@ -8,9 +8,9 @@ using namespace std;
 
 // No duplicates allowed
 __global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdateData* bud,int32_t updatesPerBlock){
-	length_t* d_utilized      = custing->getDeviceUtilized();
+	length_t* d_utilized      = custing->getDeviceUsed();
 	length_t* d_max           = custing->getDeviceMax();
-	vertexId_t** d_adj          = custing->getDeviceAdj();	
+	cuStinger::cusEdgeData** d_adj = custing->getDeviceAdj();	
 	vertexId_t* d_updatesSrc    = bud->getSrc();
 	vertexId_t* d_updatesDst    = bud->getDst();
 	length_t batchSize          = *(bud->getBatchSize());
@@ -37,9 +37,9 @@ __global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdateData* bud,int
 		__syncthreads();
 
 		for (length_t e=threadIdx.x; e<srcInitSize; e+=blockDim.x){
-			if(d_adj[src][e]==dst){
-				*found=1;
-			}
+			// if(d_adj[src][e]==dst){
+			// 	*found=1;
+			// }
 		}
 		__syncthreads();
 		if(!(*found) && threadIdx.x==0){
@@ -47,11 +47,11 @@ __global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdateData* bud,int
 			if(ret<d_max[src]){
 				length_t dupInBatch=0;
 				for(length_t k=srcInitSize; k<ret; k++){
-					if (d_adj[src][k]==dst)
-						dupInBatch=1;
+					// if (d_adj[src][k]==dst)
+					// 	dupInBatch=1;
 				}
 				if(!dupInBatch){
-					d_adj[src][ret] = dst;
+					// d_adj[src][ret] = dst;
 				}
 				else{
 					length_t duplicateID =  atomicAdd(d_dupCount, 1);
@@ -71,9 +71,9 @@ __global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdateData* bud,int
 }
 
 __global__ void deviceUpdatesSweep2(cuStinger* custing, BatchUpdateData* bud,int32_t updatesPerBlock){
-	length_t* d_utilized      = custing->getDeviceUtilized();
+	length_t* d_utilized      = custing->getDeviceUsed();
 	length_t* d_max           = custing->getDeviceMax();
-	vertexId_t** d_adj          = custing->getDeviceAdj();	
+	// vertexId_t** d_adj          = custing->getDeviceAdj();	
 	vertexId_t* d_updatesSrc    = bud->getSrc();
 	vertexId_t* d_updatesDst    = bud->getDst();
 	length_t batchSize          = *(bud->getBatchSize());
@@ -102,9 +102,9 @@ __global__ void deviceUpdatesSweep2(cuStinger* custing, BatchUpdateData* bud,int
 		__syncthreads();
 
 		for (length_t e=threadIdx.x; e<srcInitSize; e+=blockDim.x){
-			if(d_adj[src][e]==dst){
-				*found=1;
-			}
+			// if(d_adj[src][e]==dst){
+			// 	*found=1;
+			// }
 		}
 		__syncthreads();
 
@@ -113,11 +113,11 @@ __global__ void deviceUpdatesSweep2(cuStinger* custing, BatchUpdateData* bud,int
 			if(ret<d_max[src]){
 				length_t dupInBatch=0;
 				for(length_t k=srcInitSize; k<ret; k++){
-					if (d_adj[src][k]==dst)
-						dupInBatch=1;
+					// if (d_adj[src][k]==dst)
+					// 	dupInBatch=1;
 				}
 				if(!dupInBatch){
-					d_adj[src][ret] = dst;
+					// d_adj[src][ret] = dst;
 				}
 				else{
 					length_t duplicateID =  atomicAdd(d_dupCount, 1);
@@ -135,8 +135,8 @@ __global__ void deviceUpdatesSweep2(cuStinger* custing, BatchUpdateData* bud,int
 // Currently using a single thread in the warp for duplicate edge removal
 __global__ void deviceRemoveInsertedDuplicates(cuStinger* custing, BatchUpdateData* bud,int32_t dupsPerBlock){
 
-	length_t* d_utilized      = custing->getDeviceUtilized();
-	vertexId_t** d_adj          = custing->getDeviceAdj();	
+	length_t* d_utilized      = custing->getDeviceUsed();
+	// vertexId_t** d_adj          = custing->getDeviceAdj();	
 
 	vertexId_t* d_updatesSrc    = bud->getSrc();
 	vertexId_t* d_updatesDst    = bud->getDst();
@@ -158,7 +158,7 @@ __global__ void deviceRemoveInsertedDuplicates(cuStinger* custing, BatchUpdateDa
 
 			length_t ret =  atomicSub(d_utilized+src, 1);
 			if(ret>0){
-				d_adj[src][relPos] = d_adj[src][ret-1];
+				// d_adj[src][relPos] = d_adj[src][ret-1];
 			}
 		}
 	}

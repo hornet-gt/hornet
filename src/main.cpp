@@ -82,54 +82,54 @@ int main(const int argc, char *argv[])
 
 	cudaEvent_t ce_start,ce_stop;
 
-	// cuStinger custing(stingyInitAllocater,stingyUpdateAllocater);
+	// cuStinger custing(defaultInitAllocater,defaultUpdateAllocater);
 
-	// cuStinger custing2;
+	cuStinger custing2(defaultInitAllocater,defaultUpdateAllocater);
 
-	// cuStingerInitConfig cuInit;
-	// cuInit.initState =eInitStateCSR;
-	// cuInit.maxNV = nv+1;
-	// cuInit.useVWeight = false;
-	// cuInit.isSemantic = false;  // Use edge types and vertex types
-	// cuInit.useEWeight = false;
+	cuStingerInitConfig cuInit;
+	cuInit.initState =eInitStateCSR;
+	cuInit.maxNV = nv+1;
+	cuInit.useVWeight = false;
+	cuInit.isSemantic = false;  // Use edge types and vertex types
+	cuInit.useEWeight = false;
 
-	// // CSR data
-	// cuInit.csrNV 			= nv;
-	// cuInit.csrNe   			= ne;
-	// cuInit.csrOff 			= off;
-	// cuInit.csrAdj 			= adj;
-	// cuInit.csrVW 			= NULL;
-	// cuInit.csrEW			= NULL;
-
-	// start_clock(ce_start, ce_stop);
-	// custing2.initializeCuStinger(cuInit);
-	// cout << "Allocation and Copy Time : " << end_clock(ce_start, ce_stop) << endl;
-
-
-
-	cuStinger custing;
+	// CSR data
+	cuInit.csrNV 			= nv;
+	cuInit.csrNE	   			= ne;
+	cuInit.csrOff 			= off;
+	cuInit.csrAdj 			= adj;
+	cuInit.csrVW 			= NULL;
+	cuInit.csrEW			= NULL;
 
 	start_clock(ce_start, ce_stop);
-	custing.initializeCuStinger(nv,ne,off,adj);
+	custing2.initializeCuStinger(cuInit);
 	cout << "Allocation and Copy Time : " << end_clock(ce_start, ce_stop) << endl;
 
-	cout << "Host utilized   : " << custing.getNumberEdgesUsed() << endl;
+	// cuStinger custing;
+
+
+	// cout << "Host utilized   : " << custing.getNumberEdgesUsed() << endl;
 
 	length_t numEdgesL = numEdges;
-	BatchUpdateData bud(numEdgesL,true);
+	// BatchUpdateData bud(numEdgesL,true);
 
-	generateEdgeUpdates(nv, numEdges, bud.getSrc(),bud.getDst());
-	BatchUpdate bu(bud);
+	// generateEdgeUpdates(nv, numEdges, bud.getSrc(),bud.getDst());
+	// BatchUpdate bu(bud);
 
 	start_clock(ce_start, ce_stop);
 		// update(custing,bu);
+		// update(custing2,bu);
 	cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
 
-	cout << "Host utilized   : " << custing.getNumberEdgesUsed() << endl;
+	// cout << "Host utilized   : " << custing.getNumberEdgesUsed() << endl;
+	// cout << "Host utilized   : " << custing2.getNumberEdgesUsed() << endl;
 
-	custing.freecuStinger();
+	cout << "hello its me " << endl;
+	// custing.freecuStinger();
 	
-	// custing2.freecuStinger();
+	custing2.freecuStinger();
+
+	cout << "hello its me again" << endl;
 
     return 0;	
 }       

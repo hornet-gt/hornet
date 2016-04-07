@@ -41,7 +41,7 @@ public:
 
 	// CSR data
 	vertexId_t  csrNV 			= INT_MAX;
-	length_t    csrNe   		= INT_MAX;
+	length_t    csrNE	   		= INT_MAX;
 	length_t*   csrOff 			= NULL;
 	vertexId_t* csrAdj 			= NULL;
 	vweight_t*  csrVW 			= NULL;
@@ -60,29 +60,39 @@ public:
 
 };
 
-class cuEdgeData{
-public:
-	vertexId_t* 	adj;
-	eweight_t   	ew;
-	etype_t*    	et;
-	timestamp_t*	t1;
-	timestamp_t* 	t2;
-
-
-};
-
-class cuVertexData{
-public:
-	cuEdgeData* edge;
-	// vertexId_t* adj;
-	length_t*   utilized;
-	length_t*   max;
-	vweight_t   vw;
-	vtype_t*    vt;
-};
 
 class cuStinger{
 public:
+
+	class cusEdgeData{
+		friend class cuStinger;
+	private:
+		uint8_t*		mem;
+	public:
+		vertexId_t* 	dst;
+		eweight_t*   	ew;
+		etype_t*    	et;
+		timestamp_t*	t1;
+		timestamp_t* 	t2;
+	};
+
+	class cusVertexData{
+		friend class cuStinger;
+	// private:	
+	public:
+		uint8_t*     mem;
+	public:
+		cusEdgeData**  adj;
+		uint8_t**       edMem;
+		// vertexId_t* adj;
+		length_t*    used;
+		length_t*    max;
+		vweight_t*   vw;
+		vtype_t*     vt;
+
+		__device__ uint8_t* getMem(){return mem;}
+	};
+
 	cuStinger(initAllocator iAllocator=defaultInitAllocater,
 		updateAllocator uAllocator=defaultUpdateAllocater);
 	~cuStinger();
@@ -95,9 +105,13 @@ public:
 
 	void freecuStinger();
 
-	__device__ __host__ vertexId_t** getDeviceAdj(){return d_adj;}
-	__device__ length_t* getDeviceUtilized(){return d_utilized;}
-	__device__ length_t* getDeviceMax(){return d_max;}
+	// __device__ __host__ vertexId_t** getDeviceAdj(){return d_adj;}
+	// __device__ length_t* getDeviceUtilized(){return d_utilized;}
+	// __device__ length_t* getDeviceMax(){return d_max;}
+
+	__device__ cusEdgeData** getDeviceAdj(){return dVD->adj;}
+	__device__ length_t* getDeviceUsed(){return dVD->used;}
+	__device__ length_t* getDeviceMax(){return dVD->max;}
 
 	cuStinger* devicePtr(){return d_cuStinger;}
 
@@ -107,32 +121,32 @@ public:
 	length_t getNumberEdgesAllocated();
 	length_t getNumberEdgesUsed();
 
-	bool getisSemantic(){return isSemantic;}
-	bool getuseVWeight(){return useVWeight;}
-	bool getuseEweight(){return useEWeight;}
-	vertexId_t getMaxNV(){return nv;}
+	inline bool getisSemantic(){return isSemantic;}
+	inline bool getuseVWeight(){return useVWeight;}
+	inline bool getuseEweight(){return useEWeight;}
+	inline vertexId_t getMaxNV(){return nv;}
+
+	inline updateAllocator getUpdateAllocater(){return updateVertexAllocator;}
 
 public:
-
 	vertexId_t nv;
 	bool isSemantic, useVWeight, useEWeight;
 
 	int32_t bytesPerEdge,bytesPerVertex;
 
-	cuVertexData hVD,dVD;
+	cusVertexData *hVD,*dVD;
 
 // Host memory - this is a shallow copy that does not actually contain the adjacency lists themselves.
-	vertexId_t **h_adj;
-	length_t *h_utilized,*h_max;
-	vweight_t *h_vweight;
-	vtype_t *h_vtype;
+	// vertexId_t **h_adj;
+	// length_t *h_utilized,*h_max;
+	// vweight_t *h_vweight;
+	// vtype_t *h_vtype;
 
 // Device memory
-	vertexId_t **d_adj;
-	length_t *d_utilized,*d_max;
-	vweight_t *d_vweight;
-	vtype_t *d_vtype;
-
+	// vertexId_t **d_adj;
+	// length_t *d_utilized,*d_max;
+	// vweight_t *d_vweight;
+	// vtype_t *d_vtype;
 
 	cuStinger* d_cuStinger;
 
@@ -140,16 +154,19 @@ private:
 	initAllocator initVertexAllocator;
 	updateAllocator updateVertexAllocator;
 	void deviceAllocMemory(length_t* off, vertexId_t* adj);
+	void initVertexDataPointers(uint8_t*);
+	void initEdgeDataPointers();
 
-	void internalEmptycuStinger(int NV);
-	void internalCSRcuStinger(length_t* off, vertexId_t* adj, length_t ne);
+	void internalEmptyTocuStinger(int NV);
+	void internalCSRTocuStinger(length_t* off, vertexId_t* adj, length_t ne);
 
-
-
-	length_t sumDeviceArray(length_t* arr);
+	length_t sumDeviceArray(length_t* arr, length_t);
 };
 
 
-#define CUSTINGER_WARNING(W) std::cout << "cuStinge Warning : " << W << std::endl;
-#define CUSTINGER_ERROR(E)   std::cerr << "cuStinge Error   : " << E << std::endl;
+#define CUSTINGER_WARNING(W) std::cout << "cuStinger Warning : " << W << std::endl;
+#define CUSTINGER_ERROR(E)   std::cerr << "cuStinger Error   : " << E << std::endl;
+
+#define DEV_CUSTINGER_WARNING(W) printf("cuStinger Warning : %s\n", W);
+#define DEV_CUSTINGER_ERROR(E)   printf("cuStinger Error   : %s\n", E);
 

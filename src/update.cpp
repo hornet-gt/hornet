@@ -222,7 +222,10 @@ void BatchUpdate::reAllocateMemoryAfterSweep1(cuStinger &custing)
 
 		for (length_t i=0; i<countUnique; i++){
 			vertexId_t tempVertex = h_requireUpdates[i];
-			length_t newMax = custing.updateVertexAllocator(custing.h_max[tempVertex] ,h_overLimit[i]);
+				// updateAllocator getUpdateAllocater(){return updateVertexAllocator;}
+
+			length_t newMax = custing.getUpdateAllocater()(custing.h_max[tempVertex] ,h_overLimit[i]);
+			// length_t newMax = 0;//custing.updateVertexAllocator(custing.h_max[tempVertex] ,h_overLimit[i]);
 			h_tempAdjacency[tempVertex] = (vertexId_t*)allocDeviceArray(newMax, sizeof(vertexId_t));
 			custing.h_max[tempVertex] = newMax;
 		}

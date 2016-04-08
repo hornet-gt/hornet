@@ -20,26 +20,27 @@ __global__ void devInitVertexData(cuStinger* custing,uint8_t* temp)
 	int32_t pos=0;
 	int32_t nv = custing->nv;
 
-	// printf("Vertex: From the device : %p \n",dVD);
-	// printf("Vertex: From the device : %p \n",temp);
-
 	dVD->adj 		= (cuStinger::cusEdgeData**)(dVD->getMem() + pos); 	pos+=sizeof(cuStinger::cusEdgeData*)*nv;
 	dVD->edMem 		= (uint8_t**)(dVD->getMem() + pos); 				pos+=sizeof(uint8_t*)*nv;
 	dVD->used 		= (length_t*)(dVD->getMem() + pos); 				pos+=sizeof(length_t)*nv;
 	dVD->max        = (length_t*)(dVD->getMem() + pos); 				pos+=sizeof(length_t)*nv;
 	dVD->vw         = (vweight_t*)(dVD->getMem() + pos); 				pos+=sizeof(vweight_t)*nv;
 	dVD->vt         = (vtype_t*)(dVD->getMem() + pos); 					pos+=sizeof(vtype_t)*nv;
+
+	printf("%p\n", dVD->adj);
+	printf("%p\n", dVD->edMem);
+	printf("%p\n", dVD->used);
+	printf("%p\n", dVD->max);
+	printf("%p\n", dVD->vw);
+	printf("%p\n", dVD->vt);
+
 }
 
 void cuStinger::initVertexDataPointers(uint8_t* temp){
 	devInitVertexData<<<1,1>>>(	d_cuStinger,temp);
 }
 
-__global__ void devInitEdgeData(cuStinger* custing, int verticesPerThreadBlock)
-{
-	// if(threadIdx.x==0 && blockIdx.x==10)
-	// 	printf("The number of vertices is : %d\n", custing->nv);
-
+__global__ void devInitEdgeData(cuStinger* custing, int verticesPerThreadBlock){
 	vertexId_t v_init=blockIdx.x*verticesPerThreadBlock+threadIdx.x;
 	length_t nv = custing->nv;
 	for (vertexId_t v_hat=0; v_hat<verticesPerThreadBlock; v_hat+=blockDim.x){

@@ -40,6 +40,9 @@ __global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdateData* bud,int
 			// if(d_adj[src][e]==dst){
 			// 	*found=1;
 			// }
+			if(d_adj[src]->dst[e]==dst){
+				*found=1;
+			}
 		}
 		__syncthreads();
 		if(!(*found) && threadIdx.x==0){
@@ -49,8 +52,11 @@ __global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdateData* bud,int
 				for(length_t k=srcInitSize; k<ret; k++){
 					// if (d_adj[src][k]==dst)
 					// 	dupInBatch=1;
+					if (d_adj[src]->dst[k]==dst)
+						dupInBatch=1;
 				}
 				if(!dupInBatch){
+					d_adj[src]->dst[ret] = dst;
 					// d_adj[src][ret] = dst;
 				}
 				else{
@@ -74,6 +80,8 @@ __global__ void deviceUpdatesSweep2(cuStinger* custing, BatchUpdateData* bud,int
 	length_t* d_utilized      = custing->getDeviceUsed();
 	length_t* d_max           = custing->getDeviceMax();
 	// vertexId_t** d_adj          = custing->getDeviceAdj();	
+	cuStinger::cusEdgeData** d_adj = custing->getDeviceAdj();	
+
 	vertexId_t* d_updatesSrc    = bud->getSrc();
 	vertexId_t* d_updatesDst    = bud->getDst();
 	length_t batchSize          = *(bud->getBatchSize());
@@ -105,6 +113,9 @@ __global__ void deviceUpdatesSweep2(cuStinger* custing, BatchUpdateData* bud,int
 			// if(d_adj[src][e]==dst){
 			// 	*found=1;
 			// }
+			if(d_adj[src]->dst[e]==dst){
+				*found=1;
+			}			
 		}
 		__syncthreads();
 
@@ -115,8 +126,11 @@ __global__ void deviceUpdatesSweep2(cuStinger* custing, BatchUpdateData* bud,int
 				for(length_t k=srcInitSize; k<ret; k++){
 					// if (d_adj[src][k]==dst)
 					// 	dupInBatch=1;
+					if (d_adj[src]->dst[k]==dst)
+						dupInBatch=1;
 				}
 				if(!dupInBatch){
+					d_adj[src]->dst[ret] = dst;
 					// d_adj[src][ret] = dst;
 				}
 				else{
@@ -137,6 +151,7 @@ __global__ void deviceRemoveInsertedDuplicates(cuStinger* custing, BatchUpdateDa
 
 	length_t* d_utilized      = custing->getDeviceUsed();
 	// vertexId_t** d_adj          = custing->getDeviceAdj();	
+	cuStinger::cusEdgeData** d_adj = custing->getDeviceAdj();	
 
 	vertexId_t* d_updatesSrc    = bud->getSrc();
 	vertexId_t* d_updatesDst    = bud->getDst();
@@ -158,6 +173,7 @@ __global__ void deviceRemoveInsertedDuplicates(cuStinger* custing, BatchUpdateDa
 
 			length_t ret =  atomicSub(d_utilized+src, 1);
 			if(ret>0){
+				d_adj[src]->dst[relPos] = d_adj[src]->dst[ret-1];
 				// d_adj[src][relPos] = d_adj[src][ret-1];
 			}
 		}

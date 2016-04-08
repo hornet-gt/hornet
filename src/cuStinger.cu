@@ -52,19 +52,11 @@ __global__ void devInitEdgeData(cuStinger* custing, int verticesPerThreadBlock)
 		cuStinger::cusEdgeData *dED = custing->dVD->adj[v];
 
 		dED->mem = custing->dVD->edMem[v];
-
-		if(threadIdx.x==0 && blockIdx.x==10) printf("####%d,",epv);
 		dED->dst = (vertexId_t*)(dED->getMem() + pos); 	pos+=sizeof(vertexId_t)*epv;
-		if(threadIdx.x==0 && blockIdx.x==10) printf("%p,",dED->dst);
 		dED->ew  = (eweight_t*)(dED->getMem() + pos); 	pos+=sizeof(eweight_t)*epv;
-		if(threadIdx.x==0 && blockIdx.x==10) printf("%d,",pos);
 		dED->et  = (etype_t*)(dED->getMem() + pos); 	pos+=sizeof(etype_t)*epv;
-		if(threadIdx.x==0 && blockIdx.x==10) printf("%d,",pos);
 		dED->t1  = (timestamp_t*)(dED->getMem() + pos); pos+=sizeof(timestamp_t)*epv;
-		if(threadIdx.x==0 && blockIdx.x==10) printf("%d,",pos);
 		dED->t2  = (timestamp_t*)(dED->getMem() + pos); pos+=sizeof(timestamp_t)*epv;
-		if(threadIdx.x==0 && blockIdx.x==10) printf("%d,",pos);
-		if(threadIdx.x==0 && blockIdx.x==10) printf("####\n");
 	}
 }
 
@@ -96,7 +88,7 @@ __global__ void devMakeGPUStinger(int32_t* d_off, int32_t* d_adj,
 		if(v>=custing->nv)
 			break;
 		cuStinger::cusEdgeData* adjv = custing->dVD->adj[v];
-
+		
 		for(int32_t e=threadIdx.x; e<d_utilized[v]; e+=blockDim.x){
 			// d_cuadj[v][e]=d_adj[d_off[v]+e];
 			adjv->dst[e]=d_adj[d_off[v]+e];

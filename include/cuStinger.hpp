@@ -66,7 +66,7 @@ public:
 
 	class cusEdgeData{
 		friend class cuStinger;
-	private:
+	public:
 		uint8_t*		mem;
 	public:
 		vertexId_t* 	dst;
@@ -74,6 +74,7 @@ public:
 		etype_t*    	et;
 		timestamp_t*	t1;
 		timestamp_t* 	t2;
+		__device__ uint8_t* getMem(){return mem;}
 	};
 
 	class cusVertexData{

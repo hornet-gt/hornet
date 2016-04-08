@@ -104,6 +104,7 @@ void cuStinger::initializeCuStinger(length_t nv_,length_t ne_,length_t* off_, in
 	else if (useEWeight){
 		bytesPerEdge += sizeof(eweight_t);
 	}
+	cout << "Size of bytesPerEdge = " << bytesPerEdge << endl;
 
 	bytesPerVertex = sizeof(cusEdgeData*) + sizeof (uint8_t*)+ sizeof (length_t) + sizeof (length_t);
 	if(isSemantic){
@@ -162,7 +163,7 @@ void cuStinger::initializeCuStinger(length_t nv_,length_t ne_,length_t* off_, in
 
 	initEdgeDataPointers();
 
-	// internalCSRTocuStinger(off_,adj_,ne_);
+	internalCSRTocuStinger(off_,adj_,ne_);
 }
 
 

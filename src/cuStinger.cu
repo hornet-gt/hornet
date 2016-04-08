@@ -35,24 +35,38 @@ void cuStinger::initVertexDataPointers(uint8_t* temp){
 	devInitVertexData<<<1,1>>>(	d_cuStinger,temp);
 }
 
-
-
-__global__ void devInitEdgeData(cuStinger* custing, cuStinger::cusVertexData* dVD)
+__global__ void devInitEdgeData(cuStinger* custing, int verticesPerThreadBlock)
 {
-	int32_t v_init=blockIdx.x*blockDim.x+threadIdx.x;	
-
-	// if(threadIdx.x==0 && blockIdx.x==0)
+	// if(threadIdx.x==0 && blockIdx.x==10)
 	// 	printf("The number of vertices is : %d\n", custing->nv);
 
-	// epv = edge per vertex
-	if(custing->nv>v_init){
-		length_t epv = custing->getDeviceMax()[v_init];
-		if (threadIdx.x==0 && blockIdx.x==0)
-			printf("EPV : %d\n",epv);
+	vertexId_t v_init=blockIdx.x*verticesPerThreadBlock+threadIdx.x;
+	length_t nv = custing->nv;
+	for (vertexId_t v_hat=0; v_hat<verticesPerThreadBlock; v_hat+=blockDim.x){
+		vertexId_t v=v_init+v_hat;
+		if(v>=custing->nv)
+			break;
+		//epv = edge per vertex
+		length_t epv = custing->getDeviceMax()[v];
+		int32_t pos=0;
+		cuStinger::cusEdgeData *dED = custing->dVD->adj[v];
+
+		dED->mem = custing->dVD->edMem[v];
+
+		if(threadIdx.x==0 && blockIdx.x==10) printf("####%d,",epv);
+		dED->dst = (vertexId_t*)(dED->getMem() + pos); 	pos+=sizeof(vertexId_t)*epv;
+		if(threadIdx.x==0 && blockIdx.x==10) printf("%p,",dED->dst);
+		dED->ew  = (eweight_t*)(dED->getMem() + pos); 	pos+=sizeof(eweight_t)*epv;
+		if(threadIdx.x==0 && blockIdx.x==10) printf("%d,",pos);
+		dED->et  = (etype_t*)(dED->getMem() + pos); 	pos+=sizeof(etype_t)*epv;
+		if(threadIdx.x==0 && blockIdx.x==10) printf("%d,",pos);
+		dED->t1  = (timestamp_t*)(dED->getMem() + pos); pos+=sizeof(timestamp_t)*epv;
+		if(threadIdx.x==0 && blockIdx.x==10) printf("%d,",pos);
+		dED->t2  = (timestamp_t*)(dED->getMem() + pos); pos+=sizeof(timestamp_t)*epv;
+		if(threadIdx.x==0 && blockIdx.x==10) printf("%d,",pos);
+		if(threadIdx.x==0 && blockIdx.x==10) printf("####\n");
 	}
-
 }
-
 
 void cuStinger::initEdgeDataPointers(){
 	dim3 numBlocks(1, 1);
@@ -64,17 +78,16 @@ void cuStinger::initEdgeDataPointers(){
 		numBlocks.x=16000;
 	}	
 
-	int32_t verticesPerThreadBlock = ceil(float(nv)/float(numBlocks.x-1));
-
-	devInitEdgeData<<<numBlocks,threadsPerBlock>>>(	d_cuStinger,dVD);
+	int32_t verticesPerThreadBlock = threads;
+	ceil(float(nv)/float(numBlocks.x));
+	// if(numBlocks.x>1)
+	// 	 verticesPerThreadBlock = ceil(float(nv)/float(numBlocks.x-1));		
+	cout << "**** Number of vertices per block " << verticesPerThreadBlock << endl;
+	devInitEdgeData<<<numBlocks,threadsPerBlock>>>(	d_cuStinger,verticesPerThreadBlock);
 }
 
-
-
 __global__ void devMakeGPUStinger(int32_t* d_off, int32_t* d_adj,
-	int verticesPerThreadBlock,cuStinger* custing)
-{
-	// int32_t** d_cuadj = custing->d_adj;
+	int verticesPerThreadBlock,cuStinger* custing){
 	length_t* d_utilized = custing->getDeviceUsed();
 
 	int32_t v_init=blockIdx.x*verticesPerThreadBlock;
@@ -82,8 +95,12 @@ __global__ void devMakeGPUStinger(int32_t* d_off, int32_t* d_adj,
 		int32_t v=v_init+v_hat;
 		if(v>=custing->nv)
 			break;
+		cuStinger::cusEdgeData* adjv = custing->dVD->adj[v];
+
 		for(int32_t e=threadIdx.x; e<d_utilized[v]; e+=blockDim.x){
 			// d_cuadj[v][e]=d_adj[d_off[v]+e];
+			adjv->dst[e]=d_adj[d_off[v]+e];
+			// adj->dst[0]=1;
 		}
 	}
 }

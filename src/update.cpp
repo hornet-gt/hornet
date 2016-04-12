@@ -203,22 +203,19 @@ void BatchUpdate::reAllocateMemoryAfterSweep1(cuStinger &custing)
 
 	cudaEvent_t ce_start,ce_stop;
 
-	start_clock(ce_start, ce_stop);
-	custing.copyDeviceToHost();
-
-	cout << "Copy time from device to host of util arrays : " << end_clock(ce_start, ce_stop) << endl;
-
 
 	if(countUnique>0){
 
 		cuStinger::cusVertexData* oldhVD = new cuStinger::cusVertexData();
 		vertexId_t nv = custing.getMaxNV();
 		oldhVD->hostAllocateMemoryandInitialize(nv,custing.getBytesPerVertex());
-
 		cuStinger::cusVertexData* cushVD = custing.getHostVertexData();
 
-		copyArrayDeviceToHost(custing.getDeviceVertexDataMemory(),oldhVD->mem,nv,custing.getBytesPerVertex());
-		copyArrayHostToHost(oldhVD->mem,cushVD->mem,nv,custing.getBytesPerVertex());
+		start_clock(ce_start, ce_stop);
+			copyArrayDeviceToHost(custing.getDeviceVertexDataMemory(),oldhVD->mem,nv,custing.getBytesPerVertex());
+			copyArrayHostToHost(oldhVD->mem,cushVD->mem,nv,custing.getBytesPerVertex());
+		cout << "Copy time from device to host of util arrays : " << end_clock(ce_start, ce_stop) << endl;
+
 
 
 		for (length_t i=0; i<countUnique; i++){

@@ -201,8 +201,17 @@ __global__ void deviceCopyMultipleAdjacencies(cuStinger* custing, cuStinger::cus
 		dED->t2  = (timestamp_t*)(dED->getMem() + pos); pos+=sizeof(timestamp_t)*epv;
 
 		for(length_t e=threadIdx.x; e<olddVD->getUsed()[v]; e+=blockDim.x){
-			dED->dst[e] = olddED->dst[e];	
+			dED->dst[e] = olddED->dst[e];
+			if(custing->isSemantic){
+				dED->ew[e] = olddED->ew[e];	
+			}
+			else if(custing->useEWeight){
+				dED->ew[e] = olddED->ew[e];	
+				dED->et[e] = olddED->et[e];	
+				dED->t1[e] = olddED->t1[e];	
+				dED->t2[e] = olddED->t1[e];	
 
+			}
 		}
 	}
 }

@@ -1,12 +1,12 @@
-// #pragma once
 
-#ifndef _MAIN_INCLUDE_H
-#define _MAIN_INCLUDE_H
+#ifndef _CU_MAIN_INCLUDE_H
+#define _CU_MAIN_INCLUDE_H
 
 #include <iostream>
 #include <string>
 
 using namespace std;
+
 
 #include "utils.hpp"
 #include "cuStinger.hpp"

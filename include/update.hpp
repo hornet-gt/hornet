@@ -1,6 +1,7 @@
-#pragma once
+#ifndef _CU_UPDATE_INCLUDE_H
+#define _CU_UPDATE_INCLUDE_H
 
-#include "main.hpp"
+#include "cuStingerDefs.hpp"
 
 
 class BatchUpdateData{
@@ -77,3 +78,4 @@ private:
 	BatchUpdateData *hData, *dData;
 };
 
+#endif

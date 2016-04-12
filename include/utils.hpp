@@ -1,20 +1,21 @@
+#ifndef _CU_UTILS_INCLUDE_H
+#define _CU_UTILS_INCLUDE_H
 
-#pragma once
+#include "cuStingerDefs.hpp"
 
-#include <cuStinger.hpp>
 
 void start_clock(cudaEvent_t &start, cudaEvent_t &end);
 float end_clock(cudaEvent_t &start, cudaEvent_t &end);
 
-void* allocHostArray(length_t elements,int32_t eleSize);
-void* allocDeviceArray(length_t elements,int32_t eleSize);
-void freeHostArray(void* array);
-void freeDeviceArray(void* array);
+// void* allocHostArray(length_t elements,int32_t eleSize);
+// void* allocDeviceArray(length_t elements,int32_t eleSize);
+// void freeHostArray(void* array);
+// void freeDeviceArray(void* array);
 
-void copyArrayHostToHost    (void* hostSrc,  void* hostDst, length_t elements, int32_t eleSize);
-void copyArrayHostToDevice  (void* hostSrc,  void* devDst,  length_t elements, int32_t eleSize);
-void copyArrayDeviceToHost  (void* devSrc,   void* hostDst, length_t elements, int32_t eleSize);
-void copyArrayDeviceToDevice(void* devSrc,   void* devtDst, length_t elements, int32_t eleSize);
+// void copyArrayHostToHost    (void* hostSrc,  void* hostDst, length_t elements, int32_t eleSize);
+// void copyArrayHostToDevice  (void* hostSrc,  void* devDst,  length_t elements, int32_t eleSize);
+// void copyArrayDeviceToHost  (void* devSrc,   void* hostDst, length_t elements, int32_t eleSize);
+// void copyArrayDeviceToDevice(void* devSrc,   void* devtDst, length_t elements, int32_t eleSize);
 
 // This will output the proper CUDA error strings in the event that a CUDA host call returns an error
 #ifndef checkCudaErrors
@@ -44,4 +45,7 @@ inline void __checkLastCudaError(const char* strError, const char *file, const i
         exit(EXIT_FAILURE);
     }
 }
+#endif
+
+
 #endif

@@ -170,8 +170,6 @@ BatchUpdate::BatchUpdate(BatchUpdateData &h_bua){
 
 
 BatchUpdate::~BatchUpdate(){
-
-
 	freeDeviceArray(dPtr);
 
 	delete hData;
@@ -212,41 +210,52 @@ void BatchUpdate::reAllocateMemoryAfterSweep1(cuStinger &custing)
 	custing.copyDeviceToHost();
 
 	cout << "Copy time from device to host of util arrays : " << end_clock(ce_start, ce_stop) << endl;
-	// custing.copyDeviceToHost();
 
 
 	if(countUnique>0){
-		vertexId_t ** h_tempAdjacency = (vertexId_t**) allocHostArray(custing.nv,sizeof(vertexId_t*));
-		vertexId_t ** d_tempAdjacency = (vertexId_t**) allocDeviceArray(custing.nv,sizeof(vertexId_t*));
-		vertexId_t * d_requireUpdates = (vertexId_t*) allocDeviceArray(countUnique, sizeof(vertexId_t));
+
+		cuStinger::cusVertexData* oldhVD = new cuStinger::cusVertexData();
+		vertexId_t nv = custing.getMaxNV();
+		oldhVD->hostAllocateMemoryandInitialize(nv,custing.getBytesPerVertex());
+
+		copyArrayDeviceToHost(custing.getDeviceVertexDataMemory(),oldhVD->mem,nv,custing.getBytesPerVertex());
+
+		cuStinger::cusVertexData* cushVD = custing.getHostVertexData();
+
 
 		for (length_t i=0; i<countUnique; i++){
 			vertexId_t tempVertex = h_requireUpdates[i];
-				// updateAllocator getUpdateAllocater(){return updateVertexAllocator;}
-
-			length_t newMax = custing.getUpdateAllocater()(custing.h_max[tempVertex] ,h_overLimit[i]);
-			// length_t newMax = 0;//custing.updateVertexAllocator(custing.h_max[tempVertex] ,h_overLimit[i]);
-			h_tempAdjacency[tempVertex] = (vertexId_t*)allocDeviceArray(newMax, sizeof(vertexId_t));
-			custing.h_max[tempVertex] = newMax;
+			length_t newMax = custing.getUpdateAllocater()(cushVD->max[tempVertex] ,h_overLimit[i]);
+			cushVD->adj[tempVertex]  	= (cuStinger::cusEdgeData*)allocDeviceArray(1, sizeof(cuStinger::cusEdgeData));
+			cushVD->edMem[tempVertex]	= (uint8_t*)allocDeviceArray(newMax, custing.getBytesPerEdge());
+			cushVD->max[tempVertex] 	= newMax;
 		}
 
 		sort(h_requireUpdates, h_requireUpdates + countUnique);
+		vertexId_t * d_requireUpdates = (vertexId_t*) allocDeviceArray(countUnique, sizeof(vertexId_t));
 		copyArrayHostToDevice(h_requireUpdates,d_requireUpdates,countUnique,sizeof(vertexId_t));
-		copyArrayHostToDevice(h_tempAdjacency,d_tempAdjacency, custing.nv, sizeof(vertexId_t*));
 
-		custing.copyMultipleAdjacencies(d_tempAdjacency,d_requireUpdates,countUnique);
+		cuStinger::cusVertexData* olddVD = (cuStinger::cusVertexData*)allocDeviceArray(1, sizeof(cuStinger::cusVertexData));
+		uint8_t* olddedmem = (uint8_t*)allocDeviceArray(nv,custing.getBytesPerVertex());
+		custing.initVertexDataPointers(olddVD,olddedmem);
+		copyArrayHostToDevice(oldhVD->mem,olddedmem,nv,custing.getBytesPerVertex());
+
+
+		custing.copyMultipleAdjacencies(olddVD,d_requireUpdates,countUnique);
 
 		for (length_t i=0; i<countUnique; i++){
 			vertexId_t tempVertex = h_requireUpdates[i];
-			freeDeviceArray(custing.h_adj[tempVertex]);
-			custing.h_adj[tempVertex] = h_tempAdjacency[tempVertex];
+			freeDeviceArray(oldhVD->edMem[tempVertex]);
+			freeDeviceArray(oldhVD->adj[tempVertex]);
 		}
+		oldhVD->hostFreeMem();
+		delete oldhVD;
 
-		custing.copyHostToDevice();
+		freeDeviceArray(olddedmem);
+		freeDeviceArray(olddVD);
 
 		freeDeviceArray(d_requireUpdates);
-		freeHostArray(h_tempAdjacency);
-		freeDeviceArray(d_tempAdjacency);
+
 	}
 
 	freeHostArray(h_requireUpdates);

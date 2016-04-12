@@ -72,18 +72,13 @@ int main(const int argc, char *argv[])
 	if(argc>2)
 		numEdges=atoi(argv[2]);
 	srand(100);
-
     readGraphDIMACS(argv[1],&off,&adj,&nv,&ne);
-// 
 	cout << "Vertices " << nv << endl;
 	cout << "Edges " << ne << endl;
-
-	// int32t *d_utilized,*d_max,**d_adj;
 
 	cudaEvent_t ce_start,ce_stop;
 
 	// cuStinger custing(defaultInitAllocater,defaultUpdateAllocater);
-
 	cuStinger custing2(defaultInitAllocater,defaultUpdateAllocater);
 
 	cuStingerInitConfig cuInit;
@@ -105,31 +100,20 @@ int main(const int argc, char *argv[])
 	custing2.initializeCuStinger(cuInit);
 	cout << "Allocation and Copy Time : " << end_clock(ce_start, ce_stop) << endl;
 
-	// cuStinger custing;
-
-
-	// cout << "Host utilized   : " << custing.getNumberEdgesUsed() << endl;
+	cout << "Host utilized   : " << custing2.getNumberEdgesUsed() << endl;
 
 	length_t numEdgesL = numEdges;
-	// BatchUpdateData bud(numEdgesL,true);
-
-	// generateEdgeUpdates(nv, numEdges, bud.getSrc(),bud.getDst());
-	// BatchUpdate bu(bud);
+	BatchUpdateData bud(numEdgesL,true);
+	generateEdgeUpdates(nv, numEdges, bud.getSrc(),bud.getDst());
+	BatchUpdate bu(bud);
 
 	start_clock(ce_start, ce_stop);
-		// update(custing,bu);
-		// update(custing2,bu);
+			update(custing2,bu);
 	cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
 
-	// cout << "Host utilized   : " << custing.getNumberEdgesUsed() << endl;
-	// cout << "Host utilized   : " << custing2.getNumberEdgesUsed() << endl;
+	cout << "Host utilized   : " << custing2.getNumberEdgesUsed() << endl;
 
-	cout << "hello its me " << endl;
-	// custing.freecuStinger();
-	
 	custing2.freecuStinger();
-
-	cout << "hello its me again" << endl;
 
     return 0;	
 }       

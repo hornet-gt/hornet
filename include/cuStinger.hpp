@@ -1,14 +1,11 @@
-#pragma once
+#ifndef _CU_STINGER_INCLUDE_H
+#define _CU_STINGER_INCLUDE_H
 
 #include <stdint.h>
 
-typedef int8_t vtype_t;
-typedef int8_t etype_t;
-typedef int32_t vweight_t;
-typedef int32_t eweight_t;
-typedef int32_t vertexId_t;
-typedef int32_t length_t;
-typedef int32_t timestamp_t;
+#include "cuStingerDefs.hpp"
+
+
 
 typedef length_t (*initAllocator)(length_t);
 length_t defaultInitAllocater(length_t elements);
@@ -53,11 +50,6 @@ public:
 	eweight_t*  elEW;	
 	length_t    elLen;
 
-	// Semantic
-	// vtype_t* vTypes   		    = NULL; // 2D array (vTypesLen X 2) . First row - IDS of the vertices that require a type. 
-	// 				 					//							   Second row - vertex type for a given vertex.
-	// length_t vTypesLen  		= INT_MAX;
-
 };
 
 
@@ -83,15 +75,32 @@ public:
 	public:
 		uint8_t*     mem;
 	public:
-		cusEdgeData**  adj;
-		uint8_t**       edMem;
-		// vertexId_t* adj;
-		length_t*    used;
-		length_t*    max;
-		vweight_t*   vw;
-		vtype_t*     vt;
+		cusEdgeData**  	adj;
+		uint8_t**      	edMem;
+		length_t*    	used;
+		length_t*    	max;
+		vweight_t*   	vw;
+		vtype_t*     	vt;
+
+		void hostAllocateMemoryandInitialize(int nv, int bytesPerVertex){
+			mem = (uint8_t*)allocHostArray(nv,bytesPerVertex);
+			int32_t pos=0;
+			adj 		= (cusEdgeData**)(mem + pos); 	pos+=sizeof(cusEdgeData*)*nv;
+			edMem 		= (uint8_t**)(mem + pos); 		pos+=sizeof(uint8_t*)*nv;
+			used 		= (length_t*)(mem + pos); 		pos+=sizeof(length_t)*nv;
+			max        = (length_t*)(mem + pos); 		pos+=sizeof(length_t)*nv;
+			vw         = (vweight_t*)(mem + pos); 		pos+=sizeof(vweight_t)*nv;
+			vt         = (vtype_t*)(mem + pos); 		pos+=sizeof(vtype_t)*nv;
+		}
+		void hostFreeMem(){
+			freeHostArray(mem);
+		}
 
 		__device__ uint8_t* getMem(){return mem;}
+		__device__ length_t* getUsed(){return used;}
+		__device__ length_t* getMax(){return max;}
+		__device__ cusEdgeData** getAdj(){return adj;}
+
 	};
 
 	cuStinger(initAllocator iAllocator=defaultInitAllocater,
@@ -99,25 +108,21 @@ public:
 	~cuStinger();
 
 	void initializeCuStinger(cuStingerInitConfig &cuInit);
-
 	void initializeCuStinger(length_t nv_,length_t ne_,length_t* off_, vertexId_t* adj_);
+	void initVertexDataPointers(cusVertexData *dVD, uint8_t*);
+	void initEdgeDataPointers();
+
+
 	void copyHostToDevice();
 	void copyDeviceToHost(); 
 
 	void freecuStinger();
 
-	// __device__ __host__ vertexId_t** getDeviceAdj(){return d_adj;}
-	// __device__ length_t* getDeviceUtilized(){return d_utilized;}
-	// __device__ length_t* getDeviceMax(){return d_max;}
-
-	__device__ cusEdgeData** getDeviceAdj(){return dVD->adj;}
-	__device__ length_t* getDeviceUsed(){return dVD->used;}
-	__device__ length_t* getDeviceMax(){return dVD->max;}
 
 	cuStinger* devicePtr(){return d_cuStinger;}
 
 
-	void copyMultipleAdjacencies(vertexId_t** d_newadj, vertexId_t* requireUpdates, length_t requireCount);
+	void copyMultipleAdjacencies(cusVertexData* olddVD, vertexId_t* requireUpdates, length_t requireCount);
 
 	length_t getNumberEdgesAllocated();
 	length_t getNumberEdgesUsed();
@@ -125,38 +130,31 @@ public:
 	inline bool getisSemantic(){return isSemantic;}
 	inline bool getuseVWeight(){return useVWeight;}
 	inline bool getuseEweight(){return useEWeight;}
-	inline vertexId_t getMaxNV(){return nv;}
+	inline __device__ vertexId_t getMaxNV(){return nv;}
 
 	inline updateAllocator getUpdateAllocater(){return updateVertexAllocator;}
+
+	length_t getBytesPerVertex(){return bytesPerVertex;}
+	length_t getBytesPerEdge(){return bytesPerEdge;}
+
+	cusVertexData* getHostVertexData(){return hVD;}
+	uint8_t* getDeviceVertexDataMemory(){return dedmem;}
+
 
 public:
 	vertexId_t nv;
 	bool isSemantic, useVWeight, useEWeight;
-
 	int32_t bytesPerEdge,bytesPerVertex;
-
 	cusVertexData *hVD,*dVD;
-
-// Host memory - this is a shallow copy that does not actually contain the adjacency lists themselves.
-	// vertexId_t **h_adj;
-	// length_t *h_utilized,*h_max;
-	// vweight_t *h_vweight;
-	// vtype_t *h_vtype;
-
-// Device memory
-	// vertexId_t **d_adj;
-	// length_t *d_utilized,*d_max;
-	// vweight_t *d_vweight;
-	// vtype_t *d_vtype;
 
 	cuStinger* d_cuStinger;
 
 private:
+	uint8_t* dedmem;
+
 	initAllocator initVertexAllocator;
 	updateAllocator updateVertexAllocator;
 	void deviceAllocMemory(length_t* off, vertexId_t* adj);
-	void initVertexDataPointers(uint8_t*);
-	void initEdgeDataPointers();
 
 	void internalEmptyTocuStinger(int NV);
 	void internalCSRTocuStinger(length_t* off, vertexId_t* adj, length_t ne);
@@ -171,3 +169,4 @@ private:
 #define DEV_CUSTINGER_WARNING(W) printf("cuStinger Warning : %s\n", W);
 #define DEV_CUSTINGER_ERROR(E)   printf("cuStinger Error   : %s\n", E);
 
+#endif

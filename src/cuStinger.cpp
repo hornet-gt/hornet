@@ -29,7 +29,7 @@ void cuStinger::freecuStinger(){
 	}
 
 	freeDeviceArray(d_cuStinger);
-	freeHostArray(hVD->mem);
+	hVD->hostFreeMem();
 	delete hVD;
 	freeDeviceArray(dedmem);
 	freeDeviceArray(dVD);
@@ -76,14 +76,16 @@ void cuStinger::initializeCuStinger(length_t nv_,length_t ne_,length_t* off_, in
 	nv=nv_;
 
 	hVD = new cusVertexData();
-	hVD->mem = (uint8_t*)allocHostArray(nv,bytesPerVertex);
-	int32_t pos=0;
-	hVD->adj 		= (cusEdgeData**)(hVD->mem + pos); 	pos+=sizeof(cusEdgeData*)*nv;
-	hVD->edMem 		= (uint8_t**)(hVD->mem + pos); 		pos+=sizeof(uint8_t*)*nv;
-	hVD->used 		= (length_t*)(hVD->mem + pos); 		pos+=sizeof(length_t)*nv;
-	hVD->max        = (length_t*)(hVD->mem + pos); 		pos+=sizeof(length_t)*nv;
-	hVD->vw         = (vweight_t*)(hVD->mem + pos); 	pos+=sizeof(vweight_t)*nv;
-	hVD->vt         = (vtype_t*)(hVD->mem + pos); 		pos+=sizeof(vtype_t)*nv;
+	hVD->hostAllocateMemoryandInitialize(nv,bytesPerVertex);
+
+	// hVD->mem = (uint8_t*)allocHostArray(nv,bytesPerVertex);
+	// int32_t pos=0;
+	// hVD->adj 		= (cusEdgeData**)(hVD->mem + pos); 	pos+=sizeof(cusEdgeData*)*nv;
+	// hVD->edMem 		= (uint8_t**)(hVD->mem + pos); 		pos+=sizeof(uint8_t*)*nv;
+	// hVD->used 		= (length_t*)(hVD->mem + pos); 		pos+=sizeof(length_t)*nv;
+	// hVD->max        = (length_t*)(hVD->mem + pos); 		pos+=sizeof(length_t)*nv;
+	// hVD->vw         = (vweight_t*)(hVD->mem + pos); 	pos+=sizeof(vweight_t)*nv;
+	// hVD->vt         = (vtype_t*)(hVD->mem + pos); 		pos+=sizeof(vtype_t)*nv;
 
 	// dVD = new cusVertexData();
 	dVD = (cusVertexData*)allocDeviceArray(1, sizeof(cusVertexData));
@@ -107,7 +109,7 @@ void cuStinger::initializeCuStinger(length_t nv_,length_t ne_,length_t* off_, in
 	d_cuStinger=(cuStinger*)allocDeviceArray(1,sizeof(cuStinger));
 	copyArrayHostToDevice(this,d_cuStinger,1,sizeof(cuStinger));
 
-	initVertexDataPointers(dedmem);
+	initVertexDataPointers(dVD,dedmem);
 	fflush(stdout);
 
 	// cout << "Number of bytes copied : " << nv*bytesPerVertex << endl; 
@@ -152,22 +154,21 @@ void cuStinger::initializeCuStinger(cuStingerInitConfig &cuCS){
 
 length_t cuStinger::getNumberEdgesUsed(){
 	int32_t pos=(sizeof(cusEdgeData*)+sizeof(uint8_t*))*nv;
-	printf("!!!!!!!!!!!!!!!! %p\n", dedmem+pos);
 	return sumDeviceArray( (length_t*)(dedmem+ pos) ,nv);
 }
-
-
 
 length_t cuStinger::getNumberEdgesAllocated(){
 	int32_t pos=(sizeof(cusEdgeData*)+sizeof(uint8_t*)+sizeof(length_t))*nv;
-	printf("!!!!!!!!!!!!!!!! %p\n", dedmem+pos);
 	return sumDeviceArray( (length_t*)(dedmem+ pos) ,nv);
 }
 
 
 
-
-
+///---------------------------------
+///---------------------------------
+/// Allocater functionality
+///---------------------------------
+///---------------------------------
 
 
 

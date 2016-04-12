@@ -10,15 +10,16 @@ using namespace std;
 
 // void initializeCuStinger(cuStingerConfig);
 
-__global__ void devInitVertexData(cuStinger* custing,uint8_t* temp)
+// __global__ void devInitVertexData(cuStinger* custing,uint8_t* temp)
+__global__ void devInitVertexData(cuStinger::cusVertexData *dVD,vertexId_t nv,uint8_t* temp)
 {
 	if(threadIdx.x!=0 || blockIdx.x!=0)
 		DEV_CUSTINGER_ERROR("Number of threads and thread blocks for initializing vertex should always be one");
-	cuStinger::cusVertexData *dVD = custing->dVD;
+	// cuStinger::cusVertexData *dVD = custing->dVD;
 
 	dVD->mem = temp;
 	int32_t pos=0;
-	int32_t nv = custing->nv;
+	// int32_t nv = custing->nv;
 
 	dVD->adj 		= (cuStinger::cusEdgeData**)(dVD->getMem() + pos); 	pos+=sizeof(cuStinger::cusEdgeData*)*nv;
 	dVD->edMem 		= (uint8_t**)(dVD->getMem() + pos); 				pos+=sizeof(uint8_t*)*nv;
@@ -36,19 +37,20 @@ __global__ void devInitVertexData(cuStinger* custing,uint8_t* temp)
 
 }
 
-void cuStinger::initVertexDataPointers(uint8_t* temp){
-	devInitVertexData<<<1,1>>>(	d_cuStinger,temp);
+void cuStinger::initVertexDataPointers(cuStinger::cusVertexData *dVD, uint8_t* temp){
+	// devInitVertexData<<<1,1>>>(	d_cuStinger,temp);
+	devInitVertexData<<<1,1>>>(	dVD,nv,temp);
 }
 
 __global__ void devInitEdgeData(cuStinger* custing, int verticesPerThreadBlock){
 	vertexId_t v_init=blockIdx.x*verticesPerThreadBlock+threadIdx.x;
-	length_t nv = custing->nv;
+	length_t nv = custing->getMaxNV();
 	for (vertexId_t v_hat=0; v_hat<verticesPerThreadBlock; v_hat+=blockDim.x){
 		vertexId_t v=v_init+v_hat;
-		if(v>=custing->nv)
+		if(v>=nv)
 			break;
 		//epv = edge per vertex
-		length_t epv = custing->getDeviceMax()[v];
+		length_t epv = custing->dVD->getMax()[v];
 		int32_t pos=0;
 		cuStinger::cusEdgeData *dED = custing->dVD->adj[v];
 
@@ -81,7 +83,7 @@ void cuStinger::initEdgeDataPointers(){
 
 __global__ void devMakeGPUStinger(int32_t* d_off, int32_t* d_adj,
 	int verticesPerThreadBlock,cuStinger* custing){
-	length_t* d_utilized = custing->getDeviceUsed();
+	length_t* d_utilized = custing->dVD->getUsed();
 
 	int32_t v_init=blockIdx.x*verticesPerThreadBlock;
 	for (int v_hat=0; v_hat<verticesPerThreadBlock; v_hat++){
@@ -125,7 +127,7 @@ void cuStinger::internalCSRTocuStinger(length_t* h_off, vertexId_t* h_adj, int n
 
 
 #define SUM_BLOCK_SIZE 512
-__global__ void total(length_t * input, length_t * output, length_t len) {
+__global__ void devSumArray(length_t * input, length_t * output, length_t len) {
     __shared__ length_t partialSum[2 * SUM_BLOCK_SIZE];
     //Load a segment of the input vector into shared memory
     length_t tid = threadIdx.x, start = 2 * blockIdx.x * SUM_BLOCK_SIZE;
@@ -150,7 +152,6 @@ __global__ void total(length_t * input, length_t * output, length_t len) {
        output[blockIdx.x] = partialSum[0];
 }
 
-
 length_t cuStinger::sumDeviceArray(length_t* arr, length_t len){
 	length_t numOutputElements = len / (SUM_BLOCK_SIZE<<1);
     if (len % (SUM_BLOCK_SIZE<<1)) {
@@ -159,14 +160,13 @@ length_t cuStinger::sumDeviceArray(length_t* arr, length_t len){
 
 	length_t* d_out = (length_t*)allocDeviceArray(len, sizeof(length_t*));
 
-	total<<<numOutputElements,SUM_BLOCK_SIZE>>>(arr,d_out,len);
+	devSumArray<<<numOutputElements,SUM_BLOCK_SIZE>>>(arr,d_out,len);
 
 	length_t* h_out = (int32_t*)allocHostArray(len, sizeof(length_t*));
 	
 	length_t sum=0;
 	copyArrayDeviceToHost(d_out, h_out, len, sizeof(length_t));
 	for(int i=0; i<numOutputElements; i++){
-		 // cout << h_out[i] << ", ";
 		sum+=h_out[i];
 	}
 	freeHostArray(h_out);
@@ -174,13 +174,11 @@ length_t cuStinger::sumDeviceArray(length_t* arr, length_t len){
 	return sum;
 }
 
-
-
-__global__ void deviceCopyMultipleAdjacencies(cuStinger* custing, vertexId_t** d_newadj, 
+__global__ void deviceCopyMultipleAdjacencies(cuStinger* custing, cuStinger::cusVertexData* olddVD, 
 	vertexId_t* requireUpdates, length_t requireCount ,length_t verticesPerThreadBlock)
 {
 	// int32_t** d_cuadj = custing->d_adj;
-	length_t* d_utilized = custing->getDeviceUsed();
+	// length_t* d_utilized = custing->getDeviceUsed();
 
 	length_t v_init=blockIdx.x*verticesPerThreadBlock;
 	for (int v_hat=0; v_hat<verticesPerThreadBlock; v_hat++){
@@ -188,13 +186,58 @@ __global__ void deviceCopyMultipleAdjacencies(cuStinger* custing, vertexId_t** d
 			break;
 		vertexId_t v=requireUpdates[v_init+v_hat];
 
-		for(length_t e=threadIdx.x; e<d_utilized[v]; e+=blockDim.x){
+		cuStinger::cusEdgeData *dED = custing->dVD->adj[v];
+		cuStinger::cusEdgeData *olddED = olddVD->adj[v];
+
+		//epv = edge per vertex
+		length_t epv = olddVD->getMax()[v];
+		int32_t pos=0;
+		if(threadIdx.x==0 && blockIdx.x==0)
+			printf("EURIRKAAAAAA##########################################\n");
+
+		dED->mem = custing->dVD->edMem[v];
+		dED->dst = (vertexId_t*)(dED->getMem() + pos); 	pos+=sizeof(vertexId_t)*epv;
+		dED->ew  = (eweight_t*)(dED->getMem() + pos); 	pos+=sizeof(eweight_t)*epv;
+		dED->et  = (etype_t*)(dED->getMem() + pos); 	pos+=sizeof(etype_t)*epv;
+		dED->t1  = (timestamp_t*)(dED->getMem() + pos); pos+=sizeof(timestamp_t)*epv;
+		dED->t2  = (timestamp_t*)(dED->getMem() + pos); pos+=sizeof(timestamp_t)*epv;
+
+		for(length_t e=threadIdx.x; e<olddVD->getUsed()[v]; e+=blockDim.x){
+			dED->dst[e] = olddED->dst[e];	
 			// d_newadj[v][e] = d_cuadj[v][e];
 		}
 	}
 }
+/*
+		cuStinger::cusEdgeData* adjv = custing->dVD->adj[v];
+		
+		for(int32_t e=threadIdx.x; e<d_utilized[v]; e+=blockDim.x){
+			// d_cuadj[v][e]=d_adj[d_off[v]+e];
+			adjv->dst[e]=d_adj[d_off[v]+e];
 
-void cuStinger::copyMultipleAdjacencies(vertexId_t** d_newadj, 
+
+	vertexId_t v_init=blockIdx.x*verticesPerThreadBlock+threadIdx.x;
+	length_t nv = custing->getMaxNV();
+	for (vertexId_t v_hat=0; v_hat<verticesPerThreadBlock; v_hat+=blockDim.x){
+		vertexId_t v=v_init+v_hat;
+		if(v>=nv)
+			break;
+		//epv = edge per vertex
+		length_t epv = custing->dVD->getMax()[v];
+		int32_t pos=0;
+		cuStinger::cusEdgeData *dED = custing->dVD->adj[v];
+
+		dED->mem = custing->dVD->edMem[v];
+		dED->dst = (vertexId_t*)(dED->getMem() + pos); 	pos+=sizeof(vertexId_t)*epv;
+		dED->ew  = (eweight_t*)(dED->getMem() + pos); 	pos+=sizeof(eweight_t)*epv;
+		dED->et  = (etype_t*)(dED->getMem() + pos); 	pos+=sizeof(etype_t)*epv;
+		dED->t1  = (timestamp_t*)(dED->getMem() + pos); pos+=sizeof(timestamp_t)*epv;
+		dED->t2  = (timestamp_t*)(dED->getMem() + pos); pos+=sizeof(timestamp_t)*epv;
+	}
+*/
+
+
+void cuStinger::copyMultipleAdjacencies(cusVertexData* olddVD, 
 	vertexId_t* requireUpdates, length_t requireCount){
 
 	dim3 numBlocks(1, 1);
@@ -214,7 +257,7 @@ void cuStinger::copyMultipleAdjacencies(vertexId_t** d_newadj,
 	cout << "### " << requireCount << " , " <<  numBlocks.x << " , " << verticesPerThreadBlock << " ###"  << endl; 
 
 	deviceCopyMultipleAdjacencies<<<numBlocks,threadsPerBlock>>>(d_cuStinger,
-		d_newadj, requireUpdates, requireCount, verticesPerThreadBlock);
+		olddVD, requireUpdates, requireCount, verticesPerThreadBlock);
 	checkLastCudaError("Error in the first update sweep");
 }
 

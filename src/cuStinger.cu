@@ -28,12 +28,12 @@ __global__ void devInitVertexData(cuStinger::cusVertexData *dVD,vertexId_t nv,ui
 	dVD->vw         = (vweight_t*)(dVD->getMem() + pos); 				pos+=sizeof(vweight_t)*nv;
 	dVD->vt         = (vtype_t*)(dVD->getMem() + pos); 					pos+=sizeof(vtype_t)*nv;
 
-	printf("%p\n", dVD->adj);
-	printf("%p\n", dVD->edMem);
-	printf("%p\n", dVD->used);
-	printf("%p\n", dVD->max);
-	printf("%p\n", dVD->vw);
-	printf("%p\n", dVD->vt);
+	// printf("%p\n", dVD->adj);
+	// printf("%p\n", dVD->edMem);
+	// printf("%p\n", dVD->used);
+	// printf("%p\n", dVD->max);
+	// printf("%p\n", dVD->vw);
+	// printf("%p\n", dVD->vt);
 
 }
 
@@ -192,8 +192,6 @@ __global__ void deviceCopyMultipleAdjacencies(cuStinger* custing, cuStinger::cus
 		//epv = edge per vertex
 		length_t epv = olddVD->getMax()[v];
 		int32_t pos=0;
-		if(threadIdx.x==0 && blockIdx.x==0)
-			printf("EURIRKAAAAAA##########################################\n");
 
 		dED->mem = custing->dVD->edMem[v];
 		dED->dst = (vertexId_t*)(dED->getMem() + pos); 	pos+=sizeof(vertexId_t)*epv;
@@ -204,37 +202,10 @@ __global__ void deviceCopyMultipleAdjacencies(cuStinger* custing, cuStinger::cus
 
 		for(length_t e=threadIdx.x; e<olddVD->getUsed()[v]; e+=blockDim.x){
 			dED->dst[e] = olddED->dst[e];	
-			// d_newadj[v][e] = d_cuadj[v][e];
+
 		}
 	}
 }
-/*
-		cuStinger::cusEdgeData* adjv = custing->dVD->adj[v];
-		
-		for(int32_t e=threadIdx.x; e<d_utilized[v]; e+=blockDim.x){
-			// d_cuadj[v][e]=d_adj[d_off[v]+e];
-			adjv->dst[e]=d_adj[d_off[v]+e];
-
-
-	vertexId_t v_init=blockIdx.x*verticesPerThreadBlock+threadIdx.x;
-	length_t nv = custing->getMaxNV();
-	for (vertexId_t v_hat=0; v_hat<verticesPerThreadBlock; v_hat+=blockDim.x){
-		vertexId_t v=v_init+v_hat;
-		if(v>=nv)
-			break;
-		//epv = edge per vertex
-		length_t epv = custing->dVD->getMax()[v];
-		int32_t pos=0;
-		cuStinger::cusEdgeData *dED = custing->dVD->adj[v];
-
-		dED->mem = custing->dVD->edMem[v];
-		dED->dst = (vertexId_t*)(dED->getMem() + pos); 	pos+=sizeof(vertexId_t)*epv;
-		dED->ew  = (eweight_t*)(dED->getMem() + pos); 	pos+=sizeof(eweight_t)*epv;
-		dED->et  = (etype_t*)(dED->getMem() + pos); 	pos+=sizeof(etype_t)*epv;
-		dED->t1  = (timestamp_t*)(dED->getMem() + pos); pos+=sizeof(timestamp_t)*epv;
-		dED->t2  = (timestamp_t*)(dED->getMem() + pos); pos+=sizeof(timestamp_t)*epv;
-	}
-*/
 
 
 void cuStinger::copyMultipleAdjacencies(cusVertexData* olddVD, 

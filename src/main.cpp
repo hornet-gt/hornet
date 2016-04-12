@@ -57,28 +57,23 @@ int main(const int argc, char *argv[])
     cudaSetDevice(device);
 	cudaDeviceProp prop;
 	cudaGetDeviceProperties(&prop, device);
-	cout << "Name : " << prop.name <<  endl;
-	// cout << "computeMode : " << prop.computeMode <<  endl;
- // 	cout << "gridsize.x : " << prop.maxGridSize[0] <<  endl;
- // 	cout << "gridsize.y : " << prop.maxGridSize[1] <<  endl;
- // 	cout << "gridsize.z : " << prop.maxGridSize[2] <<  endl;
  
     length_t nv, ne,*off;
     vertexId_t *adj;
-
-    cout << argv[1] << endl;
 
 	int numEdges=10000;
 	if(argc>2)
 		numEdges=atoi(argv[2]);
 	srand(100);
     readGraphDIMACS(argv[1],&off,&adj,&nv,&ne);
-	cout << "Vertices " << nv << endl;
-	cout << "Edges " << ne << endl;
+
+ //    cout << argv[1] << endl;
+	// cout << "Name : " << prop.name <<  endl;
+	// cout << "Vertices " << nv << endl;
+	// cout << "Edges " << ne << endl;
 
 	cudaEvent_t ce_start,ce_stop;
 
-	// cuStinger custing(defaultInitAllocater,defaultUpdateAllocater);
 	cuStinger custing2(defaultInitAllocater,defaultUpdateAllocater);
 
 	cuStingerInitConfig cuInit;

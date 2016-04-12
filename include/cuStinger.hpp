@@ -148,9 +148,9 @@ public:
 	cusVertexData *hVD,*dVD;
 
 	cuStinger* d_cuStinger;
+	uint8_t* dedmem;
 
 private:
-	uint8_t* dedmem;
 
 	initAllocator initVertexAllocator;
 	updateAllocator updateVertexAllocator;

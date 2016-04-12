@@ -46,7 +46,7 @@ BatchUpdateData::BatchUpdateData(length_t batchSize_, bool isHost_){
 		// copyArrayHostToDevice(this,dPtr,1, sizeof(BatchUpdateData));
 
 	batchSize=(length_t*) (mem + pos); pos+=sizeof(length_t);	
-	cout << "Pos is  " << pos << endl; 
+	// cout << "Pos is  " << pos << endl; 
 
 	if(isHost){
 		*incCount=0;
@@ -147,7 +147,6 @@ void BatchUpdateData::copyDeviceToHostIncCount(BatchUpdateData &dBUD)
 
 BatchUpdate::BatchUpdate(BatchUpdateData &h_bua){
 
-	cout << "Made it this far" << endl << flush;
 	if(!h_bua.getisHost()){
 		CUSTINGER_ERROR(string(typeid(*this).name()) + string(" expects to receive an update list that is host size"));
 	}
@@ -157,9 +156,7 @@ BatchUpdate::BatchUpdate(BatchUpdateData &h_bua){
 
 
 	hData = new BatchUpdateData(batchSize,true);
-	cout << "The batch size is :" << batchSize << endl;
 	dData = new BatchUpdateData(batchSize,false);
-	cout << "Made it this far" << endl << flush;
 
 	hData->copyHostToHost(h_bua);
 	dData->copyHostToDevice(h_bua);
@@ -218,9 +215,10 @@ void BatchUpdate::reAllocateMemoryAfterSweep1(cuStinger &custing)
 		vertexId_t nv = custing.getMaxNV();
 		oldhVD->hostAllocateMemoryandInitialize(nv,custing.getBytesPerVertex());
 
-		copyArrayDeviceToHost(custing.getDeviceVertexDataMemory(),oldhVD->mem,nv,custing.getBytesPerVertex());
-
 		cuStinger::cusVertexData* cushVD = custing.getHostVertexData();
+
+		copyArrayDeviceToHost(custing.getDeviceVertexDataMemory(),oldhVD->mem,nv,custing.getBytesPerVertex());
+		copyArrayHostToHost(oldhVD->mem,cushVD->mem,nv,custing.getBytesPerVertex());
 
 
 		for (length_t i=0; i<countUnique; i++){
@@ -228,17 +226,24 @@ void BatchUpdate::reAllocateMemoryAfterSweep1(cuStinger &custing)
 			length_t newMax = custing.getUpdateAllocater()(cushVD->max[tempVertex] ,h_overLimit[i]);
 			cushVD->adj[tempVertex]  	= (cuStinger::cusEdgeData*)allocDeviceArray(1, sizeof(cuStinger::cusEdgeData));
 			cushVD->edMem[tempVertex]	= (uint8_t*)allocDeviceArray(newMax, custing.getBytesPerEdge());
+
+			// cushVD->used[tempVertex] 	= cushVD->max[tempVertex];
 			cushVD->max[tempVertex] 	= newMax;
+			if(i==0){
+				cout << "After  renewing : " << tempVertex << "   " << cushVD->used[tempVertex] << "   " << cushVD->max[tempVertex] << endl;
+			}
+
 		}
 
-		sort(h_requireUpdates, h_requireUpdates + countUnique);
-		vertexId_t * d_requireUpdates = (vertexId_t*) allocDeviceArray(countUnique, sizeof(vertexId_t));
-		copyArrayHostToDevice(h_requireUpdates,d_requireUpdates,countUnique,sizeof(vertexId_t));
+		copyArrayHostToDevice(cushVD->mem,custing.dedmem,nv,custing.getBytesPerVertex());
 
 		cuStinger::cusVertexData* olddVD = (cuStinger::cusVertexData*)allocDeviceArray(1, sizeof(cuStinger::cusVertexData));
 		uint8_t* olddedmem = (uint8_t*)allocDeviceArray(nv,custing.getBytesPerVertex());
 		custing.initVertexDataPointers(olddVD,olddedmem);
 		copyArrayHostToDevice(oldhVD->mem,olddedmem,nv,custing.getBytesPerVertex());
+
+		vertexId_t * d_requireUpdates = (vertexId_t*) allocDeviceArray(countUnique, sizeof(vertexId_t));
+		copyArrayHostToDevice(h_requireUpdates,d_requireUpdates,countUnique,sizeof(vertexId_t));
 
 
 		custing.copyMultipleAdjacencies(olddVD,d_requireUpdates,countUnique);

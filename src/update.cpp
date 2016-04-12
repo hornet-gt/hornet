@@ -216,6 +216,12 @@ void BatchUpdate::reAllocateMemoryAfterSweep1(cuStinger &custing)
 			copyArrayHostToHost(oldhVD->mem,cushVD->mem,nv,custing.getBytesPerVertex());
 		cout << "Copy time from device to host of util arrays : " << end_clock(ce_start, ce_stop) << endl;
 
+		cuStinger::cusVertexData* olddVD = (cuStinger::cusVertexData*)allocDeviceArray(1, sizeof(cuStinger::cusVertexData));
+		uint8_t* olddedmem = (uint8_t*)allocDeviceArray(nv,custing.getBytesPerVertex());
+		custing.initVertexDataPointers(olddVD,olddedmem);
+		// copyArrayHostToDevice(oldhVD->mem,olddedmem,nv,custing.getBytesPerVertex());
+		copyArrayDeviceToDevice(custing.dedmem,olddedmem,nv,custing.getBytesPerVertex());
+
 
 
 		for (length_t i=0; i<countUnique; i++){
@@ -234,10 +240,6 @@ void BatchUpdate::reAllocateMemoryAfterSweep1(cuStinger &custing)
 
 		copyArrayHostToDevice(cushVD->mem,custing.dedmem,nv,custing.getBytesPerVertex());
 
-		cuStinger::cusVertexData* olddVD = (cuStinger::cusVertexData*)allocDeviceArray(1, sizeof(cuStinger::cusVertexData));
-		uint8_t* olddedmem = (uint8_t*)allocDeviceArray(nv,custing.getBytesPerVertex());
-		custing.initVertexDataPointers(olddVD,olddedmem);
-		copyArrayHostToDevice(oldhVD->mem,olddedmem,nv,custing.getBytesPerVertex());
 
 		vertexId_t * d_requireUpdates = (vertexId_t*) allocDeviceArray(countUnique, sizeof(vertexId_t));
 		copyArrayHostToDevice(h_requireUpdates,d_requireUpdates,countUnique,sizeof(vertexId_t));

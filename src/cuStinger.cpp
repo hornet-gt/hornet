@@ -87,18 +87,14 @@ void cuStinger::initializeCuStinger(length_t nv_,length_t ne_,length_t* off_, in
 		hVD->adj[v] 		= (cusEdgeData*)allocDeviceArray(1, sizeof(cusEdgeData));
 		hVD->edMem[v]	 	= (uint8_t*)allocDeviceArray(hVD->max[v], bytesPerEdge);
 	}
-	// printf("Vertex: From the device : %p \n",dVD); fflush(stdout);
-	// printf("Vertex: From the device : %p \n",temp); fflush(stdout);
+
 	d_cuStinger=(cuStinger*)allocDeviceArray(1,sizeof(cuStinger));
 	copyArrayHostToDevice(this,d_cuStinger,1,sizeof(cuStinger));
 
 	initVertexDataPointers(dVD,dedmem);
 	fflush(stdout);
-
-	// cout << "Number of bytes copied : " << nv*bytesPerVertex << endl; 
+ 
 	copyArrayHostToDevice(hVD->mem,dedmem,nv,bytesPerVertex);
-
-	// printf("From the host : %p \n",dVD);
 
 	initEdgeDataPointers();
 
@@ -158,7 +154,7 @@ length_t cuStinger::getNumberEdgesAllocated(){
 length_t defaultInitAllocater(length_t elements){
 	length_t eleCount = elements;
 	if(eleCount==0)
-		eleCount=1;
+		eleCount=3;
 	else if(eleCount < 5)
 		eleCount*=2;
 	else
@@ -177,7 +173,7 @@ length_t stingyInitAllocater(length_t elements){
 length_t defaultUpdateAllocater(length_t elements, length_t overLimit){
 	length_t eleCount = elements+overLimit;
 	if(eleCount==0)
-		eleCount=1;
+		eleCount=3;
 	else if(eleCount < 5)
 		eleCount*=2;
 	else

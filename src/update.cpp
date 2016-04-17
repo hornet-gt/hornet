@@ -177,9 +177,12 @@ void BatchUpdate::reAllocateMemoryAfterSweep1(cuStinger &custing)
 
 	// The following hash-map used for finding duplicate source edges.
 	unordered_map <vertexId_t, length_t> h_hmap;
+
 	for (length_t i=0; i<incCount; i++){
 		vertexId_t temp = tempsrc[incomplete[i]];
 		h_hmap[temp]++;
+		if(temp==8193)
+			cout << incomplete[i] << endl;
 	}
 
 	// Contains the list of unique src vertices
@@ -187,6 +190,7 @@ void BatchUpdate::reAllocateMemoryAfterSweep1(cuStinger &custing)
 	// For each unique vertex contains how many times that unique source vertex was over the maximal limit
 	length_t* h_overLimit=(length_t*)allocHostArray(*(getHostBUD()->getBatchSize()), sizeof(length_t));
 
+	// cout << "The first unique vertex is: "<< tempsrc[incomplete[0]] << endl;
 	// Extracting the unique source vertices.
 	length_t countUnique=0;
 	for (length_t i=0; i<incCount; i++){
@@ -218,6 +222,7 @@ void BatchUpdate::reAllocateMemoryAfterSweep1(cuStinger &custing)
 		custing.initVertexDataPointers(olddVD,olddedmem);
 		copyArrayHostToDevice(oldhVD->mem,olddedmem,nv,custing.getBytesPerVertex());
 
+
 		// For each unique vertex allocate new EdgeData
 		for (length_t i=0; i<countUnique; i++){
 			vertexId_t tempVertex = h_requireUpdates[i];
@@ -234,8 +239,12 @@ void BatchUpdate::reAllocateMemoryAfterSweep1(cuStinger &custing)
 		vertexId_t * d_requireUpdates = (vertexId_t*) allocDeviceArray(countUnique, sizeof(vertexId_t));
 		copyArrayHostToDevice(h_requireUpdates,d_requireUpdates,countUnique,sizeof(vertexId_t));
 
+
 		// Modify the data structure on the device. This includes copying all the data concurrently on the device.
 		custing.copyMultipleAdjacencies(olddVD,d_requireUpdates,countUnique);
+
+		// cudaEvent_t ce_start,ce_stop;
+		// start_clock(ce_start, ce_stop);
 
 		// De-allocate older ED that is no longer needed.
 		for (length_t i=0; i<countUnique; i++){
@@ -243,6 +252,8 @@ void BatchUpdate::reAllocateMemoryAfterSweep1(cuStinger &custing)
 			freeDeviceArray(oldhVD->edMem[tempVertex]);
 			freeDeviceArray(oldhVD->adj[tempVertex]);
 		}
+		// cout << "Reallocate time     : " << end_clock(ce_start, ce_stop) << endl;
+
 		// Remove all auxiliary arrays.
 		oldhVD->hostFreeMem();
 		delete oldhVD;

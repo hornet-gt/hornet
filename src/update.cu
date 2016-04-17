@@ -29,11 +29,18 @@ __global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdateData* bud,int
 		int32_t pos=init_pos+i;
 		if(pos>=batchSize)
 			break;
+
 		vertexId_t src = d_updatesSrc[pos],dst = d_updatesDst[pos];
 		length_t srcInitSize = d_utilized[src];
 		if(threadIdx.x ==0)
 			*found=0;
 		__syncthreads();
+
+		length_t upv = custing->dVD->getUsed()[src];		
+		length_t epv = custing->dVD->getMax()[src];
+
+		// if(src==140 && threadIdx.x==0)
+		// 	printf("### %d %d %d \n",upv,epv,pos);
 
 		// Checking to see if the edge already exists in the graph. 
 		for (length_t e=threadIdx.x; e<srcInitSize; e+=blockDim.x){
@@ -43,7 +50,7 @@ __global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdateData* bud,int
 		}
 		__syncthreads();
 		// If it does not exist, then it needs to be added.
-		if(!(*found) && threadIdx.x==0){
+		if(*found==0 && threadIdx.x==0){
 
 			// IMPORTANT NOTE 
 			// The following search for duplicates is rather safe and  should work most of the time.
@@ -118,7 +125,7 @@ __global__ void deviceUpdatesSweep2(cuStinger* custing, BatchUpdateData* bud,int
 		}
 		__syncthreads();
 		// If it does not exist, then it needs to be added.
-		if(!(*found) && threadIdx.x==0){
+		if(*found==0 && threadIdx.x==0){
 			// Requesting a spot for insertion.			
 			length_t ret =  atomicAdd(d_utilized+src, 1);
 			d_adj[src]->dst[ret] = dst;
@@ -248,7 +255,6 @@ void update(cuStinger &custing, BatchUpdate &bu)
 		}
 	}
 
-	// cout << "The number of duplicates in the second sweep : " << bu.getHostDuplicateCount() << endl;
 	bu.getHostBUD()->resetIncCount();
 	bu.getDeviceBUD()->resetIncCount();
 	bu.getHostBUD()->resetDuplicateCount();

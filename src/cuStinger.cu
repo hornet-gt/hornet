@@ -19,7 +19,6 @@ __global__ void devInitVertexData(cuStinger::cusVertexData *dVD,vertexId_t nv,ui
 
 	dVD->mem = temp;
 	int32_t pos=0;
-	// int32_t nv = custing->nv;
 
 	dVD->adj 		= (cuStinger::cusEdgeData**)(dVD->getMem() + pos); 	pos+=sizeof(cuStinger::cusEdgeData*)*nv;
 	dVD->edMem 		= (uint8_t**)(dVD->getMem() + pos); 				pos+=sizeof(uint8_t*)*nv;
@@ -27,14 +26,6 @@ __global__ void devInitVertexData(cuStinger::cusVertexData *dVD,vertexId_t nv,ui
 	dVD->max        = (length_t*)(dVD->getMem() + pos); 				pos+=sizeof(length_t)*nv;
 	dVD->vw         = (vweight_t*)(dVD->getMem() + pos); 				pos+=sizeof(vweight_t)*nv;
 	dVD->vt         = (vtype_t*)(dVD->getMem() + pos); 					pos+=sizeof(vtype_t)*nv;
-
-	// printf("%p\n", dVD->adj);
-	// printf("%p\n", dVD->edMem);
-	// printf("%p\n", dVD->used);
-	// printf("%p\n", dVD->max);
-	// printf("%p\n", dVD->vw);
-	// printf("%p\n", dVD->vt);
-
 }
 
 void cuStinger::initVertexDataPointers(cuStinger::cusVertexData *dVD, uint8_t* temp){
@@ -50,7 +41,11 @@ __global__ void devInitEdgeData(cuStinger* custing, int verticesPerThreadBlock){
 		if(v>=nv)
 			break;
 		//epv = edge per vertex
+		// length_t upv = custing->dVD->getUsed()[v];		
 		length_t epv = custing->dVD->getMax()[v];
+		// if(v==140)
+		// 	printf("$$$ %d %d \n",upv,epv);
+
 		int32_t pos=0;
 		cuStinger::cusEdgeData *dED = custing->dVD->adj[v];
 

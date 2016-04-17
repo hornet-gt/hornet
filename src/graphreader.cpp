@@ -21,7 +21,6 @@ void readGraphDIMACS(char* filePath, int32_t** prmoff, int32_t** prmind, int32_t
 
     free(line);
 
-    // printf("nv =%u, ne=%u\n",nv,ne );
     int32_t * off = (int32_t *) malloc ((nv + 2) * sizeof (int32_t));
     int32_t * ind = (int32_t *) malloc ((ne * 2) * sizeof (int32_t));
     off[0] = 0;
@@ -30,7 +29,6 @@ void readGraphDIMACS(char* filePath, int32_t** prmoff, int32_t** prmind, int32_t
     int32_t u;
     line = NULL;
     bytesRead = 0;
-
 
     for (u = 1; (temp = getline (&line, &bytesRead, fp)) != -1; u++)
     {
@@ -53,10 +51,7 @@ void readGraphDIMACS(char* filePath, int32_t** prmoff, int32_t** prmind, int32_t
         free(line);
         bytesRead = 0;
     }
-
-
     fclose (fp);
-
 
     nv++;
     ne *= 2;

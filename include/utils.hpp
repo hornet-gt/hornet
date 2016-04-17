@@ -1,6 +1,8 @@
 #ifndef _CU_UTILS_INCLUDE_H
 #define _CU_UTILS_INCLUDE_H
 
+#include <cuda_runtime.h>
+
 #include "cuStingerDefs.hpp"
 
 

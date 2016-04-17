@@ -1,17 +1,12 @@
- 
-
 
 #include <stdlib.h>
 #include <cuda.h>
-#include <cuda_runtime.h>
+// #include <cuda_runtime.h>
 #include <stdio.h>
 #include <inttypes.h>
 
 #include <math.h>
 
-
-#include <thrust/device_vector.h>
-#include <thrust/host_vector.h>
 
 #include "main.hpp"
 // #include "update.hpp"
@@ -137,7 +132,7 @@ int main(const int argc, char *argv[])
 	BatchUpdate bu(bud);
 
 	start_clock(ce_start, ce_stop);
-			update(custing2,bu);
+		custing2.edgeInsertions(bu);
 	cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
 
 	cout << "Host utilized   : " << custing2.getNumberEdgesUsed() << endl;

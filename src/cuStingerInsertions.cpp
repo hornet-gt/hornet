@@ -10,7 +10,7 @@
 
 using namespace std;
 
-
+// As this function uses a hash map it needs to be placed in a .cpp file.
 void cuStinger::reAllocateMemoryAfterSweep1(BatchUpdate &bu)
 {
 	// This function consists of two main phases. 
@@ -88,7 +88,7 @@ void cuStinger::reAllocateMemoryAfterSweep1(BatchUpdate &bu)
 
 
 		// Modify the data structure on the device. This includes copying all the data concurrently on the device.
-		this->copyMultipleAdjacencies(olddVD,d_requireUpdates,countUnique);
+			copyMultipleAdjacencies(olddVD,d_requireUpdates,countUnique);
 
 		// cudaEvent_t ce_start,ce_stop;
 		// start_clock(ce_start, ce_stop);

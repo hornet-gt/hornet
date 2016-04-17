@@ -185,7 +185,7 @@ __global__ void deviceRemoveInsertedDuplicates(cuStinger* custing, BatchUpdateDa
 }
 
 
-void update(cuStinger &custing, BatchUpdate &bu)
+void cuStinger::edgeInsertions(BatchUpdate &bu)
 {	
 	dim3 numBlocks(1, 1);
 	int32_t threads=32;
@@ -200,7 +200,7 @@ void update(cuStinger &custing, BatchUpdate &bu)
 	}	
 	updatesPerBlock = ceil(float(updateSize)/float(numBlocks.x-1));
 
-	deviceUpdatesSweep1<<<numBlocks,threadsPerBlock>>>(custing.devicePtr(), bu.getDeviceBUD()->devicePtr(),updatesPerBlock);
+	deviceUpdatesSweep1<<<numBlocks,threadsPerBlock>>>(this->devicePtr(), bu.getDeviceBUD()->devicePtr(),updatesPerBlock);
 	checkLastCudaError("Error in the first update sweep");
 
 	bu.getHostBUD()->copyDeviceToHostDupCount(*bu.getDeviceBUD());
@@ -213,12 +213,12 @@ void update(cuStinger &custing, BatchUpdate &bu)
 			numBlocks.x=1000;
 		}	
 		dupsPerBlock = ceil(float(dupInBatch)/float(numBlocks.x-1));
-		deviceRemoveInsertedDuplicates<<<numBlocks,threadsPerBlock>>>(custing.devicePtr(), bu.getDeviceBUD()->devicePtr(),dupsPerBlock);
+		deviceRemoveInsertedDuplicates<<<numBlocks,threadsPerBlock>>>(this->devicePtr(), bu.getDeviceBUD()->devicePtr(),dupsPerBlock);
 		checkLastCudaError("Error in the first duplication sweep");
 	}
 
 	bu.getHostBUD()->copyDeviceToHost(*bu.getDeviceBUD());
-	bu.reAllocateMemoryAfterSweep1(custing);
+	reAllocateMemoryAfterSweep1(bu);
 
 	//--------
 	// Sweep 2
@@ -235,7 +235,7 @@ void update(cuStinger &custing, BatchUpdate &bu)
 		}	
 		updatesPerBlock = ceil(float(updateSize)/float(numBlocks.x-1));
 
-		deviceUpdatesSweep2<<<numBlocks,threadsPerBlock>>>(custing.devicePtr(), bu.getDeviceBUD()->devicePtr(),updatesPerBlock);
+		deviceUpdatesSweep2<<<numBlocks,threadsPerBlock>>>(this->devicePtr(), bu.getDeviceBUD()->devicePtr(),updatesPerBlock);
 		checkLastCudaError("Error in the second update sweep");
 	
 		bu.getHostBUD()->copyDeviceToHost(*bu.getDeviceBUD());
@@ -249,7 +249,7 @@ void update(cuStinger &custing, BatchUpdate &bu)
 				numBlocks.x=1000;
 			}	
 			dupsPerBlock = ceil(float(dupInBatch)/float(numBlocks.x-1));
-			deviceRemoveInsertedDuplicates<<<numBlocks,threadsPerBlock>>>(custing.devicePtr(),
+			deviceRemoveInsertedDuplicates<<<numBlocks,threadsPerBlock>>>(this->devicePtr(),
 										 bu.getDeviceBUD()->devicePtr()	,dupsPerBlock);
 			checkLastCudaError("Error in the second duplication sweep");
 		}
@@ -262,3 +262,4 @@ void update(cuStinger &custing, BatchUpdate &bu)
 }
 
 
+	

@@ -140,6 +140,11 @@ public:
 	cusVertexData* getHostVertexData(){return hVD;}
 	uint8_t* getDeviceVertexDataMemory(){return dedmem;}
 
+	void edgeInsertions(BatchUpdate &bu);
+	void edgeDeletions(BatchUpdate &bu);
+
+	void reAllocateMemoryAfterSweep1(BatchUpdate &bu);
+
 
 public:
 	vertexId_t nv;
@@ -163,10 +168,5 @@ private:
 };
 
 
-#define CUSTINGER_WARNING(W) std::cout << "cuStinger Warning : " << W << std::endl;
-#define CUSTINGER_ERROR(E)   std::cerr << "cuStinger Error   : " << E << std::endl;
-
-#define DEV_CUSTINGER_WARNING(W) printf("cuStinger Warning : %s\n", W);
-#define DEV_CUSTINGER_ERROR(E)   printf("cuStinger Error   : %s\n", E);
 
 #endif

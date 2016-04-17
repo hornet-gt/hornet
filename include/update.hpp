@@ -1,6 +1,7 @@
 #ifndef _CU_UPDATE_INCLUDE_H
 #define _CU_UPDATE_INCLUDE_H
 
+
 #include "cuStingerDefs.hpp"
 
 
@@ -66,8 +67,6 @@ public:
 
 	void copyHostToDevice();
 	void copyDeviceToHost();
-
-	void reAllocateMemoryAfterSweep1(cuStinger &custing);
 
 	BatchUpdateData* getHostBUD(){return hData;}
 	BatchUpdateData* getDeviceBUD(){return dData;}

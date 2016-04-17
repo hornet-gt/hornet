@@ -9,13 +9,10 @@ using namespace std;
 
 
 #include "utils.hpp"
-#include "cuStinger.hpp"
 #include "update.hpp"
+#include "cuStinger.hpp"
 
 
-void update(cuStinger &custing, BatchUpdate &bu);
-
-void reAllocateMemoryAfterSweep1(cuStinger &custing, BatchUpdate &bu);
 
 #endif
 

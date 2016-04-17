@@ -33,7 +33,6 @@ cuda_add_library(cuUtils
 				)
 
 cuda_add_library(cuUpdate
-					src/update.cu
 					src/update.cpp
 				)
 
@@ -42,6 +41,8 @@ cuda_add_executable(custinger
 					src/main.cpp
 					src/cuStinger.cpp					
 					src/cuStinger.cu
+          src/cuStingerInsertions.cu
+          src/cuStingerInsertions.cpp
 				   )
 
 TARGET_LINK_LIBRARIES(custinger cuUtils cuUpdate /usr/local/cuda/lib64/libcudart.so)

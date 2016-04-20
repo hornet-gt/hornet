@@ -43,9 +43,10 @@ __global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdateData* bud,int
 		// 	printf("### %d %d %d \n",upv,epv,pos);
 
 		// Checking to see if the edge already exists in the graph. 
-		for (length_t e=threadIdx.x; e<srcInitSize; e+=blockDim.x){
+		for (length_t e=threadIdx.x; e<srcInitSize && *found==0; e+=blockDim.x){
 			if(d_adj[src]->dst[e]==dst){
 				*found=1;
+				break;
 			}
 		}
 		__syncthreads();
@@ -118,9 +119,10 @@ __global__ void deviceUpdatesSweep2(cuStinger* custing, BatchUpdateData* bud,int
 		__syncthreads();
 
 		// Checking to see if the edge already exists in the graph. 
-		for (length_t e=threadIdx.x; e<srcInitSize; e+=blockDim.x){
+		for (length_t e=threadIdx.x; e<srcInitSize && *found==0; e+=blockDim.x){
 			if(d_adj[src]->dst[e]==dst){
 				*found=1;
+				break;
 			}			
 		}
 		__syncthreads();

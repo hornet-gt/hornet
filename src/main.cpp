@@ -15,30 +15,6 @@
 
 using namespace std;
 
-void readGraphDIMACS(char* filePath, int32_t** prmoff, int32_t** prmind, int32_t* prmnv, int32_t* prmne);
-
-
-
-
-//Note: Times are returned in seconds
-void start_clock(cudaEvent_t &start, cudaEvent_t &end)
-{
-	checkCudaErrors(cudaEventCreate(&start));
-	checkCudaErrors(cudaEventCreate(&end));
-	checkCudaErrors(cudaEventRecord(start,0));
-}
-
-float end_clock(cudaEvent_t &start, cudaEvent_t &end)
-{
-	float time;
-	checkCudaErrors(cudaEventRecord(end,0));
-	checkCudaErrors(cudaEventSynchronize(end));
-	checkCudaErrors(cudaEventElapsedTime(&time,start,end));
-	checkCudaErrors(cudaEventDestroy(start));
-	checkCudaErrors(cudaEventDestroy(end));
-
-	return time/(float)1000;
-}
 
 
 void generateEdgeUpdates(length_t nv, length_t numEdges, vertexId_t* edgeSrc, vertexId_t* edgeDst){
@@ -132,14 +108,20 @@ int main(const int argc, char *argv[])
 	BatchUpdate bu(bud);
 
 	start_clock(ce_start, ce_stop);
-		custing2.edgeInsertions(bu);
+		// custing2.edgeInsertions(bu);
 	cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
 
 	cout << "Host utilized   : " << custing2.getNumberEdgesUsed() << endl;
 	cout << "Host utilized   : " << custing2.getNumberEdgesAllocated() << endl;
 
+
+	// int cctmain(int nv,int ne, int32_t*  off,int32_t*  ind, cuStinger& custing);
+	// cctmain(nv,ne,off,adj,custing2);
+
 	custing2.freecuStinger();
 
+	free(off);
+	free(adj);
     return 0;	
 }       
 

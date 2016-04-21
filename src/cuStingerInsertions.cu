@@ -342,9 +342,9 @@ void cuStinger::verifyEdgeInsertions(BatchUpdate &bu)
 	length_t verified = cuStinger::sumDeviceArray(devCounter, numBlocks.x);
 
 	if (verified==updateSize)
-		cout << "All insertions are accounted for" << endl;
+		cout << "All insertions are accounted for.             Expected: " << updateSize << " Actual : " << verified << endl;
 	else
-		cout << "Some of the insertions are NOT accounted for" << endl;
+		cout << "Some of the insertions are NOT accounted for. Expected: " << updateSize << " Actual : " << verified << endl;
 
 	freeDeviceArray(devCounter);
 }

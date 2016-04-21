@@ -5,12 +5,16 @@
 #include <stdio.h>
 #include <inttypes.h>
 
-#include "utils.hpp"
-#include "update.hpp"
-#include "cuStinger.hpp"
+#include "cuStingerDefs.hpp"
+#include "cct.hpp"
+
+// #include "utils.hpp"
+// #include "update.hpp"
+// #include "cuStinger.hpp"
+
 
 	 
-__device__ void conditionalWarpReduce(volatile int*sharedData,int blockSize,int dataLength){
+__device__ void conditionalWarpReduce(volatile triangle_t* sharedData,int blockSize,int dataLength){
   if(blockSize >= dataLength){
     if(threadIdx.x < (dataLength/2))
     {sharedData[threadIdx.x] += sharedData[threadIdx.x+(dataLength/2)];}
@@ -18,8 +22,8 @@ __device__ void conditionalWarpReduce(volatile int*sharedData,int blockSize,int 
   }
 }
 
-__device__ void warpReduce(int* __restrict__ outDataPtr,
-    volatile int* __restrict__ sharedData,int blockSize){
+__device__ void warpReduce(triangle_t* __restrict__ outDataPtr,
+    volatile triangle_t* __restrict__ sharedData,int blockSize){
   conditionalWarpReduce(sharedData,blockSize,64);
   conditionalWarpReduce(sharedData,blockSize,32);
   conditionalWarpReduce(sharedData,blockSize,16);
@@ -30,7 +34,7 @@ __device__ void warpReduce(int* __restrict__ outDataPtr,
   __syncthreads();
 }
 
-__device__ void conditionalReduce(volatile int* __restrict__ sharedData,int blockSize,int dataLength){
+__device__ void conditionalReduce(volatile triangle_t* __restrict__ sharedData,int blockSize,int dataLength){
 	if(blockSize >= dataLength){
 		if(threadIdx.x < (dataLength/2))
 		{sharedData[threadIdx.x] += sharedData[threadIdx.x+(dataLength/2)];}
@@ -44,8 +48,8 @@ __device__ void conditionalReduce(volatile int* __restrict__ sharedData,int bloc
 	}
 }
 
-__device__ void blockReduce(int* __restrict__ outGlobalDataPtr,
-    volatile int* __restrict__ sharedData,int blockSize){
+__device__ void blockReduce(triangle_t* __restrict__ outGlobalDataPtr,
+    volatile triangle_t* __restrict__ sharedData,int blockSize){
   __syncthreads();
   conditionalReduce(sharedData,blockSize,1024);
   conditionalReduce(sharedData,blockSize,512);
@@ -57,9 +61,9 @@ __device__ void blockReduce(int* __restrict__ outGlobalDataPtr,
 }
 
 
-__device__ void initialize(const int diag_id, const int u_len, int v_len,
-    int* const __restrict__ u_min, int* const __restrict__ u_max,
-    int* const __restrict__ v_min, int* const __restrict__ v_max,
+__device__ void initialize(const vertexId_t diag_id, const length_t u_len, length_t v_len,
+    length_t* const __restrict__ u_min, length_t* const __restrict__ u_max,
+    length_t* const __restrict__ v_min, length_t* const __restrict__ v_max,
     int* const __restrict__ found)
 {
 	if (diag_id == 0){
@@ -80,7 +84,7 @@ __device__ void initialize(const int diag_id, const int u_len, int v_len,
 	}
 }
 
-__device__ void calcWorkPerThread(const int uLength, const int vLength, 
+__device__ void calcWorkPerThread(const length_t uLength, const length_t vLength, 
 	const int threadsPerIntersection, const int threadId,
     int * const __restrict__ outWorkPerThread, int * const __restrict__ outDiagonalId){
   int totalWork = uLength + vLength;
@@ -94,14 +98,14 @@ __device__ void calcWorkPerThread(const int uLength, const int vLength,
   *outWorkPerThread = workPerThread + (threadId < remainderWork);
 }
 
-__device__ void bSearch(unsigned int found, const int diagonalId,
-    int const * const __restrict__ uNodes, int const * const __restrict__ vNodes,
-    int const * const __restrict__ uLength, 
-    int * const __restrict__ outUMin, int * const __restrict__ outUMax,
-    int * const __restrict__ outVMin, int * const __restrict__ outVMax,    
-    int * const __restrict__ outUCurr,
-    int * const __restrict__ outVCurr){
-  	int length;
+__device__ void bSearch(unsigned int found, const vertexId_t diagonalId,
+    vertexId_t const * const __restrict__ uNodes, vertexId_t const * const __restrict__ vNodes,
+    length_t const * const __restrict__ uLength, 
+    length_t * const __restrict__ outUMin, length_t * const __restrict__ outUMax,
+    length_t * const __restrict__ outVMin, length_t * const __restrict__ outVMax,    
+    length_t * const __restrict__ outUCurr,
+    length_t * const __restrict__ outVCurr){
+  	length_t length;
 	
 	while(!found) {
 	    *outUCurr = (*outUMin + *outUMax)>>1;
@@ -137,9 +141,9 @@ __device__ void bSearch(unsigned int found, const int diagonalId,
 	}
 }
 
-__device__ int fixThreadWorkEdges(const int uLength, const int vLength,
-    int * const __restrict__ uCurr, int * const __restrict__ vCurr,
-    int const * const __restrict__ uNodes, int const * const __restrict__ vNodes){
+__device__ int fixThreadWorkEdges(const length_t uLength, const length_t vLength,
+    length_t * const __restrict__ uCurr, length_t * const __restrict__ vCurr,
+    vertexId_t const * const __restrict__ uNodes, vertexId_t const * const __restrict__ vNodes){
 	
 	unsigned int uBigger = (*uCurr > 0) && (*vCurr < vLength) && (uNodes[*uCurr-1] == vNodes[*vCurr]);
 	unsigned int vBigger = (*vCurr > 0) && (*uCurr < uLength) && (vNodes[*vCurr-1] == uNodes[*uCurr]);
@@ -148,9 +152,9 @@ __device__ int fixThreadWorkEdges(const int uLength, const int vLength,
 	return (uBigger + vBigger);
 }
 
-__device__ void intersectCount(const int uLength, const int vLength,
-    int const * const __restrict__ uNodes, int const * const __restrict__ vNodes,
-    int * const __restrict__ uCurr, int * const __restrict__ vCurr,
+__device__ void intersectCount(const length_t uLength, const length_t vLength,
+    vertexId_t const * const __restrict__ uNodes, vertexId_t const * const __restrict__ vNodes,
+    length_t * const __restrict__ uCurr, length_t * const __restrict__ vCurr,
     int * const __restrict__ workIndex, int * const __restrict__ workPerThread,
     int * const __restrict__ triangles, int found)
 {
@@ -173,16 +177,16 @@ __device__ void intersectCount(const int uLength, const int vLength,
 
 
 // u_len < v_len
-__device__ int count_triangles(int u, int const * const __restrict__ u_nodes, int u_len,
-    int v, int const * const __restrict__ v_nodes, int v_len, int threads_per_block,
-    volatile int* __restrict__ firstFound, int tId)
+__device__ int count_triangles(vertexId_t u, vertexId_t const * const __restrict__ u_nodes, length_t u_len,
+    vertexId_t v, vertexId_t const * const __restrict__ v_nodes, length_t v_len, int threads_per_block,
+    volatile vertexId_t* __restrict__ firstFound, int tId)
 {
 	// Partitioning the work to the multiple thread of a single GPU processor. The threads should get a near equal number of the elements to Tersect - this number will be off by 1.
-	  int work_per_thread, diag_id;
-	  calcWorkPerThread(u_len, v_len, threads_per_block, tId, &work_per_thread, &diag_id);
-	int triangles = 0;
+	int work_per_thread, diag_id;
+	calcWorkPerThread(u_len, v_len, threads_per_block, tId, &work_per_thread, &diag_id);
+	triangle_t triangles = 0;
 	int work_index = 0,found=0;
-	int u_min,u_max,v_min,v_max,u_curr,v_curr;
+	length_t u_min,u_max,v_min,v_max,u_curr,v_curr;
 
 	firstFound[tId]=0;
 
@@ -205,55 +209,60 @@ __device__ int count_triangles(int u, int const * const __restrict__ u_nodes, in
 	return triangles;
 }
 
-__device__ void calcWorkPerBlock(const int numVertices,
-    int * const __restrict__ outMpStart,
-    int * const __restrict__ outMpEnd, int blockSize)
-{
-	int verticesPerMp = numVertices/gridDim.x;
-	int remainderBlocks = numVertices % gridDim.x;
-	int extraVertexBlocks = (blockIdx.x > remainderBlocks)? remainderBlocks:blockIdx.x;
-	int regularVertexBlocks = (blockIdx.x > remainderBlocks)? blockIdx.x - remainderBlocks:0;
 
-	int mpStart = ((verticesPerMp+1)*extraVertexBlocks) + (verticesPerMp*regularVertexBlocks);
+__device__ void calcWorkPerBlock(const vertexId_t numVertices,
+    vertexId_t * const __restrict__ outMpStart,
+    vertexId_t * const __restrict__ outMpEnd, int blockSize)
+{
+	vertexId_t verticesPerMp = numVertices/gridDim.x;
+	vertexId_t remainderBlocks = numVertices % gridDim.x;
+	vertexId_t extraVertexBlocks = (blockIdx.x > remainderBlocks)? remainderBlocks:blockIdx.x;
+	vertexId_t regularVertexBlocks = (blockIdx.x > remainderBlocks)? blockIdx.x - remainderBlocks:0;
+
+	vertexId_t mpStart = ((verticesPerMp+1)*extraVertexBlocks) + (verticesPerMp*regularVertexBlocks);
 	*outMpStart = mpStart;
 	*outMpEnd = mpStart + verticesPerMp + (blockIdx.x < remainderBlocks);
 }
 
-__global__ void count_all_trianglesGPU (const int nv,
-    int const * const __restrict__ d_off, int const * const __restrict__ d_ind,
-    int * const __restrict__ outPutTriangles, const int threads_per_block,
-    const int number_blocks, const int shifter){
 
+__global__ void count_all_trianglesGPU (const vertexId_t nv,
+    length_t const * const __restrict__ d_off, vertexId_t const * const __restrict__ d_ind,
+    triangle_t * const __restrict__ outPutTriangles, const int threads_per_block,
+    const int number_blocks, const int shifter)
+{
 	// Partitioning the work to the multiple thread of a single GPU processor. The threads should get a near equal number of the elements to intersect - this number will be off by no more than one.
 	int tx = threadIdx.x;
- 	int this_mp_start, this_mp_stop;
+ 	vertexId_t this_mp_start, this_mp_stop;
 
-  const int blockSize = blockDim.x;
-  calcWorkPerBlock(nv, &this_mp_start, &this_mp_stop, blockSize);
+	const int blockSize = blockDim.x;
+	calcWorkPerBlock(nv, &this_mp_start, &this_mp_stop, blockSize);
 
-  __shared__ int s_triangles[1024];
-  __shared__ int firstFound[1024];
+	__shared__ triangle_t  s_triangles[1024];
+	__shared__ vertexId_t firstFound[1024];
 
-	int adj_offset=tx>>shifter;
-	int* firstFoundPos=firstFound + (adj_offset<<shifter);
-	for (int src = this_mp_start; src < this_mp_stop; src++){
+	length_t adj_offset=tx>>shifter;
+	length_t* firstFoundPos=firstFound + (adj_offset<<shifter);
+	for (vertexId_t src = this_mp_start; src < this_mp_stop; src++){
 		int srcLen=d_off[src+1]-d_off[src];
-	    int tCount = 0;
+	    triangle_t tCount = 0;	    
+
 		for(int iter=d_off[src]+adj_offset; iter<d_off[src+1]; iter+=number_blocks){
 			int dest = d_ind[iter];
 			int destLen = d_off[dest+1]-d_off[dest];
+
 			bool avoidCalc = (src == dest) || (destLen < 2) || (srcLen < 2);
 			if(avoidCalc)
 				continue;
 
 	        bool sourceSmaller = (srcLen<destLen);
-	        int small = sourceSmaller? src : dest;
-	        int large = sourceSmaller? dest : src;
-	        int small_len = sourceSmaller? srcLen : destLen;
-	        int large_len = sourceSmaller? destLen : srcLen;
+	        vertexId_t small = sourceSmaller? src : dest;
+	        vertexId_t large = sourceSmaller? dest : src;
+	        length_t small_len = sourceSmaller? srcLen : destLen;
+	        length_t large_len = sourceSmaller? destLen : srcLen;
 
-	        int const * const small_ptr = d_ind + d_off[small];
-	        int const * const large_ptr = d_ind + d_off[large];
+	        vertexId_t const * const small_ptr = d_ind + d_off[small];
+	        vertexId_t const * const large_ptr = d_ind + d_off[large];
+
 	        tCount += count_triangles(small, small_ptr, small_len,
 						large,large_ptr, large_len,
 						threads_per_block,firstFoundPos,
@@ -265,8 +274,8 @@ __global__ void count_all_trianglesGPU (const int nv,
 }
 
 
-void callDeviceAllTrianglesCSR(const int nv,
-    int const * const __restrict__ d_off, int const * const __restrict__ d_ind,
+void callDeviceAllTrianglesCSR(const vertexId_t nv,
+    length_t const * const __restrict__ d_off, vertexId_t const * const __restrict__ d_ind,
     int * const __restrict__ outPutTriangles, const int threads_per_block,
     const int number_blocks, const int shifter, const int thread_blocks, const int blockdim){
 

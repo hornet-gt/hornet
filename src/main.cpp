@@ -115,8 +115,12 @@ int main(const int argc, char *argv[])
 	cout << "Host utilized   : " << custing2.getNumberEdgesAllocated() << endl;
 
 
+
+	cout << "Deletion marker:" << DELETION_MARKER << endl;
 	// int cctmain(int nv,int ne, int32_t*  off,int32_t*  ind, cuStinger& custing);
 	// cctmain(nv,ne,off,adj,custing2);
+	double y=1.9;
+	cout << cbrt(y) << endl;
 
 	custing2.freecuStinger();
 

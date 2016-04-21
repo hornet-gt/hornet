@@ -19,22 +19,22 @@
         return -1;                                  \
     } while (0)
 
-void callDeviceAllTrianglesCSR(const int nv,
-    int const * const __restrict__ d_off, int const * const __restrict__ d_ind,
+void callDeviceAllTrianglesCSR(const vertexId_t nv,
+    length_t const * const __restrict__ d_off, vertexId_t const * const __restrict__ d_ind,
     int * const __restrict__ outPutTriangles, const int threads_per_block,
     const int number_blocks, const int shifter, const int thread_blocks, const int blockdim);
 
 
 // CPU Version - assume sorted index lists. 
-int hostSingleIntersection (const int32_t ai, const int32_t alen, const int32_t * a,
-						    const int32_t bi, const int32_t blen, const int32_t * b){
-	int32_t ka = 0, kb = 0,out = 0;
+int hostSingleIntersection (const vertexId_t ai, const length_t alen, const vertexId_t * a,
+						    const vertexId_t bi, const length_t blen, const vertexId_t * b){
+	length_t ka = 0, kb = 0,out = 0;
 	if (!alen || !blen || a[alen-1] < b[0] || b[blen-1] < a[0])
     	return 0;
 
 	while (1) {
     	if (ka >= alen || kb >= blen) break;
-		int32_t va = a[ka],vb = b[kb];
+		vertexId_t va = a[ka],vb = b[kb];
 
 	    // If you now that you don't have self edges then you don't need to check for them and you can get better performance.
 		#if(0)
@@ -65,18 +65,18 @@ int hostSingleIntersection (const int32_t ai, const int32_t alen, const int32_t 
 	return out;
 }
 
-void hostCountTriangles (const int32_t nv, const int32_t * off,
-    const int32_t * ind, int * triNE, int64_t* allTriangles)
+void hostCountTriangles (const vertexId_t nv, const length_t * off,
+    const vertexId_t * ind, int * triNE, int64_t* allTriangles)
 {
 	int32_t edge=0;
 	int64_t sum=0;
-    for (int src = 0; src < nv; src++)
+    for (vertexId_t src = 0; src < nv; src++)
     {
-		int srcLen=off[src+1]-off[src];
+		length_t srcLen=off[src+1]-off[src];
 		for(int iter=off[src]; iter<off[src+1]; iter++)
 		{
-			int dest=ind[iter];
-			int destLen=off[dest+1]-off[dest];			
+			vertexId_t dest=ind[iter];
+			length_t destLen=off[dest+1]-off[dest];			
 			triNE[edge]= hostSingleIntersection (src, srcLen, ind+off[src],
 													dest, destLen, ind+off[dest]);
 			sum+=triNE[edge++];
@@ -114,9 +114,10 @@ int64_t sumTriangleArray(triangle_t* h_triangles, vertexId_t nv){
 	for(vertexId_t sd=0; sd<(nv);sd++){
 	  sum+=h_triangles[sd];
 	}
+	return sum;
 }
 
-int comparecuStingerAndCSR(cuStinger& custing, int nv,int ne, int32_t*  off,int32_t*  ind)
+int comparecuStingerAndCSR(cuStinger& custing, vertexId_t nv,length_t ne, length_t*  off,vertexId_t*  ind)
 {
 	int device = 0;
 	int run    = 3; 
@@ -128,7 +129,8 @@ int comparecuStingerAndCSR(cuStinger& custing, int nv,int ne, int32_t*  off,int3
 		
 	struct cudaDeviceProp prop;
 	cudaGetDeviceProperties	(&prop,device);	
-    int *d_off = NULL,*d_ind = NULL;
+    length_t *d_off = NULL;
+    vertexId_t* d_ind = NULL;
 	triangle_t *d_triangles = NULL;  
 
    	int * triNE = (int *) malloc ((ne ) * sizeof (int));	
@@ -148,14 +150,14 @@ int comparecuStingerAndCSR(cuStinger& custing, int nv,int ne, int32_t*  off,int3
 
 	if(run&2){
 		cudaSetDevice(device);
-		CUDA(cudaMalloc(&d_off, sizeof(int)*(nv+1)));
-		CUDA(cudaMalloc(&d_ind, sizeof(int)*ne));
+		CUDA(cudaMalloc(&d_off, sizeof(length_t)*(nv+1)));
+		CUDA(cudaMalloc(&d_ind, sizeof(vertexId_t)*ne));
 		CUDA(cudaMalloc(&d_triangles, sizeof(triangle_t)*(nv+1)));
 
-		CUDA(cudaMemcpy(d_off, off, sizeof(int)*(nv+1), cudaMemcpyHostToDevice));
-		CUDA(cudaMemcpy(d_ind, ind, sizeof(int)*ne, cudaMemcpyHostToDevice));
+		CUDA(cudaMemcpy(d_off, off, sizeof(length_t)*(nv+1), cudaMemcpyHostToDevice));
+		CUDA(cudaMemcpy(d_ind, ind, sizeof(vertexId_t)*ne, cudaMemcpyHostToDevice));
 
-		int* h_triangles = (int *) malloc ( sizeof(int)*(nv+1)  );		
+		triangle_t* h_triangles = (triangle_t *) malloc ( sizeof(triangle_t)*(nv+1)  );		
 
 		float minTime=10e9,time,minTimecuStinger=10e9;
 
@@ -176,21 +178,21 @@ int comparecuStingerAndCSR(cuStinger& custing, int nv,int ne, int32_t*  off,int3
 
 					cudaEvent_t ce_start,ce_stop;
 
-					CUDA(cudaMemcpy(d_triangles, h_triangles, sizeof(int)*(nv+1), cudaMemcpyHostToDevice));
+					CUDA(cudaMemcpy(d_triangles, h_triangles, sizeof(triangle_t)*(nv+1), cudaMemcpyHostToDevice));
 					start_clock(ce_start, ce_stop);
 						callDeviceAllTrianglesCSR(nv,d_off, d_ind, d_triangles, tsp,nbl,shifter,blocks, sps);
 					time = end_clock(ce_start, ce_stop);
-					CUDA(cudaMemcpy(h_triangles, d_triangles, sizeof(int)*(nv+1), cudaMemcpyDeviceToHost));
+					CUDA(cudaMemcpy(h_triangles, d_triangles, sizeof(triangle_t)*(nv+1), cudaMemcpyDeviceToHost));
 
 					if(time<minTime) minTime=time; 
 					sumDevice=sumTriangleArray(h_triangles,nv);initHostTriangleArray(h_triangles,nv);
 					printf("!!! %d %d %d %d %d \t\t %ld \t %f\n", blocks,sps, tsp, nbl, shifter,sumDevice, time);
 
-					CUDA(cudaMemcpy(d_triangles, h_triangles, sizeof(int)*(nv+1), cudaMemcpyHostToDevice));
+					CUDA(cudaMemcpy(d_triangles, h_triangles, sizeof(triangle_t)*(nv+1), cudaMemcpyHostToDevice));
 					start_clock(ce_start, ce_stop);
 						callDeviceAllTriangles(custing, d_triangles, tsp,nbl,shifter,blocks, sps);
 					time = end_clock(ce_start, ce_stop);
-					CUDA(cudaMemcpy(h_triangles, d_triangles, sizeof(int)*(nv+1), cudaMemcpyDeviceToHost));
+					CUDA(cudaMemcpy(h_triangles, d_triangles, sizeof(triangle_t)*(nv+1), cudaMemcpyDeviceToHost));
 
 					if(time<minTimecuStinger) minTimecuStinger=time; 
 					sumDevice=sumTriangleArray(h_triangles,nv);initHostTriangleArray(h_triangles,nv);

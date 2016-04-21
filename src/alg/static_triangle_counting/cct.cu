@@ -169,7 +169,7 @@ __device__ void intersectPath(const length_t uLength, const length_t vLength,
 // u_len < v_len
 __device__ triangle_t singleIntersection(vertexId_t u, vertexId_t const * const __restrict__ u_nodes, length_t u_len,
     vertexId_t v, vertexId_t const * const __restrict__ v_nodes, length_t v_len, int threads_per_block,
-    volatile int* __restrict__ firstFound, int tId)
+    volatile vertexId_t* __restrict__ firstFound, int tId)
 {
 	// Partitioning the work to the multiple thread of a single GPU processor. The threads should get a near equal number of the elements to Tersect - this number will be off by 1.
 	int work_per_thread, diag_id;
@@ -272,7 +272,6 @@ void callDeviceAllTriangles(cuStinger& custing,
     triangle_t * const __restrict__ outPutTriangles, const int threads_per_block,
     const int number_blocks, const int shifter, const int thread_blocks, const int blockdim){
 
-	// printf("  %d %d \n",number_blocks, blockdim);
 	devicecuStingerAllTriangles<<<thread_blocks, blockdim>>>(custing.devicePtr(), outPutTriangles, threads_per_block,number_blocks,shifter);
 }
 

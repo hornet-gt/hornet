@@ -5,10 +5,13 @@
 #include <malloc.h>
 #include <inttypes.h>
 
-void readGraphDIMACS(char* filePath, int32_t** prmoff, int32_t** prmind, int32_t* prmnv, int32_t* prmne)
+#include "cuStingerDefs.hpp"
+
+void readGraphDIMACS(char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne)
 {
     FILE *fp = fopen (filePath, "r");
-    int32_t nv, ne;
+    vertexId_t nv;
+    length_t ne;
 
     char* line = NULL;
 
@@ -21,19 +24,19 @@ void readGraphDIMACS(char* filePath, int32_t** prmoff, int32_t** prmind, int32_t
 
     free(line);
 
-    int32_t * off = (int32_t *) malloc ((nv + 2) * sizeof (int32_t));
-    int32_t * ind = (int32_t *) malloc ((ne * 2) * sizeof (int32_t));
+    length_t * off = (length_t *) malloc ((nv + 2) * sizeof (length_t));
+    vertexId_t * ind = (vertexId_t *) malloc ((ne * 2) * sizeof (vertexId_t));
     off[0] = 0;
     off[1] = 0;
-    int32_t counter = 0;
-    int32_t u;
+    length_t counter = 0;
+    vertexId_t u;
     line = NULL;
     bytesRead = 0;
 
     for (u = 1; (temp = getline (&line, &bytesRead, fp)) != -1; u++)
     {
-        int32_t neigh = 0;
-        int32_t v = 0;
+        vertexId_t neigh = 0;
+        vertexId_t v = 0;
         char *ptr = line;
         int read = 0;
         char tempStr[1000];

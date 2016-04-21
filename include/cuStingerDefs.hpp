@@ -7,10 +7,11 @@
 
 typedef int8_t vtype_t;
 typedef int8_t etype_t;
-typedef int32_t vweight_t;
-typedef int32_t eweight_t;
-typedef int32_t vertexId_t;
-typedef int32_t length_t;
+typedef int32_t vweight_t; 
+typedef int32_t eweight_t; 
+typedef int32_t vertexId_t; // If vertexId_t is changed. The DELETION_MARKER should be changed accordingly.
+#define DELETION_MARKER UINT32_MAX
+typedef vertexId_t length_t;
 typedef int32_t timestamp_t;
 
 void* allocHostArray(length_t elements,int32_t eleSize);

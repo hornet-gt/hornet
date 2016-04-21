@@ -53,7 +53,7 @@ void cuStinger::internalEmptyTocuStinger(int NV){
 }
 
 
-void cuStinger::initializeCuStinger(length_t nv_,length_t ne_,length_t* off_, int32_t* adj_){
+void cuStinger::initializeCuStinger(length_t nv_,length_t ne_,length_t* off_, vertexId_t* adj_){
 
 	bytesPerEdge = sizeof (vertexId_t);
 	if(isSemantic){

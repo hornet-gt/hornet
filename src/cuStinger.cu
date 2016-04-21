@@ -76,7 +76,7 @@ void cuStinger::initEdgeDataPointers(){
 	devInitEdgeData<<<numBlocks,threadsPerBlock>>>(	d_cuStinger,verticesPerThreadBlock);
 }
 
-__global__ void devMakeGPUStinger(int32_t* d_off, int32_t* d_adj,
+__global__ void devMakeGPUStinger(vertexId_t* d_off, length_t* d_adj,
 	int verticesPerThreadBlock,cuStinger* custing){
 	length_t* d_utilized = custing->dVD->getUsed();
 
@@ -95,10 +95,9 @@ __global__ void devMakeGPUStinger(int32_t* d_off, int32_t* d_adj,
 	}
 }
 
-
-void cuStinger::internalCSRTocuStinger(length_t* h_off, vertexId_t* h_adj, int ne){
-	length_t* d_off = (length_t*)allocDeviceArray(nv+1,sizeof(int32_t));
-	vertexId_t* d_adj = (length_t*)allocDeviceArray(ne,sizeof(int32_t));
+void cuStinger::internalCSRTocuStinger(length_t* h_off, vertexId_t* h_adj, length_t ne){
+	length_t* d_off = (length_t*)allocDeviceArray(nv+1,sizeof(length_t));
+	vertexId_t* d_adj = (length_t*)allocDeviceArray(ne,sizeof(vertexId_t));
 	copyArrayHostToDevice(h_off,d_off,nv,sizeof(length_t));
 	copyArrayHostToDevice(h_adj,d_adj,ne,sizeof(vertexId_t));
 
@@ -157,7 +156,7 @@ length_t cuStinger::sumDeviceArray(length_t* arr, length_t len){
 
 	devSumArray<<<numOutputElements,SUM_BLOCK_SIZE>>>(arr,d_out,len);
 
-	length_t* h_out = (int32_t*)allocHostArray(len, sizeof(length_t*));
+	length_t* h_out = (length_t*)allocHostArray(len, sizeof(length_t*));
 	
 	length_t sum=0;
 	copyArrayDeviceToHost(d_out, h_out, len, sizeof(length_t));

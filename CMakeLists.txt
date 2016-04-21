@@ -37,7 +37,7 @@ cuda_add_library(cuUpdate
 					src/update.cpp
           src/cuStingerInsertions.cu
           src/cuStingerInsertions.cpp
-          #src/cuStingerDeletions.cu
+          src/cuStingerDeletions.cu
 				)
 
 cuda_add_library(cuAlgCCT

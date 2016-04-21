@@ -62,9 +62,9 @@ __global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdateData* bud,int
 
 			// Requesting a spot for insertion.
 			length_t ret =  atomicAdd(d_utilized+src, 1);
-			d_adj[src]->dst[ret] = dst;							// (**)
 			// Checking that there is enough space to insert this edge
 			if(ret<d_max[src]){
+				d_adj[src]->dst[ret] = dst;							// (**)
 				length_t dupInBatch=0;
 				// There might be an identical edge in the batch and we want to avoid adding it twice.
 				// We are checking if possibly a different thread might have added it.
@@ -264,4 +264,88 @@ void cuStinger::edgeInsertions(BatchUpdate &bu)
 }
 
 
+__global__ void deviceVerifyInsertions(cuStinger* custing, BatchUpdateData* bud,int32_t updatesPerBlock, length_t* updateCounter){
+	length_t* d_utilized      = custing->dVD->getUsed();
+	length_t* d_max           = custing->dVD->getMax();
+	cuStinger::cusEdgeData** d_adj = custing->dVD->getAdj();	
+	vertexId_t* d_updatesSrc    = bud->getSrc();
+	vertexId_t* d_updatesDst    = bud->getDst();
+	length_t batchSize          = *(bud->getBatchSize());
+	length_t* d_incCount        = bud->getIncCount();
+	vertexId_t* d_indIncomplete = bud->getIndIncomplete();
+	length_t* d_indDuplicate    = bud->getIndDuplicate();
+	length_t* d_dupCount        = bud->getDuplicateCount();
+	length_t* d_dupRelPos       = bud->getDupPosBatch();
+
+	__shared__ int32_t found[1];
+
+	int32_t init_pos = blockIdx.x * updatesPerBlock;
+
+	if (threadIdx.x==0)
+		updateCounter[blockIdx.x]=0;
+	__syncthreads();
+
+	// Updates are processed one at a time	
+	for (int32_t i=0; i<updatesPerBlock; i++){
+		int32_t pos=init_pos+i;
+		if(pos>=batchSize)
+			break;
+
+		vertexId_t src = d_updatesSrc[pos],dst = d_updatesDst[pos];
+		length_t srcInitSize = d_utilized[src];
+		if(threadIdx.x ==0)
+			*found=0;
+		__syncthreads();
+
+		length_t upv = custing->dVD->getUsed()[src];		
+		length_t epv = custing->dVD->getMax()[src];
+
+		// if(src==140 && threadIdx.x==0)
+		// 	printf("### %d %d %d \n",upv,epv,pos);
+
+		// Checking to see if the edge already exists in the graph. 
+		for (length_t e=threadIdx.x; e<srcInitSize && *found==0; e+=blockDim.x){
+			if(d_adj[src]->dst[e]==dst){
+				*found=1;
+				break;
+			}
+		}
+		__syncthreads();
 	
+		if (threadIdx.x==0)
+			updateCounter[blockIdx.x]+=*found;
+		__syncthreads();
+
+	}
+}
+
+
+void cuStinger::verifyEdgeInsertions(BatchUpdate &bu)
+{
+	dim3 numBlocks(1, 1);
+	int32_t threads=32;
+	dim3 threadsPerBlock(threads, 1);
+	int32_t updatesPerBlock,dupsPerBlock;
+	length_t updateSize,dupInBatch;
+
+	updateSize = *(bu.getHostBUD()->getBatchSize());
+	numBlocks.x = ceil((float)updateSize/(float)threads);
+	if (numBlocks.x>16000){
+		numBlocks.x=16000;
+	}	
+	updatesPerBlock = ceil(float(updateSize)/float(numBlocks.x-1));
+
+	length_t* devCounter = (length_t*)allocDeviceArray(numBlocks.x,sizeof(length_t));
+
+	deviceVerifyInsertions<<<numBlocks,threadsPerBlock>>>(this->devicePtr(), bu.getDeviceBUD()->devicePtr(),updatesPerBlock,devCounter);
+
+	length_t verified = cuStinger::sumDeviceArray(devCounter, numBlocks.x);
+
+	if (verified==updateSize)
+		cout << "All insertions are accounted for" << endl;
+	else
+		cout << "Some of the insertions are NOT accounted for" << endl;
+
+	freeDeviceArray(devCounter);
+}
+

@@ -108,8 +108,18 @@ int main(const int argc, char *argv[])
 	BatchUpdate bu(bud);
 
 	start_clock(ce_start, ce_stop);
-		// custing2.edgeInsertions(bu);
+		custing2.edgeInsertions(bu);
 	cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
+
+	custing2.verifyEdgeInsertions(bu);
+
+	cout << "Host utilized   : " << custing2.getNumberEdgesUsed() << endl;
+	cout << "Host utilized   : " << custing2.getNumberEdgesAllocated() << endl;
+
+	start_clock(ce_start, ce_stop);
+		custing2.edgeDeletions(bu);
+	cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
+
 
 	cout << "Host utilized   : " << custing2.getNumberEdgesUsed() << endl;
 	cout << "Host utilized   : " << custing2.getNumberEdgesAllocated() << endl;

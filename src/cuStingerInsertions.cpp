@@ -28,8 +28,6 @@ void cuStinger::reAllocateMemoryAfterSweep1(BatchUpdate &bu)
 	for (length_t i=0; i<incCount; i++){
 		vertexId_t temp = tempsrc[incomplete[i]];
 		h_hmap[temp]++;
-		if(temp==8193)
-			cout << incomplete[i] << endl;
 	}
 
 	// Contains the list of unique src vertices

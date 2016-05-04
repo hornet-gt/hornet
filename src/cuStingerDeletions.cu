@@ -57,22 +57,21 @@ __global__ void deviceEdgeDeletesSweep1(cuStinger* custing, BatchUpdateData* bud
 				prevVal = atomicCAS(d_adj[src]->dst + *found,dst,DELETION_MARKER);
 
 				if(prevVal!=DELETION_MARKER){
-					ret =  atomicSub(d_utilized+src, 1);
+					ret =  atomicSub(d_utilized+src, 1)-1;
 
-					if(ret>0){
-						d_adj[src]->dst[*found]=d_adj[src]->dst[ret-1];
-						d_adj[src]->dst[ret-1]=DELETION_MARKER;
-						// if(d_adj[src]->dst[ret]==DELETION_MARKER){
-						// 	printf("Dup in deletion\n");
-						// }
-						// if(src==9638)
-						// 	printf("Here\n");
+					if(ret<0){
+						int oldval = atomicAnd(d_utilized+src, 0);
 					}
-					else{
-						printf("Nothing left\n");
+					else if(ret==0){
+						d_adj[src]->dst[0]=DELETION_MARKER;						
+					}
+					else if(ret>0 && ret<=*found){
+						d_adj[src]->dst[*found]=d_adj[src]->dst[ret];
+						d_adj[src]->dst[ret]=DELETION_MARKER;
 					}
 				}
 				else{
+					*found=-1;
 					printf("I beat to the deletion\n");
 				}
 			}
@@ -90,44 +89,6 @@ __global__ void deviceEdgeDeletesSweep1(cuStinger* custing, BatchUpdateData* bud
 
 	}
 }
-
-
-/*
-			// If edge has been found, then it needs to be deleted.
-			// if(*found!=-1 && threadIdx.x==0){
-			// 	prevVal = atomicExch(d_adj[src]->dst + *found, DELETION_MARKER);
-			// 	// if (blockIdx.x==0)
-			// 	// 	printf("%d %d \n", prevVal,dst);
-			// 	if(prevVal==dst){
-			// 		// Requesting a spot for insertion.
-
-			// 		if (ret>0 && *found > ret){
-			// 			ret2 = atomicAdd(d_utilized+src, 1);
-			// 			if(ret!=ret2){
-			// 				// d_adj[src]->dst[ret2] = d_adj[src]->dst[ret];
-			// 				// d_adj[src]->dst[ret] = DELETION_MARKER;
-			// 				printf("We gotta a problem\n");
-			// 			}
-			// 			*research=1;
-			// 		}
-			// 		else if(ret>0){
-			// 			d_adj[src]->dst[*found] = d_adj[src]->dst[ret];
-			// 			// d_adj[src]->dst[ret] = DELETION_MARKER;
-			// 		}
-			// 	}
-			// 	else{
-			// 		printf("#$");
-			// 	}
-
-			// }
-			// else{
-			// 	if(*found==-1 && threadIdx.x==0)
-			// 		printf("%ld", *found );
-
-			// }
-			// __syncthreads();
-
-*/
 
 
 void cuStinger::edgeDeletions(BatchUpdate &bu)
@@ -198,7 +159,7 @@ __global__ void deviceVerifyDeletions(cuStinger* custing, BatchUpdateData* bud,i
 
 		// Checking to see if the edge already exists in the graph. 
 		for (length_t e=threadIdx.x; e<srcInitSize && *found==0; e+=blockDim.x){
-			if(d_adj[src]->dst[e]==dst){
+			if(d_adj[src]->dst[e]==dst || d_adj[src]->dst[e]==DELETION_MARKER){
 				*found=1;
 				break;
 			}

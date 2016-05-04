@@ -107,12 +107,14 @@ int main(const int argc, char *argv[])
 	}
 	BatchUpdate bu(bud);
 
+	custing2.checkDuplicateEdges();
 	custing2.verifyEdgeInsertions(bu);
 
 	start_clock(ce_start, ce_stop);
 		custing2.edgeInsertions(bu);
 	cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
 
+	custing2.checkDuplicateEdges();	
 	custing2.verifyEdgeInsertions(bu);
 
 	cout << "Host utilized   : " << custing2.getNumberEdgesUsed() << endl;

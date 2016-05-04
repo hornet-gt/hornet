@@ -144,7 +144,6 @@ BatchUpdate::BatchUpdate(BatchUpdateData &h_bua){
 	}
 
 	length_t batchSize = *(h_bua.getBatchSize());
-	cout << "The batch size is :" << batchSize << endl;
 
 	hData = new BatchUpdateData(batchSize,true);
 	dData = new BatchUpdateData(batchSize,false);

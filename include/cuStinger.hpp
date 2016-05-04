@@ -145,6 +145,7 @@ public:
 
 	void verifyEdgeInsertions(BatchUpdate &bu);
 	void verifyEdgeDeletions(BatchUpdate &bu);
+	void checkDuplicateEdges();
 
 	void reAllocateMemoryAfterSweep1(BatchUpdate &bu);
 

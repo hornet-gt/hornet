@@ -233,12 +233,75 @@ void cuStinger::copyMultipleAdjacencies(cusVertexData* olddVD,
 	else
 		verticesPerThreadBlock = ceil(float(requireCount)/float(numBlocks.x-1));
 
-	cout << "### " << requireCount << " , " <<  numBlocks.x << " , " << verticesPerThreadBlock << " ###"  << endl; 
+	// cout << "### " << requireCount << " , " <<  numBlocks.x << " , " << verticesPerThreadBlock << " ###"  << endl; 
 
 	deviceCopyMultipleAdjacencies<<<numBlocks,threadsPerBlock>>>(d_cuStinger,
 		olddVD, requireUpdates, requireCount, verticesPerThreadBlock);
 	checkLastCudaError("Error in the first update sweep");
 }
+
+
+
+__global__ void deviceCheckForDuplicateEdges(cuStinger* custing, length_t verticesPerThreadBlock)
+{
+	vertexId_t v_init=blockIdx.x*verticesPerThreadBlock+threadIdx.x;
+	length_t nv = custing->getMaxNV();
+
+	__shared__ int dupFound;
+
+	for (vertexId_t v_hat=0; v_hat<verticesPerThreadBlock; v_hat++){
+		vertexId_t v=v_init+v_hat;
+		if(v>=nv)
+			break;
+		length_t edges = custing->dVD->getUsed()[v];
+
+		cuStinger::cusEdgeData *dED = custing->dVD->adj[v];
+
+		for (length_t e=0; e<edges; e++){
+			vertexId_t currDest=dED->dst[e];
+			dupFound=-1;
+			__syncthreads();
+
+			for (length_t e2=0; e2<edges; e2+=blockDim.x){
+				vertexId_t currDest2 = dED->dst[e2];
+				if(currDest==currDest2 && e!=e2){
+					dupFound=e2;
+				}
+			}
+			__syncthreads();
+			if(dupFound!=-1)
+				printf("DUP FOUND IN CUSTIGER\n");
+		}
+
+	}
+
+
+}
+
+
+void cuStinger::checkDuplicateEdges(){
+
+	dim3 numBlocks(1, 1);
+	int32_t threads=32;
+	dim3 threadsPerBlock(threads, 1);
+	int32_t verticesPerThreadBlock;
+
+	numBlocks.x = ceil((float)nv/(float)threads);
+	if (numBlocks.x>16000){
+		numBlocks.x=16000;
+	}	
+	verticesPerThreadBlock = ceil(float(nv)/float(numBlocks.x));
+
+	cout << "checkDuplicateEdges : " << verticesPerThreadBlock<< endl;
+	cout << "checkDuplicateEdges : " << numBlocks.x << endl;
+	cout << "Deletions : " << threadsPerBlock.x << endl;
+
+
+	deviceCheckForDuplicateEdges<<<numBlocks,threadsPerBlock>>>(d_cuStinger,
+		verticesPerThreadBlock);
+	checkLastCudaError("Error in the first update sweep");
+}
+
 
 
 

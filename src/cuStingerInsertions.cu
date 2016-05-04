@@ -29,7 +29,6 @@ __global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdateData* bud,int
 		int32_t pos=init_pos+i;
 		if(pos>=batchSize)
 			break;
-
 		vertexId_t src = d_updatesSrc[pos],dst = d_updatesDst[pos];
 		length_t srcInitSize = d_utilized[src];
 		if(threadIdx.x ==0)
@@ -50,9 +49,9 @@ __global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdateData* bud,int
 			}
 		}
 		__syncthreads();
+
 		// If it does not exist, then it needs to be added.
 		if(*found==0 && threadIdx.x==0){
-
 			// IMPORTANT NOTE 
 			// The following search for duplicates is rather safe and  should work most of the time.
 			// There is an extreme and very unlikely case where this might fail.
@@ -66,6 +65,7 @@ __global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdateData* bud,int
 			if(ret<d_max[src]){
 				d_adj[src]->dst[ret] = dst;							// (**)
 				length_t dupInBatch=0;
+
 				// There might be an identical edge in the batch and we want to avoid adding it twice.
 				// We are checking if possibly a different thread might have added it.
 				for(length_t k=srcInitSize; k<ret; k++){
@@ -200,7 +200,7 @@ void cuStinger::edgeInsertions(BatchUpdate &bu)
 	if (numBlocks.x>16000){
 		numBlocks.x=16000;
 	}	
-	updatesPerBlock = ceil(float(updateSize)/float(numBlocks.x-1));
+	updatesPerBlock = ceil(float(updateSize)/float(numBlocks.x));
 
 	deviceUpdatesSweep1<<<numBlocks,threadsPerBlock>>>(this->devicePtr(), bu.getDeviceBUD()->devicePtr(),updatesPerBlock);
 	checkLastCudaError("Error in the first update sweep");
@@ -214,7 +214,7 @@ void cuStinger::edgeInsertions(BatchUpdate &bu)
 		if (numBlocks.x>1000){
 			numBlocks.x=1000;
 		}	
-		dupsPerBlock = ceil(float(dupInBatch)/float(numBlocks.x-1));
+		dupsPerBlock = ceil(float(dupInBatch)/float(numBlocks.x));
 		deviceRemoveInsertedDuplicates<<<numBlocks,threadsPerBlock>>>(this->devicePtr(), bu.getDeviceBUD()->devicePtr(),dupsPerBlock);
 		checkLastCudaError("Error in the first duplication sweep");
 	}
@@ -235,7 +235,7 @@ void cuStinger::edgeInsertions(BatchUpdate &bu)
 		if (numBlocks.x>16000){
 			numBlocks.x=16000;
 		}	
-		updatesPerBlock = ceil(float(updateSize)/float(numBlocks.x-1));
+		updatesPerBlock = ceil(float(updateSize)/float(numBlocks.x));
 
 		deviceUpdatesSweep2<<<numBlocks,threadsPerBlock>>>(this->devicePtr(), bu.getDeviceBUD()->devicePtr(),updatesPerBlock);
 		checkLastCudaError("Error in the second update sweep");
@@ -250,7 +250,7 @@ void cuStinger::edgeInsertions(BatchUpdate &bu)
 			if (numBlocks.x>1000){
 				numBlocks.x=1000;
 			}	
-			dupsPerBlock = ceil(float(dupInBatch)/float(numBlocks.x-1));
+			dupsPerBlock = ceil(float(dupInBatch)/float(numBlocks.x));
 			deviceRemoveInsertedDuplicates<<<numBlocks,threadsPerBlock>>>(this->devicePtr(),
 										 bu.getDeviceBUD()->devicePtr()	,dupsPerBlock);
 			checkLastCudaError("Error in the second duplication sweep");
@@ -333,7 +333,7 @@ void cuStinger::verifyEdgeInsertions(BatchUpdate &bu)
 	if (numBlocks.x>16000){
 		numBlocks.x=16000;
 	}	
-	updatesPerBlock = ceil(float(updateSize)/float(numBlocks.x-1));
+	updatesPerBlock = ceil(float(updateSize)/float(numBlocks.x));
 
 	length_t* devCounter = (length_t*)allocDeviceArray(numBlocks.x,sizeof(length_t));
 

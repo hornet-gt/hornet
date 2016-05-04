@@ -69,7 +69,7 @@ void cuStinger::initEdgeDataPointers(){
 	}	
 
 	int32_t verticesPerThreadBlock = threads;
-	ceil(float(nv)/float(numBlocks.x));
+	// ceil(float(nv)/float(numBlocks.x));
 	// if(numBlocks.x>1)
 	// 	 verticesPerThreadBlock = ceil(float(nv)/float(numBlocks.x-1));		
 	cout << "**** Number of vertices per block " << verticesPerThreadBlock << endl;
@@ -79,6 +79,7 @@ void cuStinger::initEdgeDataPointers(){
 __global__ void devMakeGPUStinger(vertexId_t* d_off, length_t* d_adj,
 	int verticesPerThreadBlock,cuStinger* custing){
 	length_t* d_utilized = custing->dVD->getUsed();
+	length_t* d_max = custing->dVD->getMax();
 
 	int32_t v_init=blockIdx.x*verticesPerThreadBlock;
 	for (int v_hat=0; v_hat<verticesPerThreadBlock; v_hat++){
@@ -91,6 +92,9 @@ __global__ void devMakeGPUStinger(vertexId_t* d_off, length_t* d_adj,
 			// d_cuadj[v][e]=d_adj[d_off[v]+e];
 			adjv->dst[e]=d_adj[d_off[v]+e];
 			// adj->dst[0]=1;
+		}
+		for(int32_t e=threadIdx.x + d_utilized[v]; e < d_max[v]; e+=blockDim.x){
+			adjv->dst[e]=DELETION_MARKER;
 		}
 	}
 }
@@ -194,6 +198,8 @@ __global__ void deviceCopyMultipleAdjacencies(cuStinger* custing, cuStinger::cus
 		dED->t1  = (timestamp_t*)(dED->getMem() + pos); pos+=sizeof(timestamp_t)*epv;
 		dED->t2  = (timestamp_t*)(dED->getMem() + pos); pos+=sizeof(timestamp_t)*epv;
 
+		__syncthreads();
+
 		for(length_t e=threadIdx.x; e<olddVD->getUsed()[v]; e+=blockDim.x){
 			dED->dst[e] = olddED->dst[e];
 			if(custing->isSemantic){
@@ -204,7 +210,6 @@ __global__ void deviceCopyMultipleAdjacencies(cuStinger* custing, cuStinger::cus
 				dED->et[e] = olddED->et[e];	
 				dED->t1[e] = olddED->t1[e];	
 				dED->t2[e] = olddED->t1[e];	
-
 			}
 		}
 	}

@@ -107,6 +107,8 @@ int main(const int argc, char *argv[])
 	}
 	BatchUpdate bu(bud);
 
+	custing2.verifyEdgeInsertions(bu);
+
 	start_clock(ce_start, ce_stop);
 		custing2.edgeInsertions(bu);
 	cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
@@ -116,21 +118,15 @@ int main(const int argc, char *argv[])
 	cout << "Host utilized   : " << custing2.getNumberEdgesUsed() << endl;
 	cout << "Host utilized   : " << custing2.getNumberEdgesAllocated() << endl;
 
+	custing2.verifyEdgeDeletions(bu);
+
 	start_clock(ce_start, ce_stop);
 		custing2.edgeDeletions(bu);
 	cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
-
+	custing2.verifyEdgeDeletions(bu);
 
 	cout << "Host utilized   : " << custing2.getNumberEdgesUsed() << endl;
 	cout << "Host utilized   : " << custing2.getNumberEdgesAllocated() << endl;
-
-
-
-	cout << "Deletion marker:" << DELETION_MARKER << endl;
-	// int cctmain(int nv,int ne, int32_t*  off,int32_t*  ind, cuStinger& custing);
-	// cctmain(nv,ne,off,adj,custing2);
-	double y=1.9;
-	cout << cbrt(y) << endl;
 
 	custing2.freecuStinger();
 

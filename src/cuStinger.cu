@@ -256,11 +256,11 @@ __global__ void deviceCheckForDuplicateEdges(cuStinger* custing, length_t vertic
 		length_t edges = custing->dVD->getUsed()[v];
 		cuStinger::cusEdgeData *dED = custing->dVD->adj[v];
 
-		if(v ==45788 && threadIdx.x==0){
-			for(length_t e=0; e<edges; e++)
-				printf("%d ,",dED->dst[e]);
-			printf("\n");
-		}
+		// if(v ==45788 && threadIdx.x==0){
+		// 	for(length_t e=0; e<edges; e++)
+		// 		printf("%d ,",dED->dst[e]);
+		// 	printf("\n");
+		// }
 
 		for (length_t e=0; e<edges; e++){
 			vertexId_t currDest=dED->dst[e];
@@ -298,10 +298,9 @@ void cuStinger::checkDuplicateEdges(){
 	}	
 	verticesPerThreadBlock = ceil(float(nv)/float(numBlocks.x));
 
-	cout << "checkDuplicateEdges : " << verticesPerThreadBlock<< endl;
-	cout << "checkDuplicateEdges : " << numBlocks.x << endl;
-	cout << "Deletions : " << threadsPerBlock.x << endl;
-
+	// cout << "checkDuplicateEdges : " << verticesPerThreadBlock<< endl;
+	// cout << "checkDuplicateEdges : " << numBlocks.x << endl;
+	// cout << "Deletions : " << threadsPerBlock.x << endl;
 
 	deviceCheckForDuplicateEdges<<<numBlocks,threadsPerBlock>>>(d_cuStinger,
 		verticesPerThreadBlock);

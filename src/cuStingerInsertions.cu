@@ -208,7 +208,7 @@ void cuStinger::edgeInsertions(BatchUpdate &bu)
 	bu.getHostBUD()->copyDeviceToHostDupCount(*bu.getDeviceBUD());
 
 	dupInBatch = *(bu.getHostBUD()->getDuplicateCount());
-	cout << "The number of duplicates in the batch is : " << dupInBatch << endl;
+	// cout << "The number of duplicates in the batch is : " << dupInBatch << endl;
 	if(dupInBatch>0){
 		numBlocks.x = ceil((float)dupInBatch/(float)threads);
 		if (numBlocks.x>1000){
@@ -243,7 +243,7 @@ void cuStinger::edgeInsertions(BatchUpdate &bu)
 		bu.getHostBUD()->copyDeviceToHost(*bu.getDeviceBUD());
 		dupInBatch = *(bu.getHostBUD()->getDuplicateCount());
 
-		cout << "The number of duplicates in the batch is : " << dupInBatch << endl;
+		// cout << "The number of duplicates in the batch is : " << dupInBatch << endl;
 
 		if(dupInBatch>0){
 			numBlocks.x = ceil((float)dupInBatch/(float)threads);
@@ -296,12 +296,6 @@ __global__ void deviceVerifyInsertions(cuStinger* custing, BatchUpdateData* bud,
 		if(threadIdx.x ==0)
 			*found=0;
 		__syncthreads();
-
-		length_t upv = custing->dVD->getUsed()[src];		
-		length_t epv = custing->dVD->getMax()[src];
-
-		// if(src==140 && threadIdx.x==0)
-		// 	printf("### %d %d %d \n",upv,epv,pos);
 
 		// Checking to see if the edge already exists in the graph. 
 		for (length_t e=threadIdx.x; e<srcInitSize && *found==0; e+=blockDim.x){

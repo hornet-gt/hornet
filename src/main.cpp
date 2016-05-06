@@ -120,7 +120,7 @@ int main(const int argc, char *argv[])
 	cout << "Host utilized   : " << custing2.getNumberEdgesUsed() << endl;
 	cout << "Host utilized   : " << custing2.getNumberEdgesAllocated() << endl;
 
-	custing2.verifyEdgeDeletions(bu);
+	// custing2.verifyEdgeDeletions(bu);
 
 	start_clock(ce_start, ce_stop);
 		custing2.edgeDeletions(bu);

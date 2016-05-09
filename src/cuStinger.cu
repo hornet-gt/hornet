@@ -73,8 +73,6 @@ void cuStinger::initEdgeDataPointers(){
 	// if(numBlocks.x>1)
 	// 	 verticesPerThreadBlock = ceil(float(nv)/float(numBlocks.x-1));		
 
-
-	cout << "**** Number of vertices per block " << verticesPerThreadBlock << endl;
 	devInitEdgeData<<<numBlocks,threadsPerBlock>>>(	d_cuStinger,verticesPerThreadBlock);
 }
 
@@ -234,7 +232,6 @@ void cuStinger::copyMultipleAdjacencies(cusVertexData* olddVD,
 	else
 		verticesPerThreadBlock = ceil(float(requireCount)/float(numBlocks.x-1));
 
-	// cout << "### " << requireCount << " , " <<  numBlocks.x << " , " << verticesPerThreadBlock << " ###"  << endl; 
 
 	deviceCopyMultipleAdjacencies<<<numBlocks,threadsPerBlock>>>(d_cuStinger,
 		olddVD, requireUpdates, requireCount, verticesPerThreadBlock);

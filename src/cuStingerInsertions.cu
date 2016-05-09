@@ -314,7 +314,7 @@ __global__ void deviceVerifyInsertions(cuStinger* custing, BatchUpdateData* bud,
 }
 
 
-void cuStinger::verifyEdgeInsertions(BatchUpdate &bu)
+bool cuStinger::verifyEdgeInsertions(BatchUpdate &bu)
 {
 	dim3 numBlocks(1, 1);
 	int32_t threads=32;
@@ -335,11 +335,12 @@ void cuStinger::verifyEdgeInsertions(BatchUpdate &bu)
 
 	length_t verified = cuStinger::sumDeviceArray(devCounter, numBlocks.x);
 
-	if (verified==updateSize)
-		cout << "All insertions are accounted for.             Expected: " << updateSize << " Actual : " << verified << endl;
-	else
-		cout << "Some of the insertions are NOT accounted for. Expected: " << updateSize << " Actual : " << verified << endl;
-
 	freeDeviceArray(devCounter);
+
+	if (verified==updateSize)
+		return true;
+	else
+		return false;
+
 }
 

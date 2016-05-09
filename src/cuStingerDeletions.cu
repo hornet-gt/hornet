@@ -191,7 +191,7 @@ __global__ void deviceVerifyDeletions(cuStinger* custing, BatchUpdateData* bud,i
 	}
 }
 
-void cuStinger::verifyEdgeDeletions(BatchUpdate &bu){
+bool cuStinger::verifyEdgeDeletions(BatchUpdate &bu){
 	dim3 numBlocks(1, 1);
 	int32_t threads=32;
 	dim3 threadsPerBlock(threads, 1);
@@ -204,17 +204,16 @@ void cuStinger::verifyEdgeDeletions(BatchUpdate &bu){
 		numBlocks.x=16000;
 	}	
 	updatesPerBlock = ceil(float(updateSize)/float(numBlocks.x));
-	cout << "Number of blocks in the deletion is : "  << numBlocks.x << endl;
 
 	length_t* devCounter = (length_t*)allocDeviceArray(numBlocks.x,sizeof(length_t));
 	deviceVerifyDeletions<<<numBlocks,threadsPerBlock>>>(this->devicePtr(), bu.getDeviceBUD()->devicePtr(),updatesPerBlock,devCounter);
 	length_t verified = cuStinger::sumDeviceArray(devCounter, numBlocks.x);
 
-	if (verified==0)
-		cout << "All deletions are accounted for.             Not deleted : " << verified << endl;
-	else
-		cout << "Some of the deletions are NOT accounted for. Not deleted : " << verified << endl;
-
 	freeDeviceArray(devCounter);
+	
+	if (verified==0)
+		return true;
+	else
+		return false;
 }
 

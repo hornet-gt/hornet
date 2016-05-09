@@ -15,7 +15,17 @@
 
 using namespace std;
 
+void printcuStingerUtility(cuStinger custing, bool allInfo){
+	length_t used,allocated;
 
+	used     =custing.getNumberEdgesUsed();
+	allocated=custing.getNumberEdgesAllocated();
+	if (allInfo)
+		cout << ", " << used << ", " << allocated << ", " << (float)used/(float)allocated; 	
+	else
+		cout << ", " << (float)used/(float)allocated;
+
+}
 
 void generateEdgeUpdates(length_t nv, length_t numEdges, vertexId_t* edgeSrc, vertexId_t* edgeDst){
 	for(int32_t e=0; e<numEdges; e++){
@@ -65,8 +75,8 @@ int main(const int argc, char *argv[])
 	string filename(argv[1]);
 	isDimacs = filename.find(".graph")==std::string::npos?false:true;
 	isSNAP   = filename.find(".txt")==std::string::npos?false:true;
+
 	if(isDimacs){
-		cout << "reading dimacs graph" << endl;
 	    readGraphDIMACS(argv[1],&off,&adj,&nv,&ne);
 	}
 	else if(isSNAP){
@@ -75,10 +85,7 @@ int main(const int argc, char *argv[])
 	else{ 
 		cout << "Unknown graph type" << endl;
 	}
-    // cout << argv[1] << endl;
-	// cout << "Name : " << prop.name <<  endl;
-	cout << "Vertices " << nv << endl;
-	cout << "Edges " << ne << endl;
+	cout << nv << ", " << ne;
 
 	cudaEvent_t ce_start,ce_stop;
 
@@ -102,10 +109,10 @@ int main(const int argc, char *argv[])
 
 	start_clock(ce_start, ce_stop);
 	custing2.initializeCuStinger(cuInit);
-	cout << "Allocation and Copy Time : " << end_clock(ce_start, ce_stop) << endl;
+	// cout << "Allocation and Copy Time : " << end_clock(ce_start, ce_stop) << endl;
+	cout << ", " << end_clock(ce_start, ce_stop);
 
-	cout << "Host utilized   : " << custing2.getNumberEdgesUsed() << endl;
-	cout << "Host utilized   : " << custing2.getNumberEdgesAllocated() << endl;
+	printcuStingerUtility(custing2, false);
 
 	length_t numEdgesL = numEdges;
 	BatchUpdateData bud(numEdgesL,true);
@@ -124,23 +131,22 @@ int main(const int argc, char *argv[])
 
 	start_clock(ce_start, ce_stop);
 		custing2.edgeInsertions(bu);
-	cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
+	// cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
+	cout << ", " << end_clock(ce_start, ce_stop);
+
 
 	custing2.checkDuplicateEdges();	
 	custing2.verifyEdgeInsertions(bu);
 
-	cout << "Host utilized   : " << custing2.getNumberEdgesUsed() << endl;
-	cout << "Host utilized   : " << custing2.getNumberEdgesAllocated() << endl;
-
-	// custing2.verifyEdgeDeletions(bu);
+	printcuStingerUtility(custing2, false);
 
 	start_clock(ce_start, ce_stop);
 		custing2.edgeDeletions(bu);
-	cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
+	cout << ", " << end_clock(ce_start, ce_stop);
+	// cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
 	custing2.verifyEdgeDeletions(bu);
 
-	cout << "Host utilized   : " << custing2.getNumberEdgesUsed() << endl;
-	cout << "Host utilized   : " << custing2.getNumberEdgesAllocated() << endl;
+	printcuStingerUtility(custing2, false);
 
 	custing2.freecuStinger();
 

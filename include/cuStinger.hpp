@@ -1,3 +1,4 @@
+
 #ifndef _CU_STINGER_INCLUDE_H
 #define _CU_STINGER_INCLUDE_H
 
@@ -143,8 +144,8 @@ public:
 	void edgeInsertions(BatchUpdate &bu);
 	void edgeDeletions(BatchUpdate &bu);
 
-	void verifyEdgeInsertions(BatchUpdate &bu);
-	void verifyEdgeDeletions(BatchUpdate &bu);
+	bool verifyEdgeInsertions(BatchUpdate &bu);
+	bool verifyEdgeDeletions(BatchUpdate &bu);
 	void checkDuplicateEdges();
 
 	void reAllocateMemoryAfterSweep1(BatchUpdate &bu);

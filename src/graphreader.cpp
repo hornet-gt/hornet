@@ -64,6 +64,10 @@ void readGraphDIMACS(char* filePath, length_t** prmoff, vertexId_t** prmind, ver
     *prmoff = off;
 }
 
+int hostCompareIncrement (const void *a, const void *b){
+  return (int) (*(int64_t *) a - *(int64_t *) b);
+}
+
 
 void readGraphSNAP  (char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne){
     vertexId_t nv,*src,*dest,*ind;
@@ -72,7 +76,7 @@ void readGraphSNAP  (char* filePath, length_t** prmoff, vertexId_t** prmind, ver
     FILE *fp = fopen (filePath, "r");
     fscanf(fp, "# Nodes: %d Edges: %d\n", &nv,&ne);
 
-    printf ("Edge list reading: %d, %d\n",nv,ne);
+    // printf ("Edge list reading: %d, %d\n",nv,ne);
 
     src = (vertexId_t *) malloc ((ne ) * sizeof (vertexId_t));    
     dest = (vertexId_t *) malloc ((ne ) * sizeof (vertexId_t));   
@@ -114,29 +118,17 @@ void readGraphSNAP  (char* filePath, length_t** prmoff, vertexId_t** prmind, ver
         counter++;
     } 
     
-/*
-    for(int src=0; src<100; src++)
-    {
-        for(int dest=off[src]; dest<off[src+1]; dest++)
-        {
-//          printf("%ld %ld\n", src, ind[dest]);fflush(stdout);
-        }
-    }
-*/
-    // if(0)
-    // {
+    // if(0) {
     //   for (int i = 0; i < (nv); i++)
     //     {
     //       qsort (&ind[off[i]], off[i + 1] - off[i], sizeof (int64_t),
-    //          hostBasicCompare);
+    //          hostCompareIncrement);
     //     }
     // }
     
     free(src);
     free(dest);
-    free(degreeCounter);
-
-    
+    free(degreeCounter);    
     *prmnv=nv;
     *prmne=ne;
     *prmind=ind;

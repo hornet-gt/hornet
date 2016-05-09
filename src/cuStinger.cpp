@@ -85,7 +85,9 @@ void cuStinger::initializeCuStinger(length_t nv_,length_t ne_,length_t* off_, ve
 		hVD->used[v]		= off_[v+1]-off_[v];
 		hVD->max[v] 		= initVertexAllocator(hVD->used[v]);
 		hVD->adj[v] 		= (cusEdgeData*)allocDeviceArray(1, sizeof(cusEdgeData));
+		// checkLastCudaError("Error initializing data - pointer data");
 		hVD->edMem[v]	 	= (uint8_t*)allocDeviceArray(hVD->max[v], bytesPerEdge);
+		// checkLastCudaError("Error initializing data - adjacency list");
 	}
 
 	d_cuStinger=(cuStinger*)allocDeviceArray(1,sizeof(cuStinger));

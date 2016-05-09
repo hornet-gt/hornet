@@ -61,8 +61,20 @@ int main(const int argc, char *argv[])
 	if(argc>3)
 		isRmat  =atoi(argv[3]);
 	srand(100);
-    readGraphDIMACS(argv[1],&off,&adj,&nv,&ne);
-
+	bool isDimacs,isSNAP;
+	string filename(argv[1]);
+	isDimacs = filename.find(".graph")==std::string::npos?false:true;
+	isSNAP   = filename.find(".txt")==std::string::npos?false:true;
+	if(isDimacs){
+		cout << "reading dimacs graph" << endl;
+	    readGraphDIMACS(argv[1],&off,&adj,&nv,&ne);
+	}
+	else if(isSNAP){
+	    readGraphSNAP(argv[1],&off,&adj,&nv,&ne);
+	}
+	else{ 
+		cout << "Unknown graph type" << endl;
+	}
     // cout << argv[1] << endl;
 	// cout << "Name : " << prop.name <<  endl;
 	cout << "Vertices " << nv << endl;

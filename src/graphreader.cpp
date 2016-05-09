@@ -65,3 +65,81 @@ void readGraphDIMACS(char* filePath, length_t** prmoff, vertexId_t** prmind, ver
 }
 
 
+void readGraphSNAP  (char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne){
+    vertexId_t nv,*src,*dest,*ind;
+    length_t   ne,*degreeCounter,*off;
+    
+    FILE *fp = fopen (filePath, "r");
+    fscanf(fp, "# Nodes: %d Edges: %d\n", &nv,&ne);
+
+    printf ("Edge list reading: %d, %d\n",nv,ne);
+
+    src = (vertexId_t *) malloc ((ne ) * sizeof (vertexId_t));    
+    dest = (vertexId_t *) malloc ((ne ) * sizeof (vertexId_t));   
+    degreeCounter = (length_t*)malloc((nv+1) * sizeof(length_t)); 
+    off = (length_t*)malloc((nv+1) * sizeof(length_t));
+    ind = (vertexId_t*)malloc((ne) * sizeof(vertexId_t));
+
+    int64_t counter=0;
+    char line[2000];size_t len=2000; char read;      
+
+    for(int64_t v=0; v<nv;v++)  {
+        degreeCounter[v]=0;
+    }   
+    
+    while(counter<ne)
+    {
+        int64_t srctemp,desttemp;
+        fscanf(fp, "%ld %ld\n", &srctemp,&desttemp);
+        src[counter]=srctemp;
+        dest[counter]=desttemp;
+        degreeCounter[srctemp]++;
+        counter++;
+    }
+    fclose (fp);
+
+    off[0]=0;
+    for(int v=0; v<nv;v++)  {
+        off[v+1]=off[v]+degreeCounter[v];
+    }
+
+    for(int v=0; v<nv;v++){
+        degreeCounter[v]=0;
+    }
+    counter=0;
+    while(counter<ne)
+    {
+        ind[off[src[counter]]+degreeCounter[src[counter]]++]=dest[counter];
+            
+        counter++;
+    } 
+    
+/*
+    for(int src=0; src<100; src++)
+    {
+        for(int dest=off[src]; dest<off[src+1]; dest++)
+        {
+//          printf("%ld %ld\n", src, ind[dest]);fflush(stdout);
+        }
+    }
+*/
+    // if(0)
+    // {
+    //   for (int i = 0; i < (nv); i++)
+    //     {
+    //       qsort (&ind[off[i]], off[i + 1] - off[i], sizeof (int64_t),
+    //          hostBasicCompare);
+    //     }
+    // }
+    
+    free(src);
+    free(dest);
+    free(degreeCounter);
+
+    
+    *prmnv=nv;
+    *prmne=ne;
+    *prmind=ind;
+    *prmoff=off;
+}
+

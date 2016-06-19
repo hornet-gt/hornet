@@ -17,6 +17,9 @@ INCLUDE_DIRECTORIES(include/alg/static_triangle_counting)
 
 #set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-g -fPIC")
 
+set(CMAKE_BUILD_TYPE Debug)
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -lineinfo -G -DTHRUST_DEBUG")
+
 set(mgpu_INCLUDE_DIRS
   ${CMAKE_SOURCE_DIR}/externals/moderngpu/include
   CACHE PATH
@@ -63,9 +66,9 @@ TARGET_LINK_LIBRARIES(cuMain custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda
 
 #LIST(APPEND CMAKE_CXX_FLAGS "std=c++11 -O3 -ffastmath -Wall")
 
-LIST(APPEND CUDA_NCCC_FLAGS --compiler-options -fno-strict-aliasing -use-fast-math)
+#LIST(APPEND CUDA_NCCC_FLAGS --compiler-options -fno-strict-aliasing -use-fast-math)
 LIST(APPEND CUDA NVCC_FLAGS -gencode arch=compute_35,code=sm_35)
-LIST(APPEND CUDA NVCC_FLAGS "-std=c++11;-O3;-DVERBOSE")
+LIST(APPEND CUDA NVCC_FLAGS "-std=c++11;-DVERBOSE")
 
 
 if(CMAKE_COMPILER_IS_GNUCXX)

@@ -160,7 +160,7 @@ length_t defaultInitAllocater(length_t elements){
 	else if(eleCount < 5)
 		eleCount*=2;
 	else
-		eleCount*=1.3;
+		eleCount*=1.5;
 	return eleCount;
 }
 
@@ -179,7 +179,7 @@ length_t defaultUpdateAllocater(length_t elements, length_t overLimit){
 	else if(eleCount < 5)
 		eleCount*=2;
 	else
-		eleCount*=1.3;
+		eleCount*=1.5;
 	return eleCount;
 }
 

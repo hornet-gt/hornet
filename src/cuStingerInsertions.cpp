@@ -11,7 +11,7 @@
 using namespace std;
 
 // As this function uses a hash map it needs to be placed in a .cpp file.
-void cuStinger::reAllocateMemoryAfterSweep1(BatchUpdate &bu)
+void cuStinger::reAllocateMemoryAfterSweep1(BatchUpdate &bu, length_t& requireAllocation)
 {
 	// This function consists of two main phases. 
 	// 1) Given the list of edges that could be inserted due to lack of space, this list is reduced 
@@ -47,7 +47,7 @@ void cuStinger::reAllocateMemoryAfterSweep1(BatchUpdate &bu)
 			h_hmap[temp]=0; // Once a vertex is extracted, the hash-map is reset to avoid extracting the source vertex multiple times.
 		}
 	}
-
+	requireAllocation=0;
 	if(countUnique>0){
 		// Allocate memory to store the vertex data before the update.
 		// We need this information, especially the pointers to the older edge lists as these need to deallocated 
@@ -76,7 +76,7 @@ void cuStinger::reAllocateMemoryAfterSweep1(BatchUpdate &bu)
 			cushVD->edMem[tempVertex]	= (uint8_t*)allocDeviceArray(newMax, this->getBytesPerEdge());
 			cushVD->max[tempVertex] 	= newMax;
 		}
-
+		requireAllocation=countUnique;
 		// Copy the host VD back to STINGER.
 		copyArrayHostToDevice(cushVD->mem,this->dedmem,nv,this->getBytesPerVertex());
 

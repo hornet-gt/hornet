@@ -9,6 +9,12 @@ INCLUDE_DIRECTORIES(/usr/local/cuda/include)
 INCLUDE_DIRECTORIES(include)
 INCLUDE_DIRECTORIES(include/alg/static_triangle_counting)
 
+
+# Adding external libraries
+INCLUDE_DIRECTORIES(externals/stx-btree/include)
+# INCLUDE_DIRECTORIES(externals/moderngpu/include)
+
+
 #message("message here")
 #SET(CUDA_PROPAGATE_HOST_FLAGS OFF)
 
@@ -53,6 +59,11 @@ cuda_add_library(custinger
 cuda_add_executable(cuMain 
 					src/main.cpp
 				   )
+
+cuda_add_executable(cuMemManager 
+					src/memoryManager.cpp
+				   )
+
 
 cuda_add_executable(cctMain
           src/alg/static_triangle_counting/cct.cpp

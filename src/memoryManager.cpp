@@ -98,6 +98,9 @@ public:
 		// cout << this << ", ";
 	}
 
+	uint64_t elementsInEdgeBlock(){
+		return offTree->size();
+	}
 
 // private:
 	uint8_t* memoryBlockPtr;
@@ -108,7 +111,10 @@ public:
 	offsetTree* offTree;
 };
 
-typedef stx::btree_multimap<uint64_t, edgeBlock, std::less<uint64_t> > ebBPtree;
+// typedef stx::btree_multimap<uint64_t, edgeBlock, std::less<uint64_t> > ebBPtree;
+
+typedef edgeBlock* edgeBlockPtr;
+typedef stx::btree_multimap<uint64_t, edgeBlockPtr, std::less<uint64_t> > ebBPtree;
 
 struct memAllocInfo{
 	memAllocInfo(){}
@@ -126,13 +132,13 @@ class memoryManager
 public:
 	memoryManager(uint64_t blockSize_){
 		blockSize=blockSize_;
-		edgeBlock temp(blockSize);
+		edgeBlock* temp = new edgeBlock(blockSize);
         btree.insert2(blockSize, temp);
 	}
 
 	~memoryManager(){
 		for(ebBPtree::iterator bi=btree.begin(); bi != btree.end(); bi++){
-			bi.data().releaseInnerTree();
+			bi.data()->releaseInnerTree();
 		}
 		btree.clear();
 	}
@@ -147,23 +153,22 @@ public:
 				uint64_t numBlocks = memSize/blockSize + ceil(float(memSize%blockSize)/float(blockSize));
 				totalMemSize = numBlocks*blockSize;
 			}
-			edgeBlock tempeb(totalMemSize);
-    		pos = tempeb.addMemBlock(memSize,v);
-			btree.insert2(tempeb.getAvailableSpace(), tempeb);
-			return memAllocInfo(tempeb.getEdgeBlockPtr(),tempeb.getMemoryBlockPtr()+pos);
+			edgeBlock* tempeb = new edgeBlock(totalMemSize);
+    		pos = tempeb->addMemBlock(memSize,v);
+			btree.insert2(tempeb->getAvailableSpace(), tempeb);
+			return memAllocInfo(tempeb->getEdgeBlockPtr(),tempeb->getMemoryBlockPtr()+pos);
 			// return tempeb.getEdgeBlockPtr()+pos;
 		}
 	    ebBPtree::iterator bi = btree.upper_bound(memSize);
 
 	    if(bi==btree.begin()){
 	    		// cout << "Place found in the first element" << endl;
-	    		edgeBlock tempeb = bi.data();
+	    		edgeBlock* tempeb = bi.data();
 	    		btree.erase(--bi);
-	    		pos = tempeb.addMemBlock(memSize,v);
-				btree.insert2(tempeb.getAvailableSpace(), tempeb);
-				return memAllocInfo(tempeb.getEdgeBlockPtr(),tempeb.getMemoryBlockPtr()+pos);
-				// return tempeb.getEdgeBlockPtr()+pos;
-	    } else if (bi==btree.end()){
+	    		pos = tempeb->addMemBlock(memSize,v);
+				btree.insert2(tempeb->getAvailableSpace(), tempeb);
+				return memAllocInfo(tempeb->getEdgeBlockPtr(),tempeb->getMemoryBlockPtr()+pos);
+	    }else if (bi==btree.end()){
 	    	bi--;
 		    if(bi.key() < memSize){
 		    	// cout << "no space in tree" << endl;
@@ -172,31 +177,28 @@ public:
 					uint64_t numBlocks = memSize/blockSize + ceil(float(memSize%blockSize)/float(blockSize));
 					totalMemSize = numBlocks*blockSize;
 				}
-				edgeBlock tempeb(totalMemSize);
-	    		pos = tempeb.addMemBlock(memSize,v);
-				btree.insert2(tempeb.getAvailableSpace(), tempeb);
-				// cout << tempeb.getThisPtr() << endl;
-				return memAllocInfo(tempeb.getEdgeBlockPtr(),tempeb.getMemoryBlockPtr()+pos);
-				// return tempeb.getEdgeBlockPtr()+pos;
+				edgeBlock* tempeb = new edgeBlock(totalMemSize);
+	    		pos = tempeb->addMemBlock(memSize,v);
+				btree.insert2(tempeb->getAvailableSpace(), tempeb);
+				// cout << tempeb->getThisPtr() << endl;
+				return memAllocInfo(tempeb->getEdgeBlockPtr(),tempeb->getMemoryBlockPtr()+pos);
 		    }
 		    else{
 	    		// cout << "Found some space" << endl;
-	    		edgeBlock tempeb = bi.data();
+	    		edgeBlock* tempeb = bi.data();
 	    		btree.erase(bi);
-	    		pos = tempeb.addMemBlock(memSize,v);
-				btree.insert2(tempeb.getAvailableSpace(), tempeb);				
-				return memAllocInfo(tempeb.getEdgeBlockPtr(),tempeb.getMemoryBlockPtr()+pos);
-				// return tempeb.getEdgeBlockPtr()+pos;
+	    		pos = tempeb->addMemBlock(memSize,v);
+				btree.insert2(tempeb->getAvailableSpace(), tempeb);				
+				return memAllocInfo(tempeb->getEdgeBlockPtr(),tempeb->getMemoryBlockPtr()+pos);
 		    }
 	    }
 	    else{
-    		edgeBlock tempeb = bi.data();
-				printf("%p   %p \n",bi.data().getEdgeBlockPtr(), tempeb.getEdgeBlockPtr());	    		
+    		edgeBlock* tempeb = bi.data();
+				// printf("%p   %p \n",bi.data()->getEdgeBlockPtr(), tempeb->getEdgeBlockPtr());	    		
     		btree.erase(bi);
-    		pos = tempeb.addMemBlock(memSize,v);
-			btree.insert2(tempeb.getAvailableSpace(), tempeb);
-			return memAllocInfo(tempeb.getEdgeBlockPtr(),tempeb.getMemoryBlockPtr()+pos);
-			// return tempeb.getEdgeBlockPtr()+pos;
+    		pos = tempeb->addMemBlock(memSize,v);
+			btree.insert2(tempeb->getAvailableSpace(), tempeb);
+			return memAllocInfo(tempeb->getEdgeBlockPtr(),tempeb->getMemoryBlockPtr()+pos);
 	    }
 	}
 
@@ -237,18 +239,17 @@ int main(int argc, char const *argv[])
 
         	if (i>=numberElements-10 || i*2==numberElements){
 				for(ebBPtree::iterator bi=mm.btree.begin(); bi != mm.btree.end(); bi++)
-					bi.data().printPtr();
+					cout << bi.data()->elementsInEdgeBlock() << ", ";
 				cout << endl;
 			}
     	}
 		for(ebBPtree::iterator bi=mm.btree.begin(); bi != mm.btree.end(); bi++)
-			bi.data().printPtr();
+			cout << bi.data()->elementsInEdgeBlock() << ", ";
 		cout << endl;
     	cout << "The size of tree is : " << mm.btree.size() << endl;
 
 	    srand(34234235);
     	for(int i=0; i<numberElements; i++){
-    		// cout << maiArray[i].eb << " " << i << endl << flush;
 			// printf("%p %d ",maiArray[i].eb,i);
 			fflush(stdout);
 
@@ -256,12 +257,13 @@ int main(int argc, char const *argv[])
 
         	if (i>=numberElements-10 || i*2==numberElements){
 				for(ebBPtree::iterator bi=mm.btree.begin(); bi != mm.btree.end(); bi++)
-					bi.data().printPtr();
+					cout << bi.data()->elementsInEdgeBlock() << ", ";
+	    		// cout << endl << maiArray[i].eb << " " << i << endl << flush;
 				cout << endl;
 			}
     	}
 		for(ebBPtree::iterator bi=mm.btree.begin(); bi != mm.btree.end(); bi++)
-			bi.data().printPtr();
+			cout << bi.data()->elementsInEdgeBlock() << ", ";
 		cout << endl;
 
     	cout << "The size of tree is : " << mm.btree.size() << endl;

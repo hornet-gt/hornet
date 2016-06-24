@@ -11,7 +11,7 @@
 
 using namespace std;
 
-const int numberElements=1000000;
+const int numberElements=100000000;
 
 
 struct memVertexData{
@@ -41,8 +41,9 @@ public:
 		utilization=0;
 		nextAvailable=0;
 		//ODED - allocate cuda memory array.
-
+		memoryBlockPtr = (uint8_t*)allocDeviceArray(blockSize,sizeof(uint8_t));
 		offTree = new offsetTree();
+		printf("(%ld)\n", blockSize);
 	}
 	edgeBlock(const edgeBlock& eb){
 		// cout <<"Hello3" << endl;
@@ -56,6 +57,7 @@ public:
 	void releaseInnerTree(){
 		offTree->clear();
 		delete offTree;
+		freeDeviceArray(memoryBlockPtr);
 	}
 
 	edgeBlock& operator=(const edgeBlock &eb ){
@@ -67,10 +69,11 @@ public:
 	}
 	uint64_t addMemBlock(uint64_t memSize,vertexId_t v){
 		uint64_t retval = nextAvailable;
-		utilization+=memSize;
-		nextAvailable+=memSize;
+		uint64_t memsetSetOffset = memSize+4-memSize%4; // Ensuring that every mem-block allocation is aligned.
+		utilization+=memsetSetOffset;
+		nextAvailable+=memsetSetOffset;
 
-		memVertexData mvd(v,retval,memSize);
+		memVertexData mvd(v,retval,memsetSetOffset);
 		offTree->insert2(v,mvd);
 		return retval;
 	}
@@ -139,6 +142,7 @@ public:
 	~memoryManager(){
 		for(ebBPtree::iterator bi=btree.begin(); bi != btree.end(); bi++){
 			bi.data()->releaseInnerTree();
+			delete bi.data();
 		}
 		btree.clear();
 	}
@@ -212,65 +216,53 @@ public:
 	uint64_t blockSize;
 };
 
-
-
-#ifdef BTREE_DEBUG 
-#define PRINT_TREE(tree) tree.print(std::cout);
-#else 
-#define PRINT_TREE(tree) 
-#endif
-
-
+#if(MEM_STAND_ALONE) 
 
 
 int main(int argc, char const *argv[])
 {
+	memoryManager mm(100000000);
+	memAllocInfo* maiArray = new memAllocInfo[numberElements];
+    srand(34234235);
+	for(int i=0; i<numberElements; i++){
+    	maiArray[i] = mm.allocateMemoryBlock(rand() % 10,i);
 
-    if(false){
-	    memoryManager mm(1000);
+    	if (i>=numberElements-10 || i*2==numberElements){
+			for(ebBPtree::iterator bi=mm.btree.begin(); bi != mm.btree.end(); bi++)
+				cout << bi.data()->elementsInEdgeBlock() << ", ";
+			cout << endl;
+		}
+	}
+	for(ebBPtree::iterator bi=mm.btree.begin(); bi != mm.btree.end(); bi++)
+		cout << bi.data()->elementsInEdgeBlock() << ", ";
+	cout << endl;
+	cout << "The size of tree is : " << mm.btree.size() << endl;
 
-    }
-    else{
-    	memoryManager mm(100000000);
-		memAllocInfo* maiArray = new memAllocInfo[numberElements];
-	    srand(34234235);
-    	for(int i=0; i<numberElements; i++){
-        	maiArray[i] = mm.allocateMemoryBlock(rand() % 1000,i);
+    srand(34234235);
+	for(int i=0; i<numberElements; i++){
+		// printf("%p %d ",maiArray[i].eb,i);
+		fflush(stdout);
 
-        	if (i>=numberElements-10 || i*2==numberElements){
-				for(ebBPtree::iterator bi=mm.btree.begin(); bi != mm.btree.end(); bi++)
-					cout << bi.data()->elementsInEdgeBlock() << ", ";
-				cout << endl;
-			}
-    	}
-		for(ebBPtree::iterator bi=mm.btree.begin(); bi != mm.btree.end(); bi++)
-			cout << bi.data()->elementsInEdgeBlock() << ", ";
-		cout << endl;
-    	cout << "The size of tree is : " << mm.btree.size() << endl;
+    	mm.removeMemoryBlock(maiArray[i].eb,i);
 
-	    srand(34234235);
-    	for(int i=0; i<numberElements; i++){
-			// printf("%p %d ",maiArray[i].eb,i);
-			fflush(stdout);
+    	if (i>=numberElements-10 || i*2==numberElements){
+			for(ebBPtree::iterator bi=mm.btree.begin(); bi != mm.btree.end(); bi++)
+				cout << bi.data()->elementsInEdgeBlock() << ", ";
+    		// cout << endl << maiArray[i].eb << " " << i << endl << flush;
+			cout << endl;
+		}
+	}
+	for(ebBPtree::iterator bi=mm.btree.begin(); bi != mm.btree.end(); bi++)
+		cout << bi.data()->elementsInEdgeBlock() << ", ";
+	cout << endl;
 
-        	mm.removeMemoryBlock(maiArray[i].eb,i);
+	cout << "The size of tree is : " << mm.btree.size() << endl;
 
-        	if (i>=numberElements-10 || i*2==numberElements){
-				for(ebBPtree::iterator bi=mm.btree.begin(); bi != mm.btree.end(); bi++)
-					cout << bi.data()->elementsInEdgeBlock() << ", ";
-	    		// cout << endl << maiArray[i].eb << " " << i << endl << flush;
-				cout << endl;
-			}
-    	}
-		for(ebBPtree::iterator bi=mm.btree.begin(); bi != mm.btree.end(); bi++)
-			cout << bi.data()->elementsInEdgeBlock() << ", ";
-		cout << endl;
-
-    	cout << "The size of tree is : " << mm.btree.size() << endl;
-
-    	delete maiArray;
-    }
+	delete maiArray;
 
 	return 0;
 
 }
+
+#endif
+

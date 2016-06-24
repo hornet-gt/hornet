@@ -46,6 +46,7 @@ cuda_add_library(cuUpdate
           src/cuStingerInsertions.cu
           src/cuStingerInsertions.cpp
           src/cuStingerDeletions.cu
+          src/memoryManager.cpp
 				)
 
 cuda_add_library(cuAlgCCT
@@ -64,6 +65,12 @@ cuda_add_executable(cuMemManager
 					src/memoryManager.cpp
 				   )
 
+set_property(
+   TARGET cuMemManager
+   PROPERTY COMPILE_DEFINITIONS   MEM_STAND_ALONE
+   )
+
+
 
 cuda_add_executable(cctMain
           src/alg/static_triangle_counting/cct.cpp
@@ -73,6 +80,9 @@ cuda_add_executable(cctMain
 TARGET_LINK_LIBRARIES(cctMain custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
 
 TARGET_LINK_LIBRARIES(cuMain custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
+
+TARGET_LINK_LIBRARIES(cuMemManager custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
+
 
 #LIST(APPEND CMAKE_CXX_FLAGS "std=c++11 -O3 -ffastmath -Wall")
 

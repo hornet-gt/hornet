@@ -24,8 +24,8 @@ cuStinger::~cuStinger(){
 void cuStinger::freecuStinger(){
 
 	for(vertexId_t v=0; v<nv; v++){
-		freeDeviceArray(hVD->edMem[v]);
-		freeDeviceArray(hVD->adj[v]);
+		// freeDeviceArray(hVD->edMem[v]);
+		// freeDeviceArray(hVD->adj[v]);
 	}
 
 	freeDeviceArray(d_cuStinger);
@@ -33,6 +33,8 @@ void cuStinger::freecuStinger(){
 	delete hVD;
 	freeDeviceArray(dedmem);
 	freeDeviceArray(dVD);
+
+	delete cusMemMan;
 }
 
 void cuStinger::copyHostToDevice(){
@@ -84,17 +86,28 @@ void cuStinger::initializeCuStinger(length_t nv_,length_t ne_,length_t* off_, ve
 	for(vertexId_t v=0; v<nv; v++){
 		hVD->used[v]		= off_[v+1]-off_[v];
 		hVD->max[v] 		= initVertexAllocator(hVD->used[v]);
-		hVD->adj[v] 		= (cusEdgeData*)allocDeviceArray(1, sizeof(cusEdgeData));
+		// hVD->adj[v] 		= (cusEdgeData*)allocDeviceArray(1, sizeof(cusEdgeData));
 		// checkLastCudaError("Error initializing data - pointer data");
-		hVD->edMem[v]	 	= (uint8_t*)allocDeviceArray(hVD->max[v], bytesPerEdge);
+		// hVD->edMem[v]	 	= (uint8_t*)allocDeviceArray(hVD->max[v], bytesPerEdge);
 		// checkLastCudaError("Error initializing data - adjacency list");
+
+		int memSizeOffsetAdj = sizeof(cusEdgeData)/512 + 512*(sizeof(cusEdgeData)%512>0);
+		int memSizeOffsetedMem = 512 * (int)ceil ((double) (hVD->max[v]* bytesPerEdge) /512.0);
+
+		memAllocInfo mai = cusMemMan->allocateMemoryBlock(memSizeOffsetAdj+ memSizeOffsetedMem,v);
+		hVD->adj[v] = (cusEdgeData*)mai.ptr;
+		hVD->edMem[v] = (uint8_t*)(mai.ptr+memSizeOffsetAdj);
+		// cout << memSizeOffsetAdj << ", " << memSizeOffsetedMem << ", " << hVD->max[v]* bytesPerEdge << endl ;
+		// if (v<10)
+		// 	printf("%p %p \n", (cusEdgeData*)mai.ptr , (cusEdgeData*)(mai.ptr+ memSizeOffsetedMem)) ;
+
 	}
 
 	d_cuStinger=(cuStinger*)allocDeviceArray(1,sizeof(cuStinger));
 	copyArrayHostToDevice(this,d_cuStinger,1,sizeof(cuStinger));
 
 	initVertexDataPointers(dVD,dedmem);
-	fflush(stdout);
+	// fflush(stdout);
  
 	copyArrayHostToDevice(hVD->mem,dedmem,nv,bytesPerVertex);
 
@@ -119,6 +132,9 @@ void cuStinger::initializeCuStinger(cuStingerInitConfig &cuCS){
 			nv=cuCS.csrNV;
 			CUSTINGER_WARNING("In the initialization of cuStinger with a CSR graph a maximal NV smaller than the CSR's NV was given")
 		}
+
+		cusMemMan = new memoryManager(cuCS.defaultBlockSize);
+
 		initializeCuStinger(cuCS.csrNV, cuCS.csrNE, cuCS.csrOff, cuCS.csrAdj);
 
 

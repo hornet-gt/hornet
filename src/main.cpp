@@ -133,20 +133,20 @@ int main(const int argc, char *argv[])
 			// custing2.verifyEdgeInsertions(bu);
 			length_t allocs;
 			start_clock(ce_start, ce_stop);
-				custing2.edgeInsertions(bu,allocs);
+				// custing2.edgeInsertions(bu,allocs);
 			cout << "," << end_clock(ce_start, ce_stop);
 			cout << "," << allocs;
 
-			custing2.verifyEdgeInsertions(bu);//
+			// custing2.verifyEdgeInsertions(bu);//
 			printcuStingerUtility(custing2, false);
 
 			// custing2.checkDuplicateEdges();	
 
 
 			start_clock(ce_start, ce_stop);
-				custing2.edgeDeletions(bu);
+				// custing2.edgeDeletions(bu);
 			cout << "," << end_clock(ce_start, ce_stop);
-			custing2.verifyEdgeDeletions(bu);
+			// custing2.verifyEdgeDeletions(bu);
 			printcuStingerUtility(custing2, false);
 			cout << endl << flush;
 

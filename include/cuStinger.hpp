@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 #include "cuStingerDefs.hpp"
-
+#include "memoryManager.hpp"
 
 
 typedef length_t (*initAllocator)(length_t);
@@ -31,6 +31,7 @@ public:
 	cuStingerInitState initState;
 
 	int maxNV = INT_MAX; // maxNV>csrNV
+	int defaultBlockSize = 1<<22;
 
 	bool useVWeight = false;
 
@@ -50,6 +51,7 @@ public:
 	vertexId_t* elDst;
 	eweight_t*  elEW;	
 	length_t    elLen;
+
 
 };
 
@@ -157,6 +159,9 @@ public:
 
 	cuStinger* d_cuStinger;
 	uint8_t* dedmem;
+
+// private: 
+	memoryManager* cusMemMan;
 
 private:
 

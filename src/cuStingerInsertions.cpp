@@ -68,12 +68,28 @@ void cuStinger::reAllocateMemoryAfterSweep1(BatchUpdate &bu, length_t& requireAl
 		copyArrayHostToDevice(oldhVD->mem,olddedmem,nv,this->getBytesPerVertex());
 
 
+		int cudaalignment=512;
+
 		// For each unique vertex allocate new EdgeData
 		for (length_t i=0; i<countUnique; i++){
 			vertexId_t tempVertex = h_requireUpdates[i];
 			length_t newMax = this->getUpdateAllocater()(cushVD->max[tempVertex] ,h_overLimit[i]);
-			cushVD->adj[tempVertex]  	= (cuStinger::cusEdgeData*)allocDeviceArray(1, sizeof(cuStinger::cusEdgeData));
-			cushVD->edMem[tempVertex]	= (uint8_t*)allocDeviceArray(newMax, this->getBytesPerEdge());
+			// cushVD->adj[tempVertex]  	= (cuStinger::cusEdgeData*)allocDeviceArray(1, sizeof(cuStinger::cusEdgeData));
+			// cushVD->edMem[tempVertex]	= (uint8_t*)allocDeviceArray(newMax, this->getBytesPerEdge());
+
+			int memSizeOffsetAdj = sizeof(cusEdgeData)/cudaalignment + cudaalignment*(sizeof(cusEdgeData)%cudaalignment>0);
+			int memSizeOffsetedMem = cudaalignment * (int)ceil ((double) (newMax* this->getBytesPerEdge()) /(double)cudaalignment);
+
+			memAllocInfo mai = cusMemMan->allocateMemoryBlock(memSizeOffsetAdj+ memSizeOffsetedMem,tempVertex);
+			cushVD->adj[tempVertex] = (cusEdgeData*)mai.ptr;
+			cushVD->edMem[tempVertex] = (uint8_t*)(mai.ptr+memSizeOffsetAdj);
+			// cout << "HELLO" << i << " " << newMax << " " << tempVertex <<  endl << flush;
+			// cout << memSizeOffsetAdj << " " <<  memSizeOffsetedMem << " " << this->getBytesPerEdge() << " " << newMax << " " << tempVertex <<  endl ;
+			// cout << mai.ptr << endl << flush;
+		// 	cushVD->adj[tempVertex]   = (cusEdgeData*)mai.ptr;
+		// 	cushVD->edMem[tempVertex] = (uint8_t*)(mai.ptr+memSizeOffsetAdj);
+		// cout << (cusEdgeData*)mai.ptr << ", " << (uint8_t*)(mai.ptr+memSizeOffsetAdj) << ", " << endl << flush ;
+
 			cushVD->max[tempVertex] 	= newMax;
 		}
 		requireAllocation=countUnique;
@@ -94,8 +110,8 @@ void cuStinger::reAllocateMemoryAfterSweep1(BatchUpdate &bu, length_t& requireAl
 		// De-allocate older ED that is no longer needed.
 		for (length_t i=0; i<countUnique; i++){
 			vertexId_t tempVertex = h_requireUpdates[i];
-			freeDeviceArray(oldhVD->edMem[tempVertex]);
-			freeDeviceArray(oldhVD->adj[tempVertex]);
+			// freeDeviceArray(oldhVD->edMem[tempVertex]);
+			// freeDeviceArray(oldhVD->adj[tempVertex]);
 		}
 		// cout << "Reallocate time     : " << end_clock(ce_start, ce_stop) << endl;
 

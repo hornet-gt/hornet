@@ -23,7 +23,7 @@ edgeBlock::edgeBlock(const edgeBlock& eb){
 void edgeBlock::releaseInnerTree(){
 	offTree->clear();
 	delete offTree;
-	printf("%p, ",memoryBlockPtr);
+	// printf("%p, ",memoryBlockPtr);
 	freeDeviceArray(memoryBlockPtr);
 }
 
@@ -85,14 +85,14 @@ memoryManager::memoryManager(uint64_t blockSize_){
 }
 
 memoryManager::~memoryManager(){
-	cout << endl;
-	int count=0;
+	// cout << endl;
+	// int count=0;
 	for(ebBPtree::iterator bi=btree.begin(); bi != btree.end(); bi++){
 		bi.data()->releaseInnerTree();
 		delete bi.data();
-		cout << count++ << ", ";
+		// cout << count++ << ", ";
 	}
-	cout << endl;
+	// cout << endl;
 
 	btree.clear();
 }
@@ -116,7 +116,6 @@ memAllocInfo memoryManager::allocateMemoryBlock(uint64_t memSize,vertexId_t v){
     ebBPtree::iterator bi = btree.upper_bound(memSize);
 
     if(bi==btree.begin()){
-    		// cout << "Place found in the first element" << endl;
     		edgeBlock* tempeb = bi.data();
     		btree.erase(--bi);
     		pos = tempeb->addMemBlock(memSize,v);
@@ -125,7 +124,6 @@ memAllocInfo memoryManager::allocateMemoryBlock(uint64_t memSize,vertexId_t v){
     }else if (bi==btree.end()){
     	bi--;
 	    if(bi.key() < memSize){
-	    	// cout << "no space in tree" << endl;
 	    	uint64_t totalMemSize=blockSize;
 			if(memSize>blockSize){
 				uint64_t numBlocks = memSize/blockSize + ceil(float(memSize%blockSize)/float(blockSize));
@@ -148,18 +146,21 @@ memAllocInfo memoryManager::allocateMemoryBlock(uint64_t memSize,vertexId_t v){
     }
     else{
 		edgeBlock* tempeb = bi.data();
-			// printf("%p   %p \n",bi.data()->getEdgeBlockPtr(), tempeb->getEdgeBlockPtr());	    		
 		btree.erase(bi);
 		pos = tempeb->addMemBlock(memSize,v);
 		btree.insert2(tempeb->getAvailableSpace(), tempeb);
 		return memAllocInfo(tempeb->getEdgeBlockPtr(),tempeb->getMemoryBlockPtr()+pos);
     }
+    // cout << "something unexpected happened "<< endl;
 }
 
 uint8_t* memoryManager::removeMemoryBlock(edgeBlock* eb,vertexId_t v){
 	eb->removeMemBlock(v);
 }
 
+uint64_t memoryManager::getTreeSize(){
+	return (uint64_t)btree.size();
+}
 
 
 #if(MEM_STAND_ALONE) 

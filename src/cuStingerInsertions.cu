@@ -336,8 +336,9 @@ bool cuStinger::verifyEdgeInsertions(BatchUpdate &bu)
 
 	freeDeviceArray(devCounter);
 
-	if (verified==updateSize)
+	if (verified==updateSize){
 		return true;
+	}
 	else
 		return false;
 

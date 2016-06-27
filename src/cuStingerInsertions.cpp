@@ -66,9 +66,7 @@ void cuStinger::reAllocateMemoryAfterSweep1(BatchUpdate &bu, length_t& requireAl
 		uint8_t* olddedmem = (uint8_t*)allocDeviceArray(nv,this->getBytesPerVertex());
 		this->initVertexDataPointers(olddVD,olddedmem);
 		copyArrayHostToDevice(oldhVD->mem,olddedmem,nv,this->getBytesPerVertex());
-
-
-		int cudaalignment=512;
+		
 
 		// For each unique vertex allocate new EdgeData
 		for (length_t i=0; i<countUnique; i++){
@@ -77,8 +75,8 @@ void cuStinger::reAllocateMemoryAfterSweep1(BatchUpdate &bu, length_t& requireAl
 			// cushVD->adj[tempVertex]  	= (cuStinger::cusEdgeData*)allocDeviceArray(1, sizeof(cuStinger::cusEdgeData));
 			// cushVD->edMem[tempVertex]	= (uint8_t*)allocDeviceArray(newMax, this->getBytesPerEdge());
 
-			int memSizeOffsetAdj = sizeof(cusEdgeData)/cudaalignment + cudaalignment*(sizeof(cusEdgeData)%cudaalignment>0);
-			int memSizeOffsetedMem = cudaalignment * (int)ceil ((double) (newMax* this->getBytesPerEdge()) /(double)cudaalignment);
+			int memSizeOffsetAdj = sizeof(cusEdgeData)/cudaMemManAlignment + cudaMemManAlignment*(sizeof(cusEdgeData)%cudaMemManAlignment>0);
+			int memSizeOffsetedMem = cudaMemManAlignment * (int)ceil ((double) (newMax* this->getBytesPerEdge()) /(double)cudaMemManAlignment);
 
 			memAllocInfo mai = cusMemMan->allocateMemoryBlock(memSizeOffsetAdj+ memSizeOffsetedMem,tempVertex);
 			cushVD->adj[tempVertex] = (cusEdgeData*)mai.ptr;

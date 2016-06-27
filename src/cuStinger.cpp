@@ -83,7 +83,7 @@ void cuStinger::initializeCuStinger(length_t nv_,length_t ne_,length_t* off_, ve
 	dVD = (cusVertexData*)allocDeviceArray(1, sizeof(cusVertexData));
 	dedmem = (uint8_t*)allocDeviceArray(nv,bytesPerVertex);
 
-	int cudaalignment=512;
+
 	for(vertexId_t v=0; v<nv; v++){
 		hVD->used[v]		= off_[v+1]-off_[v];
 		hVD->max[v] 		= initVertexAllocator(hVD->used[v]);
@@ -92,8 +92,8 @@ void cuStinger::initializeCuStinger(length_t nv_,length_t ne_,length_t* off_, ve
 		// hVD->edMem[v]	 	= (uint8_t*)allocDeviceArray(hVD->max[v], bytesPerEdge);
 		// checkLastCudaError("Error initializing data - adjacency list");
 
-		int memSizeOffsetAdj = sizeof(cusEdgeData)/cudaalignment + cudaalignment*(sizeof(cusEdgeData)%cudaalignment>0);
-		int memSizeOffsetedMem = cudaalignment * (int)ceil ((double) (hVD->max[v]* bytesPerEdge) /(double)cudaalignment);
+		int memSizeOffsetAdj = sizeof(cusEdgeData)/cudaMemManAlignment + cudaMemManAlignment*(sizeof(cusEdgeData)%cudaMemManAlignment>0);
+		int memSizeOffsetedMem = cudaMemManAlignment * (int)ceil ((double) (hVD->max[v]* bytesPerEdge) /(double)cudaMemManAlignment);
 
 		memAllocInfo mai = cusMemMan->allocateMemoryBlock(memSizeOffsetAdj+ memSizeOffsetedMem,v);
 		hVD->adj[v] = (cusEdgeData*)mai.ptr;

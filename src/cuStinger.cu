@@ -40,11 +40,9 @@ __global__ void devInitEdgeData(cuStinger* custing, int verticesPerThreadBlock){
 		vertexId_t v=v_init+v_hat;
 		if(v>=nv)
 			break;
+
 		//epv = edge per vertex
-		// length_t upv = custing->dVD->getUsed()[v];		
 		length_t epv = custing->dVD->getMax()[v];
-		// if(v==140)
-		// 	printf("$$$ %d %d \n",upv,epv);
 
 		int32_t pos=0;
 		cuStinger::cusEdgeData *dED = custing->dVD->adj[v];
@@ -69,9 +67,9 @@ void cuStinger::initEdgeDataPointers(){
 	}	
 
 	int32_t verticesPerThreadBlock = threads;
-	// ceil(float(nv)/float(numBlocks.x));
-	// if(numBlocks.x>1)
-	// 	 verticesPerThreadBlock = ceil(float(nv)/float(numBlocks.x-1));		
+
+	if(numBlocks.x>1)
+		 verticesPerThreadBlock = ceil(float(nv)/float(numBlocks.x-1));		
 
 	devInitEdgeData<<<numBlocks,threadsPerBlock>>>(	d_cuStinger,verticesPerThreadBlock);
 }
@@ -81,17 +79,16 @@ __global__ void devMakeGPUStinger(vertexId_t* d_off, length_t* d_adj,
 	length_t* d_utilized = custing->dVD->getUsed();
 	length_t* d_max = custing->dVD->getMax();
 
+
 	int32_t v_init=blockIdx.x*verticesPerThreadBlock;
 	for (int v_hat=0; v_hat<verticesPerThreadBlock; v_hat++){
 		int32_t v=v_init+v_hat;
+
 		if(v>=custing->nv)
 			break;
 		cuStinger::cusEdgeData* adjv = custing->dVD->adj[v];
-		
 		for(int32_t e=threadIdx.x; e<d_utilized[v]; e+=blockDim.x){
-			// d_cuadj[v][e]=d_adj[d_off[v]+e];
-			adjv->dst[e]=d_adj[d_off[v]+e];
-			// adj->dst[0]=1;
+				adjv->dst[e]=d_adj[d_off[v]+e];
 		}
 		for(int32_t e=threadIdx.x + d_utilized[v]; e < d_max[v]; e+=blockDim.x){
 			adjv->dst[e]=DELETION_MARKER;

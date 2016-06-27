@@ -104,8 +104,6 @@ int main(const int argc, char *argv[])
 	cuInit.csrVW 			= NULL;
 	cuInit.csrEW			= NULL;
 
-	cout << "loaded the graph from the cpu" << endl;
-
 	for (int numBatchEdges=1; numBatchEdges<ne; numBatchEdges*=10){
 
 		for (int32_t i=0; i<5; i++){
@@ -136,7 +134,7 @@ int main(const int argc, char *argv[])
 			// cout << "######STARTING INSERTIONS######"<< endl;
 			length_t allocs;
 			start_clock(ce_start, ce_stop);
-				// custing2.edgeInsertions(bu,allocs);
+				custing2.edgeInsertions(bu,allocs);
 			cout << "," << end_clock(ce_start, ce_stop);
 			cout << "," << allocs;
 
@@ -150,7 +148,7 @@ int main(const int argc, char *argv[])
 			start_clock(ce_start, ce_stop);
 				custing2.edgeDeletions(bu);
 			cout << "," << end_clock(ce_start, ce_stop);
-			// custing2.verifyEdgeDeletions(bu);
+				custing2.verifyEdgeDeletions(bu);
 			printcuStingerUtility(custing2, false);
 			cout << endl << flush;
 

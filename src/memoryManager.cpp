@@ -154,7 +154,7 @@ memAllocInfo memoryManager::allocateMemoryBlock(uint64_t memSize,vertexId_t v){
     // cout << "something unexpected happened "<< endl;
 }
 
-uint8_t* memoryManager::removeMemoryBlock(edgeBlock* eb,vertexId_t v){
+void memoryManager::removeMemoryBlock(edgeBlock* eb,vertexId_t v){
 	eb->removeMemBlock(v);
 }
 

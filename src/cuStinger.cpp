@@ -23,10 +23,10 @@ cuStinger::~cuStinger(){
 
 void cuStinger::freecuStinger(){
 
-	for(vertexId_t v=0; v<nv; v++){
-		// freeDeviceArray(hVD->edMem[v]);
-		// freeDeviceArray(hVD->adj[v]);
-	}
+	// for(vertexId_t v=0; v<nv; v++){
+	// 	// freeDeviceArray(hVD->edMem[v]);
+	// 	// freeDeviceArray(hVD->adj[v]);
+	// }
 
 	freeDeviceArray(d_cuStinger);
 	hVD->hostFreeMem();
@@ -34,6 +34,7 @@ void cuStinger::freecuStinger(){
 	freeDeviceArray(dedmem);
 	freeDeviceArray(dVD);
 
+	freeHostArray(hMemManEB);
 	delete cusMemMan;
 }
 
@@ -98,6 +99,8 @@ void cuStinger::initializeCuStinger(length_t nv_,length_t ne_,length_t* off_, ve
 		memAllocInfo mai = cusMemMan->allocateMemoryBlock(memSizeOffsetAdj+ memSizeOffsetedMem,v);
 		hVD->adj[v] = (cusEdgeData*)mai.ptr;
 		hVD->edMem[v] = (uint8_t*)(mai.ptr+memSizeOffsetAdj);
+		hMemManEB[v] = (edgeBlock*)mai.eb;
+		// (edgeBlock*)mai.eb;
 		// cout << memSizeOffsetAdj << ", " << memSizeOffsetedMem << ", " << hVD->max[v]* bytesPerEdge << endl ;
 		// if (v<10)
 		// 	printf("%p %p \n", (cusEdgeData*)mai.ptr , (cusEdgeData*)(mai.ptr+ memSizeOffsetedMem)) ;
@@ -133,12 +136,10 @@ void cuStinger::initializeCuStinger(cuStingerInitConfig &cuCS){
 			nv=cuCS.csrNV;
 			CUSTINGER_WARNING("In the initialization of cuStinger with a CSR graph a maximal NV smaller than the CSR's NV was given")
 		}
-
+		hMemManEB = (edgeBlock**)allocHostArray(nv, sizeof(edgeBlock*));
 		cusMemMan = new memoryManager(cuCS.defaultBlockSize);
 
 		initializeCuStinger(cuCS.csrNV, cuCS.csrNE, cuCS.csrOff, cuCS.csrAdj);
-
-
 	}
 	else if(cuCS.initState==eInitStateEdgeList){
 		CUSTINGER_ERROR("No support for edge list initialization just yet");

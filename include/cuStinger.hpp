@@ -162,6 +162,7 @@ public:
 
 // private: 
 	memoryManager* cusMemMan;
+	edgeBlock** hMemManEB; 
 
 private:
 

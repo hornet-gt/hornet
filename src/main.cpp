@@ -77,9 +77,10 @@ int main(const int argc, char *argv[])
 	string filename(argv[1]);
 	isDimacs = filename.find(".graph")==std::string::npos?false:true;
 	isSNAP   = filename.find(".txt")==std::string::npos?false:true;
+	isRmat 	 = filename.find("kron")==std::string::npos?false:true;
 
 	if(isDimacs){
-	    readGraphDIMACS(argv[1],&off,&adj,&nv,&ne);
+	    readGraphDIMACS(argv[1],&off,&adj,&nv,&ne,isRmat);
 	}
 	else if(isSNAP){
 	    readGraphSNAP(argv[1],&off,&adj,&nv,&ne);
@@ -142,8 +143,7 @@ int main(const int argc, char *argv[])
 			// cout << "The graphs are identical" << custing2.verifyEdgeInsertions(bu) << endl;//
 			printcuStingerUtility(custing2, false);
 
-			// custing2.checkDuplicateEdges();	
-
+			// custing2.checkDuplicateEdges();
 
 			start_clock(ce_start, ce_stop);
 				custing2.edgeDeletions(bu);

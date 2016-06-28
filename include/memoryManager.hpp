@@ -81,7 +81,7 @@ public:
 	memoryManager(uint64_t blockSize_);
 	~memoryManager();
 	memAllocInfo allocateMemoryBlock(uint64_t memSize,vertexId_t v);
-	uint8_t* removeMemoryBlock(edgeBlock* eb,vertexId_t v);
+	void removeMemoryBlock(edgeBlock* eb,vertexId_t v);
 
 	uint64_t getTreeSize();
 

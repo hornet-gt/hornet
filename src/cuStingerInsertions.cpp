@@ -66,7 +66,8 @@ void cuStinger::reAllocateMemoryAfterSweep1(BatchUpdate &bu, length_t& requireAl
 		uint8_t* olddedmem = (uint8_t*)allocDeviceArray(nv,this->getBytesPerVertex());
 		this->initVertexDataPointers(olddVD,olddedmem);
 		copyArrayHostToDevice(oldhVD->mem,olddedmem,nv,this->getBytesPerVertex());
-		
+
+		edgeBlock** newBlocks = (edgeBlock**)allocHostArray(nv, sizeof(edgeBlock*));
 
 		// For each unique vertex allocate new EdgeData
 		for (length_t i=0; i<countUnique; i++){
@@ -81,14 +82,8 @@ void cuStinger::reAllocateMemoryAfterSweep1(BatchUpdate &bu, length_t& requireAl
 			memAllocInfo mai = cusMemMan->allocateMemoryBlock(memSizeOffsetAdj+ memSizeOffsetedMem,tempVertex);
 			cushVD->adj[tempVertex] = (cusEdgeData*)mai.ptr;
 			cushVD->edMem[tempVertex] = (uint8_t*)(mai.ptr+memSizeOffsetAdj);
-			// cout << "HELLO" << i << " " << newMax << " " << tempVertex <<  endl << flush;
-			// cout << memSizeOffsetAdj << " " <<  memSizeOffsetedMem << " " << this->getBytesPerEdge() << " " << newMax << " " << tempVertex <<  endl ;
-			// cout << mai.ptr << endl << flush;
-		// 	cushVD->adj[tempVertex]   = (cusEdgeData*)mai.ptr;
-		// 	cushVD->edMem[tempVertex] = (uint8_t*)(mai.ptr+memSizeOffsetAdj);
-		// cout << (cusEdgeData*)mai.ptr << ", " << (uint8_t*)(mai.ptr+memSizeOffsetAdj) << ", " << endl << flush ;
-
 			cushVD->max[tempVertex] 	= newMax;
+			newBlocks[tempVertex] = mai.eb;
 		}
 		requireAllocation=countUnique;
 		// Copy the host VD back to STINGER.
@@ -108,11 +103,15 @@ void cuStinger::reAllocateMemoryAfterSweep1(BatchUpdate &bu, length_t& requireAl
 		// De-allocate older ED that is no longer needed.
 		for (length_t i=0; i<countUnique; i++){
 			vertexId_t tempVertex = h_requireUpdates[i];
+			cusMemMan->removeMemoryBlock(hMemManEB[tempVertex], tempVertex);
+			hMemManEB[tempVertex] = newBlocks[tempVertex];
+
 			// freeDeviceArray(oldhVD->edMem[tempVertex]);
 			// freeDeviceArray(oldhVD->adj[tempVertex]);
 		}
 		// cout << "Reallocate time     : " << end_clock(ce_start, ce_stop) << endl;
 
+		freeHostArray(newBlocks);
 		// Remove all auxiliary arrays.
 		oldhVD->hostFreeMem();
 		delete oldhVD;

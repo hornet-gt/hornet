@@ -2,8 +2,7 @@
 #define _MODIFIED_VERTICES_
 
 #include "update.hpp"
-#include "cuStingerDefs.hpp"
 
-void vertexModification(BatchUpdate &bu, length_t* nV)
+void vertexModification(BatchUpdate &bu, length_t nV);
 
 #endif

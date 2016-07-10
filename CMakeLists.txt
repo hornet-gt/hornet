@@ -69,6 +69,8 @@ TARGET_LINK_LIBRARIES(cctMain custinger cuUtils cuUpdate cuAlgCCT /usr/local/cud
 
 TARGET_LINK_LIBRARIES(cuMain custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
 
+TARGET_LINK_LIBRARIES(cctUpdate custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
+
 #LIST(APPEND CMAKE_CXX_FLAGS "std=c++11 -O3 -ffastmath -Wall")
 
 #LIST(APPEND CUDA_NCCC_FLAGS --compiler-options -fno-strict-aliasing -use-fast-math)

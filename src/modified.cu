@@ -2,7 +2,7 @@
 #include <thrust/copy.h>
 
 #include "modified.hpp"
-
+#include "utils.hpp"
 
 using namespace std;
 
@@ -41,7 +41,7 @@ struct is_not_zero
 	}
 };
 
-void vertexModification(BatchUpdate &bu, length_t* nV)
+void vertexModification(BatchUpdate &bu, length_t nV)
 {	
 	int32_t threads=1024;	
 	dim3 threadsPerBlock(threads, 1);
@@ -62,13 +62,44 @@ void vertexModification(BatchUpdate &bu, length_t* nV)
 	vertexId_t* d_modV = (vertexId_t*)allocDeviceArray(updateSize*2, sizeof(vertexId_t));
 	thrust::device_ptr<vertexId_t> dp_modV_sparse(d_modV_sparse);
 	thrust::device_ptr<vertexId_t> dp_modV(d_modV);
-	thrust::copy_if(dp_modV_sparse.begin(), dp_modV_sparse.end(), dp_modV.begin(), is_not_zero());
+	thrust::copy_if(dp_modV_sparse, dp_modV_sparse + nV, dp_modV, is_not_zero());
 
 	// Testing only. Remove after verified  ====================================
 
 	vertexId_t* h_modV = (vertexId_t*) allocHostArray(updateSize*2, sizeof(vertexId_t));
 	copyArrayDeviceToHost(d_modV, h_modV, updateSize*2, sizeof(vertexId_t));
-	 
+
+	vertexId_t* modV = (vertexId_t*) allocHostArray(updateSize*2, sizeof(vertexId_t));
+	vertexId_t* modV_sparse = (vertexId_t*) allocHostArray(nV, sizeof(vertexId_t));
+
+	for (int i = 0; i < nV; ++i)
+	{
+		modV_sparse[i] = 0;
+	}
+	for (int i = 0; i < updateSize; ++i)
+	{
+		int32_t src = bu.getHostBUD()->getSrc()[i];
+		int32_t dst = bu.getHostBUD()->getDst()[i];
+
+		modV_sparse[src] |= (src+1);
+		modV_sparse[dst] |= (dst+1);
+	}
+	int count = 0;
+	for (int i = 0; i < updateSize; ++i)
+	{
+		if (modV_sparse[i])
+		{
+			modV[count++] = modV_sparse[i];
+		}
+	}
+
+	for (int i = 0; i < count; ++i)
+	{
+		if (modV[i] != h_modV[i])
+		{
+			cout << "error:" << modV[i] << "!=" << h_modV[i];
+		}
+	}
 	// =========================================================================
 
 	checkLastCudaError("Error in vertex modification marking : stream compaction");

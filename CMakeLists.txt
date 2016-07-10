@@ -60,6 +60,11 @@ cuda_add_executable(cctMain
           src/alg/static_triangle_counting/cct_csr.cu        
         )
 
+cuda_add_executable(cctUpdate
+          src/modified.cu
+          src/alg/static_triangle_counting/cct_upd.cpp
+        )
+
 TARGET_LINK_LIBRARIES(cctMain custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
 
 TARGET_LINK_LIBRARIES(cuMain custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)

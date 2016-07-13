@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <inttypes.h>
 
+#include <math.h>
+
+
 #include "utils.hpp"
 #include "update.hpp"
 #include "cuStinger.hpp"
@@ -101,6 +104,10 @@ int arrayBlocks[]={16000};
 int arrayBlockSize[]={32,64,96,128,192,256};
 int arrayThreadPerIntersection[]={1,2,4,8,16,32};
 int arrayThreadShift[]={0,1,2,3,4,5};
+// int arrayBlocks[]={64000};
+// int arrayBlockSize[]={256};
+// int arrayThreadPerIntersection[]={32};
+// int arrayThreadShift[]={5};
 
 
 void initHostTriangleArray(triangle_t* h_triangles, vertexId_t nv){	
@@ -120,7 +127,7 @@ int64_t sumTriangleArray(triangle_t* h_triangles, vertexId_t nv){
 int comparecuStingerAndCSR(cuStinger& custing, vertexId_t nv,length_t ne, length_t*  off,vertexId_t*  ind)
 {
 	int device = 0;
-	int run    = 3; 
+	int run    = 2;
 //  int scriptMode =atoi(argv[PAR_SCRIPT]);
 //	int sps =atoi(argv[PAR_SP]);	
 //	int tsp =atoi(argv[PAR_T_SP]);	
@@ -145,7 +152,7 @@ int comparecuStingerAndCSR(cuStinger& custing, vertexId_t nv,length_t ne, length
 		cudaEventRecord(stopCPU, 0);cudaEventSynchronize(stopCPU);
 		
 		cudaThreadSynchronize();cudaEventElapsedTime(&timeCPU, startCPU, stopCPU);
-		STAND_PRINTF("CPU", timeCPU,allTrianglesCPU)
+		// STAND_PRINTF("CPU", timeCPU,allTrianglesCPU)
 	}	
 
 	if(run&2){
@@ -201,8 +208,12 @@ int comparecuStingerAndCSR(cuStinger& custing, vertexId_t nv,length_t ne, length
 			    }
 			}	
 		}
-		STAND_PRINTF("GPU - csr     ", minTime,sumDevice)
-		STAND_PRINTF("GPU - custing ", minTimecuStinger,sumDevice)
+		// STAND_PRINTF("GPU - csr     ", minTime,sumDevice)
+		// STAND_PRINTF("GPU - custing ", minTimecuStinger,sumDevice)
+		// cout << "Vertices " << nv << endl;
+		// cout << "Edges " << ne << endl;
+
+		cout << nv << ", " << ne << ", "<< minTime << ", " << minTimecuStinger<< endl;
 
 		free(h_triangles);
 
@@ -224,9 +235,25 @@ int main(const int argc, char *argv[]){
  
     length_t nv, ne,*off;
     vertexId_t *adj;
-    readGraphDIMACS(argv[1],&off,&adj,&nv,&ne);
-	cout << "Vertices " << nv << endl;
-	cout << "Edges " << ne << endl;
+
+	bool isDimacs,isSNAP,isRmat=false;
+	string filename(argv[1]);
+	isDimacs = filename.find(".graph")==std::string::npos?false:true;
+	isSNAP   = filename.find(".txt")==std::string::npos?false:true;
+	isRmat 	 = filename.find("kron")==std::string::npos?false:true;
+
+	if(isDimacs){
+	    readGraphDIMACS(argv[1],&off,&adj,&nv,&ne,isRmat);
+	}
+	else if(isSNAP){
+	    readGraphSNAP(argv[1],&off,&adj,&nv,&ne);
+	}
+	else{ 
+		cout << "Unknown graph type" << endl;
+	}
+
+	// cout << "Vertices " << nv << endl;
+	// cout << "Edges " << ne << endl;
 
 	cudaEvent_t ce_start,ce_stop;
 	cuStinger custing(defaultInitAllocater,defaultUpdateAllocater);

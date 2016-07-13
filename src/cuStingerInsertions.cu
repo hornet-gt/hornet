@@ -194,6 +194,7 @@ void cuStinger::edgeInsertions(BatchUpdate &bu,length_t& requireAllocation){
 	int32_t updatesPerBlock,dupsPerBlock;
 	length_t updateSize,dupInBatch;
 
+	requireAllocation=0;
 	updateSize = *(bu.getHostBUD()->getBatchSize());
 	numBlocks.x = ceil((float)updateSize/(float)threads);
 	if (numBlocks.x>16000){

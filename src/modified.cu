@@ -1,8 +1,11 @@
 #include <thrust/device_ptr.h>
 #include <thrust/copy.h>
+#include <thrust/sort.h>
 
 #include "modified.hpp"
 #include "utils.hpp"
+#include "cuStinger.hpp"
+#include "update.hpp"
 
 using namespace std;
 
@@ -41,7 +44,44 @@ struct is_not_zero
 	}
 };
 
-void vertexModification(BatchUpdate &bu, length_t nV)
+__global__ void GetEdgeLengths(cuStinger* cus, vertexId_t* d_modV, length_t num_modV, length_t* d_mV_edge_l)
+{
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	if (tid < num_modV) {
+		d_mV_edge_l[tid] = cus->dVD->getUsed()[d_modV[tid]-1];
+	}
+}
+
+__global__ void CopyEdgeListToScratchpadOBPV(cuStinger* cus, vertexId_t* d_modV,
+	length_t scratchpad_l, vertexId_t* d_mV_scratch, vertexId_t* d_mV_segment, length_t* d_mV_edge_l)
+{
+	vertexId_t vertex = d_modV[blockIdx.x]-1;
+	length_t startpoint = (blockIdx.x == 0)?0:d_mV_edge_l[blockIdx.x-1];
+	length_t endpoint = d_mV_edge_l[blockIdx.x];
+
+	vertexId_t* e_list = cus->dVD->getAdj()[vertex]->dst;
+
+	for (int i = startpoint+threadIdx.x; i < endpoint; i+=blockDim.x) {
+		d_mV_scratch[i] = e_list[i - startpoint];
+		d_mV_segment[i] = vertex;
+	}
+}
+
+__global__ void CopyScratchpadToEdgeListOBPV(cuStinger* cus, vertexId_t* d_modV,
+	length_t scratchpad_l, vertexId_t* d_mV_scratch, vertexId_t* d_mV_segment, length_t* d_mV_edge_l)
+{
+	vertexId_t vertex = d_modV[blockIdx.x]-1;
+	length_t startpoint = (blockIdx.x == 0)?0:d_mV_edge_l[blockIdx.x-1];
+	length_t endpoint = d_mV_edge_l[blockIdx.x];
+
+	vertexId_t* e_list = cus->dVD->getAdj()[vertex]->dst;
+
+	for (int i = startpoint+threadIdx.x; i < endpoint; i+=blockDim.x) {
+		e_list[i - startpoint] = d_mV_scratch[i];
+	}
+}
+
+void vertexModification(BatchUpdate &bu, length_t nV, cuStinger &cus)
 {	
 	int32_t threads=1024;	
 	dim3 threadsPerBlock(threads, 1);
@@ -62,7 +102,7 @@ void vertexModification(BatchUpdate &bu, length_t nV)
 	vertexId_t* d_modV = (vertexId_t*)allocDeviceArray(updateSize*2, sizeof(vertexId_t));
 	thrust::device_ptr<vertexId_t> dp_modV_sparse(d_modV_sparse);
 	thrust::device_ptr<vertexId_t> dp_modV(d_modV);
-	thrust::copy_if(dp_modV_sparse, dp_modV_sparse + nV, dp_modV, is_not_zero());
+	vertexId_t* d_modV_end = thrust::raw_pointer_cast(thrust::copy_if(dp_modV_sparse, dp_modV_sparse + nV, dp_modV, is_not_zero()));
 
 	// Testing only. Remove after verified  ====================================
 
@@ -85,7 +125,7 @@ void vertexModification(BatchUpdate &bu, length_t nV)
 		modV_sparse[dst] |= (dst+1);
 	}
 	int count = 0;
-	for (int i = 0; i < updateSize; ++i)
+	for (int i = 0; i < nV; ++i)
 	{
 		if (modV_sparse[i])
 		{
@@ -103,4 +143,82 @@ void vertexModification(BatchUpdate &bu, length_t nV)
 	// =========================================================================
 
 	checkLastCudaError("Error in vertex modification marking : stream compaction");
+
+	length_t num_modV = d_modV_end - d_modV;
+	printf("something\n");
+
+	//  ##                #     #
+	// #  #               #
+	//  #     ##   ###   ###   ##    ###    ###
+	//   #   #  #  #  #   #     #    #  #  #  #
+	// #  #  #  #  #      #     #    #  #   ##
+	//  ##    ##   #       ##  ###   #  #  #
+	//                                      ###
+	// =========================================================================
+
+	// Allocate new array of size num_modV
+	length_t* d_mV_edge_l = (length_t*)allocDeviceArray(num_modV, sizeof(length_t));
+	numBlocks.x = ceil((float)num_modV/(float)threads);
+	GetEdgeLengths<<<numBlocks,threadsPerBlock>>>(cus.devicePtr(), d_modV, num_modV, d_mV_edge_l);
+
+	// Testing again
+	length_t* h_mV_edge_l = (length_t*) allocHostArray(num_modV, sizeof(length_t));
+	copyArrayDeviceToHost(d_mV_edge_l, h_mV_edge_l, num_modV, sizeof(length_t));
+	printf("something again\n");
+
+	// Vectorized (thrust stable sort) approach
+	// =========================================================================
+		// Prefix sum for this array
+		thrust::device_ptr<vertexId_t> dp_mV_edge_l(d_mV_edge_l);
+		thrust::inclusive_scan(dp_mV_edge_l, dp_mV_edge_l+num_modV, dp_mV_edge_l);
+
+		// Testing
+		copyArrayDeviceToHost(d_mV_edge_l, h_mV_edge_l, num_modV, sizeof(length_t));
+		printf("something more\n");
+
+		// Allocation of scratchpad
+		length_t* scratchpad_l = (length_t*) allocHostArray(1, sizeof(length_t));
+		copyArrayDeviceToHost(d_mV_edge_l+num_modV-1, scratchpad_l, 1, sizeof(length_t));
+		vertexId_t* d_mV_scratch = (vertexId_t*)allocDeviceArray(scratchpad_l[0], sizeof(vertexId_t));
+
+		// Create segment data
+		vertexId_t* d_mV_segment = (vertexId_t*)allocDeviceArray(scratchpad_l[0], sizeof(vertexId_t));
+
+		// Copy edge arrays to scratchpad
+		numBlocks.x = ceil((float)scratchpad_l[0]/(float)threads);
+		enum COPY_METHOD { ONE_BLOCK_PER_V, ONE_THREAD_PER_E_BIN_SRCH, ONE_THREAD_PER_E_PRFX_SUM };
+		COPY_METHOD method = ONE_BLOCK_PER_V;
+
+		if(method == ONE_BLOCK_PER_V) {
+			CopyEdgeListToScratchpadOBPV<<<num_modV,threadsPerBlock>>>(cus.devicePtr(),
+				d_modV, scratchpad_l[0], d_mV_scratch, d_mV_segment, d_mV_edge_l);
+			printf("ONE_BLOCK_PER_V\n");
+		}
+		else if(method == ONE_THREAD_PER_E_BIN_SRCH) {
+			printf("ONE_THREAD_PER_E_BIN_SRCH\n");
+		}
+		else {
+			printf("ONE_THREAD_PER_E_PRFX_SUM\n");
+		}
+
+		// Testing again
+		vertexId_t* h_mV_scratch = (vertexId_t*) allocHostArray(scratchpad_l[0], sizeof(vertexId_t));
+		copyArrayDeviceToHost(d_mV_scratch, h_mV_scratch, scratchpad_l[0], sizeof(vertexId_t));
+		vertexId_t* h_mV_segment = (vertexId_t*) allocHostArray(scratchpad_l[0], sizeof(vertexId_t));
+		copyArrayDeviceToHost(d_mV_segment, h_mV_segment, scratchpad_l[0], sizeof(vertexId_t));
+		printf("something special\n");
+
+		// Actual Sort operation
+		thrust::device_ptr<vertexId_t> dp_mV_scratch(d_mV_scratch);
+		thrust::device_ptr<vertexId_t> dp_mV_segment(d_mV_segment);
+		thrust::stable_sort_by_key(dp_mV_scratch, dp_mV_scratch + scratchpad_l[0], dp_mV_segment);
+		thrust::stable_sort_by_key(dp_mV_segment, dp_mV_segment + scratchpad_l[0], dp_mV_scratch);
+
+		// Testing testing testing
+		copyArrayDeviceToHost(d_mV_scratch, h_mV_scratch, scratchpad_l[0], sizeof(vertexId_t));
+		printf("something something meri jaan\n");
+
+		// Copy back to original location
+		CopyScratchpadToEdgeListOBPV<<<num_modV,threadsPerBlock>>>>(cus.devicePtr(),
+			d_modV, scratchpad_l[0], d_mV_scratch, d_mV_segment, d_mV_edge_l);
 }

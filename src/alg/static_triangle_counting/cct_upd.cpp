@@ -16,6 +16,25 @@
 
 using namespace std;
 
+#define CUDA(call, ...) do {                        \
+        cudaError_t _e = (call);                    \
+        if (_e == cudaSuccess) break;               \
+        fprintf(stdout,                             \
+                "CUDA runtime error: %s (%d)\n",    \
+                cudaGetErrorString(_e), _e);        \
+        return -1;                                  \
+    } while (0)
+
+void callDeviceNewTriangles(cuStinger& custing, BatchUpdate& bu,
+    triangle_t * const __restrict__ outPutTriangles, const int threads_per_block,
+    const int number_blocks, const int shifter, const int thread_blocks, const int blockdim);
+
+void initHostTriangleArray(triangle_t* h_triangles, vertexId_t nv){	
+	for(vertexId_t sd=0; sd<(nv);sd++){
+		h_triangles[sd]=0;
+	}
+}
+
 void printcuStingerUtility(cuStinger custing, bool allInfo){
 	length_t used,allocated;
 
@@ -147,6 +166,28 @@ int main(const int argc, char *argv[])
 	*/
 
 	vertexModification(bu, nv, custing2);
+
+	// ###                                  #          ###          #
+	// #  #                                 #           #
+	// #  #   ##    ##    ##   #  #  ###   ###          #    ###   ##
+	// ###   # ##  #     #  #  #  #  #  #   #           #    #  #   #
+	// # #   ##    #     #  #  #  #  #  #   #           #    #      #
+	// #  #   ##    ##    ##    ###  #  #    ##         #    #     ###
+
+	triangle_t *d_triangles = NULL;
+	CUDA(cudaMalloc(&d_triangles, sizeof(triangle_t)*(nv+1)));
+	triangle_t* h_triangles = (triangle_t *) malloc (sizeof(triangle_t)*(nv+1));	
+	initHostTriangleArray(h_triangles,nv);
+
+	int tsp = 4; // Threads per intersection
+	int shifter = 2; // left shift to multiply threads per intersection
+	int sps = 128; // Block size
+	int nbl = sps/tsp; // Number of concurrent intersetions in block
+	int blocks = 16000; // Number of blocks
+
+	CUDA(cudaMemcpy(d_triangles, h_triangles, sizeof(triangle_t)*(nv+1), cudaMemcpyHostToDevice));
+	callDeviceNewTriangles(custing2, bu, d_triangles, tsp,nbl,shifter,blocks, sps);
+	CUDA(cudaMemcpy(h_triangles, d_triangles, sizeof(triangle_t)*(nv+1), cudaMemcpyDeviceToHost));
 
 	// =========================================================================
 

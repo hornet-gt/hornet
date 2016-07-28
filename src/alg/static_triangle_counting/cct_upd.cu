@@ -5,53 +5,7 @@
 
 #include "cct.hpp"
  
-__device__ void conditionalWarpReduceIP(volatile triangle_t* sharedData,int blockSize,int dataLength){
-  if(blockSize >= dataLength){
-    if(threadIdx.x < (dataLength/2))
-    {sharedData[threadIdx.x] += sharedData[threadIdx.x+(dataLength/2)];}
-    __syncthreads();
-  }
-}
-
-__device__ void warpReduceIP(triangle_t* __restrict__ outDataPtr,
-    volatile triangle_t* __restrict__ sharedData,int blockSize){
-  conditionalWarpReduceIP(sharedData,blockSize,64);
-  conditionalWarpReduceIP(sharedData,blockSize,32);
-  conditionalWarpReduceIP(sharedData,blockSize,16);
-  conditionalWarpReduceIP(sharedData,blockSize,8);
-  conditionalWarpReduceIP(sharedData,blockSize,4);
-  if(threadIdx.x == 0)
-    {*outDataPtr= sharedData[0] + sharedData[1];}
-  __syncthreads();
-}
-
-__device__ void conditionalReduceIP(volatile triangle_t* __restrict__ sharedData,int blockSize,int dataLength){
-	if(blockSize >= dataLength){
-		if(threadIdx.x < (dataLength/2))
-		{sharedData[threadIdx.x] += sharedData[threadIdx.x+(dataLength/2)];}
-		__syncthreads();
-	}
-	if((blockSize < dataLength) && (blockSize > (dataLength/2))){
-		if(threadIdx.x+(dataLength/2) < blockSize){
-			sharedData[threadIdx.x] += sharedData[threadIdx.x+(dataLength/2)];
-		}
-		__syncthreads();
-	}
-}
-
-__device__ void blockReduceIP(triangle_t* __restrict__ outGlobalDataPtr,
-    volatile triangle_t* __restrict__ sharedData,int blockSize){
-  __syncthreads();
-  conditionalReduceIP(sharedData,blockSize,1024);
-  conditionalReduceIP(sharedData,blockSize,512);
-  conditionalReduceIP(sharedData,blockSize,256);
-  conditionalReduceIP(sharedData,blockSize,128);
-
-  warpReduceIP(outGlobalDataPtr, sharedData, blockSize);
-  __syncthreads();
-}
-
-__device__ void initializeIP(const vertexId_t diag_id, const length_t u_len, length_t v_len,
+__device__ void initialize(const vertexId_t diag_id, const length_t u_len, length_t v_len,
     length_t* const __restrict__ u_min, length_t* const __restrict__ u_max,
     length_t* const __restrict__ v_min, length_t* const __restrict__ v_max,
     int* const __restrict__ found)
@@ -74,7 +28,7 @@ __device__ void initializeIP(const vertexId_t diag_id, const length_t u_len, len
 	}
 }
 
-__device__ void workPerThreadIP(const length_t uLength, const length_t vLength, 
+__device__ void workPerThread(const length_t uLength, const length_t vLength, 
 	const int threadsPerIntersection, const int threadId,
     int * const __restrict__ outWorkPerThread, int * const __restrict__ outDiagonalId){
   int totalWork = uLength + vLength;
@@ -88,7 +42,7 @@ __device__ void workPerThreadIP(const length_t uLength, const length_t vLength,
   *outWorkPerThread = workPerThread + (threadId < remainderWork);
 }
 
-__device__ void bSearchIP(unsigned int found, const vertexId_t diagonalId,
+__device__ void bSearch(unsigned int found, const vertexId_t diagonalId,
     vertexId_t const * const __restrict__ uNodes, vertexId_t const * const __restrict__ vNodes,
     length_t const * const __restrict__ uLength, 
     length_t * const __restrict__ outUMin, length_t * const __restrict__ outUMax,
@@ -131,7 +85,7 @@ __device__ void bSearchIP(unsigned int found, const vertexId_t diagonalId,
 	}
 }
 
-__device__ int fixStartPointIP(const length_t uLength, const length_t vLength,
+__device__ int fixStartPoint(const length_t uLength, const length_t vLength,
     length_t * const __restrict__ uCurr, length_t * const __restrict__ vCurr,
     vertexId_t const * const __restrict__ uNodes, vertexId_t const * const __restrict__ vNodes){
 	
@@ -142,7 +96,7 @@ __device__ int fixStartPointIP(const length_t uLength, const length_t vLength,
 	return (uBigger + vBigger);
 }
 
-__device__ void intersectPath(const length_t uLength, const length_t vLength,
+__device__ void intersectCount(const length_t uLength, const length_t vLength,
     vertexId_t const * const __restrict__ uNodes, vertexId_t const * const __restrict__ vNodes,
     length_t * const __restrict__ uCurr, length_t * const __restrict__ vCurr,
     int * const __restrict__ workIndex, int * const __restrict__ workPerThread,
@@ -167,13 +121,13 @@ __device__ void intersectPath(const length_t uLength, const length_t vLength,
 
 
 // u_len < v_len
-__device__ triangle_t singleIntersection(vertexId_t u, vertexId_t const * const __restrict__ u_nodes, length_t u_len,
+__device__ triangle_t count_triangles(vertexId_t u, vertexId_t const * const __restrict__ u_nodes, length_t u_len,
     vertexId_t v, vertexId_t const * const __restrict__ v_nodes, length_t v_len, int threads_per_block,
     volatile vertexId_t* __restrict__ firstFound, int tId)
 {
 	// Partitioning the work to the multiple thread of a single GPU processor. The threads should get a near equal number of the elements to Tersect - this number will be off by 1.
 	int work_per_thread, diag_id;
-	workPerThreadIP(u_len, v_len, threads_per_block, tId, &work_per_thread, &diag_id);
+	workPerThread(u_len, v_len, threads_per_block, tId, &work_per_thread, &diag_id);
 	triangle_t triangles = 0;
 	int work_index = 0,found=0;
 	length_t u_min,u_max,v_min,v_max,u_curr,v_curr;
@@ -182,24 +136,24 @@ __device__ triangle_t singleIntersection(vertexId_t u, vertexId_t const * const 
 
 	if(work_per_thread>0){
 		// For the binary search, we are figuring out the initial poT of search.
-		initializeIP(diag_id, u_len, v_len,&u_min, &u_max,&v_min, &v_max,&found);
+		initialize(diag_id, u_len, v_len,&u_min, &u_max,&v_min, &v_max,&found);
     	u_curr = 0; v_curr = 0;
 
-	    bSearchIP(found, diag_id, u_nodes, v_nodes, &u_len, &u_min, &u_max, &v_min,
+	    bSearch(found, diag_id, u_nodes, v_nodes, &u_len, &u_min, &u_max, &v_min,
         &v_max, &u_curr, &v_curr);
 
-    	int sum = fixStartPointIP(u_len, v_len, &u_curr, &v_curr, u_nodes, v_nodes);
+    	int sum = fixStartPoint(u_len, v_len, &u_curr, &v_curr, u_nodes, v_nodes);
     	work_index += sum;
 	    if(tId > 0)
 	      firstFound[tId-1] = sum;
 	    triangles += sum;
-	    intersectPath(u_len, v_len, u_nodes, v_nodes, &u_curr, &v_curr,
+	    intersectCount(u_len, v_len, u_nodes, v_nodes, &u_curr, &v_curr,
 	        &work_index, &work_per_thread, &triangles, firstFound[tId]);
 	}
 	return triangles;
 }
 
-__device__ void workPerBlockIP(const length_t numVertices,
+__device__ void workPerBlock(const length_t numVertices,
     length_t * const __restrict__ outMpStart,
     length_t * const __restrict__ outMpEnd, int blockSize)
 {
@@ -224,9 +178,8 @@ __global__ void devicecuStingerNewTriangles(cuStinger* custing, BatchUpdateData 
  	length_t this_mp_start, this_mp_stop;
 
 	const int blockSize = blockDim.x;
-	workPerBlockIP(batchSize, &this_mp_start, &this_mp_stop, blockSize);
+	workPerBlock(batchSize, &this_mp_start, &this_mp_stop, blockSize);
 
-	__shared__ triangle_t  s_triangles[1024];
 	__shared__ vertexId_t firstFound[1024];
 
 	length_t adj_offset=tx>>shifter;
@@ -250,7 +203,7 @@ __global__ void devicecuStingerNewTriangles(cuStinger* custing, BatchUpdateData 
         const vertexId_t* small_ptr = custing->dVD->getAdj()[small]->dst;
         const vertexId_t* large_ptr = custing->dVD->getAdj()[large]->dst;
 
-		triangle_t tCount = singleIntersection(small, small_ptr, small_len,
+		triangle_t tCount = count_triangles(small, small_ptr, small_len,
 								large,large_ptr, large_len,
 								threads_per_block,firstFoundPos,
 								tx%threads_per_block);

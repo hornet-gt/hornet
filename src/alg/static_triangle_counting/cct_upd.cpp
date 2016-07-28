@@ -7,6 +7,7 @@
 
 #include <math.h>
 
+#include "cct.hpp"
 
 #include "main.hpp"
 // #include "update.hpp"
@@ -32,6 +33,49 @@ void callDeviceNewTriangles(cuStinger& custing, BatchUpdate& bu,
 void initHostTriangleArray(triangle_t* h_triangles, vertexId_t nv){	
 	for(vertexId_t sd=0; sd<(nv);sd++){
 		h_triangles[sd]=0;
+	}
+}
+
+//RNG using Lehmer's Algorithm
+#define RNG_A 16807
+#define RNG_M 2147483647
+#define RNG_Q 127773
+#define RNG_R 2836
+#define RNG_SCALE (1.0 / RNG_M)
+
+// Seed can always be changed manually
+static int seed = 1;
+double getRand(){
+    
+    int k = seed / RNG_Q;
+    seed = RNG_A * (seed - k * RNG_Q) - k * RNG_R;
+    
+    if (seed < 0) {
+        seed += RNG_M;
+    }
+    
+    return seed * (double) RNG_SCALE;
+}
+
+// Search a value in a range of sorted values
+template<typename T>
+T* search(T* start, int32_t size, T value)
+{
+	if(size == 1 && start[0] != value) {
+		return NULL;
+	}
+
+	if(start[size/2] > value) {
+		return search(start, size/2, value);
+	}
+	else if(start[size/2] < value) {
+		return search(start+size/2, ceil((float)size/2), value);
+	}
+	else if(start[size/2] == value) {
+		return start+size/2;
+	}
+	else {
+		return NULL;
 	}
 }
 
@@ -134,6 +178,21 @@ int main(const int argc, char *argv[])
 
 	printcuStingerUtility(custing2, false);
 
+	triangle_t *d_triangles = NULL;
+	CUDA(cudaMalloc(&d_triangles, sizeof(triangle_t)*(nv+1)));
+	triangle_t* h_triangles = (triangle_t *) malloc (sizeof(triangle_t)*(nv+1));	
+	initHostTriangleArray(h_triangles,nv);
+
+	int tsp = 4; // Threads per intersection
+	int shifter = 2; // left shift to multiply threads per intersection
+	int sps = 128; // Block size
+	int nbl = sps/tsp; // Number of concurrent intersections in block
+	int blocks = 16000; // Number of blocks
+
+	CUDA(cudaMemcpy(d_triangles, h_triangles, sizeof(triangle_t)*(nv+1), cudaMemcpyHostToDevice));
+	callDeviceAllTriangles(custing2, d_triangles, tsp,nbl,shifter,blocks, sps);
+	CUDA(cudaMemcpy(h_triangles, d_triangles, sizeof(triangle_t)*(nv+1), cudaMemcpyDeviceToHost));
+
 	length_t numEdgesL = numEdges;
 	BatchUpdateData bud(numEdgesL,true);
 	if(isRmat){
@@ -174,20 +233,14 @@ int main(const int argc, char *argv[])
 	// # #   ##    #     #  #  #  #  #  #   #           #    #      #
 	// #  #   ##    ##    ##    ###  #  #    ##         #    #     ###
 
-	triangle_t *d_triangles = NULL;
-	CUDA(cudaMalloc(&d_triangles, sizeof(triangle_t)*(nv+1)));
-	triangle_t* h_triangles = (triangle_t *) malloc (sizeof(triangle_t)*(nv+1));	
-	initHostTriangleArray(h_triangles,nv);
+	triangle_t *d_triangles_new = NULL;
+	CUDA(cudaMalloc(&d_triangles_new, sizeof(triangle_t)*(nv+1)));
+	triangle_t* h_triangles_new = (triangle_t *) malloc (sizeof(triangle_t)*(nv+1));	
+	initHostTriangleArray(h_triangles_new,nv);
 
-	int tsp = 4; // Threads per intersection
-	int shifter = 2; // left shift to multiply threads per intersection
-	int sps = 128; // Block size
-	int nbl = sps/tsp; // Number of concurrent intersetions in block
-	int blocks = 16000; // Number of blocks
-
-	CUDA(cudaMemcpy(d_triangles, h_triangles, sizeof(triangle_t)*(nv+1), cudaMemcpyHostToDevice));
-	callDeviceNewTriangles(custing2, bu, d_triangles, tsp,nbl,shifter,blocks, sps);
-	CUDA(cudaMemcpy(h_triangles, d_triangles, sizeof(triangle_t)*(nv+1), cudaMemcpyDeviceToHost));
+	CUDA(cudaMemcpy(d_triangles_new, h_triangles_new, sizeof(triangle_t)*(nv+1), cudaMemcpyHostToDevice));
+	callDeviceNewTriangles(custing2, bu, d_triangles_new, tsp,nbl,shifter,blocks, sps);
+	CUDA(cudaMemcpy(h_triangles_new, d_triangles_new, sizeof(triangle_t)*(nv+1), cudaMemcpyDeviceToHost));
 
 	// =========================================================================
 

@@ -219,6 +219,6 @@ void vertexModification(BatchUpdate &bu, length_t nV, cuStinger &cus)
 		printf("something something meri jaan\n");
 
 		// Copy back to original location
-		CopyScratchpadToEdgeListOBPV<<<num_modV,threadsPerBlock>>>>(cus.devicePtr(),
+		CopyScratchpadToEdgeListOBPV<<<num_modV,threadsPerBlock>>>(cus.devicePtr(),
 			d_modV, scratchpad_l[0], d_mV_scratch, d_mV_segment, d_mV_edge_l);
 }

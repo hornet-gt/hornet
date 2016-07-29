@@ -61,7 +61,14 @@ double getRand(){
 template<typename T>
 T* search(T* start, int32_t size, T value)
 {
-	if(size == 1 && start[0] != value) {
+	for(unsigned i = 0; i < size; ++i) {
+		if(start[i] == value) {
+			return start + i;
+		}
+	}
+	return NULL;
+
+	/*if(size == 1 && start[0] != value) {
 		return NULL;
 	}
 
@@ -76,7 +83,15 @@ T* search(T* start, int32_t size, T value)
 	}
 	else {
 		return NULL;
+	}*/
+}
+
+int64_t sumTriangleArray(triangle_t* h_triangles, vertexId_t nv){	
+	int64_t sum=0;
+	for(vertexId_t sd=0; sd<(nv);sd++){
+	  sum+=h_triangles[sd];
 	}
+	return sum;
 }
 
 void printcuStingerUtility(cuStinger custing, bool allInfo){
@@ -192,6 +207,113 @@ int main(const int argc, char *argv[])
 	CUDA(cudaMemcpy(d_triangles, h_triangles, sizeof(triangle_t)*(nv+1), cudaMemcpyHostToDevice));
 	callDeviceAllTriangles(custing2, d_triangles, tsp,nbl,shifter,blocks, sps);
 	CUDA(cudaMemcpy(h_triangles, d_triangles, sizeof(triangle_t)*(nv+1), cudaMemcpyDeviceToHost));
+	int64_t sumDevice = sumTriangleArray(h_triangles,nv);
+
+	// ###                 #
+	//  #                  #
+	//  #     ##    ###   ###
+	//  #    # ##  ##      #
+	//  #    ##      ##    #
+	//  #     ##   ###      ##
+	
+	//                                                  #
+	//                                                  #
+	// ###    ##   #  #         ##    ##   #  #  ###   ###
+	// #  #  # ##  #  #        #     #  #  #  #  #  #   #
+	// #  #  ##    ####        #     #  #  #  #  #  #   #
+	// #  #   ##   ####         ##    ##    ###  #  #    ##
+	// =========================================================================
+	{
+		// Making a new batch of removed edges
+		length_t numEdgesL = numEdges; // Number of edges to remove
+		BatchUpdateData bud1(numEdgesL*2,true);
+		vertexId_t *src = bud1.getSrc();
+		vertexId_t *dst = bud1.getDst();
+
+		// Convert offset arrays to edge length array to update lengths
+		length_t *len = (length_t *) malloc (sizeof(length_t)*(nv));
+		for(unsigned i = 0; i < nv; ++i) {
+			len[i] = off[i+1] - off[i];
+		}
+
+		vertexId_t a, b;
+		length_t lena;
+		// Remove random numEdgesL edges
+		for(unsigned i = 0; i < numEdgesL; ++i) {
+			do { // Search till you find a not already removed edge
+				a = getRand() * nv;
+				// new lena used coz len[a] keeps changing when edges are removed
+				lena = off[a+1] - off[a];
+				if (!lena) continue;
+				b = getRand() * lena;
+			} while (!lena || adj[ off[a] + b ] == -1);
+		
+			src[i] = a; dst[i] = adj[ off[a] + b ];
+			adj[ off[a] + b ] = -1;
+			// Also remove its corresponding entry in dst's edgelist
+			*(search(adj+off[dst[i]], off[dst[i]+1] - off[dst[i]], a)) = -1;
+			len[a]--; len[dst[i]]--;
+		}
+
+		// Prefix sum of len array for new offset array
+		length_t *newOff = (length_t *) malloc (sizeof(length_t)*(nv+1));
+		length_t sum = 0;
+		for(unsigned i = 0; i < nv+1; ++i) {
+			newOff[i] = sum;
+			sum += len[i];
+		}
+		vertexId_t *newAdj = (vertexId_t *) malloc (sizeof(vertexId_t)*(newOff[nv]));
+
+		// Populate newAdj
+		for(unsigned i = 0, j = 0; i < newOff[nv]; ++i) {
+			if (adj[i] != -1) newAdj[j++] = adj[i];
+		}
+
+		// Make new custing with newAdj and newOff
+		cuInit.csrNE	   		= newOff[nv];
+		cuInit.csrOff 			= newOff;
+		cuInit.csrAdj 			= newAdj;
+
+		cuStinger custingTest(defaultInitAllocater,defaultUpdateAllocater);
+		custingTest.initializeCuStinger(cuInit);
+
+		// BatchUpdate to add the reverse of the edges
+		for(unsigned i = 0; i < numEdgesL; ++i) {
+			dst[numEdgesL+i] = src[i];
+			src[numEdgesL+i] = dst[i];
+		}
+
+		// Count them triangles now
+		triangle_t *d_triangles_t = NULL;
+		CUDA(cudaMalloc(&d_triangles_t, sizeof(triangle_t)*(nv+1)));
+		triangle_t* h_triangles_t = (triangle_t *) malloc (sizeof(triangle_t)*(nv+1));	
+		initHostTriangleArray(h_triangles_t,nv);
+
+		CUDA(cudaMemcpy(d_triangles_t, h_triangles_t, sizeof(triangle_t)*(nv+1), cudaMemcpyHostToDevice));
+		callDeviceAllTriangles(custingTest, d_triangles_t, tsp,nbl,shifter,blocks, sps);
+		CUDA(cudaMemcpy(h_triangles_t, d_triangles_t, sizeof(triangle_t)*(nv+1), cudaMemcpyDeviceToHost));
+
+		// Insert them edges now
+		BatchUpdate bu1(bud1);
+		custingTest.edgeInsertions(bu1);
+
+		// Count the new triangles now
+		triangle_t *d_triangles_new_t = NULL;
+		CUDA(cudaMalloc(&d_triangles_new_t, sizeof(triangle_t)*(nv+1)));
+		triangle_t* h_triangles_new_t = (triangle_t *) malloc (sizeof(triangle_t)*(nv+1));	
+		initHostTriangleArray(h_triangles_new_t,nv);
+
+		CUDA(cudaMemcpy(d_triangles_new_t, h_triangles_new_t, sizeof(triangle_t)*(nv+1), cudaMemcpyHostToDevice));
+		callDeviceNewTriangles(custingTest, bu1, d_triangles_new_t, tsp,nbl,shifter,blocks, sps);
+		CUDA(cudaMemcpy(h_triangles_new_t, d_triangles_new_t, sizeof(triangle_t)*(nv+1), cudaMemcpyDeviceToHost));
+
+		// Let's compare
+		int64_t sumDevice_t = sumTriangleArray(h_triangles_t,nv);
+		int64_t sumDevice_new_t = sumTriangleArray(h_triangles_new_t,nv);
+		printf("%ld %ld %ld\n", sumDevice, sumDevice_t, sumDevice_new_t);
+	}
+	// =========================================================================
+
 
 	length_t numEdgesL = numEdges;
 	BatchUpdateData bud(numEdgesL,true);

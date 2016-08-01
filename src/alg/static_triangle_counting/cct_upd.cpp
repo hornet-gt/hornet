@@ -265,7 +265,7 @@ int main(const int argc, char *argv[])
 		vertexId_t *newAdj = (vertexId_t *) malloc (sizeof(vertexId_t)*(newOff[nv]));
 
 		// Populate newAdj
-		for(unsigned i = 0, j = 0; i < newOff[nv]; ++i) {
+		for(unsigned i = 0, j = 0; i < ne; ++i) {
 			if (adj[i] != -1) newAdj[j++] = adj[i];
 		}
 
@@ -296,6 +296,9 @@ int main(const int argc, char *argv[])
 		// Insert them edges now
 		BatchUpdate bu1(bud1);
 		custingTest.edgeInsertions(bu1);
+
+		// Sort the new edges
+		vertexModification(bu1, nv, custingTest);
 
 		// Count the new triangles now
 		triangle_t *d_triangles_new_t = NULL;

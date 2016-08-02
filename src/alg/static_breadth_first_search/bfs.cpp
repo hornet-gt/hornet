@@ -20,9 +20,11 @@
         return -1;                                  \
     } while (0)
 
-typedef void (*cus_kernel_call)(cuStinger& custing);
+typedef void (*cus_kernel_call)(cuStinger& custing, void* func_meta_data);
 
-void callkernel(cuStinger& custing);
+void bfsMain(cuStinger& custing, void* func_meta_data);
+void connectComponentsMain(cuStinger& custing, void* func_meta_data);
+void connectComponentsMainLocal(cuStinger& custing, void* func_meta_data);
 
 int main(const int argc, char *argv[]){
 	int device=0;
@@ -71,8 +73,15 @@ int main(const int argc, char *argv[]){
 
 	custing.initializeCuStinger(cuInit);
 
-	cus_kernel_call call_kernel = callkernel;
-	call_kernel(custing);
+	cus_kernel_call call_kernel = bfsMain;
+	call_kernel(custing,NULL);
+
+	call_kernel = connectComponentsMain;
+	call_kernel(custing,NULL);
+
+	call_kernel = connectComponentsMainLocal;
+	call_kernel(custing,NULL);
+
 	custing.freecuStinger();
 
 	free(off);

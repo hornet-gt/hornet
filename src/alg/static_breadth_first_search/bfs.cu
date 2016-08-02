@@ -5,24 +5,21 @@
 
 #include "cct.hpp"
 
-// typedef void (*cusSubKernel)(cuStinger* custing,vertexId_t src,void* metadata,vertexId_t* localQueue,length_t* lqSize);
+/*
+	##     ##    ###     ######  ########   #######   ######
+	###   ###   ## ##   ##    ## ##     ## ##     ## ##    ##
+	#### ####  ##   ##  ##       ##     ## ##     ## ##
+	## ### ## ##     ## ##       ########  ##     ##  ######
+	##     ## ######### ##       ##   ##   ##     ##       ##
+	##     ## ##     ## ##    ## ##    ##  ##     ## ##    ##
+	##     ## ##     ##  ######  ##     ##  #######   ######
+*/
+
+// Typedef to vertex frontier expansion
 typedef void (*cusSubKernel)(cuStinger* custing,vertexId_t src,void* metadata);
+
+// High level macro definiton. To be used for stating the level of parallelism.
 typedef __global__ void (*cusKernel)(cuStinger* custing,void* metadata, cusSubKernel* cusSK,int32_t verticesPerThreadBlock);
-
-typedef struct {
-	vertexId_t* queue;
-	length_t queueCurr;
-	length_t queueEnd;
-	vertexId_t* level;
-	vertexId_t currLevel;
-}bfsData;
-
-// __device__ void setLevelInfinity(cuStinger* custing,vertexId_t src, void* metadata,vertexId_t* localQueue,length_t* lqSize){
-__device__ void setLevelInfinity(cuStinger* custing,vertexId_t src, void* metadata){
-	bfsData* bd = (bfsData*)metadata;
-	bd->level[src]=INT32_MAX;
-}
-__device__ cusSubKernel ptrSetLevelInfinity = setLevelInfinity;
 
 __global__ void allVerticesInGraph(cuStinger* custing,void* metadata, cusSubKernel* cusSK, int32_t verticesPerThreadBlock){
 	vertexId_t v_init=blockIdx.x*verticesPerThreadBlock+threadIdx.x;
@@ -33,90 +30,81 @@ __global__ void allVerticesInGraph(cuStinger* custing,void* metadata, cusSubKern
 		if(v>=nv){
 			break;
 		}
-		// (*cusSK)(custing,v,metadata,NULL,NULL);
 		(*cusSK)(custing,v,metadata);
 	}
-
 }
-
-__device__ void copyLocalToGlobalQueue(void* metadata, vertexId_t* localQueue,length_t* lqSize){
-	bfsData* bd = (bfsData*)metadata;
-	__shared__ length_t globalQueuePos;
-	if(threadIdx.x==0)
-		globalQueuePos = atomicAdd(&(bd->queueEnd),*lqSize);
-	__syncthreads();
-	for(length_t c=threadIdx.x; c<*lqSize; c+=blockDim.x){
-		bd->queue[globalQueuePos+c]=localQueue[c];
-	}
-	__syncthreads();
-	if(threadIdx.x==0)
-		*lqSize=0;
-	__syncthreads();
-}
-
-// __device__ void bfsExpandFrontier(cuStinger* custing,vertexId_t src, void* metadata, vertexId_t* localQueue,length_t* lqSize){
-__device__ void bfsExpandFrontier(cuStinger* custing,vertexId_t src, void* metadata){
-	bfsData* bd = (bfsData*)metadata;
-
-	length_t srcLen=custing->dVD->getUsed()[src];
-	// if(threadIdx.x==0)
-	// printf("length of source: %d\n",srcLen);
-	vertexId_t* adj_src=custing->dVD->getAdj()[src]->dst;
-
-	vertexId_t nextLevel=bd->currLevel+1;
-	for(vertexId_t adj=threadIdx.x; adj<srcLen; adj+=blockDim.x){
-		vertexId_t dest = adj_src[adj];
-		// printf("(%d %d )",adj, dest);
-		vertexId_t prev = atomicCAS(bd->level+dest,INT32_MAX,nextLevel);
-		if(prev==INT32_MAX){
-
-			// length_t prevPos = atomicAdd(lqSize,1);
-			// localQueue[prevPos] = dest;
-			length_t prevPos = atomicAdd(&(bd->queueEnd),1);
-			bd->queue[prevPos] = dest;
-		}
-		// if (*lqSize>=960){
-		//  	copyLocalToGlobalQueue(metadata,localQueue,lqSize);
-		// }
-	}
-}
-
-__device__ cusSubKernel ptrBFSExpandFrontier = bfsExpandFrontier;
-
-
 __global__ void allVerticesInArray(vertexId_t* verArray, length_t len,cuStinger* custing,void* metadata, cusSubKernel* cusSK, int32_t verticesPerThreadBlock)
 {
-	// __shared__ vertexId_t localQueue[1024]; 
-	// __shared__ length_t lqSize; 
-
-	// if(threadIdx.x==0)
-	// 	lqSize=0;
 	vertexId_t v_init=blockIdx.x*verticesPerThreadBlock;
-	// __syncthreads();
-
 	for (vertexId_t v_hat=0; v_hat<verticesPerThreadBlock; v_hat++){
 		vertexId_t vpos=v_init+v_hat;
 		if(vpos>=len){
 			break;
 		}
 		vertexId_t v=verArray[vpos];
-
-		// (*cusSK)(custing,v,metadata,localQueue,&lqSize);
 		(*cusSK)(custing,v,metadata);
-	}
-	// copyLocalToGlobalQueue(metadata,localQueue,&lqSize);
 
+	}
 }
+
+
+
+
+/*
+	########  ########  ######
+	##     ## ##       ##    ##
+	##     ## ##       ##
+	########  ######    ######
+	##     ## ##             ##
+	##     ## ##       ##    ##
+	########  ##        ######
+*/
+
+
+typedef struct {
+	vertexId_t* queue;
+	length_t queueCurr;
+	length_t queueEnd;
+	vertexId_t* level;
+	vertexId_t currLevel;
+}bfsData;
+
+
+
+__device__ void bfsExpandFrontier(cuStinger* custing,vertexId_t src, void* metadata){
+	bfsData* bd = (bfsData*)metadata;
+
+	length_t srcLen=custing->dVD->used[src];
+	vertexId_t* adj_src=custing->dVD->adj[src]->dst;
+	// length_t srcLen=custing->dVD->getUsed()[src];
+	// vertexId_t* adj_src=custing->dVD->getAdj()[src]->dst;
+
+	vertexId_t nextLevel=bd->currLevel+1;
+	for(vertexId_t adj=threadIdx.x; adj<srcLen; adj+=blockDim.x){
+		vertexId_t dest = adj_src[adj];
+		vertexId_t prev = atomicCAS(bd->level+dest,INT32_MAX,nextLevel);
+		if(prev==INT32_MAX){
+			length_t prevPos = atomicAdd(&(bd->queueEnd),1);
+			bd->queue[prevPos] = dest;
+		}
+	}
+}
+__device__ cusSubKernel ptrBFSExpandFrontier = bfsExpandFrontier;
+
+__device__ void setLevelInfinity(cuStinger* custing,vertexId_t src, void* metadata){
+	bfsData* bd = (bfsData*)metadata;
+	bd->level[src]=INT32_MAX;
+}
+__device__ cusSubKernel ptrSetLevelInfinity = setLevelInfinity;
+
 
 
 void callkernel(cuStinger& custing)
 {
-
 	cudaEvent_t ce_start,ce_stop;	
 
+	start_clock(ce_start, ce_stop);
 
-
-	
 
 	bfsData hostBfsData;
 	hostBfsData.queue = (vertexId_t*) allocDeviceArray(custing.nv, sizeof(vertexId_t));
@@ -138,11 +126,6 @@ void callkernel(cuStinger& custing)
 	}	
 	verticesPerThreadBlock = ceil(float(custing.nv)/float(numBlocks.x-1));
 
-	// cusKernel realkernel = allVerticesInGraph;
-
-	// cout << "Made it to kernel launch " << numBlocks.x << " " << endl;
-	// realkernel<<<numBlocks, threadsPerBlock>>>(custing.devicePtr(),deviceBfsData,setLevelInfinity,verticesPerThreadBlock);
-	// allVerticesInGraph<<<numBlocks, threadsPerBlock>>>(custing.devicePtr(),deviceBfsData,dSetInfinity,verticesPerThreadBlock);
 
 
 	cusSubKernel* dSetInfinity2 = (cusSubKernel*)allocDeviceArray(1,sizeof(cusSubKernel));
@@ -150,21 +133,19 @@ void callkernel(cuStinger& custing)
 	allVerticesInGraph<<<numBlocks, threadsPerBlock>>>(custing.devicePtr(),deviceBfsData,dSetInfinity2,verticesPerThreadBlock);
 	freeDeviceArray(dSetInfinity2);
 
-
-
-	vertexId_t root=3; length_t level=0;
+	vertexId_t root=2; length_t level=0;
 	copyArrayHostToDevice(&root,hostBfsData.queue,1,sizeof(vertexId_t));
 	copyArrayHostToDevice(&level,hostBfsData.level+root,1,sizeof(length_t));
 
-		cusSubKernel* dTraverseEdges = (cusSubKernel*)allocDeviceArray(1,sizeof(cusSubKernel));
-		cudaMemcpyFromSymbol( dTraverseEdges, ptrBFSExpandFrontier, sizeof(cusSubKernel),0,cudaMemcpyDeviceToDevice);
-
-	start_clock(ce_start, ce_stop);
+	cusSubKernel* dTraverseEdges = (cusSubKernel*)allocDeviceArray(1,sizeof(cusSubKernel));
+	cudaMemcpyFromSymbol( dTraverseEdges, ptrBFSExpandFrontier, sizeof(cusSubKernel),0,cudaMemcpyDeviceToDevice);
+	// cudaMemcpyFromSymbol( dTraverseEdges, ptrBFSExpandFrontier, sizeof(cusSubKernel),0,cudaMemcpyDeviceToDevice);
 
 	length_t prevEnd=1;
 	while(hostBfsData.queueEnd-hostBfsData.queueCurr>0){
-		// allVerticesInArray<<<numBlocks, threadsPerBlock>>>(hostBfsData.queue,1,custing.devicePtr(),deviceBfsData,dTraverseEdges,verticesPerThreadBlock);
-		allVerticesInArray<<<numBlocks, threadsPerBlock>>>(hostBfsData.queue+hostBfsData.queueCurr,hostBfsData.queueEnd-hostBfsData.queueCurr,custing.devicePtr(),deviceBfsData,dTraverseEdges,verticesPerThreadBlock);
+		allVerticesInArray<<<numBlocks, threadsPerBlock>>>(hostBfsData.queue+hostBfsData.queueCurr,
+										hostBfsData.queueEnd-hostBfsData.queueCurr,custing.devicePtr(),
+										deviceBfsData,dTraverseEdges,verticesPerThreadBlock);
 		copyArrayDeviceToHost(deviceBfsData,&hostBfsData,1, sizeof(bfsData));
 
 		hostBfsData.queueCurr=prevEnd;
@@ -184,9 +165,6 @@ void callkernel(cuStinger& custing)
 	freeDeviceArray(deviceBfsData);
 	freeDeviceArray(hostBfsData.queue);
 	freeDeviceArray(hostBfsData.level);
-
-
-
 }
 
 

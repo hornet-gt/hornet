@@ -89,12 +89,9 @@ TARGET_LINK_LIBRARIES(cuMain custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda
 
 TARGET_LINK_LIBRARIES(cuMemManager custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
 
-
-#LIST(APPEND CMAKE_CXX_FLAGS "std=c++11 -O3 -ffastmath -Wall")
-
 #LIST(APPEND CUDA_NCCC_FLAGS --compiler-options -fno-strict-aliasing -use-fast-math)
 LIST(APPEND CUDA_NCCC_FLAGS --compiler-options)
-LIST(APPEND CUDA NVCC_FLAGS -gencode arch=compute_35,code=sm_35, --ptxas-options=-v)
+LIST(APPEND CUDA NVCC_FLAGS -gencode arch=compute_35,code=sm_35)
 LIST(APPEND CUDA NVCC_FLAGS "-std=c++11;-O3;-DVERBOSE")
 
 
@@ -103,7 +100,6 @@ if(CMAKE_COMPILER_IS_GNUCXX)
    if (GCC_VERSION VERSION_GREATER 4.7 OR GCC_VERSION VERSION_EQUAL 4.7)
         message(STATUS "C++11 activated.")
         add_definitions("-std=gnu++11")
-#        add_definitions("-Wall")
         add_definitions("-Wno-cpp")
 
 

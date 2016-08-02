@@ -98,11 +98,11 @@ public:
 		void hostFreeMem(){
 			freeHostArray(mem);
 		}
-
-		__device__ uint8_t* getMem(){return mem;}
-		__device__ length_t* getUsed(){return used;}
-		__device__ length_t* getMax(){return max;}
-		__device__ cusEdgeData** getAdj(){return adj;}
+// __foreinline__
+		__forceinline__ __device__ uint8_t* getMem(){return mem;}
+		__forceinline__ __device__ length_t* getUsed(){return used;}
+		__forceinline__ __device__ length_t* getMax(){return max;}
+		__forceinline__ __device__ cusEdgeData** getAdj(){return adj;}
 
 	};
 
@@ -137,8 +137,8 @@ public:
 
 	inline updateAllocator getUpdateAllocater(){return updateVertexAllocator;}
 
-	length_t getBytesPerVertex(){return bytesPerVertex;}
-	length_t getBytesPerEdge(){return bytesPerEdge;}
+	inline length_t getBytesPerVertex(){return bytesPerVertex;}
+	inline length_t getBytesPerEdge(){return bytesPerEdge;}
 
 	cusVertexData* getHostVertexData(){return hVD;}
 	uint8_t* getDeviceVertexDataMemory(){return dedmem;}

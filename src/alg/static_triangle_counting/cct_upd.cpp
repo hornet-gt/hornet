@@ -26,7 +26,7 @@ using namespace std;
         return -1;                                  \
     } while (0)
 
-void callDeviceNewTriangles(cuStinger& custing, BatchUpdate& bu,
+void callDeviceNewTriangles(cuStinger& custing, BatchUpdate& bu,length_t nv, length_t* noff, vertexId_t* nind,
     triangle_t * const __restrict__ outPutTriangles, const int threads_per_block,
     const int number_blocks, const int shifter, const int thread_blocks, const int blockdim);
 
@@ -306,8 +306,9 @@ int main(const int argc, char *argv[])
 		triangle_t* h_triangles_new_t = (triangle_t *) malloc (sizeof(triangle_t)*(nv+1));	
 		initHostTriangleArray(h_triangles_new_t,nv);
 
+		readGraphDIMACS(argv[1],&off,&adj,&nv,&ne);///
 		CUDA(cudaMemcpy(d_triangles_new_t, h_triangles_new_t, sizeof(triangle_t)*(nv+1), cudaMemcpyHostToDevice));
-		callDeviceNewTriangles(custingTest, bu1, d_triangles_new_t, tsp,nbl,shifter,blocks, sps);
+		callDeviceNewTriangles(custingTest, bu1, nv, off, adj, d_triangles_new_t, tsp,nbl,shifter,blocks, sps);
 		CUDA(cudaMemcpy(h_triangles_new_t, d_triangles_new_t, sizeof(triangle_t)*(nv+1), cudaMemcpyDeviceToHost));
 
 		// Let's compare
@@ -364,7 +365,7 @@ int main(const int argc, char *argv[])
 	initHostTriangleArray(h_triangles_new,nv);
 
 	CUDA(cudaMemcpy(d_triangles_new, h_triangles_new, sizeof(triangle_t)*(nv+1), cudaMemcpyHostToDevice));
-	callDeviceNewTriangles(custing2, bu, d_triangles_new, tsp,nbl,shifter,blocks, sps);
+	// callDeviceNewTriangles(custing2, bu, d_triangles_new, tsp,nbl,shifter,blocks, sps);
 	CUDA(cudaMemcpy(h_triangles_new, d_triangles_new, sizeof(triangle_t)*(nv+1), cudaMemcpyDeviceToHost));
 
 	// =========================================================================

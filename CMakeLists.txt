@@ -34,6 +34,7 @@ set(mgpu_SOURCE_DIRS
 cuda_add_library(cuUtils
 					src/alloc.cu
 					src/graphreader.cpp
+          src/timer.c
 				)
 
 cuda_add_library(cuUpdate

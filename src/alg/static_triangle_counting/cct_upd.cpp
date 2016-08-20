@@ -26,7 +26,7 @@ using namespace std;
         return -1;                                  \
     } while (0)
 
-void callDeviceNewTriangles(cuStinger& custing, BatchUpdate& bu,length_t nv, length_t* noff, vertexId_t* nind,
+void callDeviceNewTriangles(cuStinger& custing, BatchUpdate& bu,
     triangle_t * const __restrict__ outPutTriangles, const int threads_per_block,
     const int number_blocks, const int shifter, const int thread_blocks, const int blockdim);
 
@@ -140,6 +140,7 @@ int main(const int argc, char *argv[])
     cudaSetDevice(device);
 	cudaDeviceProp prop;
 	cudaGetDeviceProperties(&prop, device);
+	init_timer();
  
     length_t nv, ne,*off;
     vertexId_t *adj;
@@ -224,6 +225,7 @@ int main(const int argc, char *argv[])
 	// #  #   ##   ####         ##    ##    ###  #  #    ##
 	// =========================================================================
 	{
+		tic();
 		// Making a new batch of removed edges
 		length_t numEdgesL = numEdges; // Number of edges to remove
 		BatchUpdateData bud1(numEdgesL*2,true);
@@ -235,6 +237,7 @@ int main(const int argc, char *argv[])
 		for(unsigned i = 0; i < nv; ++i) {
 			len[i] = off[i+1] - off[i];
 		}
+		printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, toc());
 
 		vertexId_t a, b;
 		length_t lena;
@@ -289,16 +292,22 @@ int main(const int argc, char *argv[])
 		triangle_t* h_triangles_t = (triangle_t *) malloc (sizeof(triangle_t)*(nv+1));	
 		initHostTriangleArray(h_triangles_t,nv);
 
+		tic();
 		CUDA(cudaMemcpy(d_triangles_t, h_triangles_t, sizeof(triangle_t)*(nv+1), cudaMemcpyHostToDevice));
 		callDeviceAllTriangles(custingTest, d_triangles_t, tsp,nbl,shifter,blocks, sps);
 		CUDA(cudaMemcpy(h_triangles_t, d_triangles_t, sizeof(triangle_t)*(nv+1), cudaMemcpyDeviceToHost));
+		printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, toc());
 
 		// Insert them edges now
 		BatchUpdate bu1(bud1);
+		tic();
 		custingTest.edgeInsertions(bu1);
+		printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, toc());
 
+		tic();
 		// Sort the new edges
 		vertexModification(bu1, nv, custingTest);
+		printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, toc());
 
 		// Count the new triangles now
 		triangle_t *d_triangles_new_t = NULL;
@@ -306,15 +315,17 @@ int main(const int argc, char *argv[])
 		triangle_t* h_triangles_new_t = (triangle_t *) malloc (sizeof(triangle_t)*(nv+1));	
 		initHostTriangleArray(h_triangles_new_t,nv);
 
-		readGraphDIMACS(argv[1],&off,&adj,&nv,&ne);///
+		tic();
 		CUDA(cudaMemcpy(d_triangles_new_t, h_triangles_new_t, sizeof(triangle_t)*(nv+1), cudaMemcpyHostToDevice));
-		callDeviceNewTriangles(custingTest, bu1, nv, off, adj, d_triangles_new_t, tsp,nbl,shifter,blocks, sps);
+		callDeviceNewTriangles(custingTest, bu1, d_triangles_new_t, tsp,nbl,shifter,blocks, sps);
 		CUDA(cudaMemcpy(h_triangles_new_t, d_triangles_new_t, sizeof(triangle_t)*(nv+1), cudaMemcpyDeviceToHost));
+		printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, toc());
 
 		// Let's compare
 		int64_t sumDevice_t = sumTriangleArray(h_triangles_t,nv);
 		int64_t sumDevice_new_t = sumTriangleArray(h_triangles_new_t,nv);
-		printf("%ld %ld %ld\n", sumDevice, sumDevice_t, sumDevice_new_t);
+		printf("old %ld, new %ld\n", sumDevice, sumDevice_t);
+		printf("============ should be %ld\n", (sumDevice - sumDevice_t)/3);
 	}
 	// =========================================================================
 

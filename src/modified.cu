@@ -104,48 +104,9 @@ void vertexModification(BatchUpdate &bu, length_t nV, cuStinger &cus)
 	thrust::device_ptr<vertexId_t> dp_modV(d_modV);
 	vertexId_t* d_modV_end = thrust::raw_pointer_cast(thrust::copy_if(dp_modV_sparse, dp_modV_sparse + nV, dp_modV, is_not_zero()));
 
-	// Testing only. Remove after verified  ====================================
-
-	vertexId_t* h_modV = (vertexId_t*) allocHostArray(updateSize*2, sizeof(vertexId_t));
-	copyArrayDeviceToHost(d_modV, h_modV, updateSize*2, sizeof(vertexId_t));
-
-	vertexId_t* modV = (vertexId_t*) allocHostArray(updateSize*2, sizeof(vertexId_t));
-	vertexId_t* modV_sparse = (vertexId_t*) allocHostArray(nV, sizeof(vertexId_t));
-
-	for (int i = 0; i < nV; ++i)
-	{
-		modV_sparse[i] = 0;
-	}
-	for (int i = 0; i < updateSize; ++i)
-	{
-		int32_t src = bu.getHostBUD()->getSrc()[i];
-		int32_t dst = bu.getHostBUD()->getDst()[i];
-
-		modV_sparse[src] |= (src+1);
-		modV_sparse[dst] |= (dst+1);
-	}
-	int count = 0;
-	for (int i = 0; i < nV; ++i)
-	{
-		if (modV_sparse[i])
-		{
-			modV[count++] = modV_sparse[i];
-		}
-	}
-
-	for (int i = 0; i < count; ++i)
-	{
-		if (modV[i] != h_modV[i])
-		{
-			cout << "error:" << modV[i] << "!=" << h_modV[i];
-		}
-	}
-	// =========================================================================
-
 	checkLastCudaError("Error in vertex modification marking : stream compaction");
 
 	length_t num_modV = d_modV_end - d_modV;
-	printf("something\n");
 
 	//  ##                #     #
 	// #  #               #
@@ -162,9 +123,10 @@ void vertexModification(BatchUpdate &bu, length_t nV, cuStinger &cus)
 	GetEdgeLengths<<<numBlocks,threadsPerBlock>>>(cus.devicePtr(), d_modV, num_modV, d_mV_edge_l);
 
 	// Testing again
-	length_t* h_mV_edge_l = (length_t*) allocHostArray(num_modV, sizeof(length_t));
-	copyArrayDeviceToHost(d_mV_edge_l, h_mV_edge_l, num_modV, sizeof(length_t));
-	printf("something again\n");
+	_DEBUG(
+		length_t* h_mV_edge_l = (length_t*) allocHostArray(num_modV, sizeof(length_t));
+		copyArrayDeviceToHost(d_mV_edge_l, h_mV_edge_l, num_modV, sizeof(length_t));
+	)
 
 	// Vectorized (thrust stable sort) approach
 	// =========================================================================
@@ -173,8 +135,7 @@ void vertexModification(BatchUpdate &bu, length_t nV, cuStinger &cus)
 		thrust::inclusive_scan(dp_mV_edge_l, dp_mV_edge_l+num_modV, dp_mV_edge_l);
 
 		// Testing
-		copyArrayDeviceToHost(d_mV_edge_l, h_mV_edge_l, num_modV, sizeof(length_t));
-		printf("something more\n");
+		_DEBUG(copyArrayDeviceToHost(d_mV_edge_l, h_mV_edge_l, num_modV, sizeof(length_t));)
 
 		// Allocation of scratchpad
 		length_t* scratchpad_l = (length_t*) allocHostArray(1, sizeof(length_t));
@@ -189,24 +150,16 @@ void vertexModification(BatchUpdate &bu, length_t nV, cuStinger &cus)
 		enum COPY_METHOD { ONE_BLOCK_PER_V, ONE_THREAD_PER_E_BIN_SRCH, ONE_THREAD_PER_E_PRFX_SUM };
 		COPY_METHOD method = ONE_BLOCK_PER_V;
 
-		if(method == ONE_BLOCK_PER_V) {
-			CopyEdgeListToScratchpadOBPV<<<num_modV,threadsPerBlock>>>(cus.devicePtr(),
-				d_modV, scratchpad_l[0], d_mV_scratch, d_mV_segment, d_mV_edge_l);
-			printf("ONE_BLOCK_PER_V\n");
-		}
-		else if(method == ONE_THREAD_PER_E_BIN_SRCH) {
-			printf("ONE_THREAD_PER_E_BIN_SRCH\n");
-		}
-		else {
-			printf("ONE_THREAD_PER_E_PRFX_SUM\n");
-		}
+		CopyEdgeListToScratchpadOBPV<<<num_modV,threadsPerBlock>>>(cus.devicePtr(),
+			d_modV, scratchpad_l[0], d_mV_scratch, d_mV_segment, d_mV_edge_l);
 
 		// Testing again
-		vertexId_t* h_mV_scratch = (vertexId_t*) allocHostArray(scratchpad_l[0], sizeof(vertexId_t));
-		copyArrayDeviceToHost(d_mV_scratch, h_mV_scratch, scratchpad_l[0], sizeof(vertexId_t));
-		vertexId_t* h_mV_segment = (vertexId_t*) allocHostArray(scratchpad_l[0], sizeof(vertexId_t));
-		copyArrayDeviceToHost(d_mV_segment, h_mV_segment, scratchpad_l[0], sizeof(vertexId_t));
-		printf("something special\n");
+		_DEBUG(
+			vertexId_t* h_mV_scratch = (vertexId_t*) allocHostArray(scratchpad_l[0], sizeof(vertexId_t));
+			copyArrayDeviceToHost(d_mV_scratch, h_mV_scratch, scratchpad_l[0], sizeof(vertexId_t));
+			vertexId_t* h_mV_segment = (vertexId_t*) allocHostArray(scratchpad_l[0], sizeof(vertexId_t));
+			copyArrayDeviceToHost(d_mV_segment, h_mV_segment, scratchpad_l[0], sizeof(vertexId_t));
+		)
 
 		// Actual Sort operation
 		thrust::device_ptr<vertexId_t> dp_mV_scratch(d_mV_scratch);
@@ -215,8 +168,7 @@ void vertexModification(BatchUpdate &bu, length_t nV, cuStinger &cus)
 		thrust::stable_sort_by_key(dp_mV_segment, dp_mV_segment + scratchpad_l[0], dp_mV_scratch);
 
 		// Testing testing testing
-		copyArrayDeviceToHost(d_mV_scratch, h_mV_scratch, scratchpad_l[0], sizeof(vertexId_t));
-		printf("something something meri jaan\n");
+		_DEBUG(copyArrayDeviceToHost(d_mV_scratch, h_mV_scratch, scratchpad_l[0], sizeof(vertexId_t));)
 
 		// Copy back to original location
 		CopyScratchpadToEdgeListOBPV<<<num_modV,threadsPerBlock>>>(cus.devicePtr(),

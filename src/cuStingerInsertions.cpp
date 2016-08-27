@@ -11,7 +11,7 @@
 using namespace std;
 
 // As this function uses a hash map it needs to be placed in a .cpp file.
-void cuStinger::reAllocateMemoryAfterSweep1(BatchUpdate &bu)
+void cuStinger::reAllocateMemoryAfterSweep1(BatchUpdate &bu, length_t& requireAllocation)
 {
 	// This function consists of two main phases. 
 	// 1) Given the list of edges that could be inserted due to lack of space, this list is reduced 
@@ -47,7 +47,7 @@ void cuStinger::reAllocateMemoryAfterSweep1(BatchUpdate &bu)
 			h_hmap[temp]=0; // Once a vertex is extracted, the hash-map is reset to avoid extracting the source vertex multiple times.
 		}
 	}
-
+	requireAllocation=0;
 	if(countUnique>0){
 		// Allocate memory to store the vertex data before the update.
 		// We need this information, especially the pointers to the older edge lists as these need to deallocated 
@@ -67,16 +67,25 @@ void cuStinger::reAllocateMemoryAfterSweep1(BatchUpdate &bu)
 		this->initVertexDataPointers(olddVD,olddedmem);
 		copyArrayHostToDevice(oldhVD->mem,olddedmem,nv,this->getBytesPerVertex());
 
+		edgeBlock** newBlocks = (edgeBlock**)allocHostArray(nv, sizeof(edgeBlock*));
 
 		// For each unique vertex allocate new EdgeData
 		for (length_t i=0; i<countUnique; i++){
 			vertexId_t tempVertex = h_requireUpdates[i];
 			length_t newMax = this->getUpdateAllocater()(cushVD->max[tempVertex] ,h_overLimit[i]);
-			cushVD->adj[tempVertex]  	= (cuStinger::cusEdgeData*)allocDeviceArray(1, sizeof(cuStinger::cusEdgeData));
-			cushVD->edMem[tempVertex]	= (uint8_t*)allocDeviceArray(newMax, this->getBytesPerEdge());
-			cushVD->max[tempVertex] 	= newMax;
-		}
+			// cushVD->adj[tempVertex]  	= (cuStinger::cusEdgeData*)allocDeviceArray(1, sizeof(cuStinger::cusEdgeData));
+			// cushVD->edMem[tempVertex]	= (uint8_t*)allocDeviceArray(newMax, this->getBytesPerEdge());
 
+			int memSizeOffsetAdj = sizeof(cusEdgeData)/cudaMemManAlignment + cudaMemManAlignment*(sizeof(cusEdgeData)%cudaMemManAlignment>0);
+			int memSizeOffsetedMem = cudaMemManAlignment * (int)ceil ((double) (newMax* this->getBytesPerEdge()) /(double)cudaMemManAlignment);
+
+			memAllocInfo mai = cusMemMan->allocateMemoryBlock(memSizeOffsetAdj+ memSizeOffsetedMem,tempVertex);
+			cushVD->adj[tempVertex] = (cusEdgeData*)mai.ptr;
+			cushVD->edMem[tempVertex] = (uint8_t*)(mai.ptr+memSizeOffsetAdj);
+			cushVD->max[tempVertex] 	= newMax;
+			newBlocks[tempVertex] = mai.eb;
+		}
+		requireAllocation=countUnique;
 		// Copy the host VD back to STINGER.
 		copyArrayHostToDevice(cushVD->mem,this->dedmem,nv,this->getBytesPerVertex());
 
@@ -94,11 +103,15 @@ void cuStinger::reAllocateMemoryAfterSweep1(BatchUpdate &bu)
 		// De-allocate older ED that is no longer needed.
 		for (length_t i=0; i<countUnique; i++){
 			vertexId_t tempVertex = h_requireUpdates[i];
-			freeDeviceArray(oldhVD->edMem[tempVertex]);
-			freeDeviceArray(oldhVD->adj[tempVertex]);
+			cusMemMan->removeMemoryBlock(hMemManEB[tempVertex], tempVertex);
+			hMemManEB[tempVertex] = newBlocks[tempVertex];
+
+			// freeDeviceArray(oldhVD->edMem[tempVertex]);
+			// freeDeviceArray(oldhVD->adj[tempVertex]);
 		}
 		// cout << "Reallocate time     : " << end_clock(ce_start, ce_stop) << endl;
 
+		freeHostArray(newBlocks);
 		// Remove all auxiliary arrays.
 		oldhVD->hostFreeMem();
 		delete oldhVD;

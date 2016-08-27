@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 #include "cuStingerDefs.hpp"
-
+#include "memoryManager.hpp"
 
 
 typedef length_t (*initAllocator)(length_t);
@@ -31,6 +31,7 @@ public:
 	cuStingerInitState initState;
 
 	int maxNV = INT_MAX; // maxNV>csrNV
+	int defaultBlockSize = 1<<22;
 
 	bool useVWeight = false;
 
@@ -50,6 +51,7 @@ public:
 	vertexId_t* elDst;
 	eweight_t*  elEW;	
 	length_t    elLen;
+
 
 };
 
@@ -141,14 +143,12 @@ public:
 	cusVertexData* getHostVertexData(){return hVD;}
 	uint8_t* getDeviceVertexDataMemory(){return dedmem;}
 
-	void edgeInsertions(BatchUpdate &bu);
+	void edgeInsertions(BatchUpdate &bu, length_t& requireAllocation);
 	void edgeDeletions(BatchUpdate &bu);
 
 	bool verifyEdgeInsertions(BatchUpdate &bu);
 	bool verifyEdgeDeletions(BatchUpdate &bu);
 	void checkDuplicateEdges();
-
-	void reAllocateMemoryAfterSweep1(BatchUpdate &bu);
 
 
 public:
@@ -160,6 +160,10 @@ public:
 	cuStinger* d_cuStinger;
 	uint8_t* dedmem;
 
+// private: 
+	memoryManager* cusMemMan;
+	edgeBlock** hMemManEB; 
+
 private:
 
 	initAllocator initVertexAllocator;
@@ -170,6 +174,9 @@ private:
 	void internalCSRTocuStinger(length_t* off, vertexId_t* adj, length_t ne);
 
 	length_t sumDeviceArray(length_t* arr, length_t);
+
+	void reAllocateMemoryAfterSweep1(BatchUpdate &bu,length_t& requireAllocation);
+
 };
 
 

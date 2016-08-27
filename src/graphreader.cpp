@@ -7,7 +7,7 @@
 
 #include "cuStingerDefs.hpp"
 
-void readGraphDIMACS(char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne)
+void readGraphDIMACS(char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne, int isRmat)
 {
     FILE *fp = fopen (filePath, "r");
     vertexId_t nv;
@@ -24,8 +24,18 @@ void readGraphDIMACS(char* filePath, length_t** prmoff, vertexId_t** prmind, ver
 
     free(line);
 
-    length_t * off = (length_t *) malloc ((nv + 2) * sizeof (length_t));
-    vertexId_t * ind = (vertexId_t *) malloc ((ne * 2) * sizeof (vertexId_t));
+    length_t * off = (length_t *) malloc ((nv + 2) * sizeof (length_t)); 
+    nv++;
+    vertexId_t * ind;
+    if(!isRmat){
+        ind = (vertexId_t *) malloc ((ne * 2) * sizeof (vertexId_t));        
+        ne *= 2;        
+    }
+    else{
+        ind = (vertexId_t *) malloc ((ne) * sizeof (vertexId_t));        
+    }
+    
+
     off[0] = 0;
     off[1] = 0;
     length_t counter = 0;
@@ -56,8 +66,6 @@ void readGraphDIMACS(char* filePath, length_t** prmoff, vertexId_t** prmind, ver
     }
     fclose (fp);
 
-    nv++;
-    ne *= 2;
     *prmnv = nv;
     *prmne = ne;
     *prmind = ind;

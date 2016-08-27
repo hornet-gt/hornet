@@ -187,14 +187,14 @@ __global__ void deviceRemoveInsertedDuplicates(cuStinger* custing, BatchUpdateDa
 }
 
 
-void cuStinger::edgeInsertions(BatchUpdate &bu)
-{	
+void cuStinger::edgeInsertions(BatchUpdate &bu,length_t& requireAllocation){
 	dim3 numBlocks(1, 1);
 	int32_t threads=32;
 	dim3 threadsPerBlock(threads, 1);
 	int32_t updatesPerBlock,dupsPerBlock;
 	length_t updateSize,dupInBatch;
 
+	requireAllocation=0;
 	updateSize = *(bu.getHostBUD()->getBatchSize());
 	numBlocks.x = ceil((float)updateSize/(float)threads);
 	if (numBlocks.x>16000){
@@ -220,7 +220,7 @@ void cuStinger::edgeInsertions(BatchUpdate &bu)
 	}
 
 	bu.getHostBUD()->copyDeviceToHost(*bu.getDeviceBUD());
-	reAllocateMemoryAfterSweep1(bu);
+	reAllocateMemoryAfterSweep1(bu,requireAllocation);
 
 	//--------
 	// Sweep 2
@@ -337,8 +337,9 @@ bool cuStinger::verifyEdgeInsertions(BatchUpdate &bu)
 
 	freeDeviceArray(devCounter);
 
-	if (verified==updateSize)
+	if (verified==updateSize){
 		return true;
+	}
 	else
 		return false;
 

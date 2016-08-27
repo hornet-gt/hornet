@@ -249,6 +249,8 @@ __global__ void count_all_trianglesGPU (const vertexId_t nv,
 		for(int iter=d_off[src]+adj_offset; iter<d_off[src+1]; iter+=number_blocks){
 			int dest = d_ind[iter];
 			int destLen = d_off[dest+1]-d_off[dest];
+			if (dest<src) 
+				continue;
 
 			bool avoidCalc = (src == dest) || (destLen < 2) || (srcLen < 2);
 			if(avoidCalc)

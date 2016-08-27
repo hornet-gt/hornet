@@ -9,6 +9,12 @@ INCLUDE_DIRECTORIES(/usr/local/cuda/include)
 INCLUDE_DIRECTORIES(include)
 INCLUDE_DIRECTORIES(include/alg/static_triangle_counting)
 
+
+# Adding external libraries
+INCLUDE_DIRECTORIES(externals/stx-btree/include)
+# INCLUDE_DIRECTORIES(externals/moderngpu/include)
+
+
 #message("message here")
 #SET(CUDA_PROPAGATE_HOST_FLAGS OFF)
 
@@ -16,7 +22,6 @@ INCLUDE_DIRECTORIES(include/alg/static_triangle_counting)
 #SET(CUDA_SEPERABLE_COMPILATION ON)
 
 #set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-g -fPIC")
-
 set(CMAKE_BUILD_TYPE Debug)
 set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -lineinfo -G -DTHRUST_DEBUG")
 
@@ -42,6 +47,7 @@ cuda_add_library(cuUpdate
           src/cuStingerInsertions.cu
           src/cuStingerInsertions.cpp
           src/cuStingerDeletions.cu
+          src/memoryManager.cpp
 				)
 
 cuda_add_library(cuAlgCCT
@@ -55,6 +61,17 @@ cuda_add_library(custinger
 cuda_add_executable(cuMain 
 					src/main.cpp
 				   )
+
+cuda_add_executable(cuMemManager 
+					src/memoryManager.cpp
+				   )
+
+set_property(
+   TARGET cuMemManager
+   PROPERTY COMPILE_DEFINITIONS   MEM_STAND_ALONE
+   )
+
+
 
 cuda_add_executable(cctMain
           src/alg/static_triangle_counting/cct.cpp
@@ -71,11 +88,14 @@ TARGET_LINK_LIBRARIES(cctMain custinger cuUtils cuUpdate cuAlgCCT /usr/local/cud
 
 TARGET_LINK_LIBRARIES(cuMain custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
 
+TARGET_LINK_LIBRARIES(cuMemManager custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
+
 TARGET_LINK_LIBRARIES(cctUpdate custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
 
 #LIST(APPEND CMAKE_CXX_FLAGS "std=c++11 -O3 -ffastmath -Wall")
 
 #LIST(APPEND CUDA_NCCC_FLAGS --compiler-options -fno-strict-aliasing -use-fast-math)
+LIST(APPEND CUDA_NCCC_FLAGS --compiler-options)
 LIST(APPEND CUDA NVCC_FLAGS -gencode arch=compute_35,code=sm_35)
 LIST(APPEND CUDA NVCC_FLAGS "-std=c++11;-DVERBOSE")
 

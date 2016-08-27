@@ -184,7 +184,6 @@ __device__ triangle_t singleIntersection(vertexId_t u, vertexId_t const * const 
 		// For the binary search, we are figuring out the initial poT of search.
 		initializeIP(diag_id, u_len, v_len,&u_min, &u_max,&v_min, &v_max,&found);
     	u_curr = 0; v_curr = 0;
-
 	    bSearchIP(found, diag_id, u_nodes, v_nodes, &u_len, &u_min, &u_max, &v_min,
         &v_max, &u_curr, &v_curr);
 
@@ -235,13 +234,15 @@ __global__ void devicecuStingerAllTriangles(cuStinger* custing,
 		// int srcLen=d_off[src+1]-d_off[src];
 		length_t srcLen=custing->dVD->getUsed()[src];
 	    triangle_t tCount = 0;	    
-
 		// for(int iter=d_off[src]+adj_offset; iter<d_off[src+1]; iter+=number_blocks){
 		for(int k=adj_offset; k<srcLen; k+=number_blocks){
 			// int dest = d_ind[k];
 			vertexId_t dest = custing->dVD->getAdj()[src]->dst[k];
 			// int destLen = d_off[dest+1]-d_off[dest];
 			int destLen=custing->dVD->getUsed()[dest];
+
+			if (dest<src) 
+				continue;
 
 			bool avoidCalc = (src == dest) || (destLen < 2) || (srcLen < 2);
 			if(avoidCalc)

@@ -1,6 +1,7 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.2)
 project( custinger )
 
+set(CUDA_HOST_COMPILER /usr/bin/gcc-4.8)  
 FIND_PACKAGE(CUDA REQUIRED)
 
 INCLUDE(FindCUDA)
@@ -9,21 +10,27 @@ INCLUDE_DIRECTORIES(/usr/local/cuda/include)
 INCLUDE_DIRECTORIES(include)
 INCLUDE_DIRECTORIES(include/alg/static_triangle_counting)
 
-
 # Adding external libraries
 INCLUDE_DIRECTORIES(externals/stx-btree/include)
-# INCLUDE_DIRECTORIES(externals/moderngpu/include)
+INCLUDE_DIRECTORIES(externals/moderngpu/src/moderngpu)
+
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+if(COMPILER_SUPPORTS_CXX11)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+elseif(COMPILER_SUPPORTS_CXX0X)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+else()
+        message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+endif()
 
 
-#message("message here")
-#SET(CUDA_PROPAGATE_HOST_FLAGS OFF)
 
-#SET(CUDA_HOST_COMPILATION_CPP ON)
-#SET(CUDA_SEPERABLE_COMPILATION ON)
-
-#set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-g -fPIC")
-set(CMAKE_BUILD_TYPE Debug)
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -lineinfo -G -DTHRUST_DEBUG")
+LIST(APPEND CUDA_NCCC_FLAGS --compiler-options)
+LIST(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_35,code=sm_35)
+LIST(APPEND CUDA_NVCC_FLAGS "-O3;-DVERBOSE;")
+LIST(APPEND CUDA_NVCC_FLAGS "-Xcompiler -Wall -D_FORCE_INLINES; --expt-extended-lambda;-use_fast_math")
 
 set(mgpu_INCLUDE_DIRS
   ${CMAKE_SOURCE_DIR}/externals/moderngpu/include
@@ -88,27 +95,3 @@ TARGET_LINK_LIBRARIES(cctMain custinger cuUtils cuUpdate cuAlgCCT /usr/local/cud
 TARGET_LINK_LIBRARIES(cuMain custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
 
 TARGET_LINK_LIBRARIES(cuMemManager custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
-
-#LIST(APPEND CUDA_NCCC_FLAGS --compiler-options -fno-strict-aliasing -use-fast-math)
-LIST(APPEND CUDA_NCCC_FLAGS --compiler-options)
-LIST(APPEND CUDA NVCC_FLAGS -gencode arch=compute_35,code=sm_35)
-LIST(APPEND CUDA NVCC_FLAGS "-std=c++11;-O3;-DVERBOSE")
-
-
-if(CMAKE_COMPILER_IS_GNUCXX)
-   execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
-   if (GCC_VERSION VERSION_GREATER 4.7 OR GCC_VERSION VERSION_EQUAL 4.7)
-        message(STATUS "C++11 activated.")
-        add_definitions("-std=gnu++11")
-        add_definitions("-Wno-cpp")
-
-
-   elseif(GCC_VERSION VERSION_GREATER 4.3 OR GCC_VERSION VERSION_EQUAL 4.3)
-        message(WARNING "C++0x activated. If you get any errors update to a compiler which fully supports C++11")
-        add_definitions("-std=gnu++0x")
-   else ()
-        message(FATAL_ERROR "C++11 needed. Therefore a gcc compiler with a version higher than 4.3 is needed.")   
-   endif()
-else(CMAKE_COMPILER_IS_GNUCXX)
-   add_definitions("-std=c++0x") 
-endif()

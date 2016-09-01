@@ -9,6 +9,8 @@
 #include "cct.hpp"
 #include "utils.hpp"
 
+// #include "kernel_mergesort.hxx"
+
 __device__ void conditionalWarpReduce(volatile triangle_t* sharedData,int blockSize,int dataLength){
   if(blockSize >= dataLength){
     if(threadIdx.x < (dataLength/2))
@@ -203,6 +205,64 @@ __device__ triangle_t count_triangles(vertexId_t u, vertexId_t const * const __r
 	return triangles;
 }
 
+__device__ void intersectCount_nc(const length_t uLength, const length_t vLength,
+    vertexId_t const * const __restrict__ uNodes, vertexId_t const * const __restrict__ vNodes,
+    length_t * const __restrict__ uCurr, length_t * const __restrict__ vCurr,
+    int * const __restrict__ workIndex, int * const __restrict__ workPerThread,
+    int * const __restrict__ triangles, int found, triangle_t * const __restrict__ outPutTriangles)
+{
+  if((*uCurr < uLength) && (*vCurr < vLength)){
+    int comp;
+    while(*workIndex < *workPerThread){
+		comp = uNodes[*uCurr] - vNodes[*vCurr];
+		*triangles += (comp == 0);
+		if (comp == 0) atomicAdd(outPutTriangles + uNodes[*uCurr], 1);
+		*uCurr += (comp <= 0);
+		*vCurr += (comp >= 0);
+		*workIndex += (comp == 0) + 1;
+
+		if((*vCurr == vLength) || (*uCurr == uLength)){
+			break;
+		}
+    }
+    *triangles -= ((comp == 0) && (*workIndex > *workPerThread) && (found));
+  }
+}
+
+
+// u_len < v_len
+__device__ triangle_t count_triangles_nc(vertexId_t u, vertexId_t const * const __restrict__ u_nodes, length_t u_len,
+    vertexId_t v, vertexId_t const * const __restrict__ v_nodes, length_t v_len, int threads_per_block,
+    volatile vertexId_t* __restrict__ firstFound, int tId, triangle_t * const __restrict__ outPutTriangles)
+{
+	// Partitioning the work to the multiple thread of a single GPU processor. The threads should get a near equal number of the elements to Tersect - this number will be off by 1.
+	int work_per_thread, diag_id;
+	workPerThread(u_len, v_len, threads_per_block, tId, &work_per_thread, &diag_id);
+	triangle_t triangles = 0;
+	int work_index = 0,found=0;
+	length_t u_min,u_max,v_min,v_max,u_curr,v_curr;
+
+	firstFound[tId]=0;
+
+	if(work_per_thread>0){
+		// For the binary search, we are figuring out the initial poT of search.
+		initialize(diag_id, u_len, v_len,&u_min, &u_max,&v_min, &v_max,&found);
+    	u_curr = 0; v_curr = 0;
+
+	    bSearch(found, diag_id, u_nodes, v_nodes, &u_len, &u_min, &u_max, &v_min,
+        &v_max, &u_curr, &v_curr);
+
+    	int sum = fixStartPoint(u_len, v_len, &u_curr, &v_curr, u_nodes, v_nodes);
+    	work_index += sum;
+	    if(tId > 0)
+	      firstFound[tId-1] = sum;
+	    triangles += sum;
+	    intersectCount_nc(u_len, v_len, u_nodes, v_nodes, &u_curr, &v_curr,
+	        &work_index, &work_per_thread, &triangles, firstFound[tId], outPutTriangles);
+	}
+	return triangles;
+}
+
 __device__ void workPerBlock(const length_t numVertices,
     length_t * const __restrict__ outMpStart,
     length_t * const __restrict__ outMpEnd, int blockSize)
@@ -253,12 +313,13 @@ __global__ void devicecuStingerNewTriangles(cuStinger* custing, BatchUpdateData 
         const vertexId_t* small_ptr = custing->dVD->getAdj()[small]->dst;
         const vertexId_t* large_ptr = custing->dVD->getAdj()[large]->dst;
 
-		triangle_t tCount = count_triangles(small, small_ptr, small_len,
+		triangle_t tCount = count_triangles_nc(small, small_ptr, small_len,
 								large,large_ptr, large_len,
 								threads_per_block,firstFoundPos,
-								tx%threads_per_block);
+								tx%threads_per_block, outPutTriangles);
 
 		atomicAdd(outPutTriangles + src, tCount);
+		atomicAdd(outPutTriangles + dest, tCount);
 		__syncthreads();
 	}
 }
@@ -357,12 +418,13 @@ __global__ void deviceBUTwoCUOneTriangles (cuStinger* custing, const length_t ba
         vertexId_t const * const small_ptr = sourceSmaller? src_ptr : dst_ptr;
         vertexId_t const * const large_ptr = sourceSmaller? dst_ptr : src_ptr;
 
-		triangle_t tCount = count_triangles(small, small_ptr, small_len,
+		triangle_t tCount = count_triangles_nc(small, small_ptr, small_len,
 								large,large_ptr, large_len,
 								threads_per_block,firstFoundPos,
-								tx%threads_per_block);
+								tx%threads_per_block, outPutTriangles);
 
 		atomicAdd(outPutTriangles + src, tCount);
+		atomicAdd(outPutTriangles + dest, tCount);
 		__syncthreads();
 	}
 }
@@ -406,7 +468,8 @@ __global__ void initDeviceArray(T* mem, int32_t size, T value)
 
 void callDeviceNewTriangles(cuStinger& custing, BatchUpdate& bu, 
     triangle_t * const __restrict__ outPutTriangles, const int threads_per_block,
-    const int number_blocks, const int shifter, const int thread_blocks, const int blockdim){
+    const int number_blocks, const int shifter, const int thread_blocks, const int blockdim,
+    triangle_t * const __restrict__ h_triangles, triangle_t * const __restrict__ h_triangles_t){
 
 	cudaEvent_t ce_start,ce_stop;
 
@@ -446,9 +509,11 @@ void callDeviceNewTriangles(cuStinger& custing, BatchUpdate& bu,
 	)
 
 	// Calculate offsets by exclusive scan
+	start_clock(ce_start, ce_stop);
 	thrust::device_ptr<vertexId_t> dp_ell(d_ell);
 	thrust::device_ptr<vertexId_t> dp_boff(d_boff);
 	thrust::exclusive_scan(dp_ell, dp_ell+nv+1, dp_boff);
+	printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
 
 	// Make indices array and segment array
 	_DEBUG(
@@ -509,6 +574,15 @@ void callDeviceNewTriangles(cuStinger& custing, BatchUpdate& bu,
 	int64_t sum3 = sumTriangleArrayTEST(h_3tri,nv);
 	int64_t sum2 = sumTriangleArrayTEST(h_2tri,nv);
 	int64_t sum1 = sumTriangleArrayTEST(h_1tri,nv);
+
+	// Testing
+		for (int i = 0; i < nv; ++i)
+		{
+			if (h_triangles[i] != h_triangles_t[i] + h_1tri[i] - h_2tri[i] + h_3tri[i]){
+				printf("wrong vertex set %d + %d instead of %d\n", h_triangles_t[i], h_1tri[i] - h_2tri[i] + h_3tri[i], h_triangles[i]);
+				return;
+			}
+		}
 
 	printf("Sum1=%d \nSum2=%d \n Sum3=%d\n",sum1,sum2,sum3);
 	printf("============ new tri = %d\n", (sum1/2 - sum2/2 + sum3/6)*2);

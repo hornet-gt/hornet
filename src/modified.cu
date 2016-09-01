@@ -102,7 +102,11 @@ void vertexModification(BatchUpdate &bu, length_t nV, cuStinger &cus)
 	vertexId_t* d_modV = (vertexId_t*)allocDeviceArray(updateSize*2, sizeof(vertexId_t));
 	thrust::device_ptr<vertexId_t> dp_modV_sparse(d_modV_sparse);
 	thrust::device_ptr<vertexId_t> dp_modV(d_modV);
+	
+	cudaEvent_t ce_start,ce_stop;
+	start_clock(ce_start, ce_stop);
 	vertexId_t* d_modV_end = thrust::raw_pointer_cast(thrust::copy_if(dp_modV_sparse, dp_modV_sparse + nV, dp_modV, is_not_zero()));
+	printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
 
 	checkLastCudaError("Error in vertex modification marking : stream compaction");
 

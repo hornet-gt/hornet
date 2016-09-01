@@ -28,7 +28,8 @@ using namespace std;
 
 void callDeviceNewTriangles(cuStinger& custing, BatchUpdate& bu,
     triangle_t * const __restrict__ outPutTriangles, const int threads_per_block,
-    const int number_blocks, const int shifter, const int thread_blocks, const int blockdim);
+    const int number_blocks, const int shifter, const int thread_blocks, const int blockdim,
+    triangle_t * const __restrict__ h_triangles, triangle_t * const __restrict__ h_triangles_t);
 
 void initHostTriangleArray(triangle_t* h_triangles, vertexId_t nv){	
 	for(vertexId_t sd=0; sd<(nv);sd++){
@@ -199,8 +200,8 @@ int main(const int argc, char *argv[])
 	triangle_t* h_triangles = (triangle_t *) malloc (sizeof(triangle_t)*(nv+1));	
 	initHostTriangleArray(h_triangles,nv);
 
-	int tsp = 4; // Threads per intersection
-	int shifter = 2; // left shift to multiply threads per intersection
+	int tsp = 1; // Threads per intersection
+	int shifter = 0; // left shift to multiply threads per intersection
 	int sps = 128; // Block size
 	int nbl = sps/tsp; // Number of concurrent intersections in block
 	int blocks = 16000; // Number of blocks
@@ -301,8 +302,11 @@ int main(const int argc, char *argv[])
 		// Insert them edges now
 		BatchUpdate bu1(bud1);
 		tic();
-		custingTest.edgeInsertions(bu1);
+		length_t allocs;
+		start_clock(ce_start, ce_stop);
+		custingTest.edgeInsertions(bu1,allocs);
 		printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, toc());
+		printf("%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
 
 		tic();
 		// Sort the new edges
@@ -317,7 +321,7 @@ int main(const int argc, char *argv[])
 
 		tic();
 		CUDA(cudaMemcpy(d_triangles_new_t, h_triangles_new_t, sizeof(triangle_t)*(nv+1), cudaMemcpyHostToDevice));
-		callDeviceNewTriangles(custingTest, bu1, d_triangles_new_t, tsp,nbl,shifter,blocks, sps);
+		callDeviceNewTriangles(custingTest, bu1, d_triangles_new_t, tsp,nbl,shifter,blocks, sps, h_triangles, h_triangles_t);
 		CUDA(cudaMemcpy(h_triangles_new_t, d_triangles_new_t, sizeof(triangle_t)*(nv+1), cudaMemcpyDeviceToHost));
 		printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, toc());
 
@@ -342,11 +346,12 @@ int main(const int argc, char *argv[])
 	}
 	BatchUpdate bu(bud);
 
-	custing2.checkDuplicateEdges();
-	custing2.verifyEdgeInsertions(bu);
+	// custing2.checkDuplicateEdges();
+	// custing2.verifyEdgeInsertions(bu);
 
 	start_clock(ce_start, ce_stop);
-		custing2.edgeInsertions(bu);
+	length_t allocs;
+		custing2.edgeInsertions(bu, allocs);
 	// cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
 	cout << ", " << end_clock(ce_start, ce_stop);
 
@@ -382,8 +387,8 @@ int main(const int argc, char *argv[])
 	// =========================================================================
 
 
-	custing2.checkDuplicateEdges();	
-	custing2.verifyEdgeInsertions(bu);
+	// custing2.checkDuplicateEdges();	
+	// custing2.verifyEdgeInsertions(bu);
 
 	printcuStingerUtility(custing2, false);
 

@@ -13,6 +13,7 @@ INCLUDE_DIRECTORIES(include/alg/static_triangle_counting)
 # Adding external libraries
 INCLUDE_DIRECTORIES(externals/stx-btree/include)
 INCLUDE_DIRECTORIES(externals/moderngpu/src/moderngpu)
+INCLUDE_DIRECTORIES(externals/cub/cub/)
 
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)

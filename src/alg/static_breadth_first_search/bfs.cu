@@ -3,7 +3,29 @@
 #include <stdio.h>
 #include <inttypes.h>
 
+#include <thrust/device_ptr.h>
+#include <thrust/scan.h>
+
+
+// #include "moderngpu.cuh"
+// #include "moderngpu/src/kernel_scan.hxx"
+#include "kernel_scan.hxx"
+#include "search.hxx"
+#include "cta_search.hxx"
+
+#include "kernel_sortedsearch.hxx"
+
+#include <transform.hxx>
+
+
+using namespace mgpu;
+
+
+#include <iostream>
+
 #include "cct.hpp"
+
+
 
 /*
 	##     ##    ###     ######  ########   #######   ######
@@ -66,8 +88,23 @@ __global__ void allVerticesInGraphOneVertexPerThreadBlock(cuStinger* custing,voi
 	}
 }
 
+__global__ void allVerticesInArrayParallelVertexPerTB(vertexId_t* verArray, length_t len,cuStinger* custing,void* metadata, cusSubKernel* cusSK, int32_t verticesPerThreadBlock){
+	vertexId_t v_init=blockIdx.x*verticesPerThreadBlock+threadIdx.x;
 
-__global__ void allVerticesInArray(vertexId_t* verArray, length_t len,cuStinger* custing,void* metadata, cusSubKernel* cusSK, int32_t verticesPerThreadBlock)
+	for (vertexId_t v_hat=0; v_hat<verticesPerThreadBlock; v_hat+=blockDim.x){
+		vertexId_t vpos=v_init+v_hat;
+		if(vpos>=len){
+			break;
+		}
+		vertexId_t v=verArray[vpos];
+
+		(*cusSK)(custing,v,metadata);
+
+	}
+}
+
+
+__global__ void allVerticesInArrayOneVertexPerTB(vertexId_t* verArray, length_t len,cuStinger* custing,void* metadata, cusSubKernel* cusSK, int32_t verticesPerThreadBlock)
 {
 	vertexId_t v_init=blockIdx.x*verticesPerThreadBlock;
 	for (vertexId_t v_hat=0; v_hat<verticesPerThreadBlock; v_hat++){
@@ -77,9 +114,129 @@ __global__ void allVerticesInArray(vertexId_t* verArray, length_t len,cuStinger*
 		}
 		vertexId_t v=verArray[vpos];
 		(*cusSK)(custing,v,metadata);
-
 	}
 }
+
+__global__ void allVerticesInArrayOneVertexPerTB_LB(vertexId_t* verArray, length_t len,cuStinger* custing,void* metadata, cusSubKernel* cusSK,length_t* needles, int32_t numNeedles)
+{
+	vertexId_t v_init=needles[blockIdx.x];
+	vertexId_t v_max =needles[blockIdx.x]+1;
+
+	for (vertexId_t v_hat=0; v_hat<v_max; v_hat++){
+		vertexId_t vpos=v_init+v_hat;
+		if(vpos>=len){
+			break;
+		}
+		vertexId_t v=verArray[vpos];
+		(*cusSK)(custing,v,metadata);
+	}
+}
+
+
+__device__ void workloadByAdjacency(cuStinger* custing,vertexId_t src, void* metadata){
+	length_t* workload = (length_t*)metadata;
+	workload[src]=custing->dVD->used[src];
+
+}
+__device__ cusSubKernel ptrWorkloadByAdjacency = workloadByAdjacency;
+
+standard_context_t context(false);
+
+void loadBalance(vertexId_t* verArray, length_t len,cuStinger custing,void* metadata){
+	dim3 numBlocks(1, 1); int32_t threads=32;
+	dim3 threadsPerBlock(threads, 1);
+	int32_t verticesPerThreadBlock;
+	// standard_context_t context(true);
+
+	numBlocks.x = ceil((float)len/(float)threads);
+	if (numBlocks.x>64000)
+		numBlocks.x=64000;
+	verticesPerThreadBlock = ceil(float(len)/float(numBlocks.x-1));
+
+	// cout << "Number of blocks " << numBlocks.x << endl;
+
+	length_t* lbArray = (length_t*)allocDeviceArray(len+1,sizeof(length_t));
+	length_t* dPrefixArray = (length_t*)allocDeviceArray(len+1,sizeof(length_t));
+
+	cusSubKernel* dLoadBalance = (cusSubKernel*)allocDeviceArray(1,sizeof(cusSubKernel));
+	cudaMemcpyFromSymbol(dLoadBalance, ptrWorkloadByAdjacency, sizeof(cusSubKernel),0,cudaMemcpyDeviceToDevice);
+
+	// cout << "The length of len is " << len << endl;
+
+
+	allVerticesInArrayParallelVertexPerTB<<<numBlocks, threadsPerBlock>>>(verArray, len,custing.devicePtr(), 
+										lbArray,dLoadBalance,verticesPerThreadBlock);
+
+	scan(lbArray, len+1, dPrefixArray, context);
+	// scan(verArray, len+1, dPrefixArray, context);
+
+	length_t* hPrefixArray = (length_t*)allocHostArray(len+1,sizeof(length_t));
+
+	copyArrayDeviceToHost(dPrefixArray,hPrefixArray,len+1, sizeof(length_t));
+	// for(int v=0; v<=20; v++)
+	// 	cout << tempHost[v] << ", " << hPrefixArray[v] << ", " << endl;
+
+	// creating needles
+	int numNeedles = 1000;
+	length_t* hNeedles = (length_t*)allocHostArray(numNeedles,sizeof(length_t));
+	length_t* dNeedles = (length_t*)allocDeviceArray(numNeedles,sizeof(length_t));
+	length_t* dPositions = (length_t*)allocDeviceArray(numNeedles,sizeof(length_t));
+	length_t* hPositions = (length_t*)allocHostArray(numNeedles,sizeof(length_t));
+
+	for(int n=0; n<numNeedles; n++){
+		hNeedles[n]=hPrefixArray[len]*((double)n/(double)numNeedles);
+	}
+
+	copyArrayHostToDevice(hNeedles,dNeedles,numNeedles, sizeof(length_t));
+
+	sorted_search<bounds_lower>(dNeedles, numNeedles, dPrefixArray, len, dPositions, less_t<int>(), context);
+
+	// copyArrayDeviceToHost(dPositions,hPositions,numNeedles, sizeof(length_t));
+	// for(int n=0; n<20; n++)
+	// 	cout << hPositions[n] <<" " << hNeedles[n] << endl;
+
+	freeHostArray(hPositions);
+	freeDeviceArray(dPositions);
+	freeDeviceArray(dNeedles);
+	freeHostArray(hNeedles);
+
+
+	freeHostArray(hPrefixArray);
+	freeDeviceArray(dPrefixArray);
+	freeDeviceArray(lbArray);
+	freeDeviceArray(dLoadBalance);
+
+
+	// Compiles correctly
+	// sorted_search<bounds_lower>(lbArray, 100, bs.data(), 1000, bs.data(), less_t<int>(), context);
+	// void sorted_search(needles_it needles, int num_needles, haystack_it haystack,
+ //  		int num_haystack, indices_it indices, comp_it comp, context_t& context)
+
+}
+
+void oneMoreMain(cuStinger& custing, void* func_meta_data){
+	vertexId_t* h_allVerts = (vertexId_t*)allocHostArray(custing.nv,sizeof(vertexId_t));
+	vertexId_t* d_allVerts = (vertexId_t*)allocDeviceArray(custing.nv,sizeof(vertexId_t));
+
+	for(int v=0; v<custing.nv; v++)
+		h_allVerts[v]=v;
+	// copyArrayHostToHost(custing.getHostVertexData()->used ,h_allVerts,custing.nv,sizeof(vertexId_t));
+	copyArrayHostToDevice(h_allVerts,d_allVerts,custing.nv,sizeof(vertexId_t));
+
+	cout << "Starting load-balancing"<< endl;
+
+	cudaEvent_t ce_start,ce_stop;	
+	start_clock(ce_start, ce_stop);
+
+	loadBalance(d_allVerts, custing.nv,custing,NULL);
+
+	float totalLBime = end_clock(ce_start, ce_stop);
+	cout << "Total time for connected-compoents : " << totalLBime << endl; 
+
+	freeHostArray(h_allVerts);
+	freeDeviceArray(d_allVerts);
+}
+
 
 /*
 	########  ########  ######          ######## ##     ## ##    ##  ######  ########  #######  ########   ######
@@ -138,6 +295,7 @@ __device__ void setLevelInfinity(cuStinger* custing,vertexId_t src, void* metada
 __device__ cusSubKernel ptrSetLevelInfinity = setLevelInfinity;
 
 
+
 /*
 	########  ########  ######          ##     ##    ###    #### ##    ##
 	##     ## ##       ##    ##         ###   ###   ## ##    ##  ###   ##
@@ -188,7 +346,7 @@ void bfsMain(cuStinger& custing, void* func_meta_data)
 
 	length_t prevEnd=1;
 	while(hostBfsData.queueEnd-hostBfsData.queueCurr>0){
-		allVerticesInArray<<<numBlocks, threadsPerBlock>>>(hostBfsData.queue+hostBfsData.queueCurr,
+		allVerticesInArrayOneVertexPerTB<<<numBlocks, threadsPerBlock>>>(hostBfsData.queue+hostBfsData.queueCurr,
 										hostBfsData.queueEnd-hostBfsData.queueCurr,custing.devicePtr(),
 										deviceBfsData,dTraverseEdges,verticesPerThreadBlock);
 		copyArrayDeviceToHost(deviceBfsData,&hostBfsData,1, sizeof(bfsData));
@@ -267,8 +425,6 @@ __device__ void connectedComponentsSwapLocal(cuStinger* custing,vertexId_t src, 
 __device__ cusSubKernel ptrConnectedComponentSwapLocal = connectedComponentsSwapLocal;
 
 
-
-
 __device__ void connectedComponentShortcut(cuStinger* custing,vertexId_t src, void* metadata){
 	connectedComponentsData* ccd = (connectedComponentsData*)metadata;
 	ccd->currState[src] = ccd->currState[ccd->currState[src]]; 
@@ -283,6 +439,28 @@ __device__ void connectedComponentCount(cuStinger* custing,vertexId_t src, void*
 }
 __device__ cusSubKernel ptrConnectedComponentCount = connectedComponentCount;
 
+
+
+__global__ void allVerticesInGraphOneVertexPerThreadBlockBAA(cuStinger* custing,void* metadata, cusSubKernel* cusSK, int32_t verticesPerThreadBlock){
+	vertexId_t v_init=blockIdx.x*verticesPerThreadBlock;
+	length_t nv = custing->getMaxNV();
+	connectedComponentsData* ccd = (connectedComponentsData*)metadata;
+
+	for (vertexId_t v_hat=0; v_hat<verticesPerThreadBlock; v_hat++){
+		vertexId_t src=v_init+v_hat;
+		if(src>=nv){
+			break;
+		}
+		length_t srcLen=custing->dVD->used[src];
+		vertexId_t* adj_src=custing->dVD->adj[src]->dst;
+		vertexId_t prev=ccd->currState[src];
+		for(vertexId_t adj=threadIdx.x; adj<srcLen; adj+=blockDim.x){
+			vertexId_t dest = adj_src[adj];
+			if (atomicMin(ccd->currState+src,ccd->currState[dest]) < prev)
+				atomicAdd(&(ccd->changeCurrIter),1);
+		}
+	}
+}
 
 
 /*
@@ -312,16 +490,6 @@ void connectComponentsMain(cuStinger& custing, void* func_meta_data)
 	connectedComponentsData* deviceCCData = (connectedComponentsData*)allocDeviceArray(1, sizeof(connectedComponentsData));
 	copyArrayHostToDevice(&hostCCData,deviceCCData,1, sizeof(connectedComponentsData));
 
-	// dim3 numBlocks(1, 1); int32_t threads=32;
-	// dim3 threadsPerBlock(threads, 1);
-	// int32_t verticesPerThreadBlock;
-
-	// numBlocks.x = ceil((float)custing.nv/(float)threads);
-	// if (numBlocks.x>64000){
-	// 	numBlocks.x=64000;
-	// }	
-	// verticesPerThreadBlock = ceil(float(custing.nv)/float(numBlocks.x-1));
-
 
 	dim3 numBlocks(1, 1); int32_t threads=32;
 	dim3 threadsPerBlock(threads, 1);
@@ -340,7 +508,6 @@ void connectComponentsMain(cuStinger& custing, void* func_meta_data)
 	cudaMemcpyFromSymbol( dshortcut, ptrConnectedComponentShortcut, sizeof(cusSubKernel),0,cudaMemcpyDeviceToDevice);
 	cusSubKernel* dcount = (cusSubKernel*)allocDeviceArray(1,sizeof(cusSubKernel));
 	cudaMemcpyFromSymbol( dcount, ptrConnectedComponentCount, sizeof(cusSubKernel),0,cudaMemcpyDeviceToDevice);
-
 
 	copyArrayDeviceToDevice(hostCCData.currState,hostCCData.prevState,custing.nv,sizeof(vertexId_t));
 	
@@ -399,19 +566,9 @@ void connectComponentsMainLocal(cuStinger& custing, void* func_meta_data)
 	connectedComponentsData* deviceCCData = (connectedComponentsData*)allocDeviceArray(1, sizeof(connectedComponentsData));
 	copyArrayHostToDevice(&hostCCData,deviceCCData,1, sizeof(connectedComponentsData));
 
-	// dim3 numBlocks(1, 1); int32_t threads=32;
-	// dim3 threadsPerBlock(threads, 1);
-	// int32_t verticesPerThreadBlock;
-
-	// numBlocks.x = ceil((float)custing.nv/(float)threads);
-	// if (numBlocks.x>64000){
-	// 	numBlocks.x=64000;
-	// }	
-	// verticesPerThreadBlock = ceil(float(custing.nv)/float(numBlocks.x-1));
-
 	dim3 numBlocks(1, 1); int32_t threads=32;
 	dim3 threadsPerBlock(threads, 1);
-	int32_t verticesPerThreadBlock=256;
+	int32_t verticesPerThreadBlock=128;
 
 	numBlocks.x = ceil((float)custing.nv/(float)verticesPerThreadBlock);
 
@@ -442,7 +599,7 @@ void connectComponentsMainLocal(cuStinger& custing, void* func_meta_data)
 
 		copyArrayHostToDevice(&hostCCData,deviceCCData,1, sizeof(connectedComponentsData));
 
-		allVerticesInGraphOneVertexPerThreadBlock<<<numBlocks, threadsPerBlock>>>(custing.devicePtr(),deviceCCData,dswapLocal,verticesPerThreadBlock);
+		allVerticesInGraphOneVertexPerThreadBlockBAA<<<numBlocks, threadsPerBlock>>>(custing.devicePtr(),deviceCCData,dswapLocal,verticesPerThreadBlock);
 		allVerticesInGraphParallelVertexPerThreadBlock<<<numBlocks, threadsPerBlock>>>(custing.devicePtr(),deviceCCData,dshortcut,verticesPerThreadBlock);
 		allVerticesInGraphParallelVertexPerThreadBlock<<<numBlocks, threadsPerBlock>>>(custing.devicePtr(),deviceCCData,dshortcut,verticesPerThreadBlock);
 		allVerticesInGraphParallelVertexPerThreadBlock<<<numBlocks, threadsPerBlock>>>(custing.devicePtr(),deviceCCData,dcount,verticesPerThreadBlock);

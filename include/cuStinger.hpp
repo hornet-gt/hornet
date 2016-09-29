@@ -116,8 +116,8 @@ public:
 	void initEdgeDataPointers();
 
 
-	void copyHostToDevice();
-	void copyDeviceToHost(); 
+	// void copyHostToDevice();
+	// void copyDeviceToHost(); 
 
 	void freecuStinger();
 

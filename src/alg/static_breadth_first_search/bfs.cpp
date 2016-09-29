@@ -10,7 +10,6 @@
 #include "update.hpp"
 #include "cuStinger.hpp"
 
-
 #define CUDA(call, ...) do {                        \
         cudaError_t _e = (call);                    \
         if (_e == cudaSuccess) break;               \
@@ -25,6 +24,8 @@ typedef void (*cus_kernel_call)(cuStinger& custing, void* func_meta_data);
 void bfsMain(cuStinger& custing, void* func_meta_data);
 void connectComponentsMain(cuStinger& custing, void* func_meta_data);
 void connectComponentsMainLocal(cuStinger& custing, void* func_meta_data);
+
+void oneMoreMain(cuStinger& custing, void* func_meta_data);
 
 int main(const int argc, char *argv[]){
 	int device=0;
@@ -81,6 +82,11 @@ int main(const int argc, char *argv[]){
 
 	call_kernel = connectComponentsMainLocal;
 	call_kernel(custing,NULL);
+
+	call_kernel = oneMoreMain;
+	call_kernel(custing,NULL);
+
+
 
 	custing.freecuStinger();
 

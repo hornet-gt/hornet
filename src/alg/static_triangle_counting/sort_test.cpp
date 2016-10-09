@@ -26,19 +26,8 @@ using namespace std;
         return -1;                                  \
     } while (0)
 
-void callDeviceNewTriangles(cuStinger& custing, BatchUpdate& bu,
-    triangle_t * const __restrict__ outPutTriangles, const int threads_per_block,
-    const int number_blocks, const int shifter, const int thread_blocks, const int blockdim,
-    triangle_t * const __restrict__ h_triangles, triangle_t * const __restrict__ h_triangles_t);
-
-void sortBUD(length_t nv, BatchUpdate& bu,	const int blockdim, 
-	length_t * const __restrict__ d_boff, vertexId_t * const __restrict__ d_bind);
-
-void initHostTriangleArray(triangle_t* h_triangles, vertexId_t nv){	
-	for(vertexId_t sd=0; sd<(nv);sd++){
-		h_triangles[sd]=0;
-	}
-}
+void testSort(length_t nv, BatchUpdate& bu, const int blockdim);
+void testmgpusort();
 
 //RNG using Lehmer's Algorithm
 #define RNG_A 16807
@@ -61,59 +50,11 @@ double getRand(){
     return seed * (double) RNG_SCALE;
 }
 
-// Search a value in a range of sorted values
-template<typename T>
-T* search(T* start, int32_t size, T value)
-{
-	for(unsigned i = 0; i < size; ++i) {
-		if(start[i] == value) {
-			return start + i;
-		}
-	}
-	return NULL;
-
-	/*if(size == 1 && start[0] != value) {
-		return NULL;
-	}
-
-	if(start[size/2] > value) {
-		return search(start, size/2, value);
-	}
-	else if(start[size/2] < value) {
-		return search(start+size/2, ceil((float)size/2), value);
-	}
-	else if(start[size/2] == value) {
-		return start+size/2;
-	}
-	else {
-		return NULL;
-	}*/
-}
-
-int64_t sumTriangleArray(triangle_t* h_triangles, vertexId_t nv){	
-	int64_t sum=0;
-	for(vertexId_t sd=0; sd<(nv);sd++){
-	  sum+=h_triangles[sd];
-	}
-	return sum;
-}
-
-void printcuStingerUtility(cuStinger custing, bool allInfo){
-	length_t used,allocated;
-
-	used     =custing.getNumberEdgesUsed();
-	allocated=custing.getNumberEdgesAllocated();
-	if (allInfo)
-		cout << ", " << used << ", " << allocated << ", " << (float)used/(float)allocated; 	
-	else
-		cout << ", " << (float)used/(float)allocated;
-
-}
-
 void generateEdgeUpdates(length_t nv, length_t numEdges, vertexId_t* edgeSrc, vertexId_t* edgeDst){
 	for(int32_t e=0; e<numEdges; e++){
 		edgeSrc[e] = rand()%nv;
 		edgeDst[e] = rand()%nv;
+		printf("%d %d\n", edgeSrc[e], edgeDst[e]);
 	}
 }
 
@@ -140,79 +81,25 @@ void generateEdgeUpdatesRMAT(length_t nv, length_t numEdges, vertexId_t* edgeSrc
 
 int main(const int argc, char *argv[])
 {
+	testmgpusort();
 	int device=0;
     cudaSetDevice(device);
 	cudaDeviceProp prop;
 	cudaGetDeviceProperties(&prop, device);
 	init_timer();
  
-    length_t nv, ne,*off;
-    vertexId_t *adj;
     int isRmat=0;
-	int numEdges=10000;
+	int numEdges=10;
+	if(argc>1)
+		numEdges=atoi(argv[1]);
 	if(argc>2)
-		numEdges=atoi(argv[2]);
-	if(argc>3)
-		isRmat  =atoi(argv[3]);
+		isRmat  =atoi(argv[2]);
 	srand(100);
-	bool isDimacs,isSNAP;
-	string filename(argv[1]);
-	isDimacs = filename.find(".graph")==std::string::npos?false:true;
-	isSNAP   = filename.find(".txt")==std::string::npos?false:true;
-
-	if(isDimacs){
-	    readGraphDIMACS(argv[1],&off,&adj,&nv,&ne);
-	}
-	else if(isSNAP){
-	    readGraphSNAP(argv[1],&off,&adj,&nv,&ne);
-	}
-	else{ 
-		cout << "Unknown graph type" << endl;
-	}
-	cout << nv << ", " << ne;
 
 	cudaEvent_t ce_start,ce_stop;
 
-	cuStinger custing2(defaultInitAllocater,defaultUpdateAllocater);
-
-
-	cuStingerInitConfig cuInit;
-	cuInit.initState =eInitStateCSR;
-	cuInit.maxNV = nv+1;
-	cuInit.useVWeight = false;
-	cuInit.isSemantic = false;  // Use edge types and vertex types
-	cuInit.useEWeight = false;
-
-	// CSR data
-	cuInit.csrNV 			= nv;
-	cuInit.csrNE	   		= ne;
-	cuInit.csrOff 			= off;
-	cuInit.csrAdj 			= adj;
-	cuInit.csrVW 			= NULL;
-	cuInit.csrEW			= NULL;
-
-	start_clock(ce_start, ce_stop);
-	custing2.initializeCuStinger(cuInit);
-	// cout << "Allocation and Copy Time : " << end_clock(ce_start, ce_stop) << endl;
-	cout << ", " << end_clock(ce_start, ce_stop);
-
-	printcuStingerUtility(custing2, false);
-
-	triangle_t *d_triangles = NULL;
-	CUDA(cudaMalloc(&d_triangles, sizeof(triangle_t)*(nv+1)));
-	triangle_t* h_triangles = (triangle_t *) malloc (sizeof(triangle_t)*(nv+1));	
-	initHostTriangleArray(h_triangles,nv);
-
-	int tsp = 1; // Threads per intersection
-	int shifter = 0; // left shift to multiply threads per intersection
 	int sps = 128; // Block size
-	int nbl = sps/tsp; // Number of concurrent intersections in block
-	int blocks = 16000; // Number of blocks
-
-	CUDA(cudaMemcpy(d_triangles, h_triangles, sizeof(triangle_t)*(nv+1), cudaMemcpyHostToDevice));
-	callDeviceAllTriangles(custing2, d_triangles, tsp,nbl,shifter,blocks, sps);
-	CUDA(cudaMemcpy(h_triangles, d_triangles, sizeof(triangle_t)*(nv+1), cudaMemcpyDeviceToHost));
-	int64_t sumDevice = sumTriangleArray(h_triangles,nv);
+	int nv = 5;
 
 	// ###                 #
 	//  #                  #
@@ -228,7 +115,7 @@ int main(const int argc, char *argv[])
 	// #  #  ##    ####        #     #  #  #  #  #  #   #
 	// #  #   ##   ####         ##    ##    ###  #  #    ##
 	// =========================================================================
-	{
+	/*{
 		tic();
 		// Making a new batch of removed edges
 		length_t numEdgesL = numEdges; // Number of edges to remove
@@ -302,27 +189,18 @@ int main(const int argc, char *argv[])
 		CUDA(cudaMemcpy(h_triangles_t, d_triangles_t, sizeof(triangle_t)*(nv+1), cudaMemcpyDeviceToHost));
 		printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, toc());
 
-		// // Insert them edges now
+		// Insert them edges now
 		BatchUpdate bu1(bud1);
-		// tic();
-		length_t allocs;
-		// start_clock(ce_start, ce_stop);
-		// custingTest.edgeInsertions(bu1,allocs);
-		// printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, toc());
-		// printf("%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
-
-		// tic();
-		// // Sort the new edges
-		// vertexModification(bu1, nv, custingTest);
-		// printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, toc());
-		
-		vertexId_t* d_bind = (vertexId_t*) allocDeviceArray(numEdgesL*2, sizeof(vertexId_t));
-		length_t* d_boff = (length_t*) allocDeviceArray(nv+1, sizeof(length_t));
-		sortBUD(nv, bu1, sps, d_boff, d_bind);
 		tic();
+		length_t allocs;
 		start_clock(ce_start, ce_stop);
-		custingTest.edgeInsertionsSorted(d_boff, d_bind, nv, allocs);
+		custingTest.edgeInsertions(bu1,allocs);
+		printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, toc());
 		printf("%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
+
+		tic();
+		// Sort the new edges
+		vertexModification(bu1, nv, custingTest);
 		printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, toc());
 
 		// Count the new triangles now
@@ -342,7 +220,7 @@ int main(const int argc, char *argv[])
 		int64_t sumDevice_new_t = sumTriangleArray(h_triangles_new_t,nv);
 		printf("old %ld, new %ld\n", sumDevice, sumDevice_t);
 		printf("============ should be %ld\n", (sumDevice - sumDevice_t)/3);
-	}
+	}*/
 	// =========================================================================
 
 
@@ -358,66 +236,10 @@ int main(const int argc, char *argv[])
 	}
 	BatchUpdate bu(bud);
 
-	// custing2.checkDuplicateEdges();
-	// custing2.verifyEdgeInsertions(bu);
-
-	start_clock(ce_start, ce_stop);
-	length_t allocs;
-		custing2.edgeInsertions(bu, allocs);
-	// cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
-	cout << ", " << end_clock(ce_start, ce_stop);
-
-	/*
-	
-	#  #           #   #      #    #             #        #  #
-	####           #         # #                 #        #  #
-	####   ##    ###  ##     #    ##     ##    ###        #  #
-	#  #  #  #  #  #   #    ###    #    # ##  #  #        #  #
-	#  #  #  #  #  #   #     #     #    ##    #  #         ##
-	#  #   ##    ###  ###    #    ###    ##    ###         ##
-	============================================================================
-	*/
-
-	vertexModification(bu, nv, custing2);
-
-	// ###                                  #          ###          #
-	// #  #                                 #           #
-	// #  #   ##    ##    ##   #  #  ###   ###          #    ###   ##
-	// ###   # ##  #     #  #  #  #  #  #   #           #    #  #   #
-	// # #   ##    #     #  #  #  #  #  #   #           #    #      #
-	// #  #   ##    ##    ##    ###  #  #    ##         #    #     ###
-
-	triangle_t *d_triangles_new = NULL;
-	CUDA(cudaMalloc(&d_triangles_new, sizeof(triangle_t)*(nv+1)));
-	triangle_t* h_triangles_new = (triangle_t *) malloc (sizeof(triangle_t)*(nv+1));	
-	initHostTriangleArray(h_triangles_new,nv);
-
-	CUDA(cudaMemcpy(d_triangles_new, h_triangles_new, sizeof(triangle_t)*(nv+1), cudaMemcpyHostToDevice));
-	// callDeviceNewTriangles(custing2, bu, d_triangles_new, tsp,nbl,shifter,blocks, sps);
-	CUDA(cudaMemcpy(h_triangles_new, d_triangles_new, sizeof(triangle_t)*(nv+1), cudaMemcpyDeviceToHost));
-
-	// =========================================================================
-
-
-	// custing2.checkDuplicateEdges();	
-	// custing2.verifyEdgeInsertions(bu);
-
-	printcuStingerUtility(custing2, false);
-
-	start_clock(ce_start, ce_stop);
-		custing2.edgeDeletions(bu);
-	cout << ", " << end_clock(ce_start, ce_stop);
-	// cout << "Update time     : " << end_clock(ce_start, ce_stop) << endl;
-	custing2.verifyEdgeDeletions(bu);
-
-	printcuStingerUtility(custing2, false);
-
-	custing2.freecuStinger();
+	testSort(nv, bu, sps);
 
 	cout << endl;
 
-	free(off);
-	free(adj);
     return 0;	
 }       
 

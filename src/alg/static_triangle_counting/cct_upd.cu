@@ -9,7 +9,9 @@
 #include "cct.hpp"
 #include "utils.hpp"
 
-// #include "kernel_mergesort.hxx"
+#include "kernel_segsort.hxx"
+
+using namespace mgpu;
 
 __device__ void conditionalWarpReduce(volatile triangle_t* sharedData,int blockSize,int dataLength){
   if(blockSize >= dataLength){
@@ -466,12 +468,35 @@ __global__ void initDeviceArray(T* mem, int32_t size, T value)
 	}
 }
 
+__device__ void isort(vertexId_t* const __restrict__ u, length_t ell) {
+	vertexId_t *v;
+	vertexId_t w;
+	for (int i = 0; i < ell; ++i) {
+		v = u+i;
+		while (v != u && *v < *(v-1)) {
+			w = *v;
+			*v = *(v-1);
+			*(v-1) = w;
+			v--;
+		}
+	}
+}
+
+__global__ void iSortAll(vertexId_t* const __restrict__ ind,
+	length_t* const __restrict__ off, length_t nv) {
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	if (tid < nv) {
+		isort( &ind[ off[tid] ], off[tid+1] - off[tid]);
+	}
+}
+
 void callDeviceNewTriangles(cuStinger& custing, BatchUpdate& bu, 
     triangle_t * const __restrict__ outPutTriangles, const int threads_per_block,
     const int number_blocks, const int shifter, const int thread_blocks, const int blockdim,
     triangle_t * const __restrict__ h_triangles, triangle_t * const __restrict__ h_triangles_t){
 
 	cudaEvent_t ce_start,ce_stop;
+	// mgpu::standard_context_t context;
 
 	dim3 numBlocks(1, 1);
 
@@ -530,10 +555,12 @@ void callDeviceNewTriangles(cuStinger& custing, BatchUpdate& bu,
 
 	// Sort the added edges
 	start_clock(ce_start, ce_stop);
-	thrust::device_ptr<vertexId_t> dp_bind(d_bind);
-	thrust::device_ptr<vertexId_t> dp_bseg(d_bseg);
-	thrust::stable_sort_by_key(dp_bind, dp_bind + batchsize, dp_bseg);
-	thrust::stable_sort_by_key(dp_bseg, dp_bseg + batchsize, dp_bind);
+	// thrust::device_ptr<vertexId_t> dp_bind(d_bind);
+	// thrust::device_ptr<vertexId_t> dp_bseg(d_bseg);
+	// thrust::stable_sort_by_key(dp_bind, dp_bind + batchsize, dp_bseg);
+	// thrust::stable_sort_by_key(dp_bseg, dp_bseg + batchsize, dp_bind);
+	numBlocks.x = ceil((float)nv/(float)blockdim);
+	iSortAll<<<numBlocks,blockdim>>>(d_bind, d_boff, nv);
 	printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
 	_DEBUG(
 		vertexId_t* h_bind = (vertexId_t*) allocHostArray(batchsize, sizeof(vertexId_t));///
@@ -579,7 +606,7 @@ void callDeviceNewTriangles(cuStinger& custing, BatchUpdate& bu,
 		for (int i = 0; i < nv; ++i)
 		{
 			if (h_triangles[i] != h_triangles_t[i] + h_1tri[i] - h_2tri[i] + h_3tri[i]){
-				printf("wrong vertex set %d + %d instead of %d\n", h_triangles_t[i], h_1tri[i] - h_2tri[i] + h_3tri[i], h_triangles[i]);
+				printf("wrong vertex set for %d, %d + %d instead of %d\n",i, h_triangles_t[i], h_1tri[i] - h_2tri[i] + h_3tri[i], h_triangles[i]);
 				return;
 			}
 		}
@@ -588,3 +615,147 @@ void callDeviceNewTriangles(cuStinger& custing, BatchUpdate& bu,
 	printf("============ new tri = %d\n", (sum1/2 - sum2/2 + sum3/6)*2);
 }
 
+void testSort(length_t nv, BatchUpdate& bu,	const int blockdim){
+
+	cudaEvent_t ce_start,ce_stop;
+	length_t batchsize = *(bu.getHostBUD()->getBatchSize());
+
+	dim3 numBlocks(1, 1);
+
+	// iSort approach =============================================
+	start_clock(ce_start, ce_stop);
+	vertexId_t* d_bind = (vertexId_t*) allocDeviceArray(batchsize, sizeof(vertexId_t));
+	vertexId_t* d_bseg = (vertexId_t*) allocDeviceArray(batchsize, sizeof(vertexId_t));
+	length_t* d_boff = (length_t*) allocDeviceArray(nv+1, sizeof(length_t));
+	length_t* d_ell = (length_t*) allocDeviceArray(nv+1, sizeof(length_t));
+
+	numBlocks.x = ceil((float)nv/(float)blockdim);
+	initDeviceArray<<<numBlocks,blockdim>>>(d_ell, nv, 0);
+
+	numBlocks.x = ceil((float)batchsize/(float)blockdim);
+	calcEdgelistLengths<<<numBlocks,blockdim>>>(bu.getDeviceBUD()->devicePtr(), d_ell);
+
+	thrust::device_ptr<vertexId_t> dp_ell(d_ell);
+	thrust::device_ptr<vertexId_t> dp_boff(d_boff);
+	thrust::exclusive_scan(dp_ell, dp_ell+nv+1, dp_boff);
+
+	copyIndices<<<numBlocks,blockdim>>>(bu.getDeviceBUD()->devicePtr(), d_bind, d_bseg, d_boff, d_ell);
+
+	numBlocks.x = ceil((float)nv/(float)blockdim);
+	iSortAll<<<numBlocks,blockdim>>>(d_bind, d_boff, nv);
+	printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
+
+
+	// MGPU segsort approach ========================================
+	start_clock(ce_start, ce_stop);
+
+
+	// mgpu::segmented_sort(d_bind, batchsize, d_boff+1, nv-2, mgpu::less_t<int>(), context);
+
+	printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
+
+
+	// Thrust approach =============================================
+	start_clock(ce_start, ce_stop);
+
+	thrust::device_ptr<vertexId_t> dp_bind(bu.getDeviceBUD()->getDst());
+	thrust::device_ptr<vertexId_t> dp_bseg(bu.getDeviceBUD()->getSrc());
+	thrust::stable_sort_by_key(dp_bind, dp_bind + batchsize, dp_bseg);
+	thrust::stable_sort_by_key(dp_bseg, dp_bseg + batchsize, dp_bind);	
+
+	length_t* d_tell = (length_t*) allocDeviceArray(nv+1, sizeof(length_t));
+	length_t* d_tboff = (length_t*) allocDeviceArray(nv+1, sizeof(length_t));
+
+	numBlocks.x = ceil((float)nv/(float)blockdim);
+	initDeviceArray<<<numBlocks,blockdim>>>(d_tell, nv, 0);
+
+	numBlocks.x = ceil((float)batchsize/(float)blockdim);
+	calcEdgelistLengths<<<numBlocks,blockdim>>>(bu.getDeviceBUD()->devicePtr(), d_tell);
+
+	thrust::device_ptr<vertexId_t> dp_tell(d_tell);
+	thrust::device_ptr<vertexId_t> dp_tboff(d_tboff);
+	thrust::exclusive_scan(dp_tell, dp_tell+nv+1, dp_tboff);
+	printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
+
+
+	// Correctness ==============================================
+
+	// From iSort 
+	vertexId_t* h_bind = (vertexId_t*) allocHostArray(batchsize, sizeof(vertexId_t));
+	vertexId_t* h_bseg = (vertexId_t*) allocHostArray(batchsize, sizeof(vertexId_t));
+	length_t* h_boff = (length_t*) allocHostArray(nv+1, sizeof(length_t));
+
+	copyArrayDeviceToHost(d_bind, h_bind, batchsize, sizeof(vertexId_t));
+	copyArrayDeviceToHost(d_bseg, h_bseg, batchsize, sizeof(vertexId_t));
+	copyArrayDeviceToHost(d_boff, h_boff, nv, sizeof(length_t));
+
+	// From Thrust
+	vertexId_t* h_tbind = (vertexId_t*) allocHostArray(batchsize, sizeof(vertexId_t));
+	vertexId_t* h_tbseg = (vertexId_t*) allocHostArray(batchsize, sizeof(vertexId_t));
+	length_t* h_tboff = (length_t*) allocHostArray(nv+1, sizeof(length_t));
+
+	copyArrayDeviceToHost(bu.getDeviceBUD()->getDst(), h_tbind, batchsize, sizeof(vertexId_t));
+	copyArrayDeviceToHost(bu.getDeviceBUD()->getSrc(), h_tbseg, batchsize, sizeof(vertexId_t));
+	copyArrayDeviceToHost(d_tboff, h_tboff, nv, sizeof(length_t));
+
+	// Compare
+	for (int i = 0; i < nv; ++i)
+	{
+		if (h_tboff[i] != h_boff[i])
+		{
+			printf("h_tboff = %d\t h_boff = %d\n", h_tboff[i], h_boff[i]);
+		}
+	}
+
+	for (int i = 0; i < batchsize; ++i)
+	{
+		if (h_tbseg[i] != h_bseg[i])
+		{
+			printf("h_tbseg = %d\t h_bseg = %d\n", h_tbseg[i], h_bseg[i]);
+		}
+		if (h_tbind[i] != h_bind[i])
+		{
+			printf("h_tbind = %d\t h_bind = %d\n", h_tbind[i], h_bind[i]);
+		}
+	}
+}
+
+void testmgpusort(){
+	mgpu::standard_context_t context;
+
+	int count = 1000;
+      int num_segments = div_up(count, 100);
+      mem_t<int> segs = fill_random(0, count - 1, num_segments, true, context);
+      std::vector<int> segs_host = from_mem(segs);
+      mem_t<int> data = fill_random(0, 100000, count, false, context);
+      mem_t<int> values(count, context);
+      std::vector<int> host_data = from_mem(data);
+      segmented_sort(data.data(), count, segs.data(), num_segments,
+        less_t<int>(), context);
+}
+
+void sortBUD(length_t nv, BatchUpdate& bu,	const int blockdim, 
+	length_t * const __restrict__ d_boff, vertexId_t * const __restrict__ d_bind)
+{
+	length_t batchsize = *(bu.getHostBUD()->getBatchSize());
+
+	dim3 numBlocks(1, 1);
+
+	vertexId_t* d_bseg = (vertexId_t*) allocDeviceArray(batchsize, sizeof(vertexId_t));
+	length_t* d_ell = (length_t*) allocDeviceArray(nv+1, sizeof(length_t));
+
+	numBlocks.x = ceil((float)nv/(float)blockdim);
+	initDeviceArray<<<numBlocks,blockdim>>>(d_ell, nv, 0);
+
+	numBlocks.x = ceil((float)batchsize/(float)blockdim);
+	calcEdgelistLengths<<<numBlocks,blockdim>>>(bu.getDeviceBUD()->devicePtr(), d_ell);
+
+	thrust::device_ptr<vertexId_t> dp_ell(d_ell);
+	thrust::device_ptr<vertexId_t> dp_boff(d_boff);
+	thrust::exclusive_scan(dp_ell, dp_ell+nv+1, dp_boff);
+
+	copyIndices<<<numBlocks,blockdim>>>(bu.getDeviceBUD()->devicePtr(), d_bind, d_bseg, d_boff, d_ell);
+
+	numBlocks.x = ceil((float)nv/(float)blockdim);
+	iSortAll<<<numBlocks,blockdim>>>(d_bind, d_boff, nv);
+}

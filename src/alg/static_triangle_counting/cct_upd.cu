@@ -5,6 +5,7 @@
 
 #include <thrust/device_ptr.h>
 #include <thrust/sort.h>
+#include <thrust/remove.h>
 
 #include "cct.hpp"
 #include "utils.hpp"
@@ -154,16 +155,22 @@ __device__ void intersectCount(const length_t uLength, const length_t vLength,
     vertexId_t const * const __restrict__ uNodes, vertexId_t const * const __restrict__ vNodes,
     length_t * const __restrict__ uCurr, length_t * const __restrict__ vCurr,
     int * const __restrict__ workIndex, int * const __restrict__ workPerThread,
-    int * const __restrict__ triangles, int found)
+    int * const __restrict__ triangles, int found,
+    vertexId_t const * const __restrict__ uMask, vertexId_t const * const __restrict__ vMask,
+    const bool uMasked, const bool vMasked)
 {
   if((*uCurr < uLength) && (*vCurr < vLength)){
     int comp;
+    int vmask;
+    int umask;
     while(*workIndex < *workPerThread){
+    	vmask = (vMasked) ? vMask[*vCurr] : 0;
+        umask = (uMasked) ? uMask[*uCurr] : 0;
 		comp = uNodes[*uCurr] - vNodes[*vCurr];
-		*triangles += (comp == 0);
-		*uCurr += (comp <= 0);
-		*vCurr += (comp >= 0);
-		*workIndex += (comp == 0) + 1;
+		*triangles += (comp == 0 && !umask && !vmask);
+		*uCurr += (comp <= 0 && !vmask) || umask;
+		*vCurr += (comp >= 0 && !umask) || vmask;
+		*workIndex += (comp == 0&& !umask && !vmask) + 1;
 
 		if((*vCurr == vLength) || (*uCurr == uLength)){
 			break;
@@ -177,7 +184,9 @@ __device__ void intersectCount(const length_t uLength, const length_t vLength,
 // u_len < v_len
 __device__ triangle_t count_triangles(vertexId_t u, vertexId_t const * const __restrict__ u_nodes, length_t u_len,
     vertexId_t v, vertexId_t const * const __restrict__ v_nodes, length_t v_len, int threads_per_block,
-    volatile vertexId_t* __restrict__ firstFound, int tId)
+    volatile vertexId_t* __restrict__ firstFound, int tId,
+    vertexId_t const * const __restrict__ uMask, vertexId_t const * const __restrict__ vMask,
+    const bool uMasked, const bool vMasked)
 {
 	// Partitioning the work to the multiple thread of a single GPU processor. The threads should get a near equal number of the elements to Tersect - this number will be off by 1.
 	int work_per_thread, diag_id;
@@ -202,26 +211,34 @@ __device__ triangle_t count_triangles(vertexId_t u, vertexId_t const * const __r
 	      firstFound[tId-1] = sum;
 	    triangles += sum;
 	    intersectCount(u_len, v_len, u_nodes, v_nodes, &u_curr, &v_curr,
-	        &work_index, &work_per_thread, &triangles, firstFound[tId]);
+	        &work_index, &work_per_thread, &triangles, firstFound[tId], 
+	        uMask, vMask, uMasked, vMasked);
 	}
 	return triangles;
 }
 
+// template <bool uMasked, bool vMasked>
 __device__ void intersectCount_nc(const length_t uLength, const length_t vLength,
     vertexId_t const * const __restrict__ uNodes, vertexId_t const * const __restrict__ vNodes,
     length_t * const __restrict__ uCurr, length_t * const __restrict__ vCurr,
     int * const __restrict__ workIndex, int * const __restrict__ workPerThread,
-    int * const __restrict__ triangles, int found, triangle_t * const __restrict__ outPutTriangles)
+    int * const __restrict__ triangles, int found, triangle_t * const __restrict__ outPutTriangles, 
+    vertexId_t const * const __restrict__ uMask, vertexId_t const * const __restrict__ vMask,
+    const bool uMasked, const bool vMasked)
 {
   if((*uCurr < uLength) && (*vCurr < vLength)){
     int comp;
+    int vmask;
+    int umask;
     while(*workIndex < *workPerThread){
+    	vmask = (vMasked) ? vMask[*vCurr] : 0;
+        umask = (uMasked) ? uMask[*uCurr] : 0;
 		comp = uNodes[*uCurr] - vNodes[*vCurr];
-		*triangles += (comp == 0);
-		if (comp == 0) atomicAdd(outPutTriangles + uNodes[*uCurr], 1);
-		*uCurr += (comp <= 0);
-		*vCurr += (comp >= 0);
-		*workIndex += (comp == 0) + 1;
+		*triangles += (comp == 0 && !umask && !vmask);
+		if (comp == 0 && !umask && !vmask) atomicAdd(outPutTriangles + uNodes[*uCurr], 1);
+		*uCurr += (comp <= 0 && !vmask) || umask;
+		*vCurr += (comp >= 0 && !umask) || vmask;
+		*workIndex += (comp == 0&& !umask && !vmask) + 1;
 
 		if((*vCurr == vLength) || (*uCurr == uLength)){
 			break;
@@ -235,7 +252,9 @@ __device__ void intersectCount_nc(const length_t uLength, const length_t vLength
 // u_len < v_len
 __device__ triangle_t count_triangles_nc(vertexId_t u, vertexId_t const * const __restrict__ u_nodes, length_t u_len,
     vertexId_t v, vertexId_t const * const __restrict__ v_nodes, length_t v_len, int threads_per_block,
-    volatile vertexId_t* __restrict__ firstFound, int tId, triangle_t * const __restrict__ outPutTriangles)
+    volatile vertexId_t* __restrict__ firstFound, int tId, triangle_t * const __restrict__ outPutTriangles,
+    vertexId_t const * const __restrict__ uMask, vertexId_t const * const __restrict__ vMask,
+    const bool uMasked, const bool vMasked)
 {
 	// Partitioning the work to the multiple thread of a single GPU processor. The threads should get a near equal number of the elements to Tersect - this number will be off by 1.
 	int work_per_thread, diag_id;
@@ -260,7 +279,8 @@ __device__ triangle_t count_triangles_nc(vertexId_t u, vertexId_t const * const 
 	      firstFound[tId-1] = sum;
 	    triangles += sum;
 	    intersectCount_nc(u_len, v_len, u_nodes, v_nodes, &u_curr, &v_curr,
-	        &work_index, &work_per_thread, &triangles, firstFound[tId], outPutTriangles);
+	        &work_index, &work_per_thread, &triangles, firstFound[tId], outPutTriangles, 
+	        uMask, vMask, uMasked, vMasked);
 	}
 	return triangles;
 }
@@ -289,6 +309,10 @@ __global__ void devicecuStingerNewTriangles(cuStinger* custing, BatchUpdateData 
 	int tx = threadIdx.x;
  	length_t this_mp_start, this_mp_stop;
 
+	length_t *d_off = bud->getOffsets();
+	vertexId_t * d_ind = bud->getDst();
+	vertexId_t * d_seg = bud->getSrc();
+
 	const int blockSize = blockDim.x;
 	workPerBlock(batchSize, &this_mp_start, &this_mp_stop, blockSize);
 
@@ -297,8 +321,12 @@ __global__ void devicecuStingerNewTriangles(cuStinger* custing, BatchUpdateData 
 	length_t adj_offset=tx>>shifter;
 	length_t* firstFoundPos=firstFound + (adj_offset<<shifter);
 	for (length_t edge = this_mp_start+adj_offset; edge < this_mp_stop; edge+=number_blocks){
-		vertexId_t src = bud->getSrc()[edge];
-		vertexId_t dest= bud->getDst()[edge];
+		if (bud->getIndDuplicate()[edge]==1) // this means it's a duplicate edge
+			continue;
+
+		vertexId_t src = d_seg[edge];
+		vertexId_t dest= d_ind[edge];
+
 		length_t srcLen=custing->dVD->getUsed()[src];
 		length_t destLen=custing->dVD->getUsed()[dest];
 
@@ -318,7 +346,8 @@ __global__ void devicecuStingerNewTriangles(cuStinger* custing, BatchUpdateData 
 		triangle_t tCount = count_triangles_nc(small, small_ptr, small_len,
 								large,large_ptr, large_len,
 								threads_per_block,firstFoundPos,
-								tx%threads_per_block, outPutTriangles);
+								tx%threads_per_block, outPutTriangles,
+								NULL, NULL, false, false);
 
 		atomicAdd(outPutTriangles + src, tCount);
 		atomicAdd(outPutTriangles + dest, tCount);
@@ -335,15 +364,18 @@ T sumTriangleArrayTEST(T* h_triangles, vertexId_t nv){
 	return sum;
 }
 
-__global__ void deviceBUThreeTriangles (const length_t batchsize,
-    length_t const * const __restrict__ d_off, vertexId_t const * const __restrict__ d_ind,
-    vertexId_t const * const __restrict__ d_seg,
+__global__ void deviceBUThreeTriangles (BatchUpdateData *bud,
     triangle_t * const __restrict__ outPutTriangles, const int threads_per_block,
     const int number_blocks, const int shifter)
 {
+	length_t batchsize = *(bud->getBatchSize());
 	// Partitioning the work to the multiple thread of a single GPU processor. The threads should get a near equal number of the elements to intersect - this number will be off by no more than one.
 	int tx = threadIdx.x;
  	length_t this_mp_start, this_mp_stop;
+
+	length_t *d_off = bud->getOffsets();
+	vertexId_t * d_ind = bud->getDst();
+	vertexId_t * d_seg = bud->getSrc();
 
 	const int blockSize = blockDim.x;
 	workPerBlock(batchsize, &this_mp_start, &this_mp_stop, blockSize);
@@ -353,6 +385,9 @@ __global__ void deviceBUThreeTriangles (const length_t batchsize,
 	length_t adj_offset=tx>>shifter;
 	length_t* firstFoundPos=firstFound + (adj_offset<<shifter);
 	for (length_t edge = this_mp_start+adj_offset; edge < this_mp_stop; edge+=number_blocks){
+		if (bud->getIndDuplicate()[edge]) // this means it's a duplicate edge
+			continue;
+			
 		vertexId_t src = d_seg[edge];
 		vertexId_t dest= d_ind[edge];
 		length_t srcLen= d_off[src+1] - d_off[src];
@@ -370,26 +405,31 @@ __global__ void deviceBUThreeTriangles (const length_t batchsize,
 
         vertexId_t const * const small_ptr = d_ind + d_off[small];
         vertexId_t const * const large_ptr = d_ind + d_off[large];
+        vertexId_t const * const small_mask_ptr = bud->getIndDuplicate() + d_off[small];
+        vertexId_t const * const large_mask_ptr = bud->getIndDuplicate() + d_off[large];
 
 		triangle_t tCount = count_triangles(small, small_ptr, small_len,
 								large,large_ptr, large_len,
 								threads_per_block,firstFoundPos,
-								tx%threads_per_block);
+								tx%threads_per_block,
+								small_mask_ptr, large_mask_ptr, true, true);
 
 		atomicAdd(outPutTriangles + src, tCount);
 		__syncthreads();
 	}
 }
 
-__global__ void deviceBUTwoCUOneTriangles (cuStinger* custing, const length_t batchsize,
-    length_t const * const __restrict__ d_off, vertexId_t const * const __restrict__ d_ind,
-    vertexId_t const * const __restrict__ d_seg,
+__global__ void deviceBUTwoCUOneTriangles (BatchUpdateData *bud, cuStinger* custing, const length_t batchsize,
     triangle_t * const __restrict__ outPutTriangles, const int threads_per_block,
     const int number_blocks, const int shifter)
 {
 	// Partitioning the work to the multiple thread of a single GPU processor. The threads should get a near equal number of the elements to intersect - this number will be off by no more than one.
 	int tx = threadIdx.x;
  	vertexId_t this_mp_start, this_mp_stop;
+
+	length_t *d_off = bud->getOffsets();
+	vertexId_t * d_ind = bud->getDst();
+	vertexId_t * d_seg = bud->getSrc();
 
 	const int blockSize = blockDim.x;
 	workPerBlock(batchsize, &this_mp_start, &this_mp_stop, blockSize);
@@ -399,8 +439,11 @@ __global__ void deviceBUTwoCUOneTriangles (cuStinger* custing, const length_t ba
 	length_t adj_offset=tx>>shifter;
 	length_t* firstFoundPos=firstFound + (adj_offset<<shifter);
 	for (length_t edge = this_mp_start+adj_offset; edge < this_mp_stop; edge+=number_blocks){
-		vertexId_t src = d_seg[edge];
-		vertexId_t dest= d_ind[edge];
+		if (bud->getIndDuplicate()[edge]) // this means it's a duplicate edge
+			continue;
+			
+		vertexId_t src = bud->getSrc()[edge];
+		vertexId_t dest= bud->getDst()[edge];
 		length_t srcLen= d_off[src+1] - d_off[src];
 		length_t destLen=custing->dVD->getUsed()[dest];
 
@@ -409,6 +452,7 @@ __global__ void deviceBUTwoCUOneTriangles (cuStinger* custing, const length_t ba
 			continue;
 
         vertexId_t const * const src_ptr = d_ind + d_off[src];
+        vertexId_t const * const src_mask_ptr = bud->getIndDuplicate() + d_off[src];
         vertexId_t const * const dst_ptr = custing->dVD->getAdj()[dest]->dst;
 
 		bool sourceSmaller = (srcLen<destLen);
@@ -418,12 +462,15 @@ __global__ void deviceBUTwoCUOneTriangles (cuStinger* custing, const length_t ba
         length_t large_len = sourceSmaller? destLen : srcLen;
 
         vertexId_t const * const small_ptr = sourceSmaller? src_ptr : dst_ptr;
+        vertexId_t const * const small_mask_ptr = sourceSmaller? src_mask_ptr : NULL;
         vertexId_t const * const large_ptr = sourceSmaller? dst_ptr : src_ptr;
+        vertexId_t const * const large_mask_ptr = sourceSmaller? NULL : src_mask_ptr;
 
 		triangle_t tCount = count_triangles_nc(small, small_ptr, small_len,
 								large,large_ptr, large_len,
 								threads_per_block,firstFoundPos,
-								tx%threads_per_block, outPutTriangles);
+								tx%threads_per_block, outPutTriangles,
+								small_mask_ptr, large_mask_ptr, sourceSmaller, !sourceSmaller);
 
 		atomicAdd(outPutTriangles + src, tCount);
 		atomicAdd(outPutTriangles + dest, tCount);
@@ -501,108 +548,64 @@ void callDeviceNewTriangles(cuStinger& custing, BatchUpdate& bu,
 	dim3 numBlocks(1, 1);
 
 	length_t batchsize = *(bu.getHostBUD()->getBatchSize());
+	length_t nv = *(bu.getHostBUD()->getNumVertices());
+
+	// Now compact the bud to remove duplicate edges
+		/*thrust::device_ptr<vertexId_t> dp_dup(bu.getDeviceBUD()->getIndDuplicate());
+		int *new_end = thrust::raw_pointer_cast(thrust::remove_if(dp_bind, dp_bind + batchsize, dp_dup, thrust::identity<int>()));
+		thrust::remove_if(dp_bseg, dp_bseg + batchsize, dp_dup, thrust::identity<int>());
+		printf("new batch size = %d\n", new_end-d_bind);
+		batchsize = new_end-d_bind;
+		// Calculate edgelist lengths
+		numBlocks.x = ceil((float)nv/(float)blockdim);
+		initDeviceArray<<<numBlocks,blockdim>>>(d_ell, nv, 0);
+
+		numBlocks.x = ceil((float)batchsize/(float)blockdim);
+		calcEdgelistLengths<<<numBlocks,blockdim>>>(bu.getDeviceBUD()->devicePtr(), d_ell);
+
+		// Calculate offsets by exclusive scan
+		thrust::exclusive_scan(dp_ell, dp_ell+nv+1, dp_boff);*/
 
 	// Calculate all new traingles regardless of repetition
-	numBlocks.x = ceil((float)(batchsize*threads_per_block)/(float)blockdim);
-	start_clock(ce_start, ce_stop);
-	devicecuStingerNewTriangles<<<numBlocks, blockdim>>>(custing.devicePtr(), bu.getDeviceBUD()->devicePtr(), outPutTriangles, threads_per_block,number_blocks,shifter);
-	printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
-
-	// Convert BUD to CSR
-	// ==================
-	length_t nv = custing.nv;
-
-	// Allocate bud offset array and edgelist length
-	length_t* d_boff = (length_t*) allocDeviceArray(nv+1, sizeof(length_t));
-	length_t* d_ell = (length_t*) allocDeviceArray(nv+1, sizeof(length_t));
-
-	// Calculate edgelist lengths
-	numBlocks.x = ceil((float)nv/(float)blockdim);
-	start_clock(ce_start, ce_stop);
-	initDeviceArray<<<numBlocks,blockdim>>>(d_ell, nv, 0);
-	printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
-
-	numBlocks.x = ceil((float)batchsize/(float)blockdim);
-	start_clock(ce_start, ce_stop);
-	calcEdgelistLengths<<<numBlocks,blockdim>>>(bu.getDeviceBUD()->devicePtr(), d_ell);
-	printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
-
-	_DEBUG(
-		vertexId_t* h_ell = (vertexId_t*) allocHostArray(nv+1, sizeof(vertexId_t));///
-		copyArrayDeviceToHost(d_ell, h_ell, nv+1, sizeof(vertexId_t));///
-		int64_t sumupd = sumTriangleArrayTEST(h_ell,nv);///
-	)
-
-	// Calculate offsets by exclusive scan
-	start_clock(ce_start, ce_stop);
-	thrust::device_ptr<vertexId_t> dp_ell(d_ell);
-	thrust::device_ptr<vertexId_t> dp_boff(d_boff);
-	thrust::exclusive_scan(dp_ell, dp_ell+nv+1, dp_boff);
-	printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
-
-	// Make indices array and segment array
-	_DEBUG(
-		length_t* h_boff = (length_t*) allocHostArray(nv+1, sizeof(length_t));///
-		copyArrayDeviceToHost(d_boff, h_boff, nv+1, sizeof(length_t));///
-	)
-	vertexId_t* d_bind = (vertexId_t*) allocDeviceArray(batchsize, sizeof(vertexId_t));
-	vertexId_t* d_bseg = (vertexId_t*) allocDeviceArray(batchsize, sizeof(vertexId_t));
-
-	// Populate indices array and segment array
-	start_clock(ce_start, ce_stop);
-	copyIndices<<<numBlocks,blockdim>>>(bu.getDeviceBUD()->devicePtr(), d_bind, d_bseg, d_boff, d_ell);
-	printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
-
-	// Sort the added edges
-	start_clock(ce_start, ce_stop);
-	// thrust::device_ptr<vertexId_t> dp_bind(d_bind);
-	// thrust::device_ptr<vertexId_t> dp_bseg(d_bseg);
-	// thrust::stable_sort_by_key(dp_bind, dp_bind + batchsize, dp_bseg);
-	// thrust::stable_sort_by_key(dp_bseg, dp_bseg + batchsize, dp_bind);
-	numBlocks.x = ceil((float)nv/(float)blockdim);
-	iSortAll<<<numBlocks,blockdim>>>(d_bind, d_boff, nv);
-	printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
-	_DEBUG(
-		vertexId_t* h_bind = (vertexId_t*) allocHostArray(batchsize, sizeof(vertexId_t));///
-		vertexId_t* h_bseg = (vertexId_t*) allocHostArray(batchsize, sizeof(vertexId_t));///
-		copyArrayDeviceToHost(d_bind, h_bind, batchsize, sizeof(vertexId_t));///
-		copyArrayDeviceToHost(d_bseg, h_bseg, batchsize, sizeof(vertexId_t));///
-	)
-	// ==================
-	// Done converting
+		numBlocks.x = ceil((float)(batchsize*threads_per_block)/(float)blockdim);
+		start_clock(ce_start, ce_stop);
+		devicecuStingerNewTriangles<<<numBlocks, blockdim>>>(custing.devicePtr(), bu.getDeviceBUD()->devicePtr(), outPutTriangles, threads_per_block,number_blocks,shifter);
+		printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
 
 	// Calculate triangles formed by only new edges
-	triangle_t* d_3tri = (triangle_t*) allocDeviceArray(nv, sizeof(triangle_t));
-	start_clock(ce_start, ce_stop);
-	numBlocks.x = ceil((float)nv/(float)blockdim);
-	initDeviceArray<<<numBlocks,blockdim>>>(d_3tri, nv, 0);
-	numBlocks.x = ceil((float)(batchsize*threads_per_block)/(float)blockdim);
-	printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
-	start_clock(ce_start, ce_stop);
-	deviceBUThreeTriangles<<<numBlocks,blockdim>>>(batchsize,d_boff, d_bind, d_bseg, d_3tri, threads_per_block,number_blocks,shifter);
-	printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
+		triangle_t* d_3tri = (triangle_t*) allocDeviceArray(nv, sizeof(triangle_t));
+		start_clock(ce_start, ce_stop);
+		numBlocks.x = ceil((float)nv/(float)blockdim);
+		initDeviceArray<<<numBlocks,blockdim>>>(d_3tri, nv, 0);
+		numBlocks.x = ceil((float)(batchsize*threads_per_block)/(float)blockdim);
+		printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
+		start_clock(ce_start, ce_stop);
+		deviceBUThreeTriangles<<<numBlocks,blockdim>>>(bu.getDeviceBUD()->devicePtr(), d_3tri, threads_per_block,number_blocks,shifter);
+		printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
 	
-	// Calculate triangles formed by two new and one old edges
-	triangle_t* d_2tri = (triangle_t*) allocDeviceArray(nv, sizeof(triangle_t));
-	numBlocks.x = ceil((float)nv/(float)blockdim);
-	initDeviceArray<<<numBlocks,blockdim>>>(d_2tri, nv, 0);
-	start_clock(ce_start, ce_stop);
-	numBlocks.x = ceil((float)(batchsize*threads_per_block)/(float)blockdim);
-	deviceBUTwoCUOneTriangles<<<numBlocks,blockdim>>>(custing.devicePtr(),batchsize,d_boff, d_bind, d_bseg, d_2tri, threads_per_block,number_blocks,shifter);
-	printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
+	// Calculate triangles formed by two new edges
+		triangle_t* d_2tri = (triangle_t*) allocDeviceArray(nv, sizeof(triangle_t));
+		numBlocks.x = ceil((float)nv/(float)blockdim);
+		initDeviceArray<<<numBlocks,blockdim>>>(d_2tri, nv, 0);
+		start_clock(ce_start, ce_stop);
+		numBlocks.x = ceil((float)(batchsize*threads_per_block)/(float)blockdim);
+		deviceBUTwoCUOneTriangles<<<numBlocks,blockdim>>>(bu.getDeviceBUD()->devicePtr(),custing.devicePtr(),batchsize, d_2tri, threads_per_block,number_blocks,shifter);
+		printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, end_clock(ce_start, ce_stop));
 
 	// TESTING. Remove after done
-	triangle_t* h_3tri = (triangle_t*) allocHostArray(nv, sizeof(triangle_t));
-	triangle_t* h_2tri = (triangle_t*) allocHostArray(nv, sizeof(triangle_t));
-	triangle_t* h_1tri = (triangle_t*) allocHostArray(nv, sizeof(triangle_t));
-	cudaMemcpy(h_3tri, d_3tri, sizeof(triangle_t)*nv, cudaMemcpyDeviceToHost);
-	cudaMemcpy(h_2tri, d_2tri, sizeof(triangle_t)*nv, cudaMemcpyDeviceToHost);
-	cudaMemcpy(h_1tri, outPutTriangles, sizeof(triangle_t)*nv, cudaMemcpyDeviceToHost);
-	int64_t sum3 = sumTriangleArrayTEST(h_3tri,nv);
-	int64_t sum2 = sumTriangleArrayTEST(h_2tri,nv);
-	int64_t sum1 = sumTriangleArrayTEST(h_1tri,nv);
+		triangle_t* h_3tri = (triangle_t*) allocHostArray(nv, sizeof(triangle_t));
+		triangle_t* h_2tri = (triangle_t*) allocHostArray(nv, sizeof(triangle_t));
+		triangle_t* h_1tri = (triangle_t*) allocHostArray(nv, sizeof(triangle_t));
+		cudaMemcpy(h_3tri, d_3tri, sizeof(triangle_t)*nv, cudaMemcpyDeviceToHost);
+		cudaMemcpy(h_2tri, d_2tri, sizeof(triangle_t)*nv, cudaMemcpyDeviceToHost);
+		cudaMemcpy(h_1tri, outPutTriangles, sizeof(triangle_t)*nv, cudaMemcpyDeviceToHost);
+		int64_t sum3 = sumTriangleArrayTEST(h_3tri,nv);
+		int64_t sum2 = sumTriangleArrayTEST(h_2tri,nv);
+		int64_t sum1 = sumTriangleArrayTEST(h_1tri,nv);
 
-	// Testing
+		printf("Sum1=%d \nSum2=%d \n Sum3=%d\n",sum1,sum2,sum3);
+		printf("============ new tri = %d\n", (sum1 - sum2 + sum3));
+		// Testing
 		for (int i = 0; i < nv; ++i)
 		{
 			if (h_triangles[i] != h_triangles_t[i] + h_1tri[i] - h_2tri[i] + h_3tri[i]){
@@ -610,9 +613,6 @@ void callDeviceNewTriangles(cuStinger& custing, BatchUpdate& bu,
 				return;
 			}
 		}
-
-	printf("Sum1=%d \nSum2=%d \n Sum3=%d\n",sum1,sum2,sum3);
-	printf("============ new tri = %d\n", (sum1/2 - sum2/2 + sum3/6)*2);
 }
 
 void testSort(length_t nv, BatchUpdate& bu,	const int blockdim){
@@ -734,18 +734,46 @@ void testmgpusort(){
         less_t<int>(), context);
 }
 
-void sortBUD(length_t nv, BatchUpdate& bu,	const int blockdim, 
-	length_t * const __restrict__ d_boff, vertexId_t * const __restrict__ d_bind)
+// TODO: change this into a CUDA mem copy operation.
+__global__ void copyCSRToBUD(BatchUpdateData *bud, vertexId_t* const __restrict__ ind,
+	vertexId_t* const __restrict__ seg)
+{
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	length_t batchSize = *(bud->getBatchSize());
+	if (tid < batchSize)
+	{
+		bud->getSrc()[tid] = seg[tid];
+		bud->getDst()[tid] = ind[tid];
+	}
+}
+
+__global__ void copyOffCSRToBUD(BatchUpdateData *bud, length_t* const __restrict__ off)
+{
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	length_t nv = *(bud->getNumVertices());
+	if (tid < nv+1)
+	{
+		bud->getOffsets()[tid] = off[tid];
+	}
+}
+
+void sortBUD(length_t nv, BatchUpdate& bu,	const int blockdim)
 {
 	length_t batchsize = *(bu.getHostBUD()->getBatchSize());
+	printf("batchsize %d\n", batchsize);
 
 	dim3 numBlocks(1, 1);
 
+	vertexId_t* d_bind = (vertexId_t*) allocDeviceArray(batchsize, sizeof(vertexId_t));
+	length_t* d_boff = (length_t*) allocDeviceArray(nv+1, sizeof(length_t));
 	vertexId_t* d_bseg = (vertexId_t*) allocDeviceArray(batchsize, sizeof(vertexId_t));
 	length_t* d_ell = (length_t*) allocDeviceArray(nv+1, sizeof(length_t));
 
 	numBlocks.x = ceil((float)nv/(float)blockdim);
 	initDeviceArray<<<numBlocks,blockdim>>>(d_ell, nv, 0);
+	initDeviceArray<<<numBlocks,blockdim>>>(d_boff, nv, 0);
+	// TODO: find a home for this poor statement
+	initDeviceArray<<<numBlocks,blockdim>>>(bu.getDeviceBUD()->getvNumDuplicates(), nv, 0);
 
 	numBlocks.x = ceil((float)batchsize/(float)blockdim);
 	calcEdgelistLengths<<<numBlocks,blockdim>>>(bu.getDeviceBUD()->devicePtr(), d_ell);
@@ -758,4 +786,91 @@ void sortBUD(length_t nv, BatchUpdate& bu,	const int blockdim,
 
 	numBlocks.x = ceil((float)nv/(float)blockdim);
 	iSortAll<<<numBlocks,blockdim>>>(d_bind, d_boff, nv);
+
+	// Put the sorted csr back into bud
+	numBlocks.x = ceil((float)batchsize/(float)blockdim);
+	copyCSRToBUD<<<numBlocks,blockdim>>>(bu.getDeviceBUD()->devicePtr(), d_bind, d_bseg);
+
+	numBlocks.x = ceil((float)(nv+1)/(float)blockdim);
+	copyOffCSRToBUD<<<numBlocks,blockdim>>>(bu.getDeviceBUD()->devicePtr(), d_boff);
+
+	// Because you can never have enough testing.
+	vertexId_t* h_bind = (vertexId_t*) allocHostArray(batchsize, sizeof(vertexId_t));
+	vertexId_t* h_bseg = (vertexId_t*) allocHostArray(batchsize, sizeof(vertexId_t));
+	length_t* h_boff = (length_t*) allocHostArray(nv+1, sizeof(length_t));
+	vertexId_t* h_budind = (vertexId_t*) allocHostArray(batchsize, sizeof(vertexId_t));
+	vertexId_t* h_budseg = (vertexId_t*) allocHostArray(batchsize, sizeof(vertexId_t));
+	length_t* h_budoff = (length_t*) allocHostArray(nv+1, sizeof(length_t));
+	cudaMemcpy(h_bind, d_bind, sizeof(vertexId_t)*batchsize, cudaMemcpyDeviceToHost);
+	cudaMemcpy(h_bseg, d_bseg, sizeof(vertexId_t)*batchsize, cudaMemcpyDeviceToHost);
+	cudaMemcpy(h_boff, d_boff, sizeof(length_t)*(nv+1), cudaMemcpyDeviceToHost);
+	cudaMemcpy(h_budind, bu.getDeviceBUD()->getDst(), sizeof(vertexId_t)*batchsize, cudaMemcpyDeviceToHost);
+	cudaMemcpy(h_budseg, bu.getDeviceBUD()->getSrc(), sizeof(vertexId_t)*batchsize, cudaMemcpyDeviceToHost);
+	cudaMemcpy(h_budoff, bu.getDeviceBUD()->getOffsets(), sizeof(length_t)*(nv+1), cudaMemcpyDeviceToHost);
+
+	for (int i = 0; i < batchsize; ++i)
+	{
+		if (h_bseg[i] != h_budseg[i])
+		{
+			printf("seg mismatch %d %d\n", h_bseg[i], h_budseg[i]);
+			exit(2);
+		}
+		if (h_bind[i] != h_budind[i])
+		{
+			printf("ind mismatch %d %d\n", h_bind[i], h_budind[i]);
+			exit(2);
+		}
+	}
+	for (int i = 0; i < nv; ++i)
+	{
+		if (h_boff[i] != h_budoff[i])
+		{
+			printf("off mismatch %d %d %d\n", i, h_boff[i], h_budoff[i]);
+			exit(2);
+		}
+	}
+}
+
+__global__ void comparecus(cuStinger* cus1, cuStinger* cus2)
+{
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	length_t nv = cus1->nv;
+	if (tid < nv)
+	{
+		vertexId_t * adj1 = cus1->dVD->adj[tid]->dst;
+		vertexId_t * adj2 = cus2->dVD->adj[tid]->dst;
+		length_t size1 = cus1->dVD->getUsed()[tid];
+		length_t size2 = cus2->dVD->getUsed()[tid];
+		if (size1 != size2)
+		{
+			printf("size mismatch %d %d\n", size1, size2);
+		}
+		for (int i = 0; i < size1; ++i)
+		{
+			if (adj1[i] != adj2[i])
+			{
+				printf("adj mismatch vertex %d, %d %d\n", tid, adj1[i], adj2[i]);
+				for (int j = 0; j < size1; ++j)
+				{
+					printf("%d adj1 %d\n", tid, adj1[j]);
+				}
+				printf("%d ==\n", tid);
+				for (int j = 0; j < size1; ++j)
+				{
+					printf("%d adj2 %d\n", tid, adj2[j]);
+				}
+			}
+		}
+	}
+}
+
+void compareCUS(cuStinger* cus1, cuStinger* cus2)
+{
+	length_t nv = cus1->nv;
+
+	dim3 numBlocks(1, 1);
+	int32_t threads=32;
+	dim3 threadsPerBlock(threads, 1);
+	numBlocks.x = ceil((float)nv/(float)threads);
+	comparecus<<<numBlocks, threadsPerBlock>>>(cus1->devicePtr(),cus2->devicePtr());
 }

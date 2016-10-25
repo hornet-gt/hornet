@@ -7,7 +7,7 @@
 
 class BatchUpdateData{
 public:
-	BatchUpdateData(length_t batchSize_, bool isHost_);
+	BatchUpdateData(length_t batchSize_, bool isHost_, length_t nv_=0);
 	~BatchUpdateData();
 
 	BatchUpdateData* devicePtr(){return dPtr;}
@@ -20,7 +20,12 @@ public:
 	// Single element values
 	__host__ __device__ length_t* getIncCount(){return incCount;}	
 	__host__ __device__ length_t* getBatchSize(){return batchSize;}
+	__host__ __device__ length_t* getNumVertices(){return nv;}
 	__host__ __device__ length_t* getDuplicateCount(){return dupCount;}	
+	// NV sized arrays
+	// TODO: rename to getOff()
+	__host__ __device__ length_t* getOffsets(){return offsets;}
+	__host__ __device__ length_t* getvNumDuplicates(){return vNumDuplicates;}
 
 	void resetIncCount();
 	void resetDuplicateCount();
@@ -49,6 +54,10 @@ private:
 	length_t* incCount; 
 	length_t* dupCount;
 	length_t* batchSize;
+	length_t* nv;
+	// NV sized arrays
+	length_t* offsets; // Actually this one is nv+1
+	length_t* vNumDuplicates;
 
 	// Used only by device copies of this class
 	BatchUpdateData* dPtr;

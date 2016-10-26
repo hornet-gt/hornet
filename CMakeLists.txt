@@ -31,7 +31,7 @@ set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 
 LIST(APPEND CUDA_NCCC_FLAGS --compiler-options)
 LIST(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_35,code=sm_35)
-LIST(APPEND CUDA_NVCC_FLAGS "-O0;-DVERBOSE;")
+LIST(APPEND CUDA_NVCC_FLAGS "-O3;-DVERBOSE;")
 LIST(APPEND CUDA_NVCC_FLAGS "-Xcompiler -Wall -D_FORCE_INLINES; --expt-extended-lambda;-use_fast_math")
 
 set(mgpu_INCLUDE_DIRS

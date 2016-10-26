@@ -3,6 +3,7 @@
 #include <cuda.h>
 #include <stdio.h>
 #include <inttypes.h>
+#include <vector>
 
 #include <math.h>
 
@@ -259,7 +260,13 @@ int InsertionTest(const int argc, char *argv[])
 		printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, toc());
 		printf("Triangles in original graph = %ld\n", sumDevice);
 
-	// Making a new batch of removed edges and make csr of remaining graph
+	// Make multiple batches of removed edges
+		// Convert offset arrays to edge length array to update lengths
+		length_t *len = (length_t *) malloc (sizeof(length_t)*(nv));
+		for(unsigned i = 0; i < nv; ++i) {
+			len[i] = off[i+1] - off[i];
+		}
+
 		length_t numEdgesL = numEdges; // Number of edges to remove
 
 		// Number of duplicate entries in batch
@@ -267,70 +274,70 @@ int InsertionTest(const int argc, char *argv[])
 		length_t dupsFromCUS = 1000;
 		length_t numTotalEdges = numEdgesL + dupEgdes + dupsFromCUS;
 
-		BatchUpdateData bud1(numTotalEdges*2,true,nv);
-		vertexId_t *src = bud1.getSrc();
-		vertexId_t *dst = bud1.getDst();
-
-		// Convert offset arrays to edge length array to update lengths
-		length_t *len = (length_t *) malloc (sizeof(length_t)*(nv));
-		for(unsigned i = 0; i < nv; ++i) {
-			len[i] = off[i+1] - off[i];
+		// Create multiple new batch updates
+		int numBatches = 5;
+		std::vector<BatchUpdateData*> buds(numBatches);
+		for(unsigned i = 0; i < numBatches; ++i) {
+			buds[i] = new BatchUpdateData(numTotalEdges*2,true,nv);
 		}
 
-		vertexId_t a, b;
-		length_t lena;
-		// Remove random numEdgesL edges
-		for(unsigned i = 0; i < numEdgesL; ++i) {
-			do { // Search till you find a not already removed edge
-				a = getRand() * nv;
-				// new lena used coz len[a] keeps changing when edges are removed
-				lena = off[a+1] - off[a];
-				if (!lena) continue;
-				b = getRand() * lena;
-			} while (!lena || adj[ off[a] + b ] == -1);
-		
-			src[i] = a; dst[i] = adj[ off[a] + b ];
-			adj[ off[a] + b ] = -1;
-			// Also remove its corresponding entry in dst's edgelist
-			*(search(adj+off[dst[i]], off[dst[i]+1] - off[dst[i]], a)) = -1;
-			len[a]--; len[dst[i]]--;
+		// Make numBatches new batches from the graph
+		for(unsigned i = 0; i < numBatches; ++i) {
+			BatchUpdateData& budi = *buds[i];
+			vertexId_t *src = budi.getSrc();
+			vertexId_t *dst = budi.getDst();
+
+			vertexId_t a, b;
+			length_t lena;
+			// Remove random numEdgesL edges
+			for(unsigned i = 0; i < numEdgesL; ++i) {
+				do { // Search till you find a not already removed edge
+					a = getRand() * nv;
+					// new lena used coz len[a] keeps changing when edges are removed
+					lena = off[a+1] - off[a];
+					if (!lena) continue;
+					b = getRand() * lena;
+				} while (!lena || adj[ off[a] + b ] == -1);
+			
+				src[i] = a; dst[i] = adj[ off[a] + b ];
+				adj[ off[a] + b ] = -1;
+				// Also remove its corresponding entry in dst's edgelist
+				*(search(adj+off[dst[i]], off[dst[i]+1] - off[dst[i]], a)) = -1;
+				len[a]--; len[dst[i]]--;
+			}
+
+			// Add duplicates from beginning of batch
+			for(unsigned i = 0; i < dupEgdes; ++i) {
+				src[numEdgesL + i] = src[i];
+				dst[numEdgesL + i] = dst[i];
+			}
+
+			// Get random dupsFromCUS edges
+			// (these will be already in cus when applying update)
+			for(unsigned i = 0; i < dupsFromCUS; ++i) {
+				do { // Search till you find a not already removed edge
+					a = getRand() * nv;
+					// new lena used coz len[a] keeps changing when edges are removed
+					lena = off[a+1] - off[a];
+					if (!lena) continue;
+					b = getRand() * lena;
+				} while (!lena || adj[ off[a] + b ] == -1);
+			
+				src[numEdgesL + dupEgdes + i] = a;
+				dst[numEdgesL + dupEgdes + i] = adj[ off[a] + b ];
+			}
+
+			// Per vertex duplicate counter reset
+			initHostTriangleArray(budi.getvNumDuplicates(), nv);
+
+			// BatchUpdate to add the reverse of the edges
+			for(unsigned i = 0; i < numTotalEdges; ++i) {
+				dst[numTotalEdges+i] = src[i];
+				src[numTotalEdges+i] = dst[i];
+			}
 		}
 
-		// Add duplicates from beginning of batch
-		for(unsigned i = 0; i < dupEgdes; ++i) {
-			src[numEdgesL + i] = src[i];
-			dst[numEdgesL + i] = dst[i];
-		}
-
-		// Get random dupsFromCUS edges
-		// (these will be already in cus when applying update)
-		for(unsigned i = 0; i < dupsFromCUS; ++i) {
-			do { // Search till you find a not already removed edge
-				a = getRand() * nv;
-				// new lena used coz len[a] keeps changing when edges are removed
-				lena = off[a+1] - off[a];
-				if (!lena) continue;
-				b = getRand() * lena;
-			} while (!lena || adj[ off[a] + b ] == -1);
-		
-			src[numEdgesL + dupEgdes + i] = a;
-			dst[numEdgesL + dupEgdes + i] = adj[ off[a] + b ];
-		}
-
-		// for(unsigned i = 0; i < numTotalEdges; ++i) {
-		// 	if(src[i] == 14061) {
-		// 		printf("d = %d\n", dst[i]);
-		// 	}
-		// 	if(dst[i] == 14061) {
-		// 		printf("s = %d\n", src[i]);
-		// 	}
-		// 	// printf("src %d\n", src[numEdgesL + i]);
-		// 	// printf("dst %d\n", dst[numEdgesL + i]);
-		// }
-
-		// Per vertex duplicate counter reset
-		initHostTriangleArray(bud1.getvNumDuplicates(), nv);
-
+	// Make csr of remaining graph
 		// Prefix sum of len array for new offset array
 		length_t *newOff = (length_t *) malloc (sizeof(length_t)*(nv+1));
 		length_t sum = 0;
@@ -343,12 +350,6 @@ int InsertionTest(const int argc, char *argv[])
 		// Populate newAdj
 		for(unsigned i = 0, j = 0; i < ne; ++i) {
 			if (adj[i] != -1) newAdj[j++] = adj[i];
-		}
-
-		// BatchUpdate to add the reverse of the edges
-		for(unsigned i = 0; i < numTotalEdges; ++i) {
-			dst[numTotalEdges+i] = src[i];
-			src[numTotalEdges+i] = dst[i];
 		}
 
 	// Make new custing with newAdj and newOff
@@ -374,39 +375,33 @@ int InsertionTest(const int argc, char *argv[])
 		int64_t sumDevice_reduced = sumTriangleArray(h_triangles_t,nv);
 		printf("Triangles in new reduced graph = %ld\n", sumDevice_reduced);
 
-	// Insert them edges now
-		BatchUpdate bu1(bud1);
-		length_t allocs;
-		
-		sortBUD(nv, bu1, sps);
-		tic();
-		custingTest.edgeInsertionsSorted(bu1, allocs);
-		printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, toc());
-		compareCUS(&custing2, &custingTest);
-
-	// Re-count all triangles. count should be same as the one in the beginning
-		initHostTriangleArray(h_triangles,nv);
-
-		tic();
-		CUDA(cudaMemcpy(d_triangles, h_triangles, sizeof(triangle_t)*(nv+1), cudaMemcpyHostToDevice));
-		callDeviceAllTriangles(custingTest, d_triangles, tsp,nbl,shifter,blocks, sps);
-		CUDA(cudaMemcpy(h_triangles, d_triangles, sizeof(triangle_t)*(nv+1), cudaMemcpyDeviceToHost));
-		printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, toc());
-		sumDevice = sumTriangleArray(h_triangles,nv);
-		printf("Triangles in new graph after re-inserting = %ld\n", sumDevice);
-
-	// Count the new triangles (created because of the bud)
+	// Insert and count, insert and count
 		// Need to make new arrays so that individual triangle counts can be compared
 		triangle_t *d_triangles_new_t = NULL;
 		CUDA(cudaMalloc(&d_triangles_new_t, sizeof(triangle_t)*(nv+1)));
 		triangle_t* h_triangles_new_t = (triangle_t *) malloc (sizeof(triangle_t)*(nv+1));	
 		initHostTriangleArray(h_triangles_new_t,nv);
-
-		tic();
 		CUDA(cudaMemcpy(d_triangles_new_t, h_triangles_new_t, sizeof(triangle_t)*(nv+1), cudaMemcpyHostToDevice));
-		callDeviceNewTriangles(custingTest, bu1, d_triangles_new_t, tsp,nbl,shifter,blocks, sps, h_triangles, h_triangles_t);
+
+		for(unsigned i = 0; i < numBatches; ++i) {
+			BatchUpdate bu1(*buds[i]);
+			length_t allocs;
+			
+			tic();
+			sortBUD(nv, bu1, sps);
+			printf("\n%s <%d> (bud sort) %f\n", __FUNCTION__, __LINE__, toc());
+			tic();
+			custingTest.edgeInsertionsSorted(bu1, allocs);
+			printf("\n%s <%d> (edge insertions) %f\n", __FUNCTION__, __LINE__, toc());
+
+
+			tic();
+			callDeviceNewTriangles(custingTest, bu1, d_triangles_new_t, tsp,nbl,shifter,blocks, sps, h_triangles, h_triangles_t);
+			printf("\n%s <%d> (count triangles) %f\n", __FUNCTION__, __LINE__, toc());
+		}
+
+		// Add up the triangles and compare to the original graph
 		CUDA(cudaMemcpy(h_triangles_new_t, d_triangles_new_t, sizeof(triangle_t)*(nv+1), cudaMemcpyDeviceToHost));
-		printf("\n%s <%d> %f\n", __FUNCTION__, __LINE__, toc());
 		int64_t sumDevice_new = sumTriangleArray(h_triangles_new_t,nv);
 		printf("Triangles created by batch update = %ld\n", sumDevice_new);
 

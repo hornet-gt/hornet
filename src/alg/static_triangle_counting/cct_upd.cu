@@ -151,80 +151,13 @@ __device__ int fixStartPoint(const length_t uLength, const length_t vLength,
 	return (uBigger + vBigger);
 }
 
+template <bool uMasked, bool vMasked, bool subtract, bool upd3rdV>
 __device__ void intersectCount(const length_t uLength, const length_t vLength,
-    vertexId_t const * const __restrict__ uNodes, vertexId_t const * const __restrict__ vNodes,
-    length_t * const __restrict__ uCurr, length_t * const __restrict__ vCurr,
-    int * const __restrict__ workIndex, int * const __restrict__ workPerThread,
-    int * const __restrict__ triangles, int found,
-    vertexId_t const * const __restrict__ uMask, vertexId_t const * const __restrict__ vMask,
-    const bool uMasked, const bool vMasked)
-{
-  if((*uCurr < uLength) && (*vCurr < vLength)){
-    int comp;
-    int vmask;
-    int umask;
-    while(*workIndex < *workPerThread){
-    	vmask = (vMasked) ? vMask[*vCurr] : 0;
-        umask = (uMasked) ? uMask[*uCurr] : 0;
-		comp = uNodes[*uCurr] - vNodes[*vCurr];
-		*triangles += (comp == 0 && !umask && !vmask);
-		*uCurr += (comp <= 0 && !vmask) || umask;
-		*vCurr += (comp >= 0 && !umask) || vmask;
-		*workIndex += (comp == 0&& !umask && !vmask) + 1;
-
-		if((*vCurr == vLength) || (*uCurr == uLength)){
-			break;
-		}
-    }
-    *triangles -= ((comp == 0) && (*workIndex > *workPerThread) && (found));
-  }
-}
-
-
-// u_len < v_len
-__device__ triangle_t count_triangles(vertexId_t u, vertexId_t const * const __restrict__ u_nodes, length_t u_len,
-    vertexId_t v, vertexId_t const * const __restrict__ v_nodes, length_t v_len, int threads_per_block,
-    volatile vertexId_t* __restrict__ firstFound, int tId,
-    vertexId_t const * const __restrict__ uMask, vertexId_t const * const __restrict__ vMask,
-    const bool uMasked, const bool vMasked)
-{
-	// Partitioning the work to the multiple thread of a single GPU processor. The threads should get a near equal number of the elements to Tersect - this number will be off by 1.
-	int work_per_thread, diag_id;
-	workPerThread(u_len, v_len, threads_per_block, tId, &work_per_thread, &diag_id);
-	triangle_t triangles = 0;
-	int work_index = 0,found=0;
-	length_t u_min,u_max,v_min,v_max,u_curr,v_curr;
-
-	firstFound[tId]=0;
-
-	if(work_per_thread>0){
-		// For the binary search, we are figuring out the initial poT of search.
-		initialize(diag_id, u_len, v_len,&u_min, &u_max,&v_min, &v_max,&found);
-    	u_curr = 0; v_curr = 0;
-
-	    bSearch(found, diag_id, u_nodes, v_nodes, &u_len, &u_min, &u_max, &v_min,
-        &v_max, &u_curr, &v_curr);
-
-    	int sum = fixStartPoint(u_len, v_len, &u_curr, &v_curr, u_nodes, v_nodes);
-    	work_index += sum;
-	    if(tId > 0)
-	      firstFound[tId-1] = sum;
-	    triangles += sum;
-	    intersectCount(u_len, v_len, u_nodes, v_nodes, &u_curr, &v_curr,
-	        &work_index, &work_per_thread, &triangles, firstFound[tId], 
-	        uMask, vMask, uMasked, vMasked);
-	}
-	return triangles;
-}
-
-template <bool uMasked, bool vMasked, bool subtract>
-__device__ void intersectCount_nc(const length_t uLength, const length_t vLength,
     vertexId_t const * const __restrict__ uNodes, vertexId_t const * const __restrict__ vNodes,
     length_t * const __restrict__ uCurr, length_t * const __restrict__ vCurr,
     int * const __restrict__ workIndex, int * const __restrict__ workPerThread,
     int * const __restrict__ triangles, int found, triangle_t * const __restrict__ outPutTriangles, 
     vertexId_t const * const __restrict__ uMask, vertexId_t const * const __restrict__ vMask)
-    // const bool uMasked, const bool vMasked, const bool subtract)
 {
   if((*uCurr < uLength) && (*vCurr < vLength)){
     int comp;
@@ -235,7 +168,7 @@ __device__ void intersectCount_nc(const length_t uLength, const length_t vLength
         umask = (uMasked) ? uMask[*uCurr] : 0;
 		comp = uNodes[*uCurr] - vNodes[*vCurr];
 		*triangles += (comp == 0 && !umask && !vmask);
-		if (comp == 0 && !umask && !vmask)
+		if (upd3rdV && comp == 0 && !umask && !vmask)
 			if (subtract) atomicSub(outPutTriangles + uNodes[*uCurr], 1);
 			else atomicAdd(outPutTriangles + uNodes[*uCurr], 1);
 		*uCurr += (comp <= 0 && !vmask) || umask;
@@ -252,12 +185,11 @@ __device__ void intersectCount_nc(const length_t uLength, const length_t vLength
 
 
 // u_len < v_len
-template <bool uMasked, bool vMasked, bool subtract>
-__device__ triangle_t count_triangles_nc(vertexId_t u, vertexId_t const * const __restrict__ u_nodes, length_t u_len,
+template <bool uMasked, bool vMasked, bool subtract, bool upd3rdV>
+__device__ triangle_t count_triangles(vertexId_t u, vertexId_t const * const __restrict__ u_nodes, length_t u_len,
     vertexId_t v, vertexId_t const * const __restrict__ v_nodes, length_t v_len, int threads_per_block,
     volatile vertexId_t* __restrict__ firstFound, int tId, triangle_t * const __restrict__ outPutTriangles,
     vertexId_t const * const __restrict__ uMask, vertexId_t const * const __restrict__ vMask)
-    // const bool uMasked, const bool vMasked, const bool subtract)
 {
 	// Partitioning the work to the multiple thread of a single GPU processor. The threads should get a near equal number of the elements to Tersect - this number will be off by 1.
 	int work_per_thread, diag_id;
@@ -281,7 +213,8 @@ __device__ triangle_t count_triangles_nc(vertexId_t u, vertexId_t const * const 
 	    if(tId > 0)
 	      firstFound[tId-1] = sum;
 	    triangles += sum;
-	    intersectCount_nc<uMasked, vMasked, subtract>(u_len, v_len, u_nodes, v_nodes, &u_curr, &v_curr,
+	    intersectCount<uMasked, vMasked, subtract, upd3rdV>(
+	    	u_len, v_len, u_nodes, v_nodes, &u_curr, &v_curr,
 	        &work_index, &work_per_thread, &triangles, firstFound[tId], outPutTriangles, 
 	        uMask, vMask);
 	}
@@ -346,7 +279,7 @@ __global__ void devicecuStingerNewTriangles(cuStinger* custing, BatchUpdateData 
         const vertexId_t* small_ptr = custing->dVD->getAdj()[small]->dst;
         const vertexId_t* large_ptr = custing->dVD->getAdj()[large]->dst;
 
-		triangle_t tCount = count_triangles_nc<false, false, false>(
+		triangle_t tCount = count_triangles<false, false, false, true>(
 								small, small_ptr, small_len,
 								large,large_ptr, large_len,
 								threads_per_block,firstFoundPos,
@@ -357,15 +290,6 @@ __global__ void devicecuStingerNewTriangles(cuStinger* custing, BatchUpdateData 
 		atomicAdd(outPutTriangles + dest, tCount);
 		__syncthreads();
 	}
-}
-
-template <typename T>
-T sumTriangleArrayTEST(T* h_triangles, vertexId_t nv){	
-	T sum=0;
-	for(vertexId_t sd=0; sd<(nv);sd++){
-	  sum+=h_triangles[sd];
-	}
-	return sum;
 }
 
 __global__ void deviceBUThreeTriangles (BatchUpdateData *bud,
@@ -412,11 +336,12 @@ __global__ void deviceBUThreeTriangles (BatchUpdateData *bud,
         vertexId_t const * const small_mask_ptr = bud->getIndDuplicate() + d_off[small];
         vertexId_t const * const large_mask_ptr = bud->getIndDuplicate() + d_off[large];
 
-		triangle_t tCount = count_triangles(small, small_ptr, small_len,
+		triangle_t tCount = count_triangles<true, true, false, false>(
+								small, small_ptr, small_len,
 								large,large_ptr, large_len,
 								threads_per_block,firstFoundPos,
-								tx%threads_per_block,
-								small_mask_ptr, large_mask_ptr, true, true);
+								tx%threads_per_block, outPutTriangles,
+								small_mask_ptr, large_mask_ptr);
 
 		atomicAdd(outPutTriangles + src, tCount);
 		__syncthreads();
@@ -472,13 +397,13 @@ __global__ void deviceBUTwoCUOneTriangles (BatchUpdateData *bud, cuStinger* cust
         vertexId_t const * const large_mask_ptr = sourceSmaller? NULL : src_mask_ptr;
 
 		triangle_t tCount = (sourceSmaller)?
-								count_triangles_nc<true, false, true>(
+								count_triangles<true, false, true, true>(
 								small, small_ptr, small_len,
 								large,large_ptr, large_len,
 								threads_per_block,firstFoundPos,
 								tx%threads_per_block, outPutTriangles,
 								small_mask_ptr, large_mask_ptr):
-								count_triangles_nc<false, true, true>(
+								count_triangles<false, true, true, true>(
 								small, small_ptr, small_len,
 								large,large_ptr, large_len,
 								threads_per_block,firstFoundPos,

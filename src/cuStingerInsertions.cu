@@ -405,17 +405,16 @@ __global__ void deviceUpdatesSpace(cuStinger* custing, BatchUpdateData* bud, int
 
 __device__ void mergeYintoX(vertexId_t* X, vertexId_t const * Y, length_t lx, length_t ly, vertexId_t *Y_, length_t numDups)
 {
-	vertexId_t xcur = lx-1, ycur = ly-1, comp;
+	length_t xcur = lx-1, ycur = ly-1;
+	vertexId_t comp;
+	int ymask;
 	while (xcur >= 0 && ycur >= 0){
+		ymask = Y_[ycur];
 		comp = X[xcur] - Y[ycur];
-		X[xcur + ycur + 1 - numDups] = (comp > 0)? X[xcur]:Y[ycur];
-		xcur -= (comp >= 0);
-		numDups -= (comp == 0);
-		// TODO: remove this while loop
-		while (comp <= 0) {
-            comp = -2*Y_[--ycur] + 1;
-            numDups -= (comp < 0);
-        }
+		if (!ymask) X[xcur + ycur + 1 - numDups] = (comp > 0)? X[xcur]:Y[ycur];
+		xcur -= (comp >= 0 && !ymask);
+		ycur -= (comp <= 0 || ymask);
+		numDups -= ymask;
 	}
 	while (ycur >= 0) {
         if (!Y_[ycur]) X[xcur + ycur + 1 - numDups] = Y[ycur];
@@ -513,17 +512,17 @@ void cuStinger::edgeInsertionsSorted(BatchUpdate &bu, length_t& requireAllocatio
 
 	// Test
 	// if the number of updates is same
-	length_t *updateIncH = (length_t*)allocHostArray(nv,sizeof(length_t));	
-	copyArrayDeviceToHost(updateInc, updateIncH, nv, sizeof(length_t));
-	int sum = 0;
-	for (int i = 0; i < nv; ++i)
-	{
-		sum+=updateIncH[i];
-	}
-	printf("sum %d\n", sum);
+	// length_t *updateIncH = (length_t*)allocHostArray(nv,sizeof(length_t));	
+	// copyArrayDeviceToHost(updateInc, updateIncH, nv, sizeof(length_t));
+	// int sum = 0;
+	// for (int i = 0; i < nv; ++i)
+	// {
+	// 	sum+=updateIncH[i];
+	// }
+	// printf("sum %d\n", sum);
 
 	bu.getHostBUD()->copyDeviceToHost(*bu.getDeviceBUD());
-	printf("incCount = %d\n", *(bu.getHostBUD()->getIncCount()));
+	// printf("incCount = %d\n", *(bu.getHostBUD()->getIncCount()));
 	reAllocateMemoryAfterSweep1(bu,requireAllocation);
 
 	//--------

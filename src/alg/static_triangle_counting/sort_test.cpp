@@ -196,7 +196,7 @@ int InsertionTest(const int argc, char *argv[])
 	    length_t nv, ne,*off;
 	    vertexId_t *adj;
 	    int isRmat=0;
-		int numEdges=10000;
+		int numEdges=100000;
 		if(argc>2)
 			numEdges=atoi(argv[2]);
 		if(argc>3)

@@ -87,12 +87,6 @@ cuda_add_executable(cctMain
           src/alg/static_triangle_counting/cct_csr.cu        
         )
 
-cuda_add_executable(cctUpdate
-          src/modified.cu
-          src/alg/static_triangle_counting/cct_upd.cpp
-          src/alg/static_triangle_counting/cct_upd.cu
-        )
-
 cuda_add_executable(sortTest
           src/alg/static_triangle_counting/sort_test.cpp
           src/alg/static_triangle_counting/cct_upd.cu
@@ -103,7 +97,5 @@ TARGET_LINK_LIBRARIES(cctMain custinger cuUtils cuUpdate cuAlgCCT /usr/local/cud
 TARGET_LINK_LIBRARIES(cuMain custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
 
 TARGET_LINK_LIBRARIES(cuMemManager custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
-
-TARGET_LINK_LIBRARIES(cctUpdate custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
 
 TARGET_LINK_LIBRARIES(sortTest custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)

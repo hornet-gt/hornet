@@ -1,4 +1,3 @@
-// TODO: rename file to just test.cpp (change cmakelist)
 #include <stdlib.h>
 #include <cuda.h>
 #include <stdio.h>
@@ -31,7 +30,6 @@ void callDeviceNewTriangles(cuStinger& custing, BatchUpdate& bu,
     const int number_blocks, const int shifter, const int thread_blocks, const int blockdim,
     triangle_t * const __restrict__ h_triangles, triangle_t * const __restrict__ h_triangles_t);
 
-void sortBUD(length_t nv, BatchUpdate& bu,	const int blockdim);
 void compareCUS(cuStinger* cus1, cuStinger* cus2);
 
 
@@ -388,7 +386,7 @@ int InsertionTest(const int argc, char *argv[])
 			length_t allocs;
 			
 			tic();
-			sortBUD(nv, bu1, sps);
+			bu1.sortDeviceBUD(sps);
 			printf("\n%s <%d> (bud sort) %f\n", __FUNCTION__, __LINE__, toc());
 			tic();
 			custingTest.edgeInsertionsSorted(bu1, allocs);

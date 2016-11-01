@@ -80,6 +80,8 @@ public:
 	BatchUpdateData* getHostBUD(){return hData;}
 	BatchUpdateData* getDeviceBUD(){return dData;}
 
+	void sortDeviceBUD(const int blockdim);
+
 private:
 
 	BatchUpdate* dPtr;

@@ -54,6 +54,7 @@ cuda_add_library(cuUtils
 
 cuda_add_library(cuUpdate
           src/update.cpp
+          src/update.cu
           src/cuStingerInsertions.cu
           src/cuStingerInsertions.cpp
           src/cuStingerDeletions.cu
@@ -88,8 +89,8 @@ cuda_add_executable(cctMain
         )
 
 cuda_add_executable(sortTest
-          src/alg/static_triangle_counting/sort_test.cpp
-          src/alg/static_triangle_counting/cct_upd.cu
+          src/alg/streaming_triangle_counting/cct_upd.cpp
+          src/alg/streaming_triangle_counting/cct_upd.cu
         )
 
 cuda_add_executable(cus-bfs

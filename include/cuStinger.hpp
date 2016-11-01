@@ -144,6 +144,7 @@ public:
 	uint8_t* getDeviceVertexDataMemory(){return dedmem;}
 
 	void edgeInsertions(BatchUpdate &bu, length_t& requireAllocation);
+	void edgeInsertionsSorted(BatchUpdate &bu, length_t& requireAllocation);
 	void edgeDeletions(BatchUpdate &bu);
 
 	bool verifyEdgeInsertions(BatchUpdate &bu);

@@ -18,9 +18,11 @@ using namespace std;
 //----------------
 //----------------
 
-BatchUpdateData::BatchUpdateData(length_t batchSize_, bool isHost_){
+BatchUpdateData::BatchUpdateData(length_t batchSize_, bool isHost_, length_t nv_){
 	isHost = isHost_;
-	numberBytes = batchSize_* (5 * sizeof(vertexId_t)+ 1* sizeof(length_t)) + 3*sizeof (length_t);
+	numberBytes = batchSize_* (5 * sizeof(vertexId_t)+ 1* sizeof(length_t)) + 
+                  4*sizeof (length_t) +
+                  nv_ * (2 * sizeof(length_t)) + 1;
 
 	if(isHost){
 		mem = (int8_t*)allocHostArray(numberBytes,sizeof(int8_t));
@@ -36,15 +38,20 @@ BatchUpdateData::BatchUpdateData(length_t batchSize_, bool isHost_){
 	indIncomplete=(vertexId_t*) (mem + pos); pos+=batchSize_*sizeof(vertexId_t);
 	indDuplicate=(vertexId_t*) (mem + pos); pos+=batchSize_*sizeof(vertexId_t);
 	dupPosBatch=(length_t*) (mem + pos); pos+=batchSize_*sizeof(length_t);
+
 	incCount=(length_t*) (mem + pos); pos+=sizeof(length_t);
 	dupCount=(length_t*) (mem + pos); pos+=sizeof(length_t);
-
 	batchSize=(length_t*) (mem + pos); pos+=sizeof(length_t);	
+	nv=(length_t*) (mem + pos); pos+=sizeof(length_t);	
+	
+	offsets=(length_t*) (mem + pos); pos+=(nv_+1)*sizeof(length_t);	
+	vNumDuplicates=(length_t*) (mem + pos); pos+=nv_*sizeof(length_t);	
 
 	if(isHost){
 		*incCount=0;
 		*dupCount=0;
 		*batchSize=batchSize_;
+		*nv = nv_;
 	}
 	if(!isHost){
 		dPtr=(BatchUpdateData*) allocDeviceArray(1,sizeof(BatchUpdateData));
@@ -144,9 +151,10 @@ BatchUpdate::BatchUpdate(BatchUpdateData &h_bua){
 	}
 
 	length_t batchSize = *(h_bua.getBatchSize());
+	length_t nv = *(h_bua.getNumVertices());
 
-	hData = new BatchUpdateData(batchSize,true);
-	dData = new BatchUpdateData(batchSize,false);
+	hData = new BatchUpdateData(batchSize,true, nv);
+	dData = new BatchUpdateData(batchSize,false, nv);
 
 	hData->copyHostToHost(h_bua);
 	dData->copyHostToDevice(h_bua);

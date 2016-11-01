@@ -241,8 +241,8 @@ __global__ void devicecuStingerAllTriangles(cuStinger* custing,
 			// int destLen = d_off[dest+1]-d_off[dest];
 			int destLen=custing->dVD->getUsed()[dest];
 
-			if (dest<src) 
-				continue;
+			// if (dest<src) 
+			// 	continue;
 
 			bool avoidCalc = (src == dest) || (destLen < 2) || (srcLen < 2);
 			if(avoidCalc)

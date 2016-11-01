@@ -6,6 +6,7 @@
 using namespace std;
 
 #include "cuStingerDefs.hpp"
+#include "timer.h"
 
 
 void readGraphDIMACS(char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne, int isRmat=0);
@@ -40,7 +41,11 @@ inline void __checkLastCudaError(const char* strError, const char *file, const i
 }
 #endif
 
-
+#ifdef DEBUG
+#define _DEBUG(x) x
+#else
+#define _DEBUG(x)
+#endif
 
 void start_clock(cudaEvent_t &start, cudaEvent_t &end);
 float end_clock(cudaEvent_t &start, cudaEvent_t &end);

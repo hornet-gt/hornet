@@ -3,6 +3,7 @@
 
 #include "main.hpp"
 
+#include "utils.hpp"
 
 using namespace std;
 
@@ -345,3 +346,217 @@ bool cuStinger::verifyEdgeInsertions(BatchUpdate &bu)
 
 }
 
+__global__ void deviceUpdatesSpace(cuStinger* custing, BatchUpdateData* bud, int32_t updatesPerBlock, length_t* updateInc){
+	length_t* d_utilized      = custing->dVD->getUsed();
+	length_t* d_max           = custing->dVD->getMax();
+	cuStinger::cusEdgeData** d_adj = custing->dVD->getAdj();	
+	vertexId_t* d_updatesSrc    = bud->getSrc();
+	vertexId_t* d_updatesDst    = bud->getDst();
+	length_t batchSize          = *(bud->getBatchSize());
+	length_t* d_incCount        = bud->getIncCount();
+	vertexId_t* d_indIncomplete = bud->getIndIncomplete();
+	length_t* d_indDuplicate    = bud->getIndDuplicate();
+
+	__shared__ int32_t found[1];
+
+	int32_t init_pos = blockIdx.x * updatesPerBlock;
+
+	// Updates are processed one at a time	
+	for (int32_t i=0; i<updatesPerBlock; i++){
+		int32_t pos=init_pos+i;
+		if(pos>=batchSize)
+			break;
+
+		if (d_indDuplicate[pos]==1) // this means it's a duplicate edge
+			continue;
+		// And just like that, we don't need to keep checking if there
+		// is a duplicate in the batch. We're gonna skip right over it.
+
+		vertexId_t src = d_updatesSrc[pos],dst = d_updatesDst[pos];
+		length_t srcInitSize = d_utilized[src];
+		if(threadIdx.x ==0)
+			*found=0;
+		__syncthreads();
+
+		// Checking to see if the edge already exists in the graph. 
+		for (length_t e=threadIdx.x; e<srcInitSize && *found==0; e+=blockDim.x){
+			if(d_adj[src]->dst[e]==dst){
+				*found=1;
+				break;
+			}
+		}
+		__syncthreads();
+
+		// If it does not exist, then it needs to be added. (Not right now tho)
+		// Ask for space to put it in. If not available, we'll allocate it later.
+		if(*found==0 && threadIdx.x==0){
+
+			// Requesting a spot for insertion.
+			length_t ret =  atomicAdd(updateInc+src, 1);
+			// Checking that there is enough space to insert this edge
+			if((ret+d_utilized[src]+1)>d_max[src]){
+				// Out of space for this edge.
+				length_t inCompleteEdgeID =  atomicAdd(d_incCount, 1);
+				d_indIncomplete[inCompleteEdgeID] = pos;
+			}
+		}
+	}
+}
+
+__device__ void mergeYintoX(vertexId_t* X, vertexId_t const * Y, length_t lx, length_t ly, vertexId_t *Y_, length_t numDups)
+{
+	length_t xcur = lx-1, ycur = ly-1;
+	vertexId_t comp;
+	int ymask;
+	while (xcur >= 0 && ycur >= 0){
+		ymask = Y_[ycur];
+		comp = X[xcur] - Y[ycur];
+		if (!ymask) X[xcur + ycur + 1 - numDups] = (comp > 0)? X[xcur]:Y[ycur];
+		xcur -= (comp >= 0 && !ymask);
+		ycur -= (comp <= 0 || ymask);
+		numDups -= ymask;
+	}
+	while (ycur >= 0) {
+        if (!Y_[ycur]) X[xcur + ycur + 1 - numDups] = Y[ycur];
+        numDups -= Y_[ycur];
+        ycur--;
+    }
+}
+
+__device__ void intersectCount(vertexId_t const*const uNodes, vertexId_t const*const vNodes,
+	length_t uLength, length_t vLength, vertexId_t *vMask, length_t *numDups)
+{
+    int comp;
+    int uCurr = 0;
+    int vCurr = 0;
+    int mask;
+    while((vCurr < vLength) && (uCurr < uLength)){
+    	mask = vMask[vCurr];
+        comp = uNodes[uCurr] - vNodes[vCurr];
+        *numDups += (comp == 0 && !mask);
+        vMask[vCurr] |= (comp == 0);
+        uCurr += (comp <= 0 && !mask);
+        vCurr += (comp >= 0 || mask);
+    }
+}
+
+__global__ void markDuplicates(BatchUpdateData* bud)
+{
+	length_t batchsize = *(bud->getBatchSize());
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	if (tid < batchsize-1) { 
+		vertexId_t *Y = bud->getDst();
+		vertexId_t *X = bud->getSrc();
+		vertexId_t *Y_ = bud->getIndDuplicate();
+	    Y_[tid] = (Y[tid] == Y[tid+1] && X[tid] == X[tid+1]);
+	    // TODO: try using an if condition to reduce number of writes
+	    atomicAdd( bud->getvNumDuplicates() + X[tid], Y_[tid] );
+	}
+}
+
+// TODO: argument list reverse (cuStinger* custing, BatchUpdateData* bud)
+__global__ void deviceUpdatesMerge(BatchUpdateData* bud, cuStinger* custing)
+{
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	length_t nv = *(bud->getNumVertices());
+	if (tid < nv) {
+		cuStinger::cusEdgeData** d_adj = custing->dVD->getAdj();
+		length_t *numDups = bud->getvNumDuplicates() + tid;
+		length_t *d_off = bud->getOffsets();
+		vertexId_t *d_ind = bud->getDst();
+
+		intersectCount(d_adj[tid]->dst, &d_ind[d_off[tid]], custing->dVD->getUsed()[tid], d_off[tid+1] - d_off[tid], &(bud->getIndDuplicate()[d_off[tid]]), numDups);
+		mergeYintoX(d_adj[tid]->dst, &d_ind[d_off[tid]], custing->dVD->getUsed()[tid], d_off[tid+1] - d_off[tid], &(bud->getIndDuplicate()[d_off[tid]]), *numDups);
+		int increment = (d_off[tid+1] - d_off[tid] - *numDups);
+		if (increment + custing->dVD->getUsed()[tid] > custing->dVD->getMax()[tid])
+			printf("This shouldn't have happened. We allocated enough space %d\n", tid);
+		custing->dVD->getUsed()[tid] += increment;
+	}
+}
+
+__global__ void testDups(BatchUpdateData* bud)
+{
+	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+	length_t batchsize = *(bud->getBatchSize());
+	if (tid < batchsize)
+	{
+		if (bud->getIndDuplicate()[tid])
+		{
+			printf("%d\n", bud->getSrc()[tid]);
+		}
+	}
+}
+
+void cuStinger::edgeInsertionsSorted(BatchUpdate &bu, length_t& requireAllocation)
+{
+	dim3 numBlocks(1, 1);
+	int32_t threads=32;
+	dim3 threadsPerBlock(threads, 1);
+
+	length_t batchsize = *(bu.getHostBUD()->getBatchSize());
+	numBlocks.x = ceil((float)batchsize/(float)threads);
+	markDuplicates<<<numBlocks,threadsPerBlock>>>(bu.getDeviceBUD()->devicePtr());
+
+	// TODO: Reallocation
+	requireAllocation=0;
+
+	length_t *updateInc = (length_t*)allocDeviceArray(nv,sizeof(length_t));
+	cudaMemset(updateInc, 0, nv*sizeof(length_t));
+	numBlocks.x = ceil((float)batchsize/(float)threads);
+	if (numBlocks.x>16000){
+		numBlocks.x=16000;
+	}	
+	int32_t updatesPerBlock = ceil(float(batchsize)/float(numBlocks.x));
+	deviceUpdatesSpace<<<numBlocks,threadsPerBlock>>>(this->devicePtr(), bu.getDeviceBUD()->devicePtr(), updatesPerBlock, updateInc);
+	checkLastCudaError("Error in the first update sweep");
+
+	// Test
+	// if the number of updates is same
+	// length_t *updateIncH = (length_t*)allocHostArray(nv,sizeof(length_t));	
+	// copyArrayDeviceToHost(updateInc, updateIncH, nv, sizeof(length_t));
+	// int sum = 0;
+	// for (int i = 0; i < nv; ++i)
+	// {
+	// 	sum+=updateIncH[i];
+	// }
+	// printf("sum %d\n", sum);
+
+	bu.getHostBUD()->copyDeviceToHost(*bu.getDeviceBUD());
+	// printf("incCount = %d\n", *(bu.getHostBUD()->getIncCount()));
+	reAllocateMemoryAfterSweep1(bu,requireAllocation);
+
+	//--------
+	// Sweep 2
+	//--------
+
+	numBlocks.x = (int)ceil((float)nv/(float)threads);
+	deviceUpdatesMerge<<<numBlocks,threadsPerBlock>>>(bu.getDeviceBUD()->devicePtr(), this->devicePtr());
+	cudaDeviceSynchronize();
+	// checkLastCudaError("Error in the second update sweep");
+	
+	// // Test used number
+	// length_t* h_dupcount = (length_t*) allocHostArray(batchsize, sizeof(length_t));
+	// bu.getHostBUD()->copyDeviceToHost(*bu.getDeviceBUD());
+
+	// copyArrayHostToHost(bu.getHostBUD()->getIndDuplicate(), h_dupcount, batchsize, sizeof(length_t));
+	// // printf("%p\n", bu.getDeviceBUD()->getvNumDuplicates());
+	// // // cudaMemcpy(h_dupcount, bu.getDeviceBUD()->getvNumDuplicates(), sizeof(length_t)*nv, cudaMemcpyDeviceToHost);
+	// printf("===\n");
+	// for (int i = 0; i < batchsize; ++i)
+	// {
+	// 	count += h_dupcount[i];
+	// 	if (h_dupcount[i] == 1)
+	// 	{
+	// 		printf("%d\n", bu.getHostBUD()->getSrc()[i]);
+	// 	}
+	// }
+	// printf("%d\n", count);
+
+	// numBlocks.x = ceil((float)batchsize/(float)threads);
+	// testDups<<<numBlocks,threadsPerBlock>>>(bu.getDeviceBUD()->devicePtr());
+
+
+	// freeHostArray(h_dupcount);	
+	// numBlocks.x = ceil((float)batchsize/(float)threads);
+	// markDuplicatesForward<<<numBlocks,threadsPerBlock>>>(bu.getDeviceBUD()->devicePtr(),testcount);
+}

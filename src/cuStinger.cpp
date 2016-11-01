@@ -174,9 +174,9 @@ length_t cuStinger::getNumberEdgesAllocated(){
 length_t defaultInitAllocater(length_t elements){
 	length_t eleCount = elements;
 	if(eleCount==0)
-		eleCount=3;
+		eleCount=10;
 	else if(eleCount < 5)
-		eleCount*=2;
+		eleCount=10;
 	else
 		eleCount*=1.5;
 	return eleCount;

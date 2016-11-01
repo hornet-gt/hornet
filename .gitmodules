@@ -4,3 +4,6 @@
 [submodule "externals/stx-btree"]
 	path = externals/stx-btree
 	url = https://github.com/bingmann/stx-btree.git
+[submodule "externals/cub"]
+	path = externals/cub
+	url = https://github.com/NVlabs/cub.git

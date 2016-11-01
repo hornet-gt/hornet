@@ -5,7 +5,8 @@
 #include "main.hpp"
 
 using namespace std;
-
+#include <stdio.h>
+#include <string.h>
 
 
 // void initializeCuStinger(cuStingerConfig);

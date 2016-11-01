@@ -38,13 +38,13 @@ void cuStinger::freecuStinger(){
 	delete cusMemMan;
 }
 
-void cuStinger::copyHostToDevice(){
-	cout << "ODED " << __PRETTY_FUNCTION__ << " is not implemented" << endl;
-}
+// void cuStinger::copyHostToDevice(){
+// 	cout << "ODED " << __PRETTY_FUNCTION__ << " is not implemented" << endl;
+// }
 
-void cuStinger::copyDeviceToHost(){
-	cout << "ODED " << __PRETTY_FUNCTION__ << " is not implemented" << endl;
-}
+// void cuStinger::copyDeviceToHost(){
+// 	cout << "ODED " << __PRETTY_FUNCTION__ << " is not implemented" << endl;
+// }
 
 void cuStinger::deviceAllocMemory(length_t* off, vertexId_t* adj)
 {	

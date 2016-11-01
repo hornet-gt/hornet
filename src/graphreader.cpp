@@ -103,9 +103,15 @@ void readGraphSNAP  (char* filePath, length_t** prmoff, vertexId_t** prmind, ver
     {
         int64_t srctemp,desttemp;
         fscanf(fp, "%ld %ld\n", &srctemp,&desttemp);
+
         src[counter]=srctemp;
         dest[counter]=desttemp;
         degreeCounter[srctemp]++;
+
+        // This is needed for some faulty SNAP graphs
+        // src[counter]=srctemp-1;
+        // dest[counter]=desttemp-1;
+        // degreeCounter[srctemp-1]++;
         counter++;
     }
     fclose (fp);

@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.2)
 project( custinger )
 
+set(CUDA_HOST_COMPILER /usr/bin/gcc-4.8)  
 FIND_PACKAGE(CUDA REQUIRED)
 
 INCLUDE(FindCUDA)
@@ -9,10 +10,10 @@ INCLUDE_DIRECTORIES(/usr/local/cuda/include)
 INCLUDE_DIRECTORIES(include)
 INCLUDE_DIRECTORIES(include/alg/static_triangle_counting)
 
-
 # Adding external libraries
 INCLUDE_DIRECTORIES(externals/stx-btree/include)
 INCLUDE_DIRECTORIES(externals/moderngpu/src/moderngpu)
+INCLUDE_DIRECTORIES(externals/cub/cub/)
 
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -61,6 +62,7 @@ cuda_add_library(cuUpdate
 
 cuda_add_library(cuAlgCCT
           src/alg/static_triangle_counting/cct.cu
+          src/alg/static_breadth_first_search/bfs.cu
         )
 cuda_add_library(custinger
           src/cuStinger.cpp         
@@ -80,8 +82,6 @@ set_property(
    PROPERTY COMPILE_DEFINITIONS   MEM_STAND_ALONE
    )
 
-
-
 cuda_add_executable(cctMain
           src/alg/static_triangle_counting/cct.cpp
           src/alg/static_triangle_counting/cct_csr.cu        
@@ -91,6 +91,13 @@ cuda_add_executable(sortTest
           src/alg/static_triangle_counting/sort_test.cpp
           src/alg/static_triangle_counting/cct_upd.cu
         )
+
+cuda_add_executable(cus-bfs
+          src/alg/static_breadth_first_search/bfs.cpp
+        )
+
+
+TARGET_LINK_LIBRARIES(cus-bfs custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
 
 TARGET_LINK_LIBRARIES(cctMain custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
 

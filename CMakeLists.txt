@@ -28,7 +28,7 @@ endif()
 
 # set(CMAKE_BUILD_TYPE Debug)
 # set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -lineinfo -G -DTHRUST_DEBUG")
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
+# set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 
 LIST(APPEND CUDA_NCCC_FLAGS --compiler-options)
 LIST(APPEND CUDA_NVCC_FLAGS -gencode arch=compute_35,code=sm_35)
@@ -46,64 +46,24 @@ set(mgpu_SOURCE_DIRS
   "Directory to the Modern GPU source files")
 
 
-cuda_add_library(cuUtils
-          src/alloc.cu
-          src/graphreader.cpp
-          src/timer.c
-        )
 
-cuda_add_library(cuUpdate
+cuda_add_library(custinger
+          src/cuStinger.cpp         
+          src/cuStinger.cu
           src/update.cpp
           src/update.cu
           src/cuStingerInsertions.cu
           src/cuStingerInsertions.cpp
           src/cuStingerDeletions.cu
           src/memoryManager.cpp
-        )
-
-cuda_add_library(cuAlgCCT
-          src/alg/static_triangle_counting/cct.cu
-          src/alg/static_breadth_first_search/bfs.cu
-        )
-cuda_add_library(custinger
-          src/cuStinger.cpp         
-          src/cuStinger.cu
+          src/alloc.cu
+          src/graphreader.cpp
+          src/timer.c
         )
 
 cuda_add_executable(cuMain 
           src/main.cpp
            )
 
-cuda_add_executable(cuMemManager 
-          src/memoryManager.cpp
-           )
 
-set_property(
-   TARGET cuMemManager
-   PROPERTY COMPILE_DEFINITIONS   MEM_STAND_ALONE
-   )
-
-cuda_add_executable(cctMain
-          src/alg/static_triangle_counting/cct.cpp
-          src/alg/static_triangle_counting/cct_csr.cu        
-        )
-
-cuda_add_executable(sortTest
-          src/alg/streaming_triangle_counting/cct_upd.cpp
-          src/alg/streaming_triangle_counting/cct_upd.cu
-        )
-
-cuda_add_executable(cus-bfs
-          src/alg/static_breadth_first_search/bfs.cpp
-        )
-
-
-TARGET_LINK_LIBRARIES(cus-bfs custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
-
-TARGET_LINK_LIBRARIES(cctMain custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
-
-TARGET_LINK_LIBRARIES(cuMain custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
-
-TARGET_LINK_LIBRARIES(cuMemManager custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
-
-TARGET_LINK_LIBRARIES(sortTest custinger cuUtils cuUpdate cuAlgCCT /usr/local/cuda/lib64/libcudart.so)
+TARGET_LINK_LIBRARIES(cuMain custinger  /usr/local/cuda/lib64/libcudart.so)

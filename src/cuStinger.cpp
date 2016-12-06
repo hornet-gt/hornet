@@ -8,7 +8,10 @@
 #include <iostream>
 #include <math.h>
 
-#include "main.hpp"
+#include "utils.hpp"
+#include "update.hpp"
+#include "memoryManager.hpp"
+#include "cuStinger.hpp"
 
 using namespace std;
 

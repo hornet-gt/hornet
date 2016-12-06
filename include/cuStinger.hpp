@@ -5,8 +5,8 @@
 #include <stdint.h>
 
 #include "cuStingerDefs.hpp"
-#include "memoryManager.hpp"
-
+class memoryManager;
+class edgeBlock;
 
 typedef length_t (*initAllocator)(length_t);
 length_t defaultInitAllocater(length_t elements);

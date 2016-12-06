@@ -6,7 +6,6 @@
 using namespace std;
 
 #include "cuStingerDefs.hpp"
-#include "timer.h"
 
 
 void readGraphDIMACS(char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne, int isRmat=0);

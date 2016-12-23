@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -117,6 +116,7 @@ void readGraphSNAP  (char* filePath, length_t** prmoff, vertexId_t** prmind, ver
     fclose (fp);
 
     off[0]=0;
+    // completes offset array
     for(int v=0; v<nv;v++)  {
         off[v+1]=off[v]+degreeCounter[v];
     }
@@ -148,4 +148,66 @@ void readGraphSNAP  (char* filePath, length_t** prmoff, vertexId_t** prmind, ver
     *prmind=ind;
     *prmoff=off;
 }
+
+void readGraphMatrixMarket(char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne){
+    vertexId_t nv,*src,*dest,*ind;
+    length_t   ne,*degreeCounter,*off;
+
+    const int MAX_CHARS = 100;
+    char temp[MAX_CHARS];
+    FILE *fp = fopen(filePath, "r");
+
+    while (fgets(temp, MAX_CHARS, fp) && *temp == '%'); // skip comments
+    sscanf(temp, "%d %*s %d\n", &nv,&ne); // read Matrix Market header
+
+    src = (vertexId_t *) malloc ((ne ) * sizeof (vertexId_t));
+    dest = (vertexId_t *) malloc ((ne ) * sizeof (vertexId_t));
+    degreeCounter = (length_t*)malloc((nv+1) * sizeof(length_t));
+    off = (length_t*)malloc((nv+1) * sizeof(length_t));
+    ind = (vertexId_t*)malloc((ne) * sizeof(vertexId_t));
+    int64_t counter=0;
+    for(int64_t v=0; v<nv;v++)  {
+        degreeCounter[v]=0;
+    }
+
+    int64_t srctemp, desttemp;
+    while(counter<ne)
+    {
+        int64_t srctemp,desttemp;
+        fgets(temp, MAX_CHARS, fp);
+        sscanf(temp, "%ld %ld %*s\n", (long*)&srctemp, (long*)&desttemp);
+        src[counter]=srctemp-1;
+        dest[counter]=desttemp-1;
+        degreeCounter[srctemp-1]++;
+        counter++;
+    }
+    fclose (fp);
+
+    off[0]=0;
+    // fill offsets
+    for(int v=0; v<nv;v++)  {
+        off[v+1]=off[v]+degreeCounter[v];
+    }
+
+    for(int v=0; v<nv;v++){
+        degreeCounter[v]=0;
+    }
+
+    counter=0;
+    // fill adjacencies
+    while(counter<ne)
+    {
+        ind[off[src[counter]]+degreeCounter[src[counter]]++]=dest[counter];
+        counter++;
+    }
+
+    free(src);
+    free(dest);
+    free(degreeCounter);
+    *prmnv=nv;
+    *prmne=ne;
+    *prmind=ind;
+    *prmoff=off;
+}
+
 

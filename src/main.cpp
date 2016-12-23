@@ -73,10 +73,11 @@ int main(const int argc, char *argv[])
 	// if(argc>4)
 	// 	isRmat  =atoi(argv[4]);
 	srand(100);
-	bool isDimacs,isSNAP;
+	bool isDimacs,isSNAP,isMM;
 	string filename(argv[1]);
 	isDimacs = filename.find(".graph")==std::string::npos?false:true;
 	isSNAP   = filename.find(".txt")==std::string::npos?false:true;
+	isMM   = filename.find(".mtx")==std::string::npos?false:true;
 	isRmat 	 = filename.find("kron")==std::string::npos?false:true;
 
 	if(isDimacs){
@@ -84,6 +85,8 @@ int main(const int argc, char *argv[])
 	}
 	else if(isSNAP){
 	    readGraphSNAP(argv[1],&off,&adj,&nv,&ne);
+	} else if (isMM) {
+		readGraphMatrixMarket(argv[1],&off,&adj,&nv,&ne);
 	}
 	else{ 
 		cout << "Unknown graph type" << endl;

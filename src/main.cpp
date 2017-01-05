@@ -86,7 +86,7 @@ int main(const int argc, char *argv[])
 	else if(isSNAP){
 	    readGraphSNAP(argv[1],&off,&adj,&nv,&ne);
 	} else if (isMM) {
-		readGraphMatrixMarket(argv[1],&off,&adj,&nv,&ne);
+		readGraphMatrixMarket(argv[1],&off,&adj,&nv,&ne,true);
 	}
 	else{ 
 		cout << "Unknown graph type" << endl;

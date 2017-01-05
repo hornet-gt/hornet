@@ -149,7 +149,7 @@ void readGraphSNAP  (char* filePath, length_t** prmoff, vertexId_t** prmind, ver
     *prmoff=off;
 }
 
-void readGraphMatrixMarket(char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne){
+void readGraphMatrixMarket(char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne, bool undirected){
     vertexId_t nv,*src,*dest,*ind;
     length_t   ne,*degreeCounter,*off;
 
@@ -159,6 +159,8 @@ void readGraphMatrixMarket(char* filePath, length_t** prmoff, vertexId_t** prmin
 
     while (fgets(temp, MAX_CHARS, fp) && *temp == '%'); // skip comments
     sscanf(temp, "%d %*s %d\n", &nv,&ne); // read Matrix Market header
+    if (undirected)
+    	ne *= 2;
 
     src = (vertexId_t *) malloc ((ne ) * sizeof (vertexId_t));
     dest = (vertexId_t *) malloc ((ne ) * sizeof (vertexId_t));
@@ -180,6 +182,12 @@ void readGraphMatrixMarket(char* filePath, length_t** prmoff, vertexId_t** prmin
         dest[counter]=desttemp-1;
         degreeCounter[srctemp-1]++;
         counter++;
+        if (undirected) {
+            src[counter]=desttemp-1;
+            dest[counter]=srctemp-1;
+            degreeCounter[desttemp-1]++;
+            counter++;
+        }
     }
     fclose (fp);
 

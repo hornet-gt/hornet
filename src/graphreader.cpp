@@ -3,8 +3,44 @@
 #include <string.h>
 #include <malloc.h>
 #include <inttypes.h>
-
+#include <unordered_map>
 #include "cuStingerDefs.hpp"
+
+bool hasOption(const char* option, int argc, char **argv) {
+  for (int i = 1; i < argc; i++) {
+	  if (strcmp(argv[i], option) == 0)
+		  return true;
+  }
+  return false;
+}
+
+/**
+ * Merges two sorted arrays while removing duplicates. Writes result to output buffer,
+ * and returns length of merged array.
+ *
+ * http://stackoverflow.com/a/13830837/1925767
+ */
+int mergeSortedRemoveDuplicates(int *out, int *a, int *b, long aLen, long bLen) {
+	int i, j, k, temp;
+	i = j = k = 0;
+	while (i < aLen && j < bLen) {
+		temp = a[i] < b[j] ? a[i++] : b[j++];
+        for ( ; i < aLen && a[i] == temp; i++);
+        for ( ; j < bLen && b[j] == temp; j++);
+        out[k++] = temp;
+	}
+    while (i < aLen) {
+        temp = a[i++];
+        for ( ; i < aLen && a[i] == temp; i++);
+        out[k++] = temp;
+    }
+    while (j < bLen) {
+        temp = b[j++];
+        for ( ; j < bLen && b[j] == temp; j++);
+        out[k++] = temp;
+    }
+	return k;
+}
 
 void readGraphDIMACS(char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne, int isRmat)
 {
@@ -76,73 +112,98 @@ int hostCompareIncrement (const void *a, const void *b){
 }
 
 
-void readGraphSNAP  (char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne){
+using namespace std;
+
+void readGraphSNAP  (char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne, bool undirected){
     vertexId_t nv,*src,*dest,*ind;
     length_t   ne,*degreeCounter,*off;
-    
+    nv = ne = -1;
+
+    printf("Warning: SNAP reader may relabel vertex IDs\n");
+
+    const int MAX_CHARS = 100;
+    char temp[MAX_CHARS];
     FILE *fp = fopen (filePath, "r");
-    fscanf(fp, "# Nodes: %d Edges: %d\n", &nv,&ne);
 
-    // printf ("Edge list reading: %d, %d\n",nv,ne);
+    // scan for SNAP header
+    while (nv == -1 || ne == -1) {
+    	fgets(temp, MAX_CHARS, fp);
+    	sscanf(temp, "# Nodes: %d Edges: %d\n", &nv,&ne);
+    }
+    if (undirected)
+    	ne *= 2;
 
-    src = (vertexId_t *) malloc ((ne ) * sizeof (vertexId_t));    
-    dest = (vertexId_t *) malloc ((ne ) * sizeof (vertexId_t));   
-    degreeCounter = (length_t*)malloc((nv+1) * sizeof(length_t)); 
+    src = (vertexId_t *) malloc ((ne ) * sizeof (vertexId_t));
+    dest = (vertexId_t *) malloc ((ne ) * sizeof (vertexId_t));
+    degreeCounter = (length_t*)malloc((nv+1) * sizeof(length_t));
     off = (length_t*)malloc((nv+1) * sizeof(length_t));
     ind = (vertexId_t*)malloc((ne) * sizeof(vertexId_t));
 
-    int64_t counter=0;
-    char line[2000];size_t len=2000; char read;      
-
-    for(int64_t v=0; v<nv;v++)  {
+    vertexId_t counter=0;
+    for(vertexId_t v=0; v<nv;v++)
         degreeCounter[v]=0;
-    }   
-    
+
+    vertexId_t srctemp,desttemp;
     while(counter<ne)
     {
-        int64_t srctemp,desttemp;
-        fscanf(fp, "%ld %ld\n", &srctemp,&desttemp);
-
+        fgets(temp, MAX_CHARS, fp);
+        sscanf(temp, "%d %d\n", (vertexId_t*)&srctemp, (vertexId_t*)&desttemp);
         src[counter]=srctemp;
         dest[counter]=desttemp;
-        degreeCounter[srctemp]++;
-
-        // This is needed for some faulty SNAP graphs
-        // src[counter]=srctemp-1;
-        // dest[counter]=desttemp-1;
-        // degreeCounter[srctemp-1]++;
         counter++;
+        if (undirected) {
+            src[counter]=desttemp;
+            dest[counter]=srctemp;
+            counter++;
+        }
     }
     fclose (fp);
 
-    off[0]=0;
-    // completes offset array
-    for(int v=0; v<nv;v++)  {
-        off[v+1]=off[v]+degreeCounter[v];
+    vertexId_t *src_sorted = (vertexId_t *) malloc (ne * sizeof (vertexId_t));
+    vertexId_t *dest_sorted = (vertexId_t *) malloc (ne * sizeof (vertexId_t));
+    memcpy(src_sorted, src, ne*sizeof(vertexId_t));
+    memcpy(dest_sorted, dest, ne*sizeof(vertexId_t));
+    qsort(src_sorted, ne, sizeof(vertexId_t), hostCompareIncrement);
+    qsort(dest_sorted, ne, sizeof(vertexId_t), hostCompareIncrement);
+    vertexId_t *vertices_sorted = (vertexId_t *) malloc (nv * sizeof(vertexId_t));
+    int nGraphVertices = mergeSortedRemoveDuplicates(vertices_sorted, src_sorted, dest_sorted, ne, ne);
+    free(src_sorted);
+    free(dest_sorted);
+
+    unordered_map<vertexId_t, vertexId_t> relabel_map;
+    vertexId_t relabeledSrcId, relabeledDestId;
+    for (length_t i=0; i<nv; i++) {
+    	relabel_map[vertices_sorted[i]] = i;
     }
 
-    for(int v=0; v<nv;v++){
-        degreeCounter[v]=0;
+    for (int i=0; i<counter; i++) {
+    	relabeledSrcId = relabel_map[src[i]];
+    	degreeCounter[relabeledSrcId]++;
     }
+
+    // build offsets array
+    off[0]=0;
+    for(vertexId_t v=0; v<nv;v++)
+        off[v+1]=off[v]+degreeCounter[v];
+
+    printf("Processed %d vertices, %d edges as input\n", nv, off[nv]);
+
+    for(vertexId_t v=0; v<nv;v++)
+        degreeCounter[v]=0;
+
     counter=0;
     while(counter<ne)
     {
-        ind[off[src[counter]]+degreeCounter[src[counter]]++]=dest[counter];
-            
+    	relabeledSrcId = relabel_map[src[counter]];
+    	relabeledDestId = relabel_map[dest[counter]];
+        ind[off[relabeledSrcId]+degreeCounter[relabeledSrcId]++] = relabeledDestId;
         counter++;
-    } 
-    
-    // if(0) {
-    //   for (int i = 0; i < (nv); i++)
-    //     {
-    //       qsort (&ind[off[i]], off[i + 1] - off[i], sizeof (int64_t),
-    //          hostCompareIncrement);
-    //     }
-    // }
-    
+    }
+
     free(src);
     free(dest);
-    free(degreeCounter);    
+    free(vertices_sorted);
+    free(degreeCounter);
     *prmnv=nv;
     *prmne=ne;
     *prmind=ind;
@@ -161,23 +222,22 @@ void readGraphMatrixMarket(char* filePath, length_t** prmoff, vertexId_t** prmin
     sscanf(temp, "%d %*s %d\n", &nv,&ne); // read Matrix Market header
     if (undirected)
     	ne *= 2;
-
     src = (vertexId_t *) malloc ((ne ) * sizeof (vertexId_t));
     dest = (vertexId_t *) malloc ((ne ) * sizeof (vertexId_t));
     degreeCounter = (length_t*)malloc((nv+1) * sizeof(length_t));
     off = (length_t*)malloc((nv+1) * sizeof(length_t));
     ind = (vertexId_t*)malloc((ne) * sizeof(vertexId_t));
+
     int64_t counter=0;
     for(int64_t v=0; v<nv;v++)  {
         degreeCounter[v]=0;
     }
 
-    int64_t srctemp, desttemp;
+    vertexId_t srctemp, desttemp;
     while(counter<ne)
     {
-        int64_t srctemp,desttemp;
         fgets(temp, MAX_CHARS, fp);
-        sscanf(temp, "%ld %ld %*s\n", (long*)&srctemp, (long*)&desttemp);
+        sscanf(temp, "%d %d %*s\n", (vertexId_t*)&srctemp, (vertexId_t*)&desttemp);
         src[counter]=srctemp-1;
         dest[counter]=desttemp-1;
         degreeCounter[srctemp-1]++;
@@ -193,13 +253,13 @@ void readGraphMatrixMarket(char* filePath, length_t** prmoff, vertexId_t** prmin
 
     off[0]=0;
     // fill offsets
-    for(int v=0; v<nv;v++)  {
+    for(int v=0; v<nv;v++)
         off[v+1]=off[v]+degreeCounter[v];
-    }
 
-    for(int v=0; v<nv;v++){
+    printf("Processed %d vertices, %d edges as input\n", nv, off[nv]);
+
+    for(int v=0; v<nv;v++)
         degreeCounter[v]=0;
-    }
 
     counter=0;
     // fill adjacencies

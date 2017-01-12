@@ -80,13 +80,15 @@ int main(const int argc, char *argv[])
 	isMM   = filename.find(".mtx")==std::string::npos?false:true;
 	isRmat 	 = filename.find("kron")==std::string::npos?false:true;
 
+    bool undirected = hasOption("--undirected", argc, argv);
+
 	if(isDimacs){
 	    readGraphDIMACS(argv[1],&off,&adj,&nv,&ne,isRmat);
 	}
 	else if(isSNAP){
-	    readGraphSNAP(argv[1],&off,&adj,&nv,&ne);
+	    readGraphSNAP(argv[1],&off,&adj,&nv,&ne,undirected);
 	} else if (isMM) {
-		readGraphMatrixMarket(argv[1],&off,&adj,&nv,&ne,true);
+		readGraphMatrixMarket(argv[1],&off,&adj,&nv,&ne,undirected);
 	}
 	else{ 
 		cout << "Unknown graph type" << endl;

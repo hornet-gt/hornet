@@ -10,8 +10,8 @@ using namespace std;
 bool hasOption(const char* option, int argc, char **argv);
 int mergeSortedRemoveDuplicates(int *out, int *a, int *b, long aLen, long bLen);
 void readGraphDIMACS(char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne, int isRmat=0);
-void readGraphSNAP  (char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne, bool undirected);
-void readGraphMatrixMarket(char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne, bool undirected);
+void readGraphSNAP  (char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne, bool undirected=false);
+void readGraphMatrixMarket(char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne, bool undirected=false);
 
 // This will output the proper CUDA error strings in the event that a CUDA host call returns an error
 #ifndef checkCudaErrors

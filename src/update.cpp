@@ -20,6 +20,8 @@ using namespace std;
 //----------------
 //----------------
 
+/// Constructor for BatchUpdateData. 
+/// Responsible for allocating the memory on the device.
 BatchUpdateData::BatchUpdateData(length_t batchSize_, bool isHost_, length_t nv_){
 	isHost = isHost_;
 	numberBytes = batchSize_* (5 * sizeof(vertexId_t)+ 1* sizeof(length_t)) + 
@@ -61,6 +63,9 @@ BatchUpdateData::BatchUpdateData(length_t batchSize_, bool isHost_, length_t nv_
 	}
 }
 
+
+/// Destructor for BatchUpdateData
+/// Frees memory on the host and the device.
 BatchUpdateData::~BatchUpdateData(){
 	if(isHost){
 		freeHostArray(mem);
@@ -72,6 +77,7 @@ BatchUpdateData::~BatchUpdateData(){
 }
 
 
+/// Resets the counter responsible for counting vertices that a new adjaecny list.
 void BatchUpdateData::resetIncCount(){
 	if(isHost){
 		*incCount=0;
@@ -81,6 +87,7 @@ void BatchUpdateData::resetIncCount(){
 	}
 }
 
+/// Resets the duplicate counters responsible for stating how many duplicates exist within a batch.
 void BatchUpdateData::resetDuplicateCount(){
 	if(isHost){
 		*dupCount=0;
@@ -91,6 +98,7 @@ void BatchUpdateData::resetDuplicateCount(){
 }
 
 
+/// Copies a batch update from one instance to another - both instances are on the host.
 void BatchUpdateData::copyHostToHost(BatchUpdateData &hBUA){
 	if (isHost && hBUA.isHost){
 		copyArrayHostToHost(hBUA.mem, mem, numberBytes, sizeof(int8_t));
@@ -100,6 +108,7 @@ void BatchUpdateData::copyHostToHost(BatchUpdateData &hBUA){
 	}
 }
 
+/// Copies a batch update from one instance to another - source batch update is on the host and destiniation is the device.
 void BatchUpdateData::copyHostToDevice(BatchUpdateData &hBUA){
 	if (!isHost && hBUA.isHost){
 		copyArrayHostToDevice(hBUA.mem, mem, numberBytes, sizeof(int8_t));
@@ -108,6 +117,8 @@ void BatchUpdateData::copyHostToDevice(BatchUpdateData &hBUA){
 		CUSTINGER_ERROR(string("Failure to copy host array to host array in ") + string(typeid(*this).name())+ string(". One of the ARRAY is not a host array"));
 	}
 }
+
+/// Copies a batch update from one instance to another - source batch update is on the device and destiniation is the host.
 void BatchUpdateData::copyDeviceToHost(BatchUpdateData &dBUA){
 	if (isHost && !dBUA.isHost){	
 		copyArrayDeviceToHost(dBUA.mem, mem, numberBytes, sizeof(int8_t));
@@ -117,6 +128,7 @@ void BatchUpdateData::copyDeviceToHost(BatchUpdateData &dBUA){
 	}
 }
 
+/// Copies only the duplicate count field from the device to the host 
 void BatchUpdateData::copyDeviceToHostDupCount(BatchUpdateData &dBUD){
 	if (isHost && !dBUD.isHost){
 		copyArrayDeviceToHost(dBUD.dupCount,dupCount,1,sizeof(length_t));
@@ -126,6 +138,7 @@ void BatchUpdateData::copyDeviceToHostDupCount(BatchUpdateData &dBUD){
 	}
 }
 
+/// Copies only the duplicate count field from the device to the host 
 void BatchUpdateData::copyDeviceToHostIncCount(BatchUpdateData &dBUD)
 {
 	if (isHost && !dBUD.isHost){
@@ -155,6 +168,8 @@ BatchUpdate::BatchUpdate(BatchUpdateData &h_bua){
 	length_t batchSize = *(h_bua.getBatchSize());
 	length_t nv = *(h_bua.getNumVertices());
 
+	// Creating one batch update one the host and one on the device.
+	// Users will use the host version and we will copy the information to the device without the user needing to it explicitily.
 	hData = new BatchUpdateData(batchSize,true, nv);
 	dData = new BatchUpdateData(batchSize,false, nv);
 

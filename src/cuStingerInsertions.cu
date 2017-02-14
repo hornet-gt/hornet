@@ -40,9 +40,6 @@ __global__ void deviceUpdatesSweep1(cuStinger* custing, BatchUpdateData* bud,int
 		length_t upv = custing->dVD->getUsed()[src];		
 		length_t epv = custing->dVD->getMax()[src];
 
-		// if(src==140 && threadIdx.x==0)
-		// 	printf("### %d %d %d \n",upv,epv,pos);
-
 		// Checking to see if the edge already exists in the graph. 
 		for (length_t e=threadIdx.x; e<srcInitSize && *found==0; e+=blockDim.x){
 			if(d_adj[src]->dst[e]==dst){
@@ -204,13 +201,17 @@ void cuStinger::edgeInsertions(BatchUpdate &bu,length_t& requireAllocation){
 	}	
 	updatesPerBlock = ceil(float(updateSize)/float(numBlocks.x));
 
+	/// Adding edges into the batch.
 	deviceUpdatesSweep1<<<numBlocks,threadsPerBlock>>>(this->devicePtr(), bu.getDeviceBUD()->devicePtr(),updatesPerBlock);
 	checkLastCudaError("Error in the first update sweep");
 
 	bu.getHostBUD()->copyDeviceToHostDupCount(*bu.getDeviceBUD());
 
+	// Getting the number of edges in the batch that are duplicates and that numerous copies of that duplicate
+	// edge where inserted into the graph,
 	dupInBatch = *(bu.getHostBUD()->getDuplicateCount());
-	// cout << "The number of duplicates in the batch is : " << dupInBatch << endl;
+
+	// Removing any duplicate edges from the batch that were inserted multiple times.
 	if(dupInBatch>0){
 		numBlocks.x = ceil((float)dupInBatch/(float)threads);
 		if (numBlocks.x>1000){
@@ -221,6 +222,8 @@ void cuStinger::edgeInsertions(BatchUpdate &bu,length_t& requireAllocation){
 		checkLastCudaError("Error in the first duplication sweep");
 	}
 
+	// Some vertices may require additional space to store edges in their adjacency list.
+	// Thus, we re-allocate memory and copy the elements.
 	bu.getHostBUD()->copyDeviceToHost(*bu.getDeviceBUD());
 	reAllocateMemoryAfterSweep1(bu,requireAllocation);
 
@@ -232,6 +235,7 @@ void cuStinger::edgeInsertions(BatchUpdate &bu,length_t& requireAllocation){
 	bu.getDeviceBUD()->resetDuplicateCount();
 
 	// if(false)
+	// Running the 2nd sweep of the algorithm which takes care of the batch update edges that did not have enough memory. 
 	if(updateSize>0){
 		numBlocks.x = ceil((float)updateSize/(float)threads);
 		if (numBlocks.x>16000){
@@ -245,8 +249,8 @@ void cuStinger::edgeInsertions(BatchUpdate &bu,length_t& requireAllocation){
 		bu.getHostBUD()->copyDeviceToHost(*bu.getDeviceBUD());
 		dupInBatch = *(bu.getHostBUD()->getDuplicateCount());
 
-		// cout << "The number of duplicates in the batch is : " << dupInBatch << endl;
-
+		// Getting the number of edges in the batch that are duplicates and that numerous copies of that duplicate
+		// edge where inserted into the graph,
 		if(dupInBatch>0){
 			numBlocks.x = ceil((float)dupInBatch/(float)threads);
 			if (numBlocks.x>1000){
@@ -266,6 +270,8 @@ void cuStinger::edgeInsertions(BatchUpdate &bu,length_t& requireAllocation){
 }
 
 
+/// Checks that correctness of the insertion processs.
+/// Goes through all the edges in the batch update and confirms that they are in graph.
 __global__ void deviceVerifyInsertions(cuStinger* custing, BatchUpdateData* bud,int32_t updatesPerBlock, length_t* updateCounter){
 	length_t* d_utilized      = custing->dVD->getUsed();
 	length_t* d_max           = custing->dVD->getMax();
@@ -316,6 +322,7 @@ __global__ void deviceVerifyInsertions(cuStinger* custing, BatchUpdateData* bud,
 }
 
 
+/// Checks that correctness of the insertion processs and that all edges in the batch update appear in the graph.
 bool cuStinger::verifyEdgeInsertions(BatchUpdate &bu)
 {
 	dim3 numBlocks(1, 1);
@@ -441,6 +448,8 @@ __device__ void intersectCount(vertexId_t const*const uNodes, vertexId_t const*c
     }
 }
 
+/// Marking duplicate edges within the batch.
+/// Assumes that edges are non-weighted and should not be counted multiple times.
 __global__ void markDuplicates(BatchUpdateData* bud)
 {
 	length_t batchsize = *(bud->getBatchSize());

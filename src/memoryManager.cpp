@@ -7,6 +7,7 @@
 #include "memoryManager.hpp"
 
 
+/// Constructing an edge block on the device.
 edgeBlock::edgeBlock(uint64_t blockSize_){
 	blockSize=blockSize_;
 	utilization=0;
@@ -16,10 +17,12 @@ edgeBlock::edgeBlock(uint64_t blockSize_){
 	offTree = new offsetTree();
 }
 
+/// Copy constructor.
 edgeBlock::edgeBlock(const edgeBlock& eb){
 	*this=eb;
-
 }
+
+/// Free the inner tree in the  
 void edgeBlock::releaseInnerTree(){
 	offTree->clear();
 	delete offTree;

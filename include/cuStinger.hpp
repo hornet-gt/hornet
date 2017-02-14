@@ -8,6 +8,14 @@
 class memoryManager;
 class edgeBlock;
 
+
+// The following are the various allocator functions that cuSTINGER supports.
+// These are split into two groups. The first group is responsible for deciding 
+// on the amount of memory allocated when the graph is created.
+// The second group, the update methods, are responsible for the amount of storage
+// that will be reallocated whenever a vertex runs out of storage.
+
+
 typedef length_t (*initAllocator)(length_t);
 length_t defaultInitAllocater(length_t elements);
 length_t exactInitAllocater(length_t elements);
@@ -19,6 +27,9 @@ length_t defaultUpdateAllocater(length_t elements, length_t overLimit);
 length_t exactUpdateAllocater(length_t elements, length_t overLimit);
 length_t stingyUpdateAllocater(length_t elements, length_t overLimit);
 
+/// These are the various inputs that cuSTINGER currently supports as inputs.
+//  In practice, cuSTINGER might take one of the input formats and convert to another
+//  format before actually building the graph. CSR is the preferred format.
 enum cuStingerInitState{
 	eInitStateEmpty,
 	eInitStateCSR,

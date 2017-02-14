@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include "cuStingerDefs.hpp"
 
+using namespace std;
+
 bool hasOption(const char* option, int argc, char **argv) {
   for (int i = 1; i < argc; i++) {
 	  if (strcmp(argv[i], option) == 0)
@@ -20,6 +22,7 @@ bool hasOption(const char* option, int argc, char **argv) {
  *
  * http://stackoverflow.com/a/13830837/1925767
  */
+/// Merges two sorted arrays into one array while removing duplicate elements.
 int mergeSortedRemoveDuplicates(int *out, int *a, int *b, long aLen, long bLen) {
 	int i, j, k, temp;
 	i = j = k = 0;
@@ -42,6 +45,7 @@ int mergeSortedRemoveDuplicates(int *out, int *a, int *b, long aLen, long bLen) 
 	return k;
 }
 
+/// Function for parsing "DIMACS 10 Graph Challenge" graphs.
 void readGraphDIMACS(char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne, int isRmat)
 {
     FILE *fp = fopen (filePath, "r");
@@ -112,8 +116,9 @@ int hostCompareIncrement (const void *a, const void *b){
 }
 
 
-using namespace std;
 
+
+/// Function for parsing SNAP graphs.
 void readGraphSNAP  (char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne, bool undirected){
     vertexId_t nv,*src,*dest,*ind;
     length_t   ne,*degreeCounter,*off;
@@ -210,6 +215,7 @@ void readGraphSNAP  (char* filePath, length_t** prmoff, vertexId_t** prmind, ver
     *prmoff=off;
 }
 
+/// Function for parsing Florida Matrix Market graphs.
 void readGraphMatrixMarket(char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne, bool undirected){
     vertexId_t nv,*src,*dest,*ind;
     length_t   ne,*degreeCounter,*off;

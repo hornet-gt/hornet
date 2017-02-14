@@ -5,6 +5,8 @@
 #include <cuda.h>
 #include <typeinfo>
 
+
+// Typedefs for the data types supported inside of cuSTINGER.
 typedef int8_t vtype_t;
 typedef int8_t etype_t;
 typedef int32_t vweight_t; 
@@ -19,6 +21,8 @@ void* allocDeviceArray(length_t elements,int32_t eleSize);
 void freeHostArray(void* array);
 void freeDeviceArray(void* array);
 
+
+// Wrapper functions to NVIDIA's cudaMemcpy. These should be used instead of cudaMemcpy.
 void copyArrayHostToHost    (void* hostSrc,  void* hostDst, length_t elements, int32_t eleSize);
 void copyArrayHostToDevice  (void* hostSrc,  void* devDst,  length_t elements, int32_t eleSize);
 void copyArrayDeviceToHost  (void* devSrc,   void* hostDst, length_t elements, int32_t eleSize);

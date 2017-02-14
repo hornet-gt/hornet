@@ -12,6 +12,7 @@ public:
 
 	BatchUpdateData* devicePtr(){return dPtr;}
 
+	// Access functions to the fields in the batch update.
 	__host__ __device__ vertexId_t* getSrc(){return edgeSrc;}	
 	__host__ __device__ vertexId_t* getDst(){return edgeDst;}	
 	__host__ __device__ vertexId_t* getIndIncomplete(){return indIncomplete;}	
@@ -35,6 +36,7 @@ public:
 
 	bool getisHost(){return isHost;}
 
+	// Functions used to synchronize the device and the host.
 	void copyHostToHost  (BatchUpdateData &hBUA);
 	void copyHostToDevice(BatchUpdateData &hBUA);
 	void copyDeviceToHost(BatchUpdateData &dBUA);
@@ -44,6 +46,8 @@ private:
 	int64_t numberBytes;
 	bool isHost;
 
+	// Arrays storing the batch update information.
+	// Each of these arrays is |batchSize|.
 	vertexId_t* edgeSrc;
 	vertexId_t* edgeDst;
 	vertexId_t* edgeWeight;

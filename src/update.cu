@@ -8,6 +8,7 @@
 
 using namespace mgpu;
 
+/// Create a histogram (distribution count) for the source vertex in the batch update
 __global__ void calcEdgelistLengths(BatchUpdateData *bud, length_t* const __restrict__ ell){
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
 	length_t batchSize = *(bud->getBatchSize());
@@ -17,6 +18,7 @@ __global__ void calcEdgelistLengths(BatchUpdateData *bud, length_t* const __rest
 	}
 }
 
+/// Copy the edges from the batch update into a CSR graph.
 __global__ void copyIndices(BatchUpdateData *bud, vertexId_t* const __restrict__ ind,
 	vertexId_t* const __restrict__ seg,	length_t* const __restrict__ off,
 	length_t* const __restrict__ ell){
@@ -44,6 +46,8 @@ __global__ void initDeviceArray(T* mem, int32_t size, T value)
 	}
 }
 
+
+/// Sort one adjacency list with a single thread.
 __device__ void isort(vertexId_t* const __restrict__ u, length_t ell) {
 	vertexId_t *v;
 	vertexId_t w;
@@ -58,6 +62,7 @@ __device__ void isort(vertexId_t* const __restrict__ u, length_t ell) {
 	}
 }
 
+/// Sort all the adjacency lists
 __global__ void iSortAll(vertexId_t* const __restrict__ ind,
 	length_t* const __restrict__ off, length_t nv) {
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;

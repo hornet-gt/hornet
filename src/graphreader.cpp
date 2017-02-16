@@ -3,7 +3,11 @@
 #include <string.h>
 #include <malloc.h>
 #include <inttypes.h>
+#include <assert.h>
+#include <vector>
 #include <unordered_map>
+#include <unordered_set>
+#include <algorithm>
 #include "cuStingerDefs.hpp"
 
 using namespace std;
@@ -16,33 +20,24 @@ bool hasOption(const char* option, int argc, char **argv) {
   return false;
 }
 
-/**
- * Merges two sorted arrays while removing duplicates. Writes result to output buffer,
- * and returns length of merged array.
- *
- * http://stackoverflow.com/a/13830837/1925767
- */
-/// Merges two sorted arrays into one array while removing duplicate elements.
-int mergeSortedRemoveDuplicates(int *out, int *a, int *b, long aLen, long bLen) {
-	int i, j, k, temp;
-	i = j = k = 0;
-	while (i < aLen && j < bLen) {
-		temp = a[i] < b[j] ? a[i++] : b[j++];
-        for ( ; i < aLen && a[i] == temp; i++);
-        for ( ; j < bLen && b[j] == temp; j++);
-        out[k++] = temp;
-	}
-    while (i < aLen) {
-        temp = a[i++];
-        for ( ; i < aLen && a[i] == temp; i++);
-        out[k++] = temp;
+bool sortByPairAsec(const std::pair<int,int> &a, const std::pair<int,int> &b) {
+    if (a.first < b.first) {
+      return true;
+    } else if (a.first > b.first) {
+      return false;
+    } else {
+      return (a.second < b.second);
     }
-    while (j < bLen) {
-        temp = b[j++];
-        for ( ; j < bLen && b[j] == temp; j++);
-        out[k++] = temp;
+}
+
+bool sortByPairDesc(const std::pair<int,int> &a, const std::pair<int,int> &b) {
+    if (a.first > b.first) {
+      return true;
+    } else if (a.first < b.first) {
+      return false;
+    } else {
+      return (a.second > b.second);
     }
-	return k;
 }
 
 /// Function for parsing "DIMACS 10 Graph Challenge" graphs.
@@ -111,79 +106,98 @@ void readGraphDIMACS(char* filePath, length_t** prmoff, vertexId_t** prmind, ver
     *prmoff = off;
 }
 
-int hostCompareIncrement (const void *a, const void *b){
-  return (int) (*(int64_t *) a - *(int64_t *) b);
-}
-
-
-
-
 /// Function for parsing SNAP graphs.
 void readGraphSNAP  (char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne, bool undirected){
-    vertexId_t nv,*src,*dest,*ind;
-    length_t   ne,*degreeCounter,*off;
-    nv = ne = -1;
-
     printf("Warning: SNAP reader may relabel vertex IDs\n");
 
-    const int MAX_CHARS = 100;
+    vertexId_t nv = -1;
+    length_t ne = -1;
+
+    const int MAX_CHARS = 1000;
     char temp[MAX_CHARS];
-    FILE *fp = fopen (filePath, "r");
+    char *written;
+    FILE *fp = fopen(filePath, "r");
 
-    // scan for SNAP header
-    while (nv == -1 || ne == -1) {
-    	fgets(temp, MAX_CHARS, fp);
-    	sscanf(temp, "# Nodes: %d Edges: %d\n", &nv,&ne);
+    // scan for SNAP header comment
+    written = fgets(temp, MAX_CHARS, fp);
+    while ((nv == -1 || ne == -1) && written != NULL) {
+        sscanf(temp, "# Nodes: %d Edges: %d\n", &nv,&ne);
+            written = fgets(temp, MAX_CHARS, fp);
     }
-    if (undirected)
-    	ne *= 2;
+    if ((nv == -1 || ne == -1) && written == NULL) {
+        fprintf(stderr, "SNAP input file is missing header info\n");
+        exit(-1);
+    }
+    while (written != NULL && *temp == '#') { // skip any other comments
+        written = fgets(temp, MAX_CHARS, fp);
+    }
 
-    src = (vertexId_t *) malloc ((ne ) * sizeof (vertexId_t));
-    dest = (vertexId_t *) malloc ((ne ) * sizeof (vertexId_t));
-    degreeCounter = (length_t*)malloc((nv+1) * sizeof(length_t));
-    off = (length_t*)malloc((nv+1) * sizeof(length_t));
-    ind = (vertexId_t*)malloc((ne) * sizeof(vertexId_t));
-
+    vector<pair<vertexId_t, vertexId_t> >  edges(ne);
+    unordered_set<vertexId_t> vertex_set;
     vertexId_t counter=0;
-    for(vertexId_t v=0; v<nv;v++)
-        degreeCounter[v]=0;
-
     vertexId_t srctemp,desttemp;
+
+    // read in edges
     while(counter<ne)
     {
-        fgets(temp, MAX_CHARS, fp);
         sscanf(temp, "%d %d\n", (vertexId_t*)&srctemp, (vertexId_t*)&desttemp);
-        src[counter]=srctemp;
-        dest[counter]=desttemp;
-        counter++;
         if (undirected) {
-            src[counter]=desttemp;
-            dest[counter]=srctemp;
-            counter++;
+            edges[counter]= make_pair(min(srctemp, desttemp), max(srctemp, desttemp));
+        } else {
+            edges[counter] = make_pair(srctemp, desttemp);
         }
+        vertex_set.insert(srctemp);
+        vertex_set.insert(desttemp);
+        counter++;
+        fgets(temp, MAX_CHARS, fp);
     }
     fclose (fp);
+    assert(vertex_set.size() == nv);
+    printf("Original input: %d vertices, %lu edges\n", nv, edges.size());
 
-    vertexId_t *src_sorted = (vertexId_t *) malloc (ne * sizeof (vertexId_t));
-    vertexId_t *dest_sorted = (vertexId_t *) malloc (ne * sizeof (vertexId_t));
-    memcpy(src_sorted, src, ne*sizeof(vertexId_t));
-    memcpy(dest_sorted, dest, ne*sizeof(vertexId_t));
-    qsort(src_sorted, ne, sizeof(vertexId_t), hostCompareIncrement);
-    qsort(dest_sorted, ne, sizeof(vertexId_t), hostCompareIncrement);
-    vertexId_t *vertices_sorted = (vertexId_t *) malloc (nv * sizeof(vertexId_t));
-    int nGraphVertices = mergeSortedRemoveDuplicates(vertices_sorted, src_sorted, dest_sorted, ne, ne);
-    free(src_sorted);
-    free(dest_sorted);
-
-    unordered_map<vertexId_t, vertexId_t> relabel_map;
-    vertexId_t relabeledSrcId, relabeledDestId;
-    for (length_t i=0; i<nv; i++) {
-    	relabel_map[vertices_sorted[i]] = i;
+    // convert to undirected edges, and remove potential duplicates
+    vector<pair<vertexId_t, vertexId_t> > edges_final;
+    if (undirected) {
+        sort(edges.begin(), edges.end(), sortByPairAsec);
+        vertexId_t prev_first = -1;
+        vertexId_t prev_second = -1;
+        vertexId_t first, second;
+        int duplicates = 0;
+        for (vector<pair<vertexId_t, vertexId_t> >::iterator pair = edges.begin(); pair != edges.end(); pair++) {
+            first = pair->first;
+            second = pair->second;
+            if (first == prev_first && second == prev_second) {
+                duplicates += 1;
+            } else {
+                edges_final.push_back(*pair);
+                edges_final.push_back(make_pair(second, first));
+            }
+            prev_first = first;
+            prev_second = second;
+        }
+        ne = edges_final.size();
+        printf("Removed %d duplicate edges in conversion to undirected\n", duplicates);
+    } else {
+        edges_final = edges;
     }
 
-    for (int i=0; i<counter; i++) {
-    	relabeledSrcId = relabel_map[src[i]];
-    	degreeCounter[relabeledSrcId]++;
+    // sort graph vertices and use to create relabeling map
+    vector<vertexId_t> vertices(vertex_set.begin(), vertex_set.end());
+    sort(vertices.begin(), vertices.end());
+    unordered_map<vertexId_t, vertexId_t> relabel_map;
+    for (length_t i=0; i<nv; i++) {
+        relabel_map[vertices[i]] = i;
+    }
+
+    // convert to CSR
+    length_t *degreeCounter = (length_t*)calloc((nv+1), sizeof(length_t));
+    length_t *off = (length_t*)malloc((nv+1) * sizeof(length_t));
+    vertexId_t *ind = (vertexId_t*)malloc((ne) * sizeof(vertexId_t));
+
+    vertexId_t relabeledSrcId, relabeledDestId;
+    for (int i=0; i<edges_final.size(); i++) {
+        relabeledSrcId = relabel_map[edges_final[i].first];
+        degreeCounter[relabeledSrcId]++;
     }
 
     // build offsets array
@@ -191,23 +205,18 @@ void readGraphSNAP  (char* filePath, length_t** prmoff, vertexId_t** prmind, ver
     for(vertexId_t v=0; v<nv;v++)
         off[v+1]=off[v]+degreeCounter[v];
 
-    printf("Processed %d vertices, %d edges as input\n", nv, off[nv]);
+    printf("Processed %d vertices, %d edges\n", nv, off[nv]);
 
     for(vertexId_t v=0; v<nv;v++)
         degreeCounter[v]=0;
 
-    counter=0;
-    while(counter<ne)
+    for (int i=0; i<edges_final.size(); i++)
     {
-    	relabeledSrcId = relabel_map[src[counter]];
-    	relabeledDestId = relabel_map[dest[counter]];
+        relabeledSrcId = relabel_map[edges_final[i].first];
+        relabeledDestId = relabel_map[edges_final[i].second];
         ind[off[relabeledSrcId]+degreeCounter[relabeledSrcId]++] = relabeledDestId;
-        counter++;
     }
 
-    free(src);
-    free(dest);
-    free(vertices_sorted);
     free(degreeCounter);
     *prmnv=nv;
     *prmne=ne;
@@ -217,8 +226,10 @@ void readGraphSNAP  (char* filePath, length_t** prmoff, vertexId_t** prmind, ver
 
 /// Function for parsing Florida Matrix Market graphs.
 void readGraphMatrixMarket(char* filePath, length_t** prmoff, vertexId_t** prmind, vertexId_t* prmnv, length_t* prmne, bool undirected){
-    vertexId_t nv,*src,*dest,*ind;
-    length_t   ne,*degreeCounter,*off;
+    vertexId_t nv = -1;
+    length_t ne = -1;
+    vertexId_t *ind;
+    length_t *degreeCounter,*off;
 
     const int MAX_CHARS = 100;
     char temp[MAX_CHARS];
@@ -226,57 +237,79 @@ void readGraphMatrixMarket(char* filePath, length_t** prmoff, vertexId_t** prmin
 
     while (fgets(temp, MAX_CHARS, fp) && *temp == '%'); // skip comments
     sscanf(temp, "%d %*s %d\n", &nv,&ne); // read Matrix Market header
-    if (undirected)
-    	ne *= 2;
-    src = (vertexId_t *) malloc ((ne ) * sizeof (vertexId_t));
-    dest = (vertexId_t *) malloc ((ne ) * sizeof (vertexId_t));
-    degreeCounter = (length_t*)malloc((nv+1) * sizeof(length_t));
-    off = (length_t*)malloc((nv+1) * sizeof(length_t));
-    ind = (vertexId_t*)malloc((ne) * sizeof(vertexId_t));
 
+    vector<pair<vertexId_t, vertexId_t> >  edges(ne);
     int64_t counter=0;
-    for(int64_t v=0; v<nv;v++)  {
-        degreeCounter[v]=0;
-    }
-
     vertexId_t srctemp, desttemp;
     while(counter<ne)
     {
         fgets(temp, MAX_CHARS, fp);
         sscanf(temp, "%d %d %*s\n", (vertexId_t*)&srctemp, (vertexId_t*)&desttemp);
-        src[counter]=srctemp-1;
-        dest[counter]=desttemp-1;
-        degreeCounter[srctemp-1]++;
-        counter++;
         if (undirected) {
-            src[counter]=desttemp-1;
-            dest[counter]=srctemp-1;
-            degreeCounter[desttemp-1]++;
-            counter++;
+            edges[counter]= make_pair(min(srctemp-1, desttemp-1), max(srctemp-1, desttemp-1));
+        } else {
+            edges[counter] = make_pair(srctemp-1, desttemp-1);
         }
+        counter++;
     }
     fclose (fp);
+    printf("Original input: %d vertices, %lu edges\n", nv, edges.size());
+
+    // convert to undirected edges, and remove potential duplicates
+    vector<pair<vertexId_t, vertexId_t> > edges_final;
+    if (undirected) {
+        sort(edges.begin(), edges.end(), sortByPairAsec);
+        vertexId_t prev_first = -1;
+        vertexId_t prev_second = -1;
+        vertexId_t first, second;
+        int duplicates = 0;
+        for (vector<pair<vertexId_t, vertexId_t> >::iterator pair = edges.begin(); pair != edges.end(); pair++) {
+            first = pair->first;
+            second = pair->second;
+            if (first == prev_first && second == prev_second) {
+                duplicates += 1;
+            } else {
+                edges_final.push_back(*pair);
+                edges_final.push_back(make_pair(second, first));
+            }
+            prev_first = first;
+            prev_second = second;
+        }
+        ne = edges_final.size();
+        printf("Removed %d duplicate edges in conversion to undirected\n", duplicates);
+    } else {
+        edges_final = edges;
+    }
+
+    degreeCounter = (length_t*)calloc((nv+1), sizeof(length_t));
+    off = (length_t*)malloc((nv+1) * sizeof(length_t));
+    ind = (vertexId_t*)malloc((ne) * sizeof(vertexId_t));
+
+    vertexId_t relabeledSrcId, relabeledDestId;
+    for (int i=0; i<edges_final.size(); i++) {
+        // printf("srcId: %d\n", edges_final[i].first);
+        relabeledSrcId = edges_final[i].first;
+        degreeCounter[relabeledSrcId]++;
+    }
 
     off[0]=0;
     // fill offsets
     for(int v=0; v<nv;v++)
         off[v+1]=off[v]+degreeCounter[v];
 
-    printf("Processed %d vertices, %d edges as input\n", nv, off[nv]);
+    printf("Processed %d vertices, %d edges\n", nv, off[nv]);
 
     for(int v=0; v<nv;v++)
         degreeCounter[v]=0;
 
-    counter=0;
     // fill adjacencies
-    while(counter<ne)
+    for (int i=0; i<edges_final.size(); i++)
     {
-        ind[off[src[counter]]+degreeCounter[src[counter]]++]=dest[counter];
-        counter++;
+        relabeledSrcId = edges_final[i].first;
+        relabeledDestId = edges_final[i].second;
+        ind[off[relabeledSrcId]+degreeCounter[relabeledSrcId]++] = relabeledDestId;
     }
 
-    free(src);
-    free(dest);
     free(degreeCounter);
     *prmnv=nv;
     *prmne=ne;

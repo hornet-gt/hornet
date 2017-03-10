@@ -155,10 +155,9 @@ void readGraphSNAP  (char* filePath, length_t** prmoff, vertexId_t** prmind, ver
     assert(vertex_set.size() == nv);
     printf("Original input: %d vertices, %lu edges\n", nv, edges.size());
 
-    // convert to undirected edges, and remove potential duplicates
     vector<pair<vertexId_t, vertexId_t> > edges_final;
-    if (undirected) {
-        sort(edges.begin(), edges.end(), sortByPairAsec);
+    sort(edges.begin(), edges.end(), sortByPairAsec);
+    if (undirected) {     // convert to undirected edges, and remove potential duplicates
         vertexId_t prev_first = -1;
         vertexId_t prev_second = -1;
         vertexId_t first, second;
@@ -255,10 +254,9 @@ void readGraphMatrixMarket(char* filePath, length_t** prmoff, vertexId_t** prmin
     fclose (fp);
     printf("Original input: %d vertices, %lu edges\n", nv, edges.size());
 
-    // convert to undirected edges, and remove potential duplicates
     vector<pair<vertexId_t, vertexId_t> > edges_final;
-    if (undirected) {
-        sort(edges.begin(), edges.end(), sortByPairAsec);
+    sort(edges.begin(), edges.end(), sortByPairAsec);
+    if (undirected) {     // convert to undirected edges, and remove potential duplicates
         vertexId_t prev_first = -1;
         vertexId_t prev_second = -1;
         vertexId_t first, second;

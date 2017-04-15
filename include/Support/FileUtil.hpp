@@ -73,10 +73,10 @@ private:
     void write() const noexcept;
 
     Progress _progress;
-    char*    _mmap_ptr;
-    size_t   _partial;
+    char*    _mmap_ptr   { nullptr };
+    size_t   _partial    {};
     size_t   _file_size;
-    int      _fd;
+    int      _fd         {};
     bool     _print;
 };
 

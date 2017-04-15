@@ -39,17 +39,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace graph {
 
 template<typename id_t, typename off_t>
-GraphStd<id_t, off_t>::GraphStd() noexcept : GraphBase<id_t, off_t>(),
-                                             V(*this), E(*this) {}
-
-template<typename id_t, typename off_t>
 void GraphStd<id_t, off_t>::allocate() noexcept {
-    assert(_V > 0 && _E > 0 && _coo_size > 0 && _structure.is_direction_set());
+    assert(_V > 0 && _E > 0 && _structure.is_direction_set());
     try {
         _out_offsets = new off_t[ _V + 1 ];
         _out_edges   = new id_t[ _E ];
         _out_degrees = new degree_t[ _V ]();
-        _coo_edges   = new id2_t[ _coo_size ];
+        if (_coo_size > 0)
+            _coo_edges   = new id2_t[ _coo_size ];
         if (_structure.is_undirected()) {
             _in_degrees = _out_degrees;
             _in_offsets = _out_offsets;
@@ -201,8 +198,6 @@ void GraphStd<id_t, off_t>::toBinary(const std::string& filename, bool print)
                             &_V, 1, &_E, 1, &_structure, 1,
                             _out_offsets, _V + 1, _out_edges, _E);
     }
-    if (print)
-        std::cout << "Complete!" << std::endl;
 }
 
 #pragma clang diagnostic pop

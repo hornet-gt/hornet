@@ -89,9 +89,6 @@ inline GraphBase<id_t, off_t>::GraphBase(Structure structure) noexcept :
                                                     _structure(structure) {}
 
 template<typename id_t, typename off_t>
-inline GraphBase<id_t, off_t>::~GraphBase() noexcept {}
-
-template<typename id_t, typename off_t>
 inline id_t GraphBase<id_t, off_t>::nV() const noexcept {
     return _V;
 }

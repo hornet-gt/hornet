@@ -233,4 +233,10 @@ GraphStd<id_t, off_t>::in_degree(id_t index) const noexcept{
     return _in_degrees[index];
 }
 
+template<typename id_t, typename off_t>
+inline typename GraphStd<id_t, off_t>::Vertex
+GraphStd<id_t, off_t>::get_vertex(id_t index) const noexcept {
+    return Vertex(index, *this);
+}
+
 } //namespace graph

@@ -27,7 +27,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * @date April, 2017
  * @version v1.3
  */
-#include "Support/Basic.hpp"
+#include "Support/Basic.hpp"	//ERROR
 #include <algorithm>            //std::transform, std::sort
 #include <cassert>              //assert
 #include <thread>               //std::thread
@@ -54,9 +54,9 @@ bool equal(iteratorA_t start_A, iteratorA_t end_A, iteratorB_t start_B) {
     for (iteratorA_t it_A = start_A; it_A != end_A; it_A++, it_B++) {
         if (*it_A != *it_B) {
             if (FAULT) {
-                ERROR("Array Difference at: " << std::distance(start_A, it_A)
-                            << " -> Left Array: " << *it_A
-                            << "     Right Array: " << *it_B);
+                auto dist = std::distance(start_A, it_A);
+                ERROR("Array Difference at: ", std::distance(start_A, it_A),
+                      " -> Left Array: ", *it_A, "     Right Array: ", *it_B);
             }
             return false;
         }
@@ -74,9 +74,8 @@ bool equal(iteratorA_t start_A, iteratorA_t end_A, iteratorB_t start_B,
     for (iteratorA_t it_A = start_A; it_A != end_A; it_A++, it_B++) {
         if (!equalFunction(*it_A, *it_B)) {
             if (FAULT) {
-                ERROR("Array Difference at: " << std::distance(start_A, it_A)
-                            << " -> Left Array: " << *it_A
-                            << "     Right Array: " << *it_B);
+                ERROR("Array Difference at: ", std::distance(start_A, it_A),
+                      " -> Left Array: ", *it_A, "     Right Array: ", *it_B);
             }
             return false;
         }
@@ -227,17 +226,17 @@ void inplace_merge(T* left, S size_left, const T* right, S size_right) {
  *
  * mem: {0, 3, 5, 5, 8, 8, 8, 18, 36}
  *
- * RIGHT=true : searched: 5    return 2
- * RIGHT=false: searched: 5    return 2
+ * RIGHT: searched: 5    return 2
+ *  LEFT: searched: 5    return 2
  *
- * RIGHT=true : searched: 2    return 1
- * RIGHT=false: searched: 2    return 0
+ * RIGHT: searched: 2    return 1
+ *  LEFT: searched: 2    return 0
  *
- * RIGHT=true : searched: -1    return 0
- * RIGHT=false: searched: -1    return undefined
+ * RIGHT: searched: -1    return 0
+ *  LEFT: searched: -1    return -1
  *
- * RIGHT=true : searched: 40    return 9
- * RIGHT=false: searched: 40    return 8
+ * RIGHT: searched: 40    return 9
+ *  LEFT: searched: 40    return 8
  * $\Theta(log(n))$
  */
 template<bool RIGHT, typename T, typename R>
@@ -284,7 +283,7 @@ R lower_bound_right(const T* mem, R size, T searched) {
  *  LEFT : searched: 2    return 0
  *
  * RIGHT : searched: -1    return 0
- *  LEFT : searched: -1    return undefined
+ *  LEFT : searched: -1    return -1
  *
  * RIGHT : searched: 40    return 9
  *  LEFT : searched: 40    return 8

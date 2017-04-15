@@ -168,15 +168,15 @@ public:
     };*/
     //==========================================================================
 
-    VerticesContainer V;
-    EdgesContainer    E;
+    VerticesContainer V { *this };
+    EdgesContainer    E { *this };
 
-    explicit GraphStd()                                    noexcept;
+    explicit GraphStd()                                    noexcept = default;
     explicit GraphStd(Structure Structure)                 noexcept;
     explicit GraphStd(const char* filename, Property prop) noexcept;
     explicit GraphStd(Structure Structure, const char* filename,
                       Property property) noexcept;
-    virtual ~GraphStd() noexcept;
+    virtual ~GraphStd() noexcept final;                                 //NOLINT
 
     Vertex   get_vertex(id_t index)  const noexcept;
     Edge     get_edge  (off_t index) const noexcept;

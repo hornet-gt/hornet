@@ -158,7 +158,7 @@ void GraphStd<id_t, off_t>::readDimacs10(std::ifstream& fin, Property prop){
         if (prop.is_print())
             progress.next(lines);
     }
-    assert(count_edges == _E);
+    assert(count_edges == static_cast<size_t>(_E));
     _out_offsets[0] = 0;
     std::partial_sum(_out_degrees, _out_degrees + _V, _out_offsets + 1);
 

@@ -37,21 +37,8 @@
 
 namespace cu_stinger {
 
-using   edge_t = int;
-using degree_t = int;
-
-const degree_t      MIN_EDGES_PER_BLOCK = 2;
-const degree_t MIN_EDGES_PER_BLOCKARRAY = 128;
-
 template<typename T>
 using Container = std::vector<T>;
-
-//------------------------------------------------------------------------------
-
-static_assert(xlib::IsPower2<MIN_EDGES_PER_BLOCK>::value      &&
-              xlib::IsPower2<MIN_EDGES_PER_BLOCKARRAY>::value &&
-              MIN_EDGES_PER_BLOCK <= MIN_EDGES_PER_BLOCKARRAY,
-              "Memory Management Constrains");
 
 template<degree_t BLOCK_ITEMS, degree_t BLOCKARRAY_ITEMS>
 using BitTreeContainer = Container< BitTree<edge_t, BLOCK_ITEMS,
@@ -59,7 +46,7 @@ using BitTreeContainer = Container< BitTree<edge_t, BLOCK_ITEMS,
 //------------------------------------------------------------------------------
 ///@cond
 template<degree_t  LOW = MIN_EDGES_PER_BLOCK,
-         degree_t HIGH = MIN_EDGES_PER_BLOCKARRAY,
+         degree_t HIGH = EDGES_PER_BLOCKARRAY,
          int     COUNT = 0,
          typename... T>
 struct StructGen : StructGen<LOW * 2, HIGH, COUNT + 1, T...,

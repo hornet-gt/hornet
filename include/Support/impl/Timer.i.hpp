@@ -36,7 +36,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include <unistd.h>     //::sysconf
 #endif
 
-namespace timer2 {
+namespace timer {
 
 template<class Rep, std::intmax_t Num, std::intmax_t Denom>
 std::ostream& operator<<(std::ostream& os,
@@ -202,4 +202,4 @@ inline void Timer<SYS, ChronoPrecision>::print(const std::string& str)  //NOLINT
 }
 #endif
 
-} // namespace timer2
+} // namespace timer

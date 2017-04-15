@@ -43,8 +43,8 @@ struct MMInsert {
             }
         }
         const auto      BLOCK_ITEMS = MIN_EDGES_PER_BLOCK * (1 << INDEX);
-        const auto BLOCKARRAY_ITEMS = BLOCK_ITEMS <= MIN_EDGES_PER_BLOCKARRAY ?
-                                      MIN_EDGES_PER_BLOCKARRAY : BLOCK_ITEMS;
+        const auto BLOCKARRAY_ITEMS = BLOCK_ITEMS <= EDGES_PER_BLOCKARRAY ?
+                                      EDGES_PER_BLOCKARRAY : BLOCK_ITEMS;
         vect.push_back(BitTree<edge_t, BLOCK_ITEMS, BLOCKARRAY_ITEMS>{});
         ret = vect.back().insert();
     }
@@ -55,7 +55,8 @@ struct MMRemove {
     template<typename T>
     static void op(T& bit_tree_set, edge_t* ptr) {
         auto& vect = std::get<INDEX>(bit_tree_set);
-        for (auto it = vect.begin(); it != vect.end(); it++) {
+        auto end_it = vect.end();
+        for (auto it = vect.begin(); it != end_it; it++) {
             //std::cout << INDEX << "\t" << ptr << "\t"
             //          << it->base_address().second << std::endl;
             if (it->belong_to(ptr)) {
@@ -101,8 +102,8 @@ struct MMStatistics {
     template<typename T>
     static void op(T& bit_tree_set, int& used_items, int& allocated_items) {
         const degree_t BLOCK_ITEMS = MIN_EDGES_PER_BLOCK * (1 << INDEX);
-        const auto BLOCKARRAY_ITEMS = BLOCK_ITEMS <= MIN_EDGES_PER_BLOCKARRAY ?
-                                      MIN_EDGES_PER_BLOCKARRAY : BLOCK_ITEMS;
+        const auto BLOCKARRAY_ITEMS = BLOCK_ITEMS <= EDGES_PER_BLOCKARRAY ?
+                                      EDGES_PER_BLOCKARRAY : BLOCK_ITEMS;
         const auto& vect = std::get<INDEX>(bit_tree_set);
         int local_used_items = 0;
         for (const auto& it : vect)

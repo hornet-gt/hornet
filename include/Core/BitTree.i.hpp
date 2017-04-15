@@ -210,7 +210,6 @@ void BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>::print() const noexcept {
     std::cout << std::endl;
 }
 
-
 template<typename T, unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
 void BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>::statistics() const noexcept {
     std::cout << "\nBitTree Statistics:\n"

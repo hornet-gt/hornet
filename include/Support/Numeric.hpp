@@ -40,15 +40,17 @@ namespace xlib {
 // nearest multiple of 4 : ((n-1)|3) + 1
 
 // ==================== CONST EXPR TIME numeric methods ========================
+#if !defined(__NVCC__)
 
 template<typename T, typename... TArgs>
-inline const T& min(const T& a, const TArgs&... args) noexcept {
+inline CONST_EXPR T& min(const T& a, const TArgs&... args) noexcept {
     return std::min(a, xlib::min(args...));
 }
 template<typename T>
-inline const T& min(const T& a, const T& b) noexcept {
+inline CONST_EXPR T& min(const T& a, const T& b) noexcept {
     return std::min(a, b);
 }
+#endif
 
 template<typename T>
 HOST_DEVICE CONST_EXPR

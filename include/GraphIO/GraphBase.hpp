@@ -32,7 +32,7 @@
  */
 #pragma once
 
-#include <string>
+#include <string>   //std::string
 
 namespace graph {
 
@@ -92,7 +92,7 @@ protected:
 
     explicit GraphBase(Structure structure = Structure(Structure::REVERSE))
                        noexcept;
-    virtual ~GraphBase() noexcept;
+    virtual ~GraphBase() noexcept = default;
     virtual void   allocate() noexcept = 0;
 
     virtual void   readMarket   (std::ifstream& fin, Property property)   = 0;

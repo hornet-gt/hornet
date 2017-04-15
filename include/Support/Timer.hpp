@@ -47,7 +47,7 @@ namespace xlib { struct Color { enum TMP { FG::FG_DEFAULT }; }; }
 inline std::ostream& operator<<(std::ostream& os, Color mod) { return os; }
 #endif
 
-namespace timer2 {
+namespace timer {
 
 /// @brief chrono precision : microseconds
 using   micro = typename std::chrono::duration<float, std::micro>;
@@ -230,6 +230,6 @@ private:
 
 #endif
 
-} // namespace timer2
+} // namespace timer
 
-#include "impl/Timer2.i.hpp"
+#include "impl/Timer.i.hpp"

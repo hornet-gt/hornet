@@ -72,8 +72,8 @@ enum class Emph {
 };
 
 /// @cond
-std::ostream& operator<<(std::ostream& os, const Color& mod);
-std::ostream& operator<<(std::ostream& os, const Emph& mod);
+std::ostream& operator<<(std::ostream& os, Color mod);
+std::ostream& operator<<(std::ostream& os, Emph mod);
 /// @endcond
 //------------------------------------------------------------------------------
 

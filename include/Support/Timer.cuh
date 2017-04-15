@@ -32,9 +32,10 @@
  */
 #pragma once
 
-#include "Support/Timer2.hpp"
+#include "Support/Timer.hpp"
+#include <cuda_runtime.h>       //cudaEvent_t
 
-namespace timer2 {
+namespace timer {
 
 template<typename ChronoPrecision>
 class Timer<DEVICE, ChronoPrecision> :
@@ -61,6 +62,6 @@ private:
     cudaEvent_t _start_event, _stop_event;
 };
 
-} // namespace timer2
+} // namespace timer
 
-#include "impl/Timer2.i.cuh"
+#include "impl/Timer.i.cuh"

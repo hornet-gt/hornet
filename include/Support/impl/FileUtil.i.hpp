@@ -69,8 +69,10 @@ inline void Progress::per_cent(size_t progress) const noexcept {
         std::cout << "     0%" << std::flush;
         return;
     }
-    std::cout << "\b\b\b\b\b\b" << std::setw(6)
+    std::cout << "\b\b\b\b\b\b\b" << std::setw(6)
            << std::round(xlib::per_cent(progress, _total)) << "%" << std::flush;
+    if (progress == _total)
+        std::cout << std::endl;
 }
 
 //------------------------------------------------------------------------------
@@ -80,10 +82,7 @@ inline void Progress::per_cent(size_t progress) const noexcept {
 inline MemoryMapped::MemoryMapped(const char* filename, size_t file_size,
                                   Enum mode, bool print) noexcept :
                                     _progress(file_size),
-                                    _mmap_ptr(nullptr),
-                                    _partial(0llu),
                                     _file_size(file_size),
-                                    _fd(0),
                                     _print(print) {
 
     _fd = mode == READ ? ::open(filename, O_RDONLY, S_IRUSR) :
@@ -109,33 +108,38 @@ inline MemoryMapped::~MemoryMapped() noexcept {
 }
 
 template<typename, typename... Ts>
-void MemoryMapped::write() const noexcept {}
+void MemoryMapped::write() const noexcept {
+    if (_print)
+        _progress.per_cent(_partial);
+}
 
 template<typename, typename... Ts>
-void MemoryMapped::read() const noexcept {}
+void MemoryMapped::read() const noexcept {
+    if (_print)
+        _progress.per_cent(_partial);
+}
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-conversion"
 
 template<typename T, typename... Ts>
 void MemoryMapped::write(const T* data, size_t size, Ts... args) {
+    if (_print)
+        _progress.per_cent(_partial);
     std::copy(data, data + size,                                        //NOLINT
               reinterpret_cast<T*>(_mmap_ptr + _partial));              //NOLINT
     _partial += size * sizeof(T);
     assert(_partial <= _file_size);
-    if (_print)
-        _progress.per_cent(_partial);
-
     write(args...);
 }
 
 template<typename T, typename... Ts>
 void MemoryMapped::read(T* data, size_t size, Ts... args) {
+    if (_print)
+        _progress.per_cent(_partial);
     std::copy(reinterpret_cast<T*>(_mmap_ptr + _partial),               //NOLINT
               reinterpret_cast<T*>(_mmap_ptr + _partial) + size, data); //NOLINT
     _partial += size * sizeof(T);
-    if (_print)
-        _progress.per_cent(_partial);
 
     read(args...);
 }

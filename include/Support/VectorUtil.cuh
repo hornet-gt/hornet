@@ -28,6 +28,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #pragma once
 
 #include "Support/HostDevice.hpp"
+#include <cuda_runtime.h>
 #include <ostream>
 
 inline std::ostream& operator << (std::ostream& out, const uint2& value);

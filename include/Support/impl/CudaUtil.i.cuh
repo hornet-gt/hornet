@@ -88,7 +88,7 @@ inline unsigned gridConfig(T FUN, unsigned block_size,
     return static_cast<unsigned>(
         std::min(deviceProperty::getNum_of_SMs() * num_blocks, problem_size));
 }
-
+/*
 //to update
 template<typename T>
 __global__ void scatter(const int* __restrict__ toScatter, int scatter_size,
@@ -124,7 +124,7 @@ __global__ void fill(T* devMatrix, int n_of_rows, int n_of_columns,
     }
 }
 
-/*
+
 template <unsigned UNROLLING, typename T>
 __global__ void copy_unroll(T* __restrict__ Input,
                      const int size,
@@ -153,7 +153,7 @@ __global__ void copy_unroll(T* __restrict__ Input,
     for (int i = global_id; i < size % LOCAL_SIZE; i += stride)
         Output_ptr[i] = Input_ptr[i];
 }*/
-
+/*
 //to update
 template <typename T>
 __global__ void copy(T* __restrict__ Input,
@@ -167,5 +167,5 @@ __global__ void copy(T* __restrict__ Input,
         Output[i] = Input[i];
         //Output[i] = __ldg(Input + i);
 }
-
+*/
 } // namespace xlib

@@ -30,6 +30,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Support/VectorUtil.cuh"
 #include <limits>
 #include <string>
+#include <cuda_runtime.h>
 
 #if !defined(NO_CHECK_CUDA_ERROR)
     #define CHECK_CUDA_ERROR                                                   \
@@ -65,7 +66,6 @@ struct numeric_limits {         // available in CUDA kernels
     static const T    max = std::numeric_limits<T>::max();
     static const T lowest = std::numeric_limits<T>::lowest();
 };
-
 
 //------------------------------------------------------------------------------
 
@@ -108,7 +108,7 @@ inline unsigned gridConfig(T FUN, unsigned block_dim,
 bool memInfoCUDA(std::size_t requested);
 void memCheckCUDA(std::size_t requested);
 void deviceInfo();
-
+/*
 template<typename T>
 __global__ void scatter(const int* __restrict__ toScatter,
                         int scatter_size, T* __restrict__ Dest, T value);
@@ -127,7 +127,7 @@ __global__ void copy_unroll(T* __restrict__ Input, const int size,
 template <typename T>
 __global__ void copy(T* __restrict__ Input,
                      const int size,
-                     T* __restrict__ Output);
+                     T* __restrict__ Output);*/
 } // namespace xlib
 
 namespace NVTX {

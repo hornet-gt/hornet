@@ -49,17 +49,17 @@
  * SOFTWARE.
  * </blockquote>}
  *
- * @file
- *
- * @fn
- *
  */
 #pragma once
 
-#include <cassert>  //std::assert
+#include "Support/CudaUtil.cuh"    //__cudaErrorHandler
+#include <cassert>                 //std::assert
 
-#include "Support/CudaUtil.cuh"
+#if defined(NEVER_DEFINED)
+    #include "SafeFunctions_.cuh"
+#endif
 
+///@cond
 #define cuMalloc(...)                                                          \
     xlib::detail::cuMallocAux(__FILE__, __LINE__, __func__, __VA_ARGS__)       \
 
@@ -100,15 +100,17 @@
 
 #define cuMemset0xFF(...)                                                      \
     xlib::detail::cuMemset0xFFAux(__FILE__, __LINE__, __func__, __VA_ARGS__)   \
-//------------------------------------------------------------------------------
+
+//==============================================================================
+//==============================================================================
 
 namespace xlib {
 namespace detail {
 
 template<typename T>
 inline void cuMallocAux(const char* file, int line, const char* func_name,
-                        T*& ptr, size_t num_items = 1) {
-    assert(num_items != 0);
+                        T*& ptr, size_t num_items) {
+    assert(num_items > 0);
     xlib::__cudaErrorHandler(cudaMalloc(&ptr, num_items * sizeof(T)),
                              "cudaMalloc", file, line, func_name);
 }
@@ -124,19 +126,19 @@ inline void cuFreeAux(const char* file, int line, const char* func_name,
     xlib::__cudaErrorHandler(cudaFree(ptr), "cudaFree", file, line, func_name);
     cuFreeAux(file, line, func_name, args...);
 }
-
 //------------------------------------------------------------------------------
+
 template<typename T>
 inline void cuMemset0x00Aux(const char* file, int line, const char* func_name,
-                            T* ptr, size_t num_items = 1) {
-    assert(num_items != 0 && ptr != nullptr);
+                            T* ptr, size_t num_items) {
+    assert(num_items > 0 && ptr != nullptr);
     xlib::__cudaErrorHandler(cudaMemset(ptr, 0x00, num_items * sizeof(T)),
                              "cudaMemset(0x00)", file, line, func_name);
 }
 template<typename T>
 inline void cuMemset0xFFAux(const char* file, int line, const char* func_name,
-                            T* ptr, size_t num_items = 1) {
-    assert(num_items != 0 && ptr != nullptr);
+                            T* ptr, size_t num_items) {
+    assert(num_items > 0 && ptr != nullptr);
     xlib::__cudaErrorHandler(cudaMemset(ptr, 0xFF, num_items * sizeof(T)),
                              "cudaMemset(0xFF)", file, line, func_name);
 }
@@ -145,9 +147,8 @@ inline void cuMemset0xFFAux(const char* file, int line, const char* func_name,
 template<typename T>
 inline void cuMemcpyToDeviceAux(const char* file, int line,
                                 const char* func_name,
-                                const T* input, T* output, size_t num_items) {
-    if (num_items == 0) return;
-    assert(input != nullptr && output != nullptr);
+                                const T* input, size_t num_items, T* output) {
+    assert(num_items > 0 && input != nullptr && output != nullptr);
     xlib::__cudaErrorHandler(cudaMemcpy(output, input, num_items * sizeof(T),
                                         cudaMemcpyHostToDevice),
                             "cudaMemcpy(ToDevice)", file, line, func_name);
@@ -165,10 +166,9 @@ inline void cuMemcpyToDeviceAux(const char* file, int line,
 template<typename T>
 inline void cuMemcpyToDeviceAsyncAux(const char* file, int line,
                                      const char* func_name,
-                                     const T* input, T* output,
-                                     size_t num_items) {
-    if (num_items == 0) return;
-    assert(input != nullptr && output != nullptr);
+                                     const T* input, size_t num_items,
+                                     T* output) {
+    assert(num_items > 0 && input != nullptr && output != nullptr);
     xlib::__cudaErrorHandler(cudaMemcpyAsync(output, input,
                                              num_items * sizeof(T),
                                              cudaMemcpyHostToDevice),
@@ -179,8 +179,8 @@ inline void cuMemcpyToDeviceAsyncAux(const char* file, int line,
 template<typename T>
 inline void cuMemcpyToHostAux(const char* file, int line,
                               const char* func_name,
-                              const T* input, T* output, size_t num_items) {
-    assert(input != nullptr && output!= nullptr && num_items != 0);
+                              const T* input, size_t num_items, T* output) {
+    assert(num_items > 0 && input != nullptr && output!= nullptr);
     xlib::__cudaErrorHandler(cudaMemcpy(output, input, num_items * sizeof(T),
                                         cudaMemcpyDeviceToHost),
                             "cudaMemcpy(ToHost)", file, line, func_name);
@@ -194,8 +194,11 @@ inline void cuMemcpyToHostAux(const char* file, int line,
                                         cudaMemcpyDeviceToHost),
                             "cudaMemcpy(ToHost)", file, line, func_name);
 }
-
 //------------------------------------------------------------------------------
+////////////////////////
+//  cuMemcpyToSymbol  //
+////////////////////////
+
 template<typename T>
 inline void cuMemcpyToSymbolAux(const char* file, int line,
                                 const char* func_name,
@@ -203,17 +206,29 @@ inline void cuMemcpyToSymbolAux(const char* file, int line,
     xlib::__cudaErrorHandler(cudaMemcpyToSymbol(symbol, &input, sizeof(T)),
                              "cudaMemcpyToSymbol", file, line, func_name);
 }
+
 template<typename T, int SIZE>
 inline void cuMemcpyToSymbolAux(const char* file, int line,
                                 const char* func_name,
-                                const T* input, T (&symbol)[SIZE],
-                                size_t num_items = 0,
+                                const T* input, size_t num_items,
+                                T (&symbol)[SIZE],
                                 size_t item_offset = 0) {
 
-    const size_t size = (num_items == 0 ? SIZE : num_items) * sizeof(T);
-    assert(num_items + item_offset <= SIZE && input != nullptr);
-    xlib::__cudaErrorHandler(cudaMemcpyToSymbol(symbol, input, size,
+    assert(num_items > 0 && num_items + item_offset <= SIZE &&
+           input != nullptr);
+    xlib::__cudaErrorHandler(cudaMemcpyToSymbol(symbol, input,
+                                                num_items * sizeof(T),
                                                 item_offset),
+                             "cudaMemcpyToSymbol", file, line, func_name);
+}
+
+template<typename T, int SIZE>
+inline void cuMemcpyToSymbolAux(const char* file, int line,
+                                const char* func_name,
+                                const T* input, T (&symbol)[SIZE]) {
+
+    assert(input != nullptr);
+    xlib::__cudaErrorHandler(cudaMemcpyToSymbol(symbol, input, SIZE *sizeof(T)),
                              "cudaMemcpyToSymbol", file, line, func_name);
 }
 
@@ -225,6 +240,7 @@ inline void cuMemcpyToSymbolAsyncAux(const char* file, int line,
     xlib::__cudaErrorHandler(cudaMemcpyToSymbolAsync(symbol, &input, sizeof(T)),
                              "cudaMemcpyToSymbol", file, line, func_name);
 }
+
 template<typename T, int SIZE>
 inline void cuMemcpyToSymbolAsyncAux(const char* file, int line,
                                      const char* func_name,
@@ -239,6 +255,9 @@ inline void cuMemcpyToSymbolAsyncAux(const char* file, int line,
                              "cudaMemcpyToSymbol", file, line, func_name);
 }
 //------------------------------------------------------------------------------
+////////////////////////
+// cuMemcpyFromSymbol //
+////////////////////////
 
 template<typename T>
 inline void cuMemcpyFromSymbolAux(const char* file, int line,
@@ -262,15 +281,26 @@ inline void cuMemcpyFromSymbolAux(const char* file, int line,
 template<typename T, int SIZE>
 inline void cuMemcpyFromSymbolAux(const char* file, int line,
                                   const char* func_name,
-                                  const T(&symbol)[SIZE], T* output,
-                                  size_t num_items = 0,
-                                  size_t item_offset = 0) {
+                                  const T(&symbol)[SIZE], size_t num_items,
+                                  T* output, size_t item_offset = 0) {
 
-    const size_t size = (num_items == 0 ? SIZE : num_items) * sizeof(T);
     assert(num_items + item_offset <= SIZE && output != nullptr);
-    xlib::__cudaErrorHandler(cudaMemcpyFromSymbol(output, symbol, size),
+    xlib::__cudaErrorHandler(cudaMemcpyFromSymbol(output, symbol,
+                                                  SIZE * sizeof(T)),
                              "cudaMemcpyFromSymbol", file, line, func_name);
 }
+
+template<typename T, int SIZE>
+inline void cuMemcpyFromSymbolAux(const char* file, int line,
+                                  const char* func_name,
+                                  const T(&symbol)[SIZE], T* output) {
+
+    assert(output != nullptr);
+    xlib::__cudaErrorHandler(cudaMemcpyFromSymbol(output, symbol,
+                                                  SIZE * sizeof(T)),
+                             "cudaMemcpyFromSymbol", file, line, func_name);
+}
+///@endcond
 
 } // namespace detail
 } // namespace xlib

@@ -27,7 +27,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * @date April, 2017
  * @version v1.3
  */
-namespace timer2 {
+namespace timer {
 
 template<typename ChronoPrecision>
 Timer<DEVICE, ChronoPrecision>
@@ -64,4 +64,4 @@ void Timer<DEVICE, ChronoPrecision>::stop() {
     assert(_start_flag = false);
 }
 
-} // namespace timer2
+} // namespace timer

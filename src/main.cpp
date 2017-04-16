@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
                   [&]{ return int_dist(gen); });
 
     custiger_graph.insertVertexData(labels);
-    custiger_graph.insertEdgeData(weights, time_stamp);
+    custiger_graph.insertEdgeData(time_stamp, weights);
     custiger_graph.initialize();
     //--------------------------------------------------------------------------
 

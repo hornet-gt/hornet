@@ -109,12 +109,16 @@ inline MemoryMapped::~MemoryMapped() noexcept {
 
 template<typename, typename... Ts>
 void MemoryMapped::write() const noexcept {
+    if (_partial != _file_size)
+        ERROR("MemoryMapped: file partially wrote");
     if (_print)
         _progress.per_cent(_partial);
 }
 
 template<typename, typename... Ts>
 void MemoryMapped::read() const noexcept {
+    if (_partial != _file_size)
+        ERROR("MemoryMapped: file partially read");
     if (_print)
         _progress.per_cent(_partial);
 }
@@ -140,7 +144,7 @@ void MemoryMapped::read(T* data, size_t size, Ts... args) {
     std::copy(reinterpret_cast<T*>(_mmap_ptr + _partial),               //NOLINT
               reinterpret_cast<T*>(_mmap_ptr + _partial) + size, data); //NOLINT
     _partial += size * sizeof(T);
-
+    assert(_partial <= _file_size);
     read(args...);
 }
 

@@ -36,6 +36,8 @@
 #include "Core/MemoryManagement.hpp"
 #include <cstddef>                      //size_t
 
+using xlib::byte_t;
+
 /**
  *
  */
@@ -67,8 +69,8 @@ public:
      * @remark the types of the input arrays must be equal to the type List
      *         for vertices specified in the *cuStingerConf.hpp* file
      */
-    template<unsigned INDEX = 1, typename T, typename... TArgs>
-    void insertVertexData(T* vertex_data, TArgs... args) noexcept;
+    template<unsigned INDEX = 0, typename T, typename... TArgs>
+    void insertVertexData(const T* vertex_data, TArgs... args) noexcept;
 
     /**
      * @brief Insert additional edge data
@@ -76,8 +78,8 @@ public:
      * @remark the types of the input arrays must be equal to the type List
      *         for edges specified in the *cuStingerConf.hpp* file
      */
-    template<unsigned INDEX = 1, typename T, typename... TArgs>
-    void insertEdgeData(T* edge_data, TArgs... args) noexcept;
+    template<unsigned INDEX = 0, typename T, typename... TArgs>
+    void insertEdgeData(const T* edge_data, TArgs... args) noexcept;
 
     /**
      * @brief Initialize the data structure
@@ -86,25 +88,31 @@ public:
     void initialize() noexcept;
 
 private:
-    static const unsigned NUM_VERTEX_TYPES = std::tuple_size<VertexTypes>::value;
-    static const unsigned   NUM_EDGE_TYPES = std::tuple_size<EdgeTypes>::value;
+    static const unsigned NUM_EXTRA_VTYPES =std::tuple_size<VertexTypes>::value;
+    static const unsigned NUM_EXTRA_ETYPES =std::tuple_size<EdgeTypes>::value;
+    static const unsigned NUM_VERTEX_TYPES =std::tuple_size<vertex_t>::value;
+    static const unsigned   NUM_EDGE_TYPES =std::tuple_size<edge_t>::value;
 
     MemoryManagement mem_management;
 
-    void* _vertex_data_ptr[ NUM_VERTEX_TYPES ];
-    void*   _edge_data_ptr[ NUM_EDGE_TYPES ];
+    byte_t* _vertex_data_ptr[ NUM_VERTEX_TYPES ];
+    byte_t*   _edge_data_ptr[ NUM_EDGE_TYPES ];
 
-    size_t      _nV;
-    size_t      _nE;
-    const id_t* _csr_edges { nullptr };
-    degree_t*   _degrees   { nullptr };
-    degree_t*   _limits    { nullptr };
+    size_t       _nV;
+    size_t       _nE;
+    const off_t* _csr_offset  { nullptr };
+    degree_t*    _degrees     { nullptr };
+    degree_t*    _limits      { nullptr };
+    bool         _vertex_init { false };
+    bool         _edge_init   { false };
 
     template<unsigned INDEX>
     void insertVertexData() noexcept;
 
     template<unsigned INDEX>
     void insertEdgeData() noexcept;
+
+    void initializeGlobal() noexcept;
 };
 
 } // namespace cu_stinger

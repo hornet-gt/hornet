@@ -118,10 +118,10 @@ public:
     void remove(edge_t* ptr, degree_t degree) noexcept;
 
     /**
-     * @brief Number of *blocks*
-     * @return the number of allocated *blocks*
+     * @brief Number of *blockarrays*
+     * @return the number of allocated *blockarrays*
      */
-    int num_blocks() const noexcept;
+    int num_blockarrays() const noexcept;
 
     /**
      * @brief Various statistics about the space efficency
@@ -144,7 +144,8 @@ public:
     std::pair<edge_t*, edge_t*> get_block_array_ptr(int block_index) noexcept;
 
 private:
-    int _num_blocks;
+    int _num_blockarrays { 0 };
+
     decltype(tuple_gen(StructGen<>{})) bit_tree_set = tuple_gen(StructGen<>{});
 
     static constexpr int LIMIT = std::tuple_size<decltype(bit_tree_set)>::value;

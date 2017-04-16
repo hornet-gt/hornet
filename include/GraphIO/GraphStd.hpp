@@ -193,9 +193,6 @@ public:
 
     void print()     const noexcept override;
     void print_raw() const noexcept override;
-    /**
-     * @warning out_degree/in_degree not store (performance reason)
-     */
     void toBinary(const std::string& filename, bool print = true) const;
     void toMarket(const std::string& filename, bool print = true) const;
 private:

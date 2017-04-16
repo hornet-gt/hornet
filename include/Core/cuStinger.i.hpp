@@ -32,31 +32,39 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace cu_stinger {
 
 template<unsigned INDEX, typename T, typename... TArgs>
-void cuStinger::insertVertexData(T* vertex_data, TArgs... args) noexcept {
-    static_assert(INDEX != 0 || sizeof...(TArgs) + 2 == NUM_VERTEX_TYPES,
-                  "Number of Vertex data type not correct");
-    using R = typename std::tuple_element<INDEX, VertexTypes>;
-    static_assert(std::is_same<T, R>::value, "Incorrect Vertex data type");
+void cuStinger::insertVertexData(const T* vertex_data, TArgs... args) noexcept {
+    using R = typename std::tuple_element<INDEX, VertexTypes>::type;
 
-    _vertex_data[INDEX] = vertex_data;
+    static_assert(INDEX != 0 || sizeof...(TArgs) + 1 == NUM_EXTRA_VTYPES,
+                  "Number of Vertex data type not correct");
+    static_assert(std::is_same<typename std::remove_cv<T>::type,
+                               typename std::remove_cv<R>::type>::value,
+                  "Incorrect Vertex data type");
+
+    _vertex_data_ptr[INDEX] = const_cast<byte_t*>(
+                                 reinterpret_cast<const byte_t*>(vertex_data));
     insertVertexData<INDEX + 1>(args...);
 }
 
 template<unsigned INDEX>
-void cuStinger::insertVertexData() noexcept {}
+void cuStinger::insertVertexData() noexcept { _vertex_init = true; }
 
 template<unsigned INDEX, typename T, typename... TArgs>
-void cuStinger::insertEdgeData(T* edge_data, TArgs... args) noexcept {
-    static_assert(INDEX != 0 || sizeof...(TArgs) + 2 == NUM_EDGE_TYPES,
-                  "Number of Edge data type not correct");
-    using R = typename std::tuple_element<INDEX, VertexTypes>;
-    static_assert(std::is_same<T, R>::value, "Incorrect Edge data type");
+void cuStinger::insertEdgeData(const T* edge_data, TArgs... args) noexcept {
+    using R = typename std::tuple_element<INDEX, EdgeTypes>::type;
 
-    _edge_data[INDEX] = edge_data;
-    insertVertexData<INDEX + 1>(args...);
+    static_assert(INDEX != 0 || sizeof...(TArgs) + 1 == NUM_EXTRA_ETYPES,
+                  "Number of Edge data type not correct");
+    static_assert(std::is_same<typename std::remove_cv<T>::type,
+                               typename std::remove_cv<R>::type>::value,
+                  "Incorrect Edge data type");
+
+    _edge_data_ptr[INDEX] = const_cast<byte_t*>(
+                                 reinterpret_cast<const byte_t*>(edge_data));
+    insertEdgeData<INDEX + 1>(args...);
 }
 
 template<unsigned INDEX>
-void cuStinger::insertEdgeData() noexcept {}
+void cuStinger::insertEdgeData() noexcept { _edge_init = true; }
 
 } // namespace cu_stinger

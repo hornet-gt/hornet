@@ -28,66 +28,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * @version v1.3
  */
 #include "Core/cuStinger.hpp"
+#include "Core/CudaGlobalSpace.cuh"
 
 namespace cu_stinger {
 
-__constant__ size_t           d_V = 0;
-__constant__ VertexTypes* d_nodes = nullptr;
-
-cuStinger::cuStinger(size_t num_vertices, size_t num_edges,
-                     const off_t* csr_offset, const id_t* csr_edges) noexcept :
-                           _nV(num_vertices),
-                           _nE(num_edges),
-                           _csr_offset(csr_offset) {
-
-    _degrees = new degree_t[_nV];
-    _limits  = new degree_t[_nV];
-    for (id_t i = 0; i < _nV; i++) {
-        _degrees[i] = _csr_offset[i + 1] - _csr_offset[i];
-        _limits[i]  = std::max(static_cast<id_t>(MIN_EDGES_PER_BLOCK),
-                               xlib::roundup_pow2(degree + 1));
-    }
-    _edge_data_ptr[0] = csr_edges;
-}
-
-cuStinger::~cuStinger() noexcept {
-    delete[] _degrees;
-    delete[] _limits;
-}
-
-void cuStinger::initialize() noexcept {
-    cuMemcpyToSymbol(_nV, d_V);
+void cuStinger::initializeGlobal() noexcept {
+    /*cuMemcpyToSymbol(_nV, d_V);
 
     VertexTypes* nodes;
     cuMalloc(nodes, _nV);
-    cuMemcpyToSymbol(nodes, d_nodes);
-
-    auto h_nodes = new VertexTypes[_nV];
-
-    for (id_t i = 0; i < _nV; i++) {
-        const auto& mem_ptrs = mem_management.insert(_degrees[i]);
-
-        byte_t* h_blockarray = mem_ptrs.first;
-
-        size_t offset = _csr_offset[i];
-        for (int j = 0; j < NUM_VERTEX_TYPES; j++) {
-            size_t num_bytes = _degrees[i] * edge_type_sizes[j];
-            std::memcpy(h_blockarray, _edge_data_ptr[j] + offset, num_bytes);
-            h_blockarray += num_bytes;
-        }
-    }
-    int num_containers = mem_management.num_blocks();
-    for (int i = 0; i < num_containers; i++) {
-        const auto& mem_ptrs = mem_management.get_block_array_ptr(i);
-        cuMemcpyToDeviceAsync(mem_ptrs.first, EDGES_PER_BLOCKARRAY,
-                              mem_ptrs.second);
-    }
-    //cuMemcpyToDeviceAsync(h_nodes, _d_nodes, _V);
-
-    delete[] _degrees;
-    delete[] _limits;
-    _degrees = nullptr;
-    _limits  = nullptr;
+    cuMemcpyToSymbol(nodes, d_nodes);*/
 }
 
 } // namespace cu_stinger

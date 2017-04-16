@@ -34,7 +34,8 @@ namespace detail {
 template<int INDEX>
 struct MMInsert {
     template<typename T>
-    static void op(T& bit_tree_set, std::pair<edge_t*, edge_t*>& ret) {
+    static void op(T& bit_tree_set, int& num_blockarrays,
+                   std::pair<edge_t*, edge_t*>& ret) {
         auto& vect = std::get<INDEX>(bit_tree_set);
         for (auto& it : vect) {
             if (!it.is_full()) {
@@ -47,13 +48,14 @@ struct MMInsert {
                                       EDGES_PER_BLOCKARRAY : BLOCK_ITEMS;
         vect.push_back(BitTree<edge_t, BLOCK_ITEMS, BLOCKARRAY_ITEMS>{});
         ret = vect.back().insert();
+        num_blockarrays++;
     }
 };
 
 template<int INDEX>
 struct MMRemove {
     template<typename T>
-    static void op(T& bit_tree_set, edge_t* ptr) {
+    static void op(T& bit_tree_set, int& num_blockarrays, edge_t* ptr) {
         auto& vect = std::get<INDEX>(bit_tree_set);
         auto end_it = vect.end();
         for (auto it = vect.begin(); it != end_it; it++) {
@@ -61,8 +63,10 @@ struct MMRemove {
             //          << it->base_address().second << std::endl;
             if (it->belong_to(ptr)) {
                 it->remove(ptr);
-                if (it->size() == 0)
+                if (it->size() == 0) {
+                    num_blockarrays--;
                     vect.erase(it);
+                }
                 return;
             }
         }
@@ -122,21 +126,19 @@ struct MMStatistics {
 
 //==============================================================================
 
-inline MemoryManagement::MemoryManagement() noexcept : _num_blocks(0) {}
+inline MemoryManagement::MemoryManagement() noexcept {}
 
 inline std::pair<edge_t*, edge_t*>
 MemoryManagement::insert(degree_t degree) noexcept {
-    _num_blocks++;
     int index = find_bin(degree);
     std::pair<edge_t*, edge_t*> ret;
-    traverse<detail::MMInsert>(index, ret);
+    traverse<detail::MMInsert>(index, _num_blockarrays, ret);
     return ret;
 }
 
 inline void MemoryManagement::remove(edge_t* ptr, degree_t degree) noexcept {
-    _num_blocks--;
     int index = find_bin(degree);
-    traverse<detail::MMRemove>(index, ptr);
+    traverse<detail::MMRemove>(index, _num_blockarrays, ptr);
 }
 
 inline void MemoryManagement::free_host_ptr() noexcept {
@@ -182,7 +184,7 @@ inline void MemoryManagement::statistics() noexcept {
 
     auto efficiency = xlib::per_cent(used_items, allocated_items);
 
-    std::cout << "\n      N. blocks: " << _num_blocks
+    std::cout << "\n      N. blocks: " << _num_blockarrays
               << "\nAllocated Items: " << allocated_items
               << "\n     Used Items: " << used_items
               << "\nAllocated Space: " << (allocated_items >> 20) << " MB"
@@ -196,8 +198,8 @@ inline int MemoryManagement::find_bin(degree_t degree) const noexcept {
                      xlib::ceil_log2(degree + 1) - LOG_EDGES_PER_BLOCK;
 }
 
-inline int MemoryManagement::num_blocks() const noexcept {
-    return _num_blocks;
+inline int MemoryManagement::num_blockarrays() const noexcept {
+    return _num_blockarrays;
 }
 
 //------------------------------------------------------------------------------

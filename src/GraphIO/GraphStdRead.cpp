@@ -219,11 +219,16 @@ void GraphStd<id_t, off_t>::readBinary(const char* filename, Property prop){
     allocate();
 
     if (_structure.is_directed() && _structure.is_reverse()) {
-        memory_mapped.read(_out_offsets, _V + 1, _in_offsets, _V + 1,
-                           _out_edges, _E, _in_edges, _E);
+        memory_mapped.read(_out_offsets, _V + 1, _in_offsets, _V + 1,   //NOLINT
+                           _out_edges, _E, _in_edges, _E);              //NOLINT
+        for (id_t i = 0; i < _V; i++)
+            _in_degrees[i] = _in_offsets[i + 1] - _in_offsets[i - 1];
     }
-    else
-        memory_mapped.read(_out_offsets, _V + 1, _out_edges, _E);
+    else {
+        memory_mapped.read(_out_offsets, _V + 1, _out_edges, _E);       //NOLINT
+    }
+    for (id_t i = 0; i < _V; i++)
+        _out_degrees[i] = _out_offsets[i + 1] - _out_offsets[i - 1];
 }
 
 #pragma clang diagnostic pop

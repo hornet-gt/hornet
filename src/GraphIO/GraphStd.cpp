@@ -166,7 +166,6 @@ void GraphStd<id_t, off_t>::print_raw() const noexcept {
 
 #if defined(__linux__)
 
-
 template<typename id_t, typename off_t>
 void GraphStd<id_t, off_t>::toBinary(const std::string& filename, bool print)
                                      const {
@@ -188,15 +187,15 @@ void GraphStd<id_t, off_t>::toBinary(const std::string& filename, bool print)
                                      xlib::MemoryMapped::WRITE, print);
 
     if (_structure.is_directed() && _structure.is_reverse()) {
-        memory_mapped.write(class_id.c_str(), class_id.size(),
-                            &_V, 1, &_E, 1, &_structure, 1,
-                            _out_offsets, _V + 1, _in_offsets, _V + 1,
-                            _out_edges, _E, _in_edges, _E);
+        memory_mapped.write(class_id.c_str(), class_id.size(),          //NOLINT
+                            &_V, 1, &_E, 1, &_structure, 1,             //NOLINT
+                            _out_offsets, _V + 1, _in_offsets, _V + 1,  //NOLINT
+                            _out_edges, _E, _in_edges, _E);             //NOLINT
     }
     else {
-        memory_mapped.write(class_id.c_str(), class_id.size(),
-                            &_V, 1, &_E, 1, &_structure, 1,
-                            _out_offsets, _V + 1, _out_edges, _E);
+        memory_mapped.write(class_id.c_str(), class_id.size(),          //NOLINT
+                            &_V, 1, &_E, 1, &_structure, 1,             //NOLINT
+                            _out_offsets, _V + 1, _out_edges, _E);      //NOLINT
     }
 }
 

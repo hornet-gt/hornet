@@ -77,7 +77,15 @@ template<unsigned N, unsigned K>        struct BinomialCoeff;
 template<unsigned LOW, unsigned HIGH>   struct ProductSequence;
 template<unsigned N, unsigned HIGH>     struct GeometricSerie;
 //------------------------------------------------------------------------------
-template<unsigned... Is> struct seq{};
+
+template<unsigned... Is> struct seq {
+    static constexpr unsigned value[] = {Is...};
+    static constexpr unsigned    size = sizeof...(Is);
+};
+template<unsigned... Is>
+constexpr unsigned seq<Is...>::value[];
+
+
 
 template<unsigned(*F)(unsigned), unsigned MAX, unsigned INDEX = 0,
          unsigned... Is>
@@ -105,6 +113,50 @@ constexpr auto table =  array_gen<fun, 4>();
 f<table[0]>();
 f<table[1]>();
 */
+
+template<typename, typename>
+struct TupleConcat;
+
+template<typename... TArgs1, typename... TArgs2>
+struct TupleConcat<std::tuple<TArgs1...>, std::tuple<TArgs2...>> {
+    using tuple =  typename std::tuple<TArgs1..., TArgs2...>;
+};
+
+//------------------------------------------------------------------------------
+
+template<typename>
+struct TupleToTypeSize;
+
+template<typename... TArgs>
+struct TupleToTypeSize<std::tuple<TArgs...>> {
+   using sequence = seq<sizeof(TArgs)...>;
+};
+
+//------------------------------------------------------------------------------
+
+template<unsigned, typename, typename>
+struct PrefixSequenceAux;
+
+template<typename>
+struct PrefixSequence;
+
+template<unsigned... Is>
+struct PrefixSequence<seq<Is...>> :
+    PrefixSequenceAux<sizeof...(Is), seq<>, seq<Is...>> {};
+
+template<unsigned INDEX, unsigned I1, unsigned I2, unsigned... Is2>
+struct PrefixSequenceAux<INDEX, seq<>, seq<I1, I2, Is2...>> :
+       PrefixSequenceAux<INDEX - 1, seq<I1, I1 + I2>,  seq<I1 + I2, Is2...>> {};
+
+template<unsigned INDEX, unsigned... Is1,
+         unsigned I1, unsigned I2, unsigned... Is2>
+struct PrefixSequenceAux<INDEX, seq<Is1...>, seq<I1, I2, Is2...>> :
+   PrefixSequenceAux<INDEX - 1, seq<Is1..., I1 + I2>,  seq<I1 + I2, Is2...>> {};
+
+template<unsigned... Is1, unsigned... Is2>
+struct PrefixSequenceAux<1, seq<Is1...>, seq<Is2...>> {
+    using sequence = seq<Is1...>;
+};
 
 } // namespace xlib
 

@@ -28,7 +28,16 @@ April, 2017: Version v1.1 - Federico Busato
         - Substituted tab '\t' with 4 spaces
         - 80 columns max
         - NULL --> nullptr
-        - Code assignment
+        - Code alignment
         - int32_t -> int
         - typename -> using
         - malloc/free -> new/delete
+    * cuStinger :
+        - print function for small graph
+        - batch generation: uniform/weighted sorted/unsorted
+        - external configuration "config.inc"
+
+TO DO:
+    - Kernel Interface
+    - Load Balancing
+    - Regression test

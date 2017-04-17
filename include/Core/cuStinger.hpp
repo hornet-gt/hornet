@@ -3,43 +3,48 @@
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
  * @date April, 2017
- * @version v1.3
+ * @version v2
  *
- * @copyright Copyright © 2017 by Nicola Bombieri
+ * @copyright Copyright © 2017 cuStinger. All rights reserved.
  *
  * @license{<blockquote>
- * XLib is provided under the terms of The MIT License (MIT)                <br>
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
  *
- * The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ * * Neither the name of the copyright holder nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  *
  * @file
  */
 #pragma once
 
-#include "Core/cuStingerConf.hpp"
+#include "Core/cuStingerConfig.hpp"
 #include "Core/MemoryManagement.hpp"
 #include <cstddef>                      //size_t
 
 using xlib::byte_t;
 
 /**
- *
+ * @brief
  */
 namespace cu_stinger {
 
@@ -65,7 +70,8 @@ public:
 
     /**
      * @brief Insert additional vertex data
-     * @param[in] list of arrays containing the vertex data
+     * @param[in] vertex_data head of the list of vertex data
+     * @param[in] args tail of the list of vertex data
      * @remark the types of the input arrays must be equal to the type List
      *         for vertices specified in the *cuStingerConf.hpp* file
      */
@@ -74,7 +80,8 @@ public:
 
     /**
      * @brief Insert additional edge data
-     * @param[in] list of arrays containing the edge data
+     * @param[in] edge_data head of the list of edge data
+     * @param[in] args tail of the list of edge data
      * @remark the types of the input arrays must be equal to the type List
      *         for edges specified in the *cuStingerConf.hpp* file
      */
@@ -83,28 +90,35 @@ public:
 
     /**
      * @brief Initialize the data structure
-     * @detail
+     * @details
      */
     void initialize() noexcept;
 
+    /**
+     * @brief Initialize the data structure
+     * @details
+     */
+    void print() noexcept;
+
 private:
     static const unsigned NUM_EXTRA_VTYPES =std::tuple_size<VertexTypes>::value;
-    static const unsigned NUM_EXTRA_ETYPES =std::tuple_size<EdgeTypes>::value;
-    static const unsigned NUM_VERTEX_TYPES =std::tuple_size<vertex_t>::value;
-    static const unsigned   NUM_EDGE_TYPES =std::tuple_size<edge_t>::value;
+    static const unsigned NUM_EXTRA_ETYPES = std::tuple_size<EdgeTypes>::value;
+    static const unsigned       NUM_VTYPES = std::tuple_size<vertex_t>::value;
+    static const unsigned       NUM_ETYPES = std::tuple_size<edge_t>::value;
 
     MemoryManagement mem_management;
 
-    byte_t* _vertex_data_ptr[ NUM_VERTEX_TYPES ];
-    byte_t*   _edge_data_ptr[ NUM_EDGE_TYPES ];
+    byte_t* _vertex_data_ptr[ NUM_EXTRA_VTYPES ];
+    byte_t*   _edge_data_ptr[ NUM_ETYPES ];
 
     size_t       _nV;
     size_t       _nE;
-    const off_t* _csr_offset  { nullptr };
-    degree_t*    _degrees     { nullptr };
-    degree_t*    _limits      { nullptr };
-    bool         _vertex_init { false };
-    bool         _edge_init   { false };
+    const off_t* _csr_offset;
+    vertex_t*    _d_nodes        { nullptr };
+    bool         _vertex_init    { false };
+    bool         _edge_init      { false };
+    bool         _custinger_init { false };
+
 
     template<unsigned INDEX>
     void insertVertexData() noexcept;

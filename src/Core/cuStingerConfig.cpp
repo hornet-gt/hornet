@@ -3,7 +3,7 @@
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
  * @date April, 2017
- * @version v1.3
+ * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
  *
@@ -32,31 +32,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
- *
- * @file
  */
-#pragma once
-
-#include "GraphIO/GraphStd.hpp"
 #include "Core/cuStingerConfig.hpp"
 
-struct BatchProperty {
-    bool sort, print, weighted;
+namespace cu_stinger {
 
-    BatchProperty(bool _sort       = false,
-                  bool _weighted   = false,
-                  bool _print      = false) :
-                        sort(_sort), weighted(_weighted), print(_print) {}
-};
+xlib::TupleToTypeSize<VertexTypes>::type EXTRA_VTYPE_SIZE;
+xlib::TupleToTypeSize<edge_t>::type      ETYPE_SIZE;
+//xlib::PrefixSequence<decltype(VTYPE_SIZE)>::type VTYPE_SIZE_PS;
+//xlib::PrefixSequence<decltype(ETYPE_SIZE)>::type ETYPE_SIZE_PS;
 
-void generateInsertBatch(id_t* batch_src, id_t* batch_dest,
-                         int batch_size, const graph::GraphStd<>& graph,
-                         BatchProperty prop = BatchProperty());
-
-//==============================================================================
-/*typedef struct dxor128_env {
-  unsigned x,y,z,w;
-} dxor128_env_t;
-*/
-
-//void generateEdgeUpdatesRMAT(length_t nv, length_t numEdges, vertexId_t* edgeSrc, vertexId_t* edgeDst,double A, double B, double C, double D, dxor128_env_t * env);
+} // namespace cu_stinger

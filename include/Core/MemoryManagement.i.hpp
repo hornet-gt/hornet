@@ -1,31 +1,37 @@
-/*------------------------------------------------------------------------------
-Copyright © 2017 by Nicola Bombieri
-
-XLib is provided under the terms of The MIT License (MIT):
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-------------------------------------------------------------------------------*/
-/*
- * @author Federico Busato
- *         Univerity of Verona, Dept. of Computer Science
+/**
+ * @author Federico Busato                                                  <br>
+ *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
  * @date April, 2017
- * @version v1.3
+ * @version v2
+ *
+ * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ *
+ * @license{<blockquote>
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ * * Neither the name of the copyright holder nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * </blockquote>}
  */
 namespace cu_stinger {
 
@@ -148,11 +154,11 @@ inline void MemoryManagement::free_host_ptr() noexcept {
 
 inline std::pair<edge_t*, edge_t*>
 MemoryManagement::get_block_array_ptr(int block_index) noexcept {
-    assert(block_index >= 0);
+    assert(block_index >= 0 && block_index < _num_blockarrays);
     for (int i = 0; i < LIMIT; i++) {
         int vect_size = 0;
         traverse<detail::MMGetBlockPtr1>(i, vect_size);
-        if (vect_size <= block_index) {
+        if (block_index < vect_size) {
             std::pair<edge_t*, edge_t*> ret;
             traverse<detail::MMGetBlockPtr2>(i, block_index, ret);
             return ret;
@@ -184,7 +190,7 @@ inline void MemoryManagement::statistics() noexcept {
 
     auto efficiency = xlib::per_cent(used_items, allocated_items);
 
-    std::cout << "\n      N. blocks: " << _num_blockarrays
+    std::cout << "\n N. BlockArrays: " << _num_blockarrays
               << "\nAllocated Items: " << allocated_items
               << "\n     Used Items: " << used_items
               << "\nAllocated Space: " << (allocated_items >> 20) << " MB"

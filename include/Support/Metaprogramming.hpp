@@ -5,27 +5,32 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 by Nicola Bombieri
+ * @copyright Copyright © 2017 cuStinger. All rights reserved.
  *
  * @license{<blockquote>
- * XLib is provided under the terms of The MIT License (MIT)                <br>
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
  *
- * The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ * * Neither the name of the copyright holder nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  *
  * @file
@@ -78,38 +83,27 @@ template<unsigned LOW, unsigned HIGH>   struct ProductSequence;
 template<unsigned N, unsigned HIGH>     struct GeometricSerie;
 //------------------------------------------------------------------------------
 
-template<unsigned... Is> struct seq {
-    static constexpr unsigned value[] = {Is...};
+template<unsigned... Is> struct Seq {
+    static constexpr unsigned value[] = { Is... };
     static constexpr unsigned    size = sizeof...(Is);
+    constexpr unsigned operator[](int index) const { return value[index]; }
 };
 template<unsigned... Is>
-constexpr unsigned seq<Is...>::value[];
+constexpr unsigned Seq<Is...>::value[];
 
+///@cond
 
-
-template<unsigned(*F)(unsigned), unsigned MAX, unsigned INDEX = 0,
+template<unsigned(*fun)(unsigned), unsigned MAX, unsigned INDEX = 0,
          unsigned... Is>
-struct gen_seq : gen_seq<F, MAX, INDEX + 1, Is..., F(INDEX)>{};
+struct GenerateSeq : GenerateSeq<fun, MAX, INDEX + 1, Is..., fun(INDEX)>{};
 
-template<unsigned(*F)(unsigned), unsigned MAX, unsigned... Is>
-struct gen_seq<F, MAX, MAX, Is...> : seq<Is...>{};
-
-template<unsigned... Is>
-constexpr std::array<unsigned const, sizeof...(Is)> array_gen(seq<Is...>) {
-  return {{ Is... }};
-}
-
-template<unsigned(*F)(unsigned), unsigned MAX>
-constexpr auto array_gen() -> decltype(array_gen(gen_seq<F, MAX>{}));
-
-template<unsigned(*F)(unsigned), unsigned MAX>
-constexpr auto array_gen() -> decltype(array_gen(gen_seq<F, MAX>{})) {
-  return array_gen(gen_seq<F, MAX>{});
-}
-
+template<unsigned(*fun)(unsigned), unsigned MAX, unsigned... Is>
+struct GenerateSeq<fun, MAX, MAX, Is...>  {
+    using type = Seq<Is...>;
+};
 /*
 constexpr int fun(int i) { return i * 3; };
-constexpr auto table =  array_gen<fun, 4>();
+GenerateSeq<fun, 4>::type table;
 f<table[0]>();
 f<table[1]>();
 */
@@ -119,7 +113,7 @@ struct TupleConcat;
 
 template<typename... TArgs1, typename... TArgs2>
 struct TupleConcat<std::tuple<TArgs1...>, std::tuple<TArgs2...>> {
-    using tuple =  typename std::tuple<TArgs1..., TArgs2...>;
+    using type = std::tuple<TArgs1..., TArgs2...>;
 };
 
 //------------------------------------------------------------------------------
@@ -129,7 +123,7 @@ struct TupleToTypeSize;
 
 template<typename... TArgs>
 struct TupleToTypeSize<std::tuple<TArgs...>> {
-   using sequence = seq<sizeof(TArgs)...>;
+   using type = Seq<sizeof(TArgs)...>;
 };
 
 //------------------------------------------------------------------------------
@@ -141,22 +135,23 @@ template<typename>
 struct PrefixSequence;
 
 template<unsigned... Is>
-struct PrefixSequence<seq<Is...>> :
-    PrefixSequenceAux<sizeof...(Is), seq<>, seq<Is...>> {};
+struct PrefixSequence<Seq<Is...>> :
+    PrefixSequenceAux<sizeof...(Is), Seq<>, Seq<Is...>> {};
 
 template<unsigned INDEX, unsigned I1, unsigned I2, unsigned... Is2>
-struct PrefixSequenceAux<INDEX, seq<>, seq<I1, I2, Is2...>> :
-       PrefixSequenceAux<INDEX - 1, seq<I1, I1 + I2>,  seq<I1 + I2, Is2...>> {};
+struct PrefixSequenceAux<INDEX, Seq<>, Seq<I1, I2, Is2...>> :
+       PrefixSequenceAux<INDEX - 1, Seq<I1, I1 + I2>,  Seq<I1 + I2, Is2...>> {};
 
 template<unsigned INDEX, unsigned... Is1,
          unsigned I1, unsigned I2, unsigned... Is2>
-struct PrefixSequenceAux<INDEX, seq<Is1...>, seq<I1, I2, Is2...>> :
-   PrefixSequenceAux<INDEX - 1, seq<Is1..., I1 + I2>,  seq<I1 + I2, Is2...>> {};
+struct PrefixSequenceAux<INDEX, Seq<Is1...>, Seq<I1, I2, Is2...>> :
+   PrefixSequenceAux<INDEX - 1, Seq<Is1..., I1 + I2>,  Seq<I1 + I2, Is2...>> {};
 
 template<unsigned... Is1, unsigned... Is2>
-struct PrefixSequenceAux<1, seq<Is1...>, seq<Is2...>> {
-    using sequence = seq<Is1...>;
+struct PrefixSequenceAux<1, Seq<Is1...>, Seq<Is2...>> {
+    using type = Seq<Is1...>;
 };
+//@endcond
 
 } // namespace xlib
 

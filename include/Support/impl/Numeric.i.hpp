@@ -1,31 +1,37 @@
-/*------------------------------------------------------------------------------
-Copyright © 2017 by Nicola Bombieri
-
-XLib is provided under the terms of The MIT License (MIT):
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-------------------------------------------------------------------------------*/
-/*
- * @author Federico Busato
- *         Univerity of Verona, Dept. of Computer Science
+/**
+ * @author Federico Busato                                                  <br>
+ *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
  * @date April, 2017
  * @version v1.3
+ *
+ * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ *
+ * @license{<blockquote>
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ * * Neither the name of the copyright holder nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * </blockquote>}
  */
 #include "Support/Basic.hpp"
 #include "Support/Metaprogramming.hpp"
@@ -405,7 +411,7 @@ unsigned multiplyShiftHash32(unsigned A, unsigned B, unsigned log_bins,
 HOST_DEVICE
 uint64_t multiplyShiftHash64(uint64_t A, uint64_t B, unsigned log_bins,
                              uint64_t value) noexcept {
-	return static_cast<uint64_t>(A * value + B) >> (64 - log_bins);
+    return static_cast<uint64_t>(A * value + B) >> (64 - log_bins);
 }
 
 template<unsigned A, unsigned B, unsigned BINS>
@@ -414,7 +420,7 @@ struct MultiplyShiftHash32 {
 
     HOST_DEVICE
     static unsigned op(unsigned value) {
-    	return static_cast<unsigned>(A * value + B) >> (32 - Log2<BINS>::value);
+        return static_cast<unsigned>(A * value + B) >> (32 - Log2<BINS>::value);
     }
 };
 
@@ -424,7 +430,7 @@ struct MultiplyShiftHash64 {
 
     HOST_DEVICE
     static uint64_t op(uint64_t value) {
-    	return static_cast<uint64_t>(A * value + B) >> (64 - Log2<BINS>::value);
+        return static_cast<uint64_t>(A * value + B) >> (64 - Log2<BINS>::value);
     }
 };
 

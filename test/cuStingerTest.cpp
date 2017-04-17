@@ -1,24 +1,17 @@
 ///@files
-
-/*#include "Util/BatchFunctions.hpp"
-#include "Core/update.cuh"
-*/
 #include "Core/cuStinger.hpp"
 
-#include "GraphIO/GraphStd.hpp"
-#include "Util/Parameters.hpp"
-//#include "Util/utils.hpp"
-#include "Support/FileUtil.hpp"
-#include "Support/CudaUtil.cuh"
-#include "Support/Timer.cuh"
+#include "GraphIO/GraphStd.hpp" //GraphStd
+#include "Util/Parameters.hpp"  //Param
+#include "Support/FileUtil.hpp" //xlib::extract_filepath_noextension
+#include "Support/CudaUtil.cuh" //xlib::deviceInfo
+#include "Support/Timer.cuh"    //Timer<HOST>
+#include <algorithm>
 #include <chrono>
 #include <random>
-#include <algorithm>
 
 using namespace cu_stinger;
 using namespace timer;
-
-//void printcuStingerUtility(cuStinger custing, bool all_info);
 
 /**
  * @brief Example tester for cuSTINGER.
@@ -29,14 +22,13 @@ int main(int argc, char* argv[]) {
     xlib::deviceInfo();
     Param param(argc, argv);
 
-    graph::GraphStd<> graph;
+    graph::GraphStd<id_t, off_t> graph;
     graph.read(argv[1]);
 
     if (param.binary)
         graph.toBinary(xlib::extract_filepath_noextension(argv[1]) + ".bin");
 
-    cuStinger custiger_graph(graph.nV(), graph.nE(),
-                             graph.out_offsets_array(),
+    cuStinger custiger_graph(graph.nV(), graph.nE(), graph.out_offsets_array(),
                              graph.out_edges_array());
     //--------------------------------------------------------------------------
 
@@ -57,8 +49,8 @@ int main(int argc, char* argv[]) {
     std::generate(time_stamp, time_stamp + graph.nE(),
                   [&]{ return int_dist(gen); });
 
-    custiger_graph.insertVertexData(labels);
-    custiger_graph.insertEdgeData(time_stamp, weights);
+    //custiger_graph.insertVertexData(labels);
+    //custiger_graph.insertEdgeData(time_stamp, weights);
     custiger_graph.initialize();
     //--------------------------------------------------------------------------
 
@@ -66,23 +58,9 @@ int main(int argc, char* argv[]) {
     delete[] time_stamp;
     delete[] weights;
 
-    /*cuStingerInitConfig cu_init;
+    custiger_graph.print();
 
-    cu_init.initState  = eInitStateCSR;
-    cu_init.maxNV      = graph.nV() + 1;
-    cu_init.useVWeight = false;
-    cu_init.isSemantic = false;  // Use edge types and vertex types
-    cu_init.useEWeight = false;
-
-    cu_init.csrNV  = graph.nV();
-    cu_init.csrNE  = graph.nE();
-    cu_init.csrOff = graph.out_offsets_array();
-    cu_init.csrAdj = graph.out_edges_array();
-    cu_init.csrVW  = nullptr;
-    cu_init.csrEW  = nullptr;
-
-    Timer<DEVICE> TM;
-    int is_rmat = 0;*/
+    //Timer<DEVICE> TM;
 
     // Testing the scalablity of edge insertions and deletions for
     // batch sizes within the range of {1, 10, 100, .. 10^7}
@@ -140,17 +118,3 @@ int main(int argc, char* argv[]) {
         }
     }*/
 }
-
-/**
- * @brief Printer utility function that gets the percentage of utilized space in
- *        the graph.
- * @param[in] custing
- * @param[in] all_info it is prints the number of used edges and allocated edges
- */
-/*void printcuStingerUtility(cuStinger custing, bool all_info) {
-    auto used      = custing.getNumberEdgesUsed();
-    auto allocated = custing.getNumberEdgesAllocated();
-    if (all_info)
-        std::cout << "," << used << "," << allocated;
-    std::cout << "," << static_cast<float>(used) /static_cast<float>(allocated);
-}*/

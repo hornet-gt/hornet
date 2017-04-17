@@ -105,16 +105,6 @@ template<typename T>
 void cuMemcpyToDevice(const T* h_input, size_t num_items, T* d_output);
 
 /**
- * @brief Copy host memory (reference) to device global memory
- * @tparam T Input/Output type
- * @param[in] h_input host reference to read
- * @param[out] d_output device pointer to write
- * @warning `d_output` \f$\ne\f$ `nullptr`
- */
-template<typename T>
-void cuMemcpyToDevice(const T& h_input, T* d_output);
-
-/**
  * @brief Asynchronous copy host memory (pointer) to device global memory
  * @tparam T Input/Output type
  * @param[in] h_input host pointer to read
@@ -137,16 +127,6 @@ void cuMemcpyToDeviceAsync(const T* h_input, size_t num_items, T* d_output);
  */
 template<typename T>
 void cuMemcpyToHost(const T* d_input, size_t num_items, T* h_output);
-
-/**
- * @brief Copy device global memory (pointer) to host memory (reference)
- * @tparam T Input/Output type
- * @param[in] d_input device pointer to read
- * @param[out] h_output host pointer to write
- * @warning  `d_input` \f$\ne\f$ `nullptr`
- */
-template<typename T>
-void cuMemcpyToHost(const T* d_input, T& h_output);
 //------------------------------------------------------------------------------
 
 /**

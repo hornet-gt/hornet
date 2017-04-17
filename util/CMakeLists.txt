@@ -95,10 +95,14 @@ if (WARNING_FLAGS)
         add_compile_options("-Wno-c++98-compat")
         add_compile_options("-Wno-c++98-compat-pedantic")
         add_compile_options("-Wno-padded")
-        add_compile_options("-Wno-documentation-unknown-command")
-        add_compile_options("-Wno-weak-template-vtables")
+        #add_compile_options("-Wno-documentation-unknown-command")
+        #add_compile_options("-Wno-weak-template-vtables")
         add_compile_options("-Wno-undefined-func-template")
         #add_compile_options("-Wno-documentation")
+    elseif(CMAKE_COMPILER_IS_GNUCXX)
+        add_compile_options("-Wall")
+        add_compile_options("-Wextra")
+        add_compile_options("-Wpedantic")
     endif()
 endif()
 
@@ -320,9 +324,15 @@ endif()
 
 add_custom_target(rm rm -rf * COMMENT "Clear build directory")
 
-add_custom_target(ptx "cp ${PROJECT_SOURCE_DIR}/build/TMP/*.ptx"
-                      "${PROJECT_SOURCE_DIR}/build"
+add_custom_target(ptx cp ${PROJECT_SOURCE_DIR}/build/TMP/*.ptx
+                         ${PROJECT_SOURCE_DIR}/build
                   COMMENT "PTX")
+
+add_custom_target(valgrind cp ${CMAKE_CURRENT_LIST_DIR}/script/valgrind.sh
+                              ${CMAKE_CURRENT_LIST_DIR}/script/cuda.supp
+                              ${PROJECT_SOURCE_DIR}/build
+                  COMMAND chmod +x ${PROJECT_SOURCE_DIR}/build/valgrind.sh
+                  COMMENT "VALGRIND")
 
 add_custom_target(update rm -rf *
                   COMMAND cmake ..
@@ -351,13 +361,3 @@ add_custom_target(update_mem rm -rf *
                   COMMAND make -j ${THREADS}
                   COMMENT "UPDATE MEM")
 endif()
-#-------------------------------------------------------------------------------
-###########
-# UTILITY #
-###########
-
-#file(COPY ${CMAKE_CURRENT_LIST_DIR}/../script/valgrind.sh
- #         ${CMAKE_CURRENT_LIST_DIR}/../script/cuda.supp
- #    DESTINATION ${PROJECT_SOURCE_DIR}/build)
-
-#execute_process(COMMAND chmod +x ${PROJECT_SOURCE_DIR}/build/valgrind.sh)

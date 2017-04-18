@@ -16,6 +16,7 @@ The document is organized as follows:
 The syntax and the input parameters of cuSTINGER are explained in details in the `Syntax.txt` file or by typing `./cuStingerTest --help`.
 
 The code documentation is located in the `doc` directory (*doxygen* html format).
+The documentation is also accessible online at this [**link**.](https://federicounivr.github.io/cuStinger/)
 
 ### Requirements ###
 

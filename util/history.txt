@@ -43,3 +43,7 @@ TO DO:
     - Load Balancing
     - Regression test
     - Insert new vertices
+    - Added Syntax.txt
+    - Added online documentation
+    - Batch equal operators
+    

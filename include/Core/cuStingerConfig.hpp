@@ -68,6 +68,11 @@ static_assert(xlib::IsPower2<MIN_EDGES_PER_BLOCK>::value  &&
 static_assert(std::is_integral<id_t>::value, "id_t must be integral");
 static_assert(std::is_integral<off_t>::value, "off_t must be integral");
 
+static_assert(std::is_same<degree_t, int>::value ||
+              std::is_same<degree_t, unsigned>::value ||
+              std::is_same<degree_t, unsigned long long>::value,
+              "degree_t type must allows atomicAdd operation");
+              
 using      VTypeSize = typename xlib::TupleToTypeSize<vertex_t>::type;
 using      ETypeSize = typename xlib::TupleToTypeSize<edge_t>::type;
 using ExtraVTypeSize = typename xlib::TupleToTypeSize<VertexTypes>::type;

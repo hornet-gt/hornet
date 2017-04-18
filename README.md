@@ -88,7 +88,7 @@ Additional information on cuSTINGER can be found in the [HPEC'16 conference pape
 
 > BSD 3-Clause License
 >
-> Copyright (c) 2016, cuStinger
+> Copyright (c) 2017, cuStinger
 > All rights reserved.
 >
 > Redistribution and use in source and binary forms, with or without

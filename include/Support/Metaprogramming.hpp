@@ -37,6 +37,7 @@
  */
 #pragma once
 
+#include "Support/HostDevice.hpp"
 #include <array>
 #include <cstdint>
 
@@ -83,15 +84,26 @@ template<unsigned LOW, unsigned HIGH>   struct ProductSequence;
 template<unsigned N, unsigned HIGH>     struct GeometricSerie;
 //------------------------------------------------------------------------------
 
-template<unsigned... Is> struct Seq {
+template<typename>
+struct SeqDev;
+
+template<unsigned... Is>
+struct Seq {
     static constexpr unsigned value[] = { Is... };
     static constexpr unsigned    size = sizeof...(Is);
     constexpr unsigned operator[](int index) const { return value[index]; }
 };
 template<unsigned... Is>
 constexpr unsigned Seq<Is...>::value[];
-
 ///@cond
+
+template<unsigned... Is>
+struct SeqDev<Seq<Is...>> {
+    HOST_DEVICE unsigned operator[](int index) const {
+         constexpr unsigned value[] = { Is... };
+         return value[index];
+    }
+};
 
 template<unsigned(*fun)(unsigned), unsigned MAX, unsigned INDEX = 0,
          unsigned... Is>
@@ -129,26 +141,33 @@ struct TupleToTypeSize<std::tuple<TArgs...>> {
 //------------------------------------------------------------------------------
 
 template<unsigned, typename, typename>
-struct PrefixSequenceAux;
+struct PrefixSumAux;
 
 template<typename>
-struct PrefixSequence;
+struct IncPrefixSum;
 
 template<unsigned... Is>
-struct PrefixSequence<Seq<Is...>> :
-    PrefixSequenceAux<sizeof...(Is), Seq<>, Seq<Is...>> {};
+struct IncPrefixSum<Seq<Is...>> :
+    PrefixSumAux<sizeof...(Is), Seq<>, Seq<Is...>> {};
+
+template<typename>
+struct ExcPrefixSum;
+
+template<unsigned... Is>
+struct ExcPrefixSum<Seq<Is...>> :
+    PrefixSumAux<sizeof...(Is) + 1, Seq<>, Seq<0, Is...>> {};
 
 template<unsigned INDEX, unsigned I1, unsigned I2, unsigned... Is2>
-struct PrefixSequenceAux<INDEX, Seq<>, Seq<I1, I2, Is2...>> :
-       PrefixSequenceAux<INDEX - 1, Seq<I1, I1 + I2>,  Seq<I1 + I2, Is2...>> {};
+struct PrefixSumAux<INDEX, Seq<>, Seq<I1, I2, Is2...>> :
+       PrefixSumAux<INDEX - 1, Seq<I1, I1 + I2>,  Seq<I1 + I2, Is2...>> {};
 
 template<unsigned INDEX, unsigned... Is1,
          unsigned I1, unsigned I2, unsigned... Is2>
-struct PrefixSequenceAux<INDEX, Seq<Is1...>, Seq<I1, I2, Is2...>> :
-   PrefixSequenceAux<INDEX - 1, Seq<Is1..., I1 + I2>,  Seq<I1 + I2, Is2...>> {};
+struct PrefixSumAux<INDEX, Seq<Is1...>, Seq<I1, I2, Is2...>> :
+   PrefixSumAux<INDEX - 1, Seq<Is1..., I1 + I2>,  Seq<I1 + I2, Is2...>> {};
 
 template<unsigned... Is1, unsigned... Is2>
-struct PrefixSequenceAux<1, Seq<Is1...>, Seq<Is2...>> {
+struct PrefixSumAux<1, Seq<Is1...>, Seq<Is2...>> {
     using type = Seq<Is1...>;
 };
 //@endcond

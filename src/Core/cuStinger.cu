@@ -41,14 +41,20 @@ namespace cu_stinger {
 void cuStinger::initializeGlobal() noexcept {
     cuMalloc(_d_nodes, _nV);
     cuMemcpyToSymbol(_nV, d_nV);
-    cuMemcpyToSymbol(_d_nodes, d_nodes);
+
+    byte_t* h_ptrs[NUM_VTYPES];
+    for (int i = 0; i < NUM_VTYPES; i++) {
+        h_ptrs[i] = reinterpret_cast<byte_t*>(_d_nodes) +
+                    _nV * VTYPE_SIZE_PS[i];
+    }
+    cuMemcpyToSymbol(h_ptrs, d_ptrs);
 }
 
 void cuStinger::print() noexcept {
     if (!_custinger_init)
         ERROR("cuStinger not initialized")
     if (sizeof(degree_t) == 4 && sizeof(id_t) == 4) {
-        printKernel<<<1, 1>>>();
+        printKernel2<<<1, 1>>>();
         CHECK_CUDA_ERROR
     }
     else

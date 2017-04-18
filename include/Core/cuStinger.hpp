@@ -101,11 +101,6 @@ public:
     void print() noexcept;
 
 private:
-    static const unsigned NUM_EXTRA_VTYPES =std::tuple_size<VertexTypes>::value;
-    static const unsigned NUM_EXTRA_ETYPES = std::tuple_size<EdgeTypes>::value;
-    static const unsigned       NUM_VTYPES = std::tuple_size<vertex_t>::value;
-    static const unsigned       NUM_ETYPES = std::tuple_size<edge_t>::value;
-
     MemoryManagement mem_management;
 
     byte_t* _vertex_data_ptr[ NUM_EXTRA_VTYPES ];

@@ -32,6 +32,7 @@ April, 2017: Version v1.1 - Federico Busato
         - int32_t -> int
         - typename -> using
         - malloc/free -> new/delete
+        - ...
     * cuStinger :
         - print function for small graph
         - batch generation: uniform/weighted sorted/unsorted
@@ -41,3 +42,4 @@ TO DO:
     - Kernel Interface
     - Load Balancing
     - Regression test
+    - Insert new vertices

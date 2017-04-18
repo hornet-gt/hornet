@@ -37,11 +37,12 @@
 
 namespace cu_stinger {
 
-const xlib::TupleToTypeSize<vertex_t>::type    VTYPE_SIZE;
-const xlib::TupleToTypeSize<VertexTypes>::type EXTRA_VTYPE_SIZE;
-const xlib::TupleToTypeSize<edge_t>::type      ETYPE_SIZE;
+const VTypeSize VTYPE_SIZE;
+const ETypeSize ETYPE_SIZE;
 
-const xlib::ExcPrefixSum<VextexSizes>::type VTYPE_SIZE_PS;
+const ExtraVTypeSize EXTRA_VTYPE_SIZE;
+
+const xlib::ExcPrefixSum<VTypeSize>::type      VTYPE_SIZE_PS;
 //xlib::PrefixSequence<decltype(ETYPE_SIZE)>::type ETYPE_SIZE_PS;
 
 } // namespace cu_stinger

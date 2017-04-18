@@ -23,3 +23,6 @@ cuda_add_executable(cuStingerTest test/cuStingerTest.cpp)
 TARGET_LINK_LIBRARIES(cuStingerTest cuStinger ${CUDA_LIBRARIES})
 #TARGET_LINK_LIBRARIES(mem_test cuStinger)
 #-------------------------------------------------------------------------------
+
+## TO DO
+## Insert regression test

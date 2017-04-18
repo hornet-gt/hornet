@@ -1,4 +1,5 @@
 /**
+ * @internal
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it

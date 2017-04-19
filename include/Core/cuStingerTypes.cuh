@@ -90,6 +90,15 @@ public:
     Edge edge(off_t index) const noexcept;
 private:
     byte_t* _ptrs[NUM_VTYPES];
+
+    __device__ __forceinline__
+    degree_t limit() const noexcept;
+
+    __device__ __forceinline__
+    degree_t* degree_ptr() noexcept;
+
+    __device__ __forceinline__
+    void store(const Edge& edge, degree_t index) noexcept;
 };
 
 //==============================================================================
@@ -170,7 +179,7 @@ private:
     byte_t* _ptrs[NUM_ETYPES];
 
     __device__ __forceinline__
-    Edge(byte_t* block_ptr, off_t index) noexcept;
+    Edge(byte_t* block_ptr, off_t index, degree_t limit) noexcept;
 };
 
 //==============================================================================

@@ -42,7 +42,7 @@ const ETypeSize ETYPE_SIZE;
 
 const ExtraVTypeSize EXTRA_VTYPE_SIZE;
 
-const xlib::ExcPrefixSum<VTypeSize>::type      VTYPE_SIZE_PS;
-//xlib::PrefixSequence<decltype(ETYPE_SIZE)>::type ETYPE_SIZE_PS;
+const VTypeSizePS VTYPE_SIZE_PS;
+const ETypeSizePS ETYPE_SIZE_PS;
 
 } // namespace cu_stinger

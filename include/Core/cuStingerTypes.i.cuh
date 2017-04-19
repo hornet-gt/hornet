@@ -43,7 +43,7 @@ Vertex::Vertex(id_t index) noexcept {
     auto ptr = d_ptrs[2] + index * VTYPE_SIZE_D[2];   //edge
     _ptrs[2] = reinterpret_cast<byte_t*>(*reinterpret_cast<edge_t**>(ptr));
     //#pragma unroll
-    //for (int i = 0; i < NUM_EXTRA_VTYPES; i++)      //Fused multiply–add
+    //for (int i = 0; i < NUM_EXTRA_VTYPES; i++)
     //    _ptrs[i + 3] = d_ptrs[i + 3] + index * VTYPE_SIZE2[i];//EXTRA_VTYPE_SIZE[i];
 }
 
@@ -54,17 +54,34 @@ degree_t Vertex::degree() const noexcept {
 
 __device__ __forceinline__
 Edge Vertex::edge(degree_t index) const noexcept {
-    return Edge(_ptrs[2], index);
+    return Edge(_ptrs[2], index, limit());
+}
+
+__device__ __forceinline__
+degree_t Vertex::limit() const noexcept {
+    return *reinterpret_cast<degree_t*>(_ptrs[1]);
+}
+
+__device__ __forceinline__
+degree_t* Vertex::degree_ptr() noexcept {
+    return reinterpret_cast<degree_t*>(_ptrs[0]);
+}
+
+__device__ __forceinline__
+void Vertex::store(const Edge& edge, degree_t index) noexcept {
+    reinterpret_cast<id_t*>(_ptrs[0])[index] = edge.dst();
 }
 
 //==============================================================================
 
 __device__ __forceinline__
-Edge::Edge(byte_t* block_ptr, off_t index) noexcept {
+Edge::Edge(byte_t* block_ptr, off_t index, degree_t limit) noexcept {
+    xlib::SeqDev<ETypeSizePS> ETYPE_SIZE_PS_D;
+
      _ptrs[0] = block_ptr + index * sizeof(id_t);
-    //#pragma unroll
-    //for (int i = 0; i < NUM_ETYPES; i++)
-    //    _ptrs[i] = block_ptr + index * ETYPE_SIZE[i];       //Fused multiply–add
+    #pragma unroll
+    for (int i = 0; i < NUM_ETYPES; i++)
+        _ptrs[i] = block_ptr + limit * ETYPE_SIZE_PS_D[i];
 }
 
 __device__ __forceinline__

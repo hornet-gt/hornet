@@ -76,7 +76,7 @@ template<unsigned INDEX>
 void cuStinger::insertEdgeData() noexcept { _edge_init = true; }
 
 //------------------------------------------------------------------------------
-
+/*
 template<unsigned INDEX, typename T, typename... TArgs>
 void cuStinger::insertEdgeBatch(const T* edge_data, TArgs... args) {
     static edge_t* d_batch_ptr = nullptr;
@@ -102,7 +102,7 @@ __global__ void insertBatchKernel(edge_t* batch_ptr,
 
     for (int i = id; i < batch_size; i++) {
         auto     src_id = reinterpret_cast<id_t*>(batch_ptr)[i];
-        auto batch_edge = build_edge(batch_ptr + batch_size, batch_size);
+        auto batch_edge = Edge(batch_ptr + batch_size, batch_size);
         auto        dst = batch_edge.dst();
 
         auto batch_vertex = Vertex(batch_src);
@@ -114,8 +114,8 @@ __global__ void insertBatchKernel(edge_t* batch_ptr,
             if (equal_op(batch_edge, batch_vertex.edge(j))
                 break;
         }
-        degree_t  old = atomicAdd(degree_ptr, 1);
-        adj_list[old] = dst;
+        degree_t old_pos = atomicAdd(degree_ptr, 1);
+        batch_vertex.store(batch_edge, old_pos);
     }
 }
 
@@ -131,6 +131,6 @@ void cuStinger::insertEdgeBatch() {
     TM.print("insertBatchKernel");
     CHECK_CUDA_ERROR
     cuFree(d_batch_ptr);
-}
+}*/
 
 } // namespace cu_stinger

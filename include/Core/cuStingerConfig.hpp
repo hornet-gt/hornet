@@ -72,18 +72,19 @@ static_assert(std::is_same<degree_t, int>::value ||
               std::is_same<degree_t, unsigned>::value ||
               std::is_same<degree_t, unsigned long long>::value,
               "degree_t type must allows atomicAdd operation");
-              
+
 using      VTypeSize = typename xlib::TupleToTypeSize<vertex_t>::type;
 using      ETypeSize = typename xlib::TupleToTypeSize<edge_t>::type;
 using ExtraVTypeSize = typename xlib::TupleToTypeSize<VertexTypes>::type;
+using    VTypeSizePS = typename xlib::ExcPrefixSum<VTypeSize>::type;
+using    ETypeSizePS = typename xlib::ExcPrefixSum<ETypeSize>::type;
 
-
-extern const VTypeSize VTYPE_SIZE;
-extern const ETypeSize ETYPE_SIZE;
-
+extern const VTypeSize      VTYPE_SIZE;
+extern const ETypeSize      ETYPE_SIZE;
 extern const ExtraVTypeSize EXTRA_VTYPE_SIZE;
-extern const xlib::ExcPrefixSum<VTypeSize>::type    VTYPE_SIZE_PS;
-//extern xlib::PrefixSequence<decltype(ETYPE_SIZE)>::type ETYPE_SIZE_PS;
+
+extern const VTypeSizePS VTYPE_SIZE_PS;
+extern const ETypeSizePS ETYPE_SIZE_PS;
 
 const unsigned NUM_EXTRA_VTYPES = std::tuple_size<VertexTypes>::value;
 const unsigned NUM_EXTRA_ETYPES = std::tuple_size<EdgeTypes>::value;

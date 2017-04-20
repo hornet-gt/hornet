@@ -37,45 +37,75 @@
 
 namespace cu_stinger {
 
-template<unsigned INDEX, typename T, typename... TArgs>
-void cuStinger::insertVertexData(const T* vertex_data, TArgs... args) noexcept {
-    using R = typename std::tuple_element<INDEX, VertexTypes>::type;
+template<unsigned INDEX = 0, unsigned SIZE, typename T, typename... TArgs>
+void bind(byte_t* (&data_ptrs)[SIZE], const T* data, TArgs... args);
 
-    static_assert(INDEX != 0 || sizeof...(TArgs) + 1 == NUM_EXTRA_VTYPES,
+//==============================================================================
+///////////////////
+// cuStingerInit //
+///////////////////
+
+template<typename... TArgs>
+void cuStingerInit::insertVertexData(TArgs... vertex_data) noexcept {
+    static_assert(sizeof...(TArgs) == NUM_EXTRA_VTYPES,
                   "Number of Vertex data type not correct");
-    static_assert(std::is_same<typename std::remove_cv<T>::type,
-                               typename std::remove_cv<R>::type>::value,
+    using T = typename xlib::tuple_rm_pointers<std::tuple<TArgs...>>::type;
+    static_assert(xlib::tuple_compare<VertexTypes, T>::value,
                   "Incorrect Vertex data type");
 
-    _vertex_data_ptr[INDEX] = const_cast<byte_t*>(
-                                 reinterpret_cast<const byte_t*>(vertex_data));
-    insertVertexData<INDEX + 1>(args...);
+    bind(_vertex_data_ptrs, vertex_data...);
 }
-
-template<unsigned INDEX>
-void cuStinger::insertVertexData() noexcept { _vertex_init = true; }
 
 //------------------------------------------------------------------------------
 
-template<unsigned INDEX, typename T, typename... TArgs>
-void cuStinger::insertEdgeData(const T* edge_data, TArgs... args) noexcept {
-    using R = typename std::tuple_element<INDEX, EdgeTypes>::type;
-
-    static_assert(INDEX != 0 || sizeof...(TArgs) + 1 == NUM_EXTRA_ETYPES,
+template<typename... TArgs>
+void cuStingerInit::insertEdgeData(TArgs... edge_data) noexcept {
+    static_assert(sizeof...(TArgs) == NUM_EXTRA_ETYPES,
                   "Number of Edge data type not correct");
-    static_assert(std::is_same<typename std::remove_cv<T>::type,
-                               typename std::remove_cv<R>::type>::value,
+    using T = typename xlib::tuple_rm_pointers<std::tuple<TArgs...>>::type;
+    static_assert(xlib::tuple_compare<EdgeTypes, T>::value,
                   "Incorrect Edge data type");
 
-    _edge_data_ptr[INDEX] = const_cast<byte_t*>(
-                                 reinterpret_cast<const byte_t*>(edge_data));
-    insertEdgeData<INDEX + 1>(args...);
+    bind(_edge_data_ptrs, edge_data...);
+}
+//==============================================================================
+/////////////////
+// BatchUpdate //
+/////////////////
+
+inline BatchProperty::BatchProperty(bool sort, bool weighted_distr, bool print):
+                                    _sort(sort),
+                                    _weighted_distr(weighted_distr),
+                                    _print(print) {}
+
+inline BatchUpdate::BatchUpdate(size_t batch_size) noexcept:
+                                _batch_size(batch_size) {}
+
+template<typename... TArgs>
+void BatchUpdate::insertEdgeData(TArgs... edge_data) noexcept {
+    static_assert(sizeof...(TArgs) + 2 == NUM_EXTRA_ETYPES,
+                  "Number of Edge data type not correct");
+    using T = typename xlib::tuple_rm_pointers<std::tuple<TArgs...>>::type;
+    using R = typename xlib::TupleConcat<std::tuple<id_t, id_t>,
+                                         EdgeTypes>::type;
+    static_assert(xlib::tuple_compare<R, T>::value, "Incorrect Edge data type");
+
+    bind(_edge_data_ptrs, edge_data...);
 }
 
-template<unsigned INDEX>
-void cuStinger::insertEdgeData() noexcept { _edge_init = true; }
+//==============================================================================
 
-//------------------------------------------------------------------------------
+template<unsigned INDEX, unsigned SIZE>
+void bind(byte_t* (&data_ptrs)[SIZE]) {}
+
+template<unsigned INDEX, unsigned SIZE, typename T, typename... TArgs>
+void bind(byte_t* (&data_ptrs)[SIZE], const T* data, TArgs... args) {
+    data_ptrs[INDEX] = reinterpret_cast<byte_t*>(const_cast<T*>(data));
+    bind<INDEX + 1>(data_ptrs, args...);
+}
+
+
+
 /*
 template<unsigned INDEX, typename T, typename... TArgs>
 void cuStinger::insertEdgeBatch(const T* edge_data, TArgs... args) {

@@ -31,7 +31,7 @@
    <div id="projectname">cuSTINGER
    &#160;<span id="projectnumber">v2</span>
    </div>
-   <div id="projectbrief">High-Performance Streaming Graph on GPU Architectures</div>
+   <div id="projectbrief">High-Performance Streaming Graph on GPUs</div>
   </td>
  </tr>
  </tbody>
@@ -85,35 +85,22 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:af38e792f85c63a0c131c7edc87153a98"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcu__stinger_1_1cuStinger.html#af38e792f85c63a0c131c7edc87153a98">cuStinger</a> (size_t num_vertices, size_t num_edges, const <a class="el" href="config_8inc.html#a384a7df43f5f19c4d641a2b185d4da20">off_t</a> *csr_offset, const <a class="el" href="config_8inc.html#ab4acf2b4e4dd8a30dc3383ab6d0de804">id_t</a> *csr_edges) noexcept</td></tr>
-<tr class="memdesc:af38e792f85c63a0c131c7edc87153a98"><td class="mdescLeft">&#160;</td><td class="mdescRight">default costructor  <a href="#af38e792f85c63a0c131c7edc87153a98">More...</a><br /></td></tr>
-<tr class="separator:af38e792f85c63a0c131c7edc87153a98"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab70fbac821bbed973a22acf8e739b3df"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcu__stinger_1_1cuStinger.html#ab70fbac821bbed973a22acf8e739b3df">cuStinger</a> (const <a class="el" href="classcu__stinger_1_1cuStingerInit.html">cuStingerInit</a> &amp;custinger_init) noexcept</td></tr>
+<tr class="memdesc:ab70fbac821bbed973a22acf8e739b3df"><td class="mdescLeft">&#160;</td><td class="mdescRight">default costructor  <a href="#ab70fbac821bbed973a22acf8e739b3df">More...</a><br /></td></tr>
+<tr class="separator:ab70fbac821bbed973a22acf8e739b3df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6250d029156fe160be9be26f1233fab7"><td class="memItemLeft" align="right" valign="top"><a id="a6250d029156fe160be9be26f1233fab7"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcu__stinger_1_1cuStinger.html#a6250d029156fe160be9be26f1233fab7">~cuStinger</a> () noexcept</td></tr>
 <tr class="memdesc:a6250d029156fe160be9be26f1233fab7"><td class="mdescLeft">&#160;</td><td class="mdescRight">decostructor <br /></td></tr>
 <tr class="separator:a6250d029156fe160be9be26f1233fab7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a85b9c28a862a05443e44babe8d6eca28"><td class="memTemplParams" colspan="2">template&lt;unsigned INDEX = 0, typename T , typename... TArgs&gt; </td></tr>
-<tr class="memitem:a85b9c28a862a05443e44babe8d6eca28"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcu__stinger_1_1cuStinger.html#a85b9c28a862a05443e44babe8d6eca28">insertVertexData</a> (const T *vertex_data, TArgs... args) noexcept</td></tr>
-<tr class="memdesc:a85b9c28a862a05443e44babe8d6eca28"><td class="mdescLeft">&#160;</td><td class="mdescRight">Insert additional vertex data.  <a href="#a85b9c28a862a05443e44babe8d6eca28">More...</a><br /></td></tr>
-<tr class="separator:a85b9c28a862a05443e44babe8d6eca28"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aff24804befe4ebe910d1bbd76a617efc"><td class="memTemplParams" colspan="2">template&lt;unsigned INDEX = 0, typename T , typename... TArgs&gt; </td></tr>
-<tr class="memitem:aff24804befe4ebe910d1bbd76a617efc"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcu__stinger_1_1cuStinger.html#aff24804befe4ebe910d1bbd76a617efc">insertEdgeData</a> (const T *edge_data, TArgs... args) noexcept</td></tr>
-<tr class="memdesc:aff24804befe4ebe910d1bbd76a617efc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Insert additional edge data.  <a href="#aff24804befe4ebe910d1bbd76a617efc">More...</a><br /></td></tr>
-<tr class="separator:aff24804befe4ebe910d1bbd76a617efc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9c755a111214652f24904927205d8fa4"><td class="memItemLeft" align="right" valign="top"><a id="a9c755a111214652f24904927205d8fa4"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcu__stinger_1_1cuStinger.html#a9c755a111214652f24904927205d8fa4">initialize</a> () noexcept</td></tr>
-<tr class="memdesc:a9c755a111214652f24904927205d8fa4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the data structure. <br /></td></tr>
-<tr class="separator:a9c755a111214652f24904927205d8fa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a92eb2f3905ec274c8f8a347257ece943"><td class="memItemLeft" align="right" valign="top"><a id="a92eb2f3905ec274c8f8a347257ece943"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcu__stinger_1_1cuStinger.html#a92eb2f3905ec274c8f8a347257ece943">print</a> () noexcept</td></tr>
-<tr class="memdesc:a92eb2f3905ec274c8f8a347257ece943"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the data structure. <br /></td></tr>
+<tr class="memitem:a92eb2f3905ec274c8f8a347257ece943"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcu__stinger_1_1cuStinger.html#a92eb2f3905ec274c8f8a347257ece943">print</a> () noexcept</td></tr>
+<tr class="memdesc:a92eb2f3905ec274c8f8a347257ece943"><td class="mdescLeft">&#160;</td><td class="mdescRight">print the graph directly from the device  <a href="#a92eb2f3905ec274c8f8a347257ece943">More...</a><br /></td></tr>
 <tr class="separator:a92eb2f3905ec274c8f8a347257ece943"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Main <a class="el" href="classcu__stinger_1_1cuStinger.html" title="Main cuStinger class. ">cuStinger</a> class. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="af38e792f85c63a0c131c7edc87153a98"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af38e792f85c63a0c131c7edc87153a98">&#9670;&nbsp;</a></span>cuStinger()</h2>
+<a id="ab70fbac821bbed973a22acf8e739b3df"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab70fbac821bbed973a22acf8e739b3df">&#9670;&nbsp;</a></span>cuStinger()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -124,31 +111,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
         <tr>
           <td class="memname">cu_stinger::cuStinger::cuStinger </td>
           <td>(</td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>num_vertices</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype">const <a class="el" href="classcu__stinger_1_1cuStingerInit.html">cuStingerInit</a> &amp;&#160;</td>
+          <td class="paramname"><em>custinger_init</em></td><td>)</td>
           <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>num_edges</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="config_8inc.html#a384a7df43f5f19c4d641a2b185d4da20">off_t</a> *&#160;</td>
-          <td class="paramname"><em>csr_offset</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="config_8inc.html#ab4acf2b4e4dd8a30dc3383ab6d0de804">id_t</a> *&#160;</td>
-          <td class="paramname"><em>csr_edges</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -161,10 +126,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <p>default costructor </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">num_vertices</td><td></td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">num_edges</td><td></td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">csr_offset</td><td></td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">csr_edges</td><td></td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">custinger_init</td><td><a class="el" href="classcu__stinger_1_1cuStinger.html" title="Main cuStinger class. ">cuStinger</a> initilialization data structure </td></tr>
   </table>
   </dd>
 </dl>
@@ -172,33 +134,20 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a85b9c28a862a05443e44babe8d6eca28"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a85b9c28a862a05443e44babe8d6eca28">&#9670;&nbsp;</a></span>insertVertexData()</h2>
+<a id="a92eb2f3905ec274c8f8a347257ece943"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a92eb2f3905ec274c8f8a347257ece943">&#9670;&nbsp;</a></span>print()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;unsigned INDEX = 0, typename T , typename... TArgs&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void cu_stinger::cuStinger::insertVertexData </td>
+          <td class="memname">void cu_stinger::cuStinger::print </td>
           <td>(</td>
-          <td class="paramtype">const T *&#160;</td>
-          <td class="paramname"><em>vertex_data</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramname"></td><td>)</td>
           <td></td>
-          <td class="paramtype">TArgs...&#160;</td>
-          <td class="paramname"><em>args</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -208,63 +157,8 @@ template&lt;unsigned INDEX = 0, typename T , typename... TArgs&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>Insert additional vertex data. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">vertex_data</td><td>head of the list of vertex data </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">args</td><td>tail of the list of vertex data </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section remark"><dt>Remarks</dt><dd>the types of the input arrays must be equal to the type List for vertices specified in the <em>cuStingerConf.hpp</em> file </dd></dl>
-
-</div>
-</div>
-<a id="aff24804befe4ebe910d1bbd76a617efc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aff24804befe4ebe910d1bbd76a617efc">&#9670;&nbsp;</a></span>insertEdgeData()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;unsigned INDEX = 0, typename T , typename... TArgs&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void cu_stinger::cuStinger::insertEdgeData </td>
-          <td>(</td>
-          <td class="paramtype">const T *&#160;</td>
-          <td class="paramname"><em>edge_data</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">TArgs...&#160;</td>
-          <td class="paramname"><em>args</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Insert additional edge data. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">edge_data</td><td>head of the list of edge data </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">args</td><td>tail of the list of edge data </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section remark"><dt>Remarks</dt><dd>the types of the input arrays must be equal to the type List for edges specified in the <em>cuStingerConf.hpp</em> file </dd></dl>
+<p>print the graph directly from the device </p>
+<dl class="section warning"><dt>Warning</dt><dd>this function should be applied only on small graphs </dd></dl>
 
 </div>
 </div>
@@ -274,7 +168,7 @@ template&lt;unsigned INDEX = 0, typename T , typename... TArgs&gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Apr 18 2017 16:50:41 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Apr 19 2017 23:31:50 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

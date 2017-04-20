@@ -33,6 +33,7 @@ using VertexTypes = TypeList<>;
  * @endcode
  */
 using EdgeTypes = TypeList<>;
+//using EdgeTypes = TypeList<uint64_t, float>;
 
 /**
  * @brief minimum number of edges for a **block**

@@ -41,12 +41,115 @@
 #include "Core/MemoryManagement.hpp"
 #include <cstddef>                      //size_t
 
-using xlib::byte_t;
-
 /**
  * @brief
  */
 namespace cu_stinger {
+
+class cuStinger;
+
+/**
+ * @brief cuStinger initialization class
+ */
+class cuStingerInit {
+    friend cuStinger;
+public:
+    /**
+     * @brief default costructor
+     * @param[in] num_vertices number of vertices
+     * @param[in] num_edges number of edges
+     * @param[in] csr_offsets csr offsets array
+     * @param[in] csr_edges csr edges array
+     */
+    cuStingerInit(size_t num_vertices, size_t num_edges,
+                  const off_t* csr_offsets, const id_t* csr_edges) noexcept;
+
+    /**
+     * @brief Insert additional vertex data
+     * @param[in] vertex_data list of vertex data array
+     * @remark the types of the input arrays must be equal to the type List
+     *         for vertices specified in the *config.inc* file
+     * @details **Example**
+     *         @code{.cpp}
+     *             int* array1 = ...;
+     *             float* array2 = ...;
+     *             cuStingerInit custinger_init(...);
+     *             custinger_init.insertVertexData(array1, array2);
+     *         @endcode
+     */
+    template<typename... TArgs>
+    void insertVertexData(TArgs... vertex_data) noexcept;
+
+    /**
+     * @brief Insert additional edge data
+     * @param[in] edge_data list of vertex data array
+     * @remark the types of the input arrays must be equal to the type List
+     *         for edges specified in the *config.inc* file
+     * @see ::insertVertexData
+     */
+    template<typename... TArgs>
+    void insertEdgeData(TArgs... edge_data) noexcept;
+
+private:
+    byte_t* _vertex_data_ptrs[ NUM_EXTRA_VTYPES ] = {};
+    byte_t*   _edge_data_ptrs[ NUM_ETYPES ] = {};
+
+    size_t       _nV;
+    size_t       _nE;
+    const off_t* _csr_offsets;
+};
+
+//==============================================================================
+
+/**
+ * @brief Batch Property
+ */
+class BatchProperty {
+public:
+    /**
+     * @brief default costructor
+     * @param[in] sort the edge batch is sorted in lexicographic order
+     *            (source, destination)
+     * @param[in] weighted_distr generate a batch by using a random weighted
+     *            distribution based on the degree of the vertices
+     * @param[in] print print the batch on the standard output
+     */
+    BatchProperty(bool           sort = false,
+                  bool weighted_distr = false,
+                  bool          print = false);
+private:
+    bool _sort, _print, _weighted_distr;
+};
+
+/**
+ * @brief Batch update class
+ */
+class BatchUpdate {
+    friend cuStinger;
+public:
+    /**
+     * @brief default costructor
+     * @param[in] batch_size number of edges of the batch
+     */
+    BatchUpdate(size_t batch_size) noexcept;
+
+    /**
+     * @brief Insert additional edge data
+     * @param[in] edge_data list of edge data. The list must contains atleast
+     *            the source and the destination arrays (id_t type)
+     * @remark the types of the input arrays must be equal to the type List
+     *         for edges specified in the *config.inc* file
+     * @see ::insertVertexData
+     */
+    template<typename... TArgs>
+    void insertEdgeData(TArgs... edge_data) noexcept;
+
+private:
+    byte_t*       _edge_data_ptrs[ NUM_ETYPES + 1 ];
+    size_t        _batch_size;
+};
+
+//==============================================================================
 
 /**
  * @brief Main cuStinger class
@@ -55,13 +158,9 @@ class cuStinger {
 public:
     /**
      * @brief default costructor
-     * @param[in] num_vertices
-     * @param[in] num_edges
-     * @param[in] csr_offset
-     * @param[in] csr_edges
+     * @param[in] custinger_init cuStinger initilialization data structure
      */
-    cuStinger(size_t num_vertices, size_t num_edges,
-              const off_t* csr_offset, const id_t* csr_edges) noexcept;
+    cuStinger(const cuStingerInit& custinger_init) noexcept;
 
     /**
      * @brief decostructor
@@ -69,59 +168,40 @@ public:
     ~cuStinger() noexcept;
 
     /**
-     * @brief Insert additional vertex data
-     * @param[in] vertex_data head of the list of vertex data
-     * @param[in] args tail of the list of vertex data
-     * @remark the types of the input arrays must be equal to the type List
-     *         for vertices specified in the *cuStingerConf.hpp* file
-     */
-    template<unsigned INDEX = 0, typename T, typename... TArgs>
-    void insertVertexData(const T* vertex_data, TArgs... args) noexcept;
-
-    /**
-     * @brief Insert additional edge data
-     * @param[in] edge_data head of the list of edge data
-     * @param[in] args tail of the list of edge data
-     * @remark the types of the input arrays must be equal to the type List
-     *         for edges specified in the *cuStingerConf.hpp* file
-     */
-    template<unsigned INDEX = 0, typename T, typename... TArgs>
-    void insertEdgeData(const T* edge_data, TArgs... args) noexcept;
-
-    /**
-     * @brief Initialize the data structure
-     * @details
-     */
-    void initialize() noexcept;
-
-    /**
-     * @brief Initialize the data structure
-     * @details
+     * @brief print the graph directly from the device
+     * @warning this function should be applied only on small graphs
      */
     void print() noexcept;
 
 private:
     MemoryManagement mem_management;
 
-    byte_t* _vertex_data_ptr[ NUM_EXTRA_VTYPES ];
-    byte_t*   _edge_data_ptr[ NUM_ETYPES ];
+    /**
+     * @internal
+     * @brief Array of pointers of the *additional* vertex data
+     */
+    byte_t* const (&_vertex_data_ptrs)[ NUM_EXTRA_VTYPES ];
+    /**
+     * @internal
+     * @brief Array of pointers of the *additional* edge data
+     */
+    byte_t* const (&_edge_data_ptrs)[ NUM_ETYPES ];
 
+    /**
+     * @internal
+     * @brief device pointer for *all* vertex data
+     *        (degree and edge pointer included)
+     */
+    byte_t*      _d_vertices { nullptr };
+    const off_t* _csr_offsets;
     size_t       _nV;
     size_t       _nE;
-    const off_t* _csr_offset;
-    vertex_t*    _d_nodes        { nullptr };
-    bool         _vertex_init    { false };
-    bool         _edge_init      { false };
-    bool         _custinger_init { false };
 
-
-    template<unsigned INDEX>
-    void insertVertexData() noexcept;
-
-    template<unsigned INDEX>
-    void insertEdgeData() noexcept;
-
-    void initializeGlobal() noexcept;
+    /**
+     * @internal
+     * @brief copy the vertex data pointers to the __constant__ memory
+     */
+    void initializeVertexGlobal() noexcept;
 };
 
 } // namespace cu_stinger

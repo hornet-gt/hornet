@@ -41,8 +41,9 @@ const VTypeSize VTYPE_SIZE;
 const ETypeSize ETYPE_SIZE;
 
 const ExtraVTypeSize EXTRA_VTYPE_SIZE;
+const ExtraETypeSize EXTRA_ETYPE_SIZE;
 
-const VTypeSizePS VTYPE_SIZE_PS;
-const ETypeSizePS ETYPE_SIZE_PS;
+const VTypeSizePS    VTYPE_SIZE_PS;
+const ETypeSizePS    ETYPE_SIZE_PS;
 
 } // namespace cu_stinger

@@ -27,9 +27,6 @@ int main(int argc, char* argv[]) {
 
     if (param.binary)
         graph.toBinary(xlib::extract_filepath_noextension(argv[1]) + ".bin");
-
-    cuStinger custiger_graph(graph.nV(), graph.nE(), graph.out_offsets_array(),
-                             graph.out_edges_array());
     //--------------------------------------------------------------------------
 
     auto seed = std::chrono::high_resolution_clock::now()
@@ -48,17 +45,28 @@ int main(int argc, char* argv[]) {
                   [&]{ return float_dist(gen); });
     std::generate(time_stamp, time_stamp + graph.nE(),
                   [&]{ return int_dist(gen); });
-
-    //custiger_graph.insertVertexData(labels);
-    //custiger_graph.insertEdgeData(time_stamp, weights);
-    custiger_graph.initialize();
     //--------------------------------------------------------------------------
+    cuStingerInit custinger_init(graph.nV(), graph.nE(),
+                                 graph.out_offsets_array(),
+                                 graph.out_edges_array());
+
+    //custinger_init.insertVertexData(labels);
+    //custinger_init.insertEdgeData(time_stamp, weights);
+
+    cuStinger custiger_graph(custinger_init);
 
     delete[] labels;
     delete[] time_stamp;
     delete[] weights;
 
     custiger_graph.print();
+    //--------------------------------------------------------------------------
+
+    BatchUpdate batch_update(100);
+    //batch_update.insertEdgeData(time_stamp, weights);
+
+    //custiger_graph.insertBatch(batch_update);
+    //custiger_graph.insertBatch(batch_update, equal_operator);
 
     //Timer<DEVICE> TM;
 

@@ -38,59 +38,69 @@
 
 namespace cu_stinger {
 
-cuStinger::cuStinger(size_t num_vertices, size_t num_edges,
-                     const off_t* csr_offset, const id_t* csr_edges) noexcept :
-                           _nV(num_vertices),
-                           _nE(num_edges),
-                           _csr_offset(csr_offset) {
+cuStingerInit::cuStingerInit(size_t num_vertices, size_t num_edges,
+                             const off_t* csr_offsets, const id_t* csr_edges)
+                             noexcept :
+                               _nV(num_vertices),
+                               _nE(num_edges),
+                               _csr_offsets(csr_offsets) {
 
-   _edge_data_ptr[0] = const_cast<byte_t*>(
+   _edge_data_ptrs[0] = const_cast<byte_t*>(
                         reinterpret_cast<const byte_t*>(csr_edges));
 }
 
-cuStinger::~cuStinger() noexcept {
-    cuFree(_d_nodes);
-}
+//------------------------------------------------------------------------------
 
-void cuStinger::initialize() noexcept {
-    if ((NUM_EXTRA_VTYPES != 0 && !_vertex_init) ||
-            (NUM_EXTRA_ETYPES != 0 && !_edge_init) || _custinger_init) {
-        ERROR("Graph extra data not initialized");
-    }
-    _custinger_init = true;
-    initializeGlobal();
+cuStinger::cuStinger(const cuStingerInit& custinger_init) noexcept :
+                            _nV(custinger_init._nV),
+                            _nE(custinger_init._nE),
+                            _csr_offsets(custinger_init._csr_offsets),
+                            _vertex_data_ptrs(custinger_init._vertex_data_ptrs),
+                            _edge_data_ptrs(custinger_init._edge_data_ptrs) {
+
+    const auto lamba = [](byte_t* ptr) { return ptr != nullptr; };
+    bool vertex_init_data = std::all_of(_vertex_data_ptrs,
+                                   _vertex_data_ptrs + NUM_EXTRA_VTYPES, lamba);
+    bool   edge_init_data = std::all_of(_edge_data_ptrs,
+                                        _edge_data_ptrs + NUM_ETYPES, lamba);
+    if (!vertex_init_data)
+        ERROR("Vertex data not initializated");
+    if (!edge_init_data)
+        ERROR("Edge data not initializated");
+
     //--------------------------------------------------------------------------
-    //VERTICES INITIALIZATION
-    auto   h_nodes = new vertex_t[_nV];
-    auto   degrees = reinterpret_cast<degree_t*>(h_nodes);
-    auto    limits = degrees + _nV;
-    auto ptr_array = reinterpret_cast<edge_t**>(limits + _nV);
+    //////////////////////
+    // COPY VERTEX DATA //
+    //////////////////////
+    id_t round_nV = xlib::roundup_pow2(_nV);
+    cuMalloc(_d_vertices, round_nV * sizeof(vertex_t));
 
-    for (id_t i = 0; i < _nV; i++) {
-        degrees[i] = _csr_offset[i + 1] - _csr_offset[i];
-        limits[i]  = std::max(static_cast<id_t>(MIN_EDGES_PER_BLOCK),
-                              xlib::roundup_pow2(degrees[i] + 1));
-    }
-    auto byte_ptr = reinterpret_cast<byte_t*>(h_nodes);
     for (int i = 0; i < NUM_EXTRA_VTYPES; i++) {
-        size_t num_bytes = _nV * EXTRA_VTYPE_SIZE[i];
-        std::memcpy(byte_ptr, _vertex_data_ptr[i], num_bytes);
-        byte_ptr += num_bytes;
+        byte_t* device_ptr = _d_vertices + round_nV * VTYPE_SIZE_PS[i + 1];
+        cuMemcpyToDeviceAsync(_vertex_data_ptrs[i], _nV * EXTRA_VTYPE_SIZE[i],
+                              device_ptr);
     }
+    initializeVertexGlobal();
     //--------------------------------------------------------------------------
-    //EDGES INITIALIZATION
+    ///////////////////////////////////
+    // EDGES INITIALIZATION AND COPY //
+    ///////////////////////////////////
+    using pair_t = typename std::pair<edge_t*, degree_t>;
+    auto h_vertex_basic_ptr = new pair_t[_nV];
+
     for (id_t i = 0; i < _nV; i++) {
-        auto          degree = degrees[i];
-        const auto& mem_ptrs = mem_management.insert(degree);
-        ptr_array[i]         = mem_ptrs.second;
-        byte_t* h_blockarray = reinterpret_cast<byte_t*>(mem_ptrs.first);
-        size_t        offset = _csr_offset[i];
+        auto           degree = _csr_offsets[i + 1] - _csr_offsets[i];
+        const auto&  mem_ptrs = mem_management.insert(degree);
+        h_vertex_basic_ptr[i] = pair_t(mem_ptrs.second, degree);
+
+        byte_t*  h_blockarray = reinterpret_cast<byte_t*>(mem_ptrs.first);
+        size_t         offset = _csr_offsets[i];
 
         #pragma unroll
         for (int j = 0; j < NUM_ETYPES; j++) {
             size_t    num_bytes = degree * ETYPE_SIZE[j];
             size_t offset_bytes = offset * ETYPE_SIZE[j];
-            std::memcpy(h_blockarray, _edge_data_ptr[j] + offset_bytes,
+            std::memcpy(h_blockarray, _edge_data_ptrs[j] + offset_bytes,
                         num_bytes);
         }
     }
@@ -100,9 +110,23 @@ void cuStinger::initialize() noexcept {
         cuMemcpyToDeviceAsync(mem_ptrs.first, EDGES_PER_BLOCKARRAY,
                               mem_ptrs.second);
     }
-    cuMemcpyToDeviceAsync(h_nodes, _nV, _d_nodes);
-    delete[] h_nodes;
+    //--------------------------------------------------------------------------
+    //////////////////////////////
+    // VERTICES BASIC DATA COPY //
+    //////////////////////////////
+    auto d_vertex_basic_ptr = reinterpret_cast<pair_t*>(_d_vertices);
+    cuMemcpyToDeviceAsync(h_vertex_basic_ptr, _nV, d_vertex_basic_ptr);
+    delete[] h_vertex_basic_ptr;
     //mem_management.free_host_ptr();
 }
 
+cuStinger::~cuStinger() noexcept {
+    cuFree(_d_vertices);
+}
+
 } // namespace cu_stinger
+
+
+
+    //    limits[i]  = std::max(static_cast<id_t>(MIN_EDGES_PER_BLOCK),
+    //                          xlib::roundup_pow2(degrees[i] + 1));

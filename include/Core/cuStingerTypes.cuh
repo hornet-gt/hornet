@@ -47,7 +47,8 @@ class EdgeIt;
 //==============================================================================
 
 class Vertex {
-friend class VertexSet;
+    friend class VertexSet;
+    friend __global__ void printKernel();
 public:
     /**
      * @brief Default costructor
@@ -88,8 +89,13 @@ public:
      */
     __device__ __forceinline__
     Edge edge(off_t index) const noexcept;
+
 private:
-    byte_t* _ptrs[NUM_VTYPES];
+    VertexBasicData* _vertex_ptr;
+    byte_t*  _edge_ptr;
+    byte_t*  _ptrs[NUM_EXTRA_VTYPES];
+    degree_t _degree;
+    degree_t _limit;
 
     __device__ __forceinline__
     degree_t limit() const noexcept;
@@ -105,6 +111,13 @@ private:
 
 class Edge {
     friend class Vertex;
+    using     WeightT = typename std::tuple_element<(NUM_ETYPES > 1 ? 1 : 0),
+                                                     edge_t>::type;
+    using TimeStamp1T = typename std::tuple_element<(NUM_ETYPES > 2 ? 2 : 0),
+                                                     edge_t>::type;
+    using TimeStamp2T = typename std::tuple_element<(NUM_ETYPES > 3 ? 3 : 0),
+                                                     edge_t>::type;
+
     using     EnableWeight = typename std::conditional<(NUM_ETYPES > 1),
                                                         int, void>::type;
     using EnableTimeStamp1 = typename std::conditional<(NUM_ETYPES > 2),
@@ -132,8 +145,7 @@ public:
      */
     template<typename T = EnableWeight>
     __device__ __forceinline__
-    typename std::tuple_element<(NUM_ETYPES > 1 ? 1 : 0), edge_t>::type
-    weight() const noexcept;
+    WeightT weight() const noexcept;
 
     /**
      * @brief first time stamp of the edge
@@ -143,8 +155,7 @@ public:
      */
     template<typename T = EnableTimeStamp1>
     __device__ __forceinline__
-    typename std::tuple_element<(NUM_VTYPES > 2 ? 2 : 0), vertex_t>::type
-    time_stamp1() const noexcept;
+    TimeStamp1T time_stamp1() const noexcept;
 
     /**
      * @brief second time stamp of the edge
@@ -154,8 +165,7 @@ public:
      */
     template<typename T = EnableTimeStamp2>
     __device__ __forceinline__
-    typename std::tuple_element<(NUM_VTYPES > 3 ? 3 : 0), vertex_t>::type
-    time_stamp2() const noexcept;
+    TimeStamp2T time_stamp2() const noexcept;
 
     /**
      * @brief  value of a user-defined edge field
@@ -176,10 +186,12 @@ public:
     field() const noexcept;
 
 private:
-    byte_t* _ptrs[NUM_ETYPES];
+    id_t    _dst;
+    byte_t* _ptrs[NUM_EXTRA_ETYPES];
+    //Min<> : avoid "warning: subscript out of range"
 
     __device__ __forceinline__
-    Edge(byte_t* block_ptr, off_t index, degree_t limit) noexcept;
+    Edge(byte_t* block_ptr, degree_t index, degree_t limit) noexcept;
 };
 
 //==============================================================================

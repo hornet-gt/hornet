@@ -42,7 +42,9 @@
 #pragma once
 
 #include <tuple>
-#include "Support/Metaprogramming.hpp"
+#include "Support/Metaprogramming.hpp"  //xlib::TupleToTypeSize
+#include "Support/Basic.hpp"            //xlib::byte_t
+#include "Support/Numeric.hpp"          //xlib::roundup_pow2
 
 template<typename... TArgs>
 using TypeList = std::tuple<TArgs...>;
@@ -50,15 +52,25 @@ using TypeList = std::tuple<TArgs...>;
 namespace cu_stinger {
 //------------------------------------------------------------------------------
 
+//User configuration include
 #include "../config.inc"
 
 //------------------------------------------------------------------------------
 
+using xlib::byte_t;
+
 using degree_t = int;
 using   edge_t = typename xlib::TupleConcat<TypeList<id_t>, EdgeTypes>::type;
-using vertex_t = typename xlib::TupleConcat<
-                                       TypeList<degree_t, degree_t, edge_t*>,
-                                       VertexTypes>::type;
+
+struct ALIGN(16) VertexBasicData {
+    byte_t* __restrict__ edge_ptr;
+    degree_t degree;
+};
+
+using vertex_t = typename xlib::TupleConcat<TypeList<VertexBasicData>,
+                                            VertexTypes>::type;
+
+//------------------------------------------------------------------------------
 
 static_assert(xlib::IsPower2<MIN_EDGES_PER_BLOCK>::value  &&
               xlib::IsPower2<EDGES_PER_BLOCKARRAY>::value &&
@@ -73,22 +85,40 @@ static_assert(std::is_same<degree_t, int>::value ||
               std::is_same<degree_t, unsigned long long>::value,
               "degree_t type must allows atomicAdd operation");
 
+//------------------------------------------------------------------------------
+
 using      VTypeSize = typename xlib::TupleToTypeSize<vertex_t>::type;
 using      ETypeSize = typename xlib::TupleToTypeSize<edge_t>::type;
 using ExtraVTypeSize = typename xlib::TupleToTypeSize<VertexTypes>::type;
+using ExtraETypeSize = typename xlib::TupleToTypeSize<EdgeTypes>::type;
 using    VTypeSizePS = typename xlib::ExcPrefixSum<VTypeSize>::type;
 using    ETypeSizePS = typename xlib::ExcPrefixSum<ETypeSize>::type;
 
 extern const VTypeSize      VTYPE_SIZE;
 extern const ETypeSize      ETYPE_SIZE;
 extern const ExtraVTypeSize EXTRA_VTYPE_SIZE;
+extern const ExtraETypeSize EXTRA_ETYPE_SIZE;
 
-extern const VTypeSizePS VTYPE_SIZE_PS;
-extern const ETypeSizePS ETYPE_SIZE_PS;
+extern const VTypeSizePS    VTYPE_SIZE_PS;
+extern const ETypeSizePS    ETYPE_SIZE_PS;
 
 const unsigned NUM_EXTRA_VTYPES = std::tuple_size<VertexTypes>::value;
 const unsigned NUM_EXTRA_ETYPES = std::tuple_size<EdgeTypes>::value;
 const unsigned       NUM_VTYPES = std::tuple_size<vertex_t>::value;
 const unsigned       NUM_ETYPES = std::tuple_size<edge_t>::value;
+
+namespace detail {
+
+HOST_DEVICE degree_t limit(degree_t degree) noexcept {
+    #if defined(__CUDACC__)
+        return ::max(static_cast<degree_t>(MIN_EDGES_PER_BLOCK),
+                     xlib::roundup_pow2(degree + 1));
+    #else
+        return std::max(static_cast<degree_t>(MIN_EDGES_PER_BLOCK),
+                        xlib::roundup_pow2(degree + 1));
+    #endif
+}
+
+} //namespace detail
 
 } // namespace cu_stinger

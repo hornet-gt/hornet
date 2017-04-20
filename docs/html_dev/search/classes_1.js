@@ -7,5 +7,6 @@ var searchData=
   ['ceillog2ull',['CeilLog2Ull',['../structxlib_1_1CeilLog2Ull.html',1,'xlib']]],
   ['comparefloatabs',['CompareFloatABS',['../structxlib_1_1CompareFloatABS.html',1,'xlib']]],
   ['comparefloatrelativeerr',['CompareFloatRelativeErr',['../structxlib_1_1CompareFloatRelativeErr.html',1,'xlib']]],
-  ['custinger',['cuStinger',['../classcu__stinger_1_1cuStinger.html',1,'cu_stinger']]]
+  ['custinger',['cuStinger',['../classcu__stinger_1_1cuStinger.html',1,'cu_stinger']]],
+  ['custingerinit',['cuStingerInit',['../classcu__stinger_1_1cuStingerInit.html',1,'cu_stinger']]]
 ];

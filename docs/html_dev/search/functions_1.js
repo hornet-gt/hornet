@@ -10,5 +10,6 @@ var searchData=
   ['cumemcpytosymbolasync',['cuMemcpyToSymbolAsync',['../SafeFunctions___8cuh.html#a155b1841a362d0524ad5df3df5531e4e',1,'cuMemcpyToSymbolAsync(const T &amp;h_input, T &amp;symbol):&#160;SafeFunctions_.cuh'],['../SafeFunctions___8cuh.html#aec59d39fa9ccd7900d99845ac0ce5a93',1,'cuMemcpyToSymbolAsync(const T *h_input, size_t num_items, T(&amp;symbol)[SIZE], size_t item_offset=0):&#160;SafeFunctions_.cuh']]],
   ['cumemset0x00',['cuMemset0x00',['../SafeFunctions___8cuh.html#a1940c6b21080e259f030b10d1d853f7d',1,'SafeFunctions_.cuh']]],
   ['cumemset0xff',['cuMemset0xFF',['../SafeFunctions___8cuh.html#a01d5d74313b9f16616df62971985ff8a',1,'SafeFunctions_.cuh']]],
-  ['custinger',['cuStinger',['../classcu__stinger_1_1cuStinger.html#af38e792f85c63a0c131c7edc87153a98',1,'cu_stinger::cuStinger']]]
+  ['custinger',['cuStinger',['../classcu__stinger_1_1cuStinger.html#ab70fbac821bbed973a22acf8e739b3df',1,'cu_stinger::cuStinger']]],
+  ['custingerinit',['cuStingerInit',['../classcu__stinger_1_1cuStingerInit.html#a436210379ac605eb6ad03d851a0b68c4',1,'cu_stinger::cuStingerInit']]]
 ];

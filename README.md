@@ -81,7 +81,7 @@ We are also ready to engage in improving and extending the framework if you requ
 Additional information on cuSTINGER can be found in the [HPEC'16 conference paper](https://www.researchgate.net/publication/308174457_cuSTINGER_Supporting_Dynamic_Graph_Algorithms_for_GPUs).
 
 ---
-**If you find this software useful in academic work, please acknowledge cuStinger.**
+#### If you find this software useful in academic work, please acknowledge cuStinger. ####
 ***
 
 ## License ##

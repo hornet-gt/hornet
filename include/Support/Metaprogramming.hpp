@@ -173,6 +173,47 @@ struct PrefixSumAux<1, Seq<Is1...>, Seq<Is2...>> {
 };
 //@endcond
 
+//==============================================================================
+
+template<typename, typename>
+struct tuple_compare;
+
+template<typename T1, typename... TArgs1, typename T2, typename... TArgs2>
+struct tuple_compare<std::tuple<T1, TArgs1...>, std::tuple<T2, TArgs2...>> {
+    static const bool value =
+            std::is_same<typename std::remove_cv<T1>::type,
+                         typename std::remove_cv<T2>::type>::value &&
+            tuple_compare<std::tuple<TArgs1...>, std::tuple<TArgs2...>>::value;
+};
+
+template<>
+struct tuple_compare<std::tuple<>, std::tuple<>> : std::true_type {};
+
+//==============================================================================
+
+template<typename>
+struct tuple_rm_pointers;
+
+template<typename, typename>
+struct tuple_rm_pointers_aux;
+
+template<typename... TArgs>
+struct tuple_rm_pointers<std::tuple<TArgs...>> {
+    using type = typename tuple_rm_pointers_aux<std::tuple<>,
+                                                std::tuple<TArgs...>>::type;
+};
+
+template<typename... TArgs1, typename T2, typename... TArgs2>
+struct tuple_rm_pointers_aux<std::tuple<TArgs1...>, std::tuple<T2, TArgs2...>> :
+    tuple_rm_pointers_aux<std::tuple<TArgs1...,
+                                     typename std::remove_pointer<T2>::type>,
+                          std::tuple<TArgs2...>> {};
+
+template<typename... TArgs>
+struct tuple_rm_pointers_aux<std::tuple<TArgs...>, std::tuple<>> {
+    using type = std::tuple<TArgs...>;
+};
+
 } // namespace xlib
 
 #include "impl/Metaprogramming.i.hpp"

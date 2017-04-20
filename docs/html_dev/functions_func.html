@@ -31,7 +31,7 @@
    <div id="projectname">cuSTINGER
    &#160;<span id="projectnumber">v2</span>
    </div>
-   <div id="projectbrief">High-Performance Streaming Graph on GPU Architectures</div>
+   <div id="projectbrief">High-Performance Streaming Graph on GPUs</div>
   </td>
  </tr>
  </tbody>
@@ -73,6 +73,12 @@ $(function() {
 <li>base_address()
 : <a class="el" href="classcu__stinger_1_1BitTree.html#a93583462a165a9f183b65a52722bd0b7">cu_stinger::BitTree&lt; T, BLOCK_ITEMS, BLOCKARRAY_ITEMS &gt;</a>
 </li>
+<li>BatchProperty()
+: <a class="el" href="classcu__stinger_1_1BatchProperty.html#a973819b8515b2f5b8beea55e47b54d35">cu_stinger::BatchProperty</a>
+</li>
+<li>BatchUpdate()
+: <a class="el" href="classcu__stinger_1_1BatchUpdate.html#aaf793aafaa1151c32fa6d6f447b2d09c">cu_stinger::BatchUpdate</a>
+</li>
 <li>belong_to()
 : <a class="el" href="classcu__stinger_1_1BitTree.html#ab4c93353aa03bd11b10f98b3ee7cd344">cu_stinger::BitTree&lt; T, BLOCK_ITEMS, BLOCKARRAY_ITEMS &gt;</a>
 </li>
@@ -84,7 +90,10 @@ $(function() {
 
 <h3><a id="index_c"></a>- c -</h3><ul>
 <li>cuStinger()
-: <a class="el" href="classcu__stinger_1_1cuStinger.html#af38e792f85c63a0c131c7edc87153a98">cu_stinger::cuStinger</a>
+: <a class="el" href="classcu__stinger_1_1cuStinger.html#ab70fbac821bbed973a22acf8e739b3df">cu_stinger::cuStinger</a>
+</li>
+<li>cuStingerInit()
+: <a class="el" href="classcu__stinger_1_1cuStingerInit.html#a436210379ac605eb6ad03d851a0b68c4">cu_stinger::cuStingerInit</a>
 </li>
 </ul>
 
@@ -126,18 +135,16 @@ $(function() {
 
 
 <h3><a id="index_i"></a>- i -</h3><ul>
-<li>initialize()
-: <a class="el" href="classcu__stinger_1_1cuStinger.html#a9c755a111214652f24904927205d8fa4">cu_stinger::cuStinger</a>
-</li>
 <li>insert()
 : <a class="el" href="classcu__stinger_1_1BitTree.html#ab826805c6098d205325d9064bbed8c66">cu_stinger::BitTree&lt; T, BLOCK_ITEMS, BLOCKARRAY_ITEMS &gt;</a>
 , <a class="el" href="classcu__stinger_1_1MemoryManagement.html#a0b783ab596aecb4fb0f815ac3686c89a">cu_stinger::MemoryManagement</a>
 </li>
 <li>insertEdgeData()
-: <a class="el" href="classcu__stinger_1_1cuStinger.html#aff24804befe4ebe910d1bbd76a617efc">cu_stinger::cuStinger</a>
+: <a class="el" href="classcu__stinger_1_1BatchUpdate.html#ad5f39a6b11d9d92308eaca72c6c302e9">cu_stinger::BatchUpdate</a>
+, <a class="el" href="classcu__stinger_1_1cuStingerInit.html#a0c7e20e31f020ad78f8757771f0160d3">cu_stinger::cuStingerInit</a>
 </li>
 <li>insertVertexData()
-: <a class="el" href="classcu__stinger_1_1cuStinger.html#a85b9c28a862a05443e44babe8d6eca28">cu_stinger::cuStinger</a>
+: <a class="el" href="classcu__stinger_1_1cuStingerInit.html#ac77b6434bfa10d12acdde70abeb27711">cu_stinger::cuStingerInit</a>
 </li>
 <li>is_full()
 : <a class="el" href="classcu__stinger_1_1BitTree.html#a169f276f03124022c8047de24a48dda6">cu_stinger::BitTree&lt; T, BLOCK_ITEMS, BLOCKARRAY_ITEMS &gt;</a>
@@ -205,10 +212,10 @@ $(function() {
 
 <h3><a id="index_t"></a>- t -</h3><ul>
 <li>time_stamp1()
-: <a class="el" href="classcu__stinger_1_1Edge.html#ac90bd8b5f41c91401fc02b611321f04c">cu_stinger::Edge</a>
+: <a class="el" href="classcu__stinger_1_1Edge.html#ad40cc9724f3e2551e1f691bbfefb7baf">cu_stinger::Edge</a>
 </li>
 <li>time_stamp2()
-: <a class="el" href="classcu__stinger_1_1Edge.html#a73ad2be660d612475143e6b05005702f">cu_stinger::Edge</a>
+: <a class="el" href="classcu__stinger_1_1Edge.html#ac8971eba5d8263e902a728bb635029bd">cu_stinger::Edge</a>
 </li>
 </ul>
 
@@ -222,7 +229,7 @@ $(function() {
 
 <h3><a id="index_w"></a>- w -</h3><ul>
 <li>weight()
-: <a class="el" href="classcu__stinger_1_1Edge.html#aab600b207308f8988743ee1110758d40">cu_stinger::Edge</a>
+: <a class="el" href="classcu__stinger_1_1Edge.html#afe9308bb9e5a877ea428f14c222df827">cu_stinger::Edge</a>
 </li>
 </ul>
 
@@ -238,7 +245,7 @@ $(function() {
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Apr 18 2017 16:50:41 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Apr 19 2017 23:31:51 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

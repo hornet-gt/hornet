@@ -35,26 +35,65 @@
  */
 #include "Core/cuStinger.hpp"
 #include "Core/cuStingerGlobalSpace.cuh"
+#include "Core/cuStingerTypes.cuh"
 
 namespace cu_stinger {
 
-void cuStinger::initializeGlobal() noexcept {
-    cuMalloc(_d_nodes, _nV);
+void cuStinger::initializeVertexGlobal() noexcept {
     cuMemcpyToSymbol(_nV, d_nV);
 
-    byte_t* h_ptrs[NUM_VTYPES];
-    for (int i = 0; i < NUM_VTYPES; i++) {
-        h_ptrs[i] = reinterpret_cast<byte_t*>(_d_nodes) +
-                    _nV * VTYPE_SIZE_PS[i];
+    auto vertex_basic_ptr = reinterpret_cast<VertexBasicData*>(_d_vertices);
+    cuMemcpyToSymbol(vertex_basic_ptr, d_vertex_basic_ptr);
+    //--------------------------------------------------------------------------
+    id_t round_nV = xlib::roundup_pow2(_nV);
+    byte_t* vertex_data_ptrs[NUM_VTYPES];
+
+    for (int i = 0; i < NUM_EXTRA_VTYPES; i++) {
+        vertex_data_ptrs[i] = reinterpret_cast<byte_t*>(_d_vertices) +
+                              round_nV * VTYPE_SIZE_PS[i + 1];
     }
-    cuMemcpyToSymbol(h_ptrs, d_ptrs);
+    cuMemcpyToSymbol(vertex_data_ptrs, d_vertex_data_ptrs);
+}
+
+//==============================================================================
+
+__device__ int d_array[10];
+
+__global__ void printKernel() {
+    for (id_t i = 0; i < d_nV; i++) {
+        auto vertex = Vertex(i);
+        auto degree = vertex.degree();
+        //auto field0 = vertex.field<0>();
+        printf("%d [%d, %d]:   ", i, vertex.degree(), vertex.limit());
+
+        for (degree_t j = 0; j < vertex.degree(); j++) {
+            auto   edge = vertex.edge(j);
+            /*auto weight = edge.weight();
+            auto  time1 = edge.time_stamp1();
+            auto field0 = edge.field<0>();
+            auto field1 = edge.field<1>();*/
+
+            printf("%d   ", edge.dst());
+        //    d_array[j] = edge.dst();
+        }
+        printf("\n");
+    }
+    //printf("\n");
+    //from RAW:
+    //
+    //for (id_t i = 0; i < d_nV; i++) {
+    //  for (degree_t j = 0; j < vertex.degrees(); j++) {
+    //       auto edge = vertex.edge(i);
+    //----------------------------------------------------
+    //to PROPOSED:
+    //
+    //for (auto v : VertexSet) {
+    //  for (auto edge : v) {
 }
 
 void cuStinger::print() noexcept {
-    if (!_custinger_init)
-        ERROR("cuStinger not initialized")
     if (sizeof(degree_t) == 4 && sizeof(id_t) == 4) {
-        printKernel2<<<1, 1>>>();
+        printKernel<<<1, 1>>>();
         CHECK_CUDA_ERROR
     }
     else

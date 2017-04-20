@@ -33,6 +33,7 @@
     - int32_t -> int
     - typename -> using
     - malloc/free -> new/delete
+    - reinterpret_cast, static_cast and const_cast instead of old style cast
     - ...
 * cuStinger :
     - print function for small graph
@@ -45,7 +46,9 @@ TO DO:
     - Kernel Interface
     - Load Balancing
     - Insert new vertices
+    - Batch equal operators
+    - Graph Weights
 * Others
     - Regression test
     - Added Syntax.txt
-    - Batch equal operators
+    - README link

@@ -3,7 +3,7 @@
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
  * @date April, 2017
- * @version v1.3
+ * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
  *
@@ -32,42 +32,37 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
+ *
+ * @file
  */
-namespace timer {
+#pragma once
 
-template<typename ChronoPrecision>
-Timer<DEVICE, ChronoPrecision>
-::Timer(int decimals, int space, xlib::Color color) :
-                    TimerBase<DEVICE, ChronoPrecision>(decimals, space, color) {
-    cudaEventCreate(&_start_event);
-    cudaEventCreate(&_stop_event);
-}
+#include "Core/cuStingerGlobalSpace.hpp"
 
-template<typename ChronoPrecision>
-Timer<DEVICE, ChronoPrecision>::~Timer() {
-    cudaEventDestroy(_start_event);
-    cudaEventDestroy(_stop_event);
-}
+/**
+ * @brief
+ */
+namespace cu_stinger_alg {
 
-template<typename ChronoPrecision>
-void Timer<DEVICE, ChronoPrecision>::start() {
-    assert(!_start_flag);
-    cudaEventRecord(_start_event, 0);
-    assert(_start_flag = true);
-}
+const float ALLOCATION_FACTOR = 2.0f;
 
-template<typename ChronoPrecision>
-void Timer<DEVICE, ChronoPrecision>::stop() {
-    assert(_start_flag);
-    cudaEventRecord(_stop_event, 0);
-    cudaEventSynchronize(_stop_event);
-    float cuda_time_elapsed;
-    cudaEventElapsedTime(&cuda_time_elapsed, _start_event, _stop_event);
-    _time_elapsed  = ChronoPrecision(cuda_time_elapsed);
-    _time_squared += _time_elapsed * _time_elapsed.count();
-    _total_time_elapsed += _time_elapsed;
-    _num_executions++;
-    assert(!(_start_flag = false));
-}
+template<typename T>
+class Queue {
+public:
+    explicit Queue() noexcept;
+    ~Queue() noexcept;
 
-} // namespace timer
+    __host__ void insert(T item) noexcept;
+    __host__ void insert(const T* item_array, int size) noexcept;
+
+    __host__ int size() const noexcept;
+private:
+    int    d_work_ptr  { nullptr };
+    T*     d_queue     { nullptr };
+    int2*  d_queue_aux { nullptr };
+    size_t _size       { 0 };
+};
+
+} // namespace cu_stinger_alg
+
+#include "Queue.i.cuh"

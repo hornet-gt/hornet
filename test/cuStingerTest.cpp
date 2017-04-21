@@ -54,12 +54,13 @@ int main(int argc, char* argv[]) {
     //custinger_init.insertEdgeData(time_stamp, weights);
 
     cuStinger custiger_graph(custinger_init);
+    custiger_graph.check_consistency(custinger_init);
 
     delete[] labels;
     delete[] time_stamp;
     delete[] weights;
 
-    custiger_graph.print();
+    //custiger_graph.print();
     //--------------------------------------------------------------------------
 
     BatchUpdate batch_update(100);

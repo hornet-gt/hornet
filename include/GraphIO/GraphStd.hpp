@@ -90,12 +90,10 @@ public:
     public:
         VertexIt begin() const noexcept;
         VertexIt end()   const noexcept;
-
-        VerticesContainer(const VerticesContainer&) = delete;
     private:
         const GraphStd& _graph;
 
-        explicit VerticesContainer(const GraphStd& graph) noexcept;
+        VerticesContainer(const GraphStd& graph) noexcept;
     };
     //--------------------------------------------------------------------------
 
@@ -136,12 +134,10 @@ public:
     public:
         EdgeIt begin() const noexcept;
         EdgeIt end()   const noexcept;
-
-        EdgesContainer(const EdgesContainer&) = delete;
     private:
         const GraphStd& _graph;
 
-        explicit EdgesContainer(const GraphStd& graph)        noexcept;
+        EdgesContainer(const GraphStd& graph) noexcept;
     };
     //--------------------------------------------------------------------------
 

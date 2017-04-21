@@ -50,22 +50,22 @@ The following basic steps are required to build and execute cuStinger:
 git clone --recursive https://github.com/cuStinger/cuStinger.git
 cd cuStinger/build
 cmake ..
-make -j 6
+make -j
 ./cuStingerTest <input_graph> <options>
 ```
 ## Notes ##
 
 * The changelog can be fouund in the util directory (history.txt)
 * cuSTINGER has been written by adopting (when possible) the following coding styles:
-    * LLVM Coding Standards
-    * Google C++ Style Guide
+    * [LLVM Coding Standards](http://llvm.org/docs/CodingStandards.html)
+    * [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html)
 * cuSTINGER has been checked with the following tools to ensure the code quality:
     * clang++: warnings
-    * clang-tidy: warnings and code styles
+    * [clang-tidy](http://clang.llvm.org/extra/clang-tidy/): warnings and code styles
 * cuSTINGER has been tested with the following tools:
-    * cuda-memcheck
-    * valgrind
-    * clang static analyzer
+    * [cuda-memcheck](http://docs.nvidia.com/cuda/cuda-memcheck/)
+    * [valgrind](http://valgrind.org/)
+    * [clang static analyzer](https://clang-analyzer.llvm.org/)
 
 ## Additional Utilities ##
 

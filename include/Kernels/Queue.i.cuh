@@ -3,7 +3,7 @@
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
  * @date April, 2017
- * @version v1.3
+ * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
  *
@@ -32,42 +32,56 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
+ *
+ * @file
  */
-namespace timer {
+#pragma once
 
-template<typename ChronoPrecision>
-Timer<DEVICE, ChronoPrecision>
-::Timer(int decimals, int space, xlib::Color color) :
-                    TimerBase<DEVICE, ChronoPrecision>(decimals, space, color) {
-    cudaEventCreate(&_start_event);
-    cudaEventCreate(&_stop_event);
+#include "Core/cuStingerGlobalSpace.hpp"
+
+/**
+ * @brief
+ */
+namespace cu_stinger_alg {
+
+template<typename T>
+Queue<T>::Queue() noexcept {
+    size_t nV;
+    cuMemcpyFromSymbol(d_nV, nV);
+
+    cuMalloc(d_queue, nV * ALLOCATION_FACTOR);
+    cuMemcpyToSymbol(d_queue, d_queue1);
+
+    cuMalloc(d_queue_aux, nV * ALLOCATION_FACTOR);
+    cuMemcpyToSymbol(d_queue_aux, d_queue2);
+
+    cuMalloc(d_work_ptr, nV * ALLOCATION_FACTOR);
+    cuMemcpyToSymbol(d_work_ptr, d_work);
+
+    cuMemcpyToSymbol(0, d_queue_counter);
 }
 
-template<typename ChronoPrecision>
-Timer<DEVICE, ChronoPrecision>::~Timer() {
-    cudaEventDestroy(_start_event);
-    cudaEventDestroy(_stop_event);
+template<typename T>
+~Queue() noexcept {
+    cuFree(d_queue, d_queue_aux, d_work_ptr);
 }
 
-template<typename ChronoPrecision>
-void Timer<DEVICE, ChronoPrecision>::start() {
-    assert(!_start_flag);
-    cudaEventRecord(_start_event, 0);
-    assert(_start_flag = true);
+template<typename T>
+__host__ void Queue<T>::insert(T item) noexcept {
+    cuMemcpyToDeviceAsync(item, d_queue);
+    _size++;
 }
 
-template<typename ChronoPrecision>
-void Timer<DEVICE, ChronoPrecision>::stop() {
-    assert(_start_flag);
-    cudaEventRecord(_stop_event, 0);
-    cudaEventSynchronize(_stop_event);
-    float cuda_time_elapsed;
-    cudaEventElapsedTime(&cuda_time_elapsed, _start_event, _stop_event);
-    _time_elapsed  = ChronoPrecision(cuda_time_elapsed);
-    _time_squared += _time_elapsed * _time_elapsed.count();
-    _total_time_elapsed += _time_elapsed;
-    _num_executions++;
-    assert(!(_start_flag = false));
+template<typename T>
+__host__ void Queue<T>::insert(const T* item_array, int size) noexcept {
+    cuMemcpyToDeviceAsync(item_array, size, d_queue);
+    _size += size
 }
 
-} // namespace timer
+template<typename T>
+__host__ int Queue<T>::size() const noexcept {
+    cuMemcpyToHostAsync(d_queue_counter, _size);
+    return _size;
+}
+
+} // namespace cu_stinger_alg

@@ -33,10 +33,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
+#include "Core/cuStingerGlobalSpace.cuh"
+
 namespace cu_stinger {
 
 __device__ __forceinline__
-Vertex::Vertex(id_t index) noexcept {
+Vertex::Vertex(id_t index) {
     xlib::SeqDev<VTypeSize> VTYPE_SIZE_D;
     _vertex_ptr     = d_vertex_basic_ptr + index;
     auto basic_data = *_vertex_ptr;
@@ -48,31 +50,34 @@ Vertex::Vertex(id_t index) noexcept {
     for (int i = 0; i < NUM_EXTRA_VTYPES; i++)
         _ptrs[i] = d_vertex_data_ptrs[i] + index * VTYPE_SIZE_D[i + 1];
 }
+/*
+__device__ __forceinline__
+Vertex::Vertex() {}*/
 
 __device__ __forceinline__
-degree_t Vertex::degree() const noexcept {
+degree_t Vertex::degree() const {
     return _degree;
 }
 
 __device__ __forceinline__
-Edge Vertex::edge(degree_t index) const noexcept {
+Edge Vertex::edge(degree_t index) const {
     return Edge(_edge_ptr, index, _limit);
 }
 
 __device__ __forceinline__
-degree_t Vertex::limit() const noexcept {
+degree_t Vertex::limit() const {
     return _limit;
 }
 
 __device__ __forceinline__
-degree_t* Vertex::degree_ptr() noexcept {
+degree_t* Vertex::degree_ptr() {
     return reinterpret_cast<degree_t*>(_vertex_ptr + sizeof(byte_t*));
 }
 
 template<int INDEX>
 __device__ __forceinline__
 typename std::tuple_element<INDEX, VertexTypes>::type
-Vertex::field() const noexcept {
+Vertex::field() const {
     using T = typename std::tuple_element<INDEX, VertexTypes>::type;
     return *reinterpret_cast<T*>(_ptrs[INDEX]);
 }
@@ -98,7 +103,7 @@ void store_edge<NUM_EXTRA_ETYPES>(byte_t* const (&)[NUM_EXTRA_ETYPES],
 //------------------------------------------------------------------------------
 
 __device__ __forceinline__
-void Vertex::store(const Edge& edge, degree_t index) noexcept {
+void Vertex::store(const Edge& edge, degree_t index) {
     Edge to_replace(_edge_ptr, index, _limit);
 
     reinterpret_cast<id_t*>(_edge_ptr)[index] = edge.dst();
@@ -109,7 +114,7 @@ void Vertex::store(const Edge& edge, degree_t index) noexcept {
 //==============================================================================
 
 __device__ __forceinline__
-Edge::Edge(byte_t* edge_ptr, degree_t index, degree_t limit) noexcept {
+Edge::Edge(byte_t* edge_ptr, degree_t index, degree_t limit) {
     //Edge Type Sizes Prefixsum
     xlib::SeqDev<ETypeSizePS> ETYPE_SIZE_PS_D;
 
@@ -120,13 +125,13 @@ Edge::Edge(byte_t* edge_ptr, degree_t index, degree_t limit) noexcept {
 }
 
 __device__ __forceinline__
-id_t Edge::dst() const noexcept {
+id_t Edge::dst() const {
     return _dst;
 }
 
 template<typename T>
 __device__ __forceinline__
-typename Edge::WeightT Edge::weight() const noexcept {
+typename Edge::WeightT Edge::weight() const {
     static_assert(!std::is_same<T, void>::value,
                   "weight is not part of edge type list");
     return *reinterpret_cast<WeightT*>(_ptrs[0]);
@@ -134,7 +139,7 @@ typename Edge::WeightT Edge::weight() const noexcept {
 
 template<typename T>
 __device__ __forceinline__
-typename Edge::TimeStamp1T Edge::time_stamp1() const noexcept {
+typename Edge::TimeStamp1T Edge::time_stamp1() const {
     static_assert(!std::is_same<T, void>::value,
                   "weight is not part of edge type list");
     return *reinterpret_cast<TimeStamp1T*>(_ptrs[1]);
@@ -142,7 +147,7 @@ typename Edge::TimeStamp1T Edge::time_stamp1() const noexcept {
 
 template<typename T>
 __device__ __forceinline__
-typename Edge::TimeStamp2T Edge::time_stamp2() const noexcept {
+typename Edge::TimeStamp2T Edge::time_stamp2() const {
     static_assert(!std::is_same<T, void>::value,
                   "weight is not part of edge type list");
     return *reinterpret_cast<TimeStamp2T*>(_ptrs[2]);
@@ -151,7 +156,7 @@ typename Edge::TimeStamp2T Edge::time_stamp2() const noexcept {
 template<int INDEX>
 __device__ __forceinline__
 typename std::tuple_element<INDEX, EdgeTypes>::type
-Edge::field() const noexcept {
+Edge::field() const  {
     using T = typename std::tuple_element<INDEX, EdgeTypes>::type;
     return *reinterpret_cast<T*>(_ptrs[INDEX]);
 }

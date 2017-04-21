@@ -41,10 +41,10 @@
  */
 #pragma once
 
-#include <tuple>
 #include "Support/Metaprogramming.hpp"  //xlib::TupleToTypeSize
 #include "Support/Basic.hpp"            //xlib::byte_t
 #include "Support/Numeric.hpp"          //xlib::roundup_pow2
+#include <tuple>
 
 template<typename... TArgs>
 using TypeList = std::tuple<TArgs...>;

@@ -60,6 +60,8 @@ void GraphStd<id_t, off_t>::readMarket(std::ifstream& fin, Property prop) {
     COOtoCSR(prop);
 }
 
+//------------------------------------------------------------------------------
+
 template<typename id_t, typename off_t>
 void GraphStd<id_t, off_t>::readDimacs9(std::ifstream& fin, Property prop) {
     _coo_size = GraphBase<id_t, off_t>::getDimacs9Header(fin);
@@ -84,6 +86,8 @@ void GraphStd<id_t, off_t>::readDimacs9(std::ifstream& fin, Property prop) {
     COOtoCSR(prop);
 }
 
+//------------------------------------------------------------------------------
+
 template<typename id_t, typename off_t>
 void GraphStd<id_t, off_t>::readKonect(std::ifstream& fin, Property prop) {
     GraphBase<id_t, off_t>::getKonectHeader(fin);
@@ -107,6 +111,8 @@ void GraphStd<id_t, off_t>::readKonect(std::ifstream& fin, Property prop) {
     std::copy(coo_edges_vect.begin(), coo_edges_vect.end(), _coo_edges);
     COOtoCSR(prop);
 }
+
+//------------------------------------------------------------------------------
 
 template<typename id_t, typename off_t>
 void GraphStd<id_t, off_t>::readNetRepo(std::ifstream& fin, Property prop) {
@@ -133,6 +139,8 @@ void GraphStd<id_t, off_t>::readNetRepo(std::ifstream& fin, Property prop) {
     std::copy(coo_edges_vect.begin(), coo_edges_vect.end(), _coo_edges);
     COOtoCSR(prop);
 }
+
+//------------------------------------------------------------------------------
 
 template<typename id_t, typename off_t>
 void GraphStd<id_t, off_t>::readDimacs10(std::ifstream& fin, Property prop){
@@ -182,6 +190,8 @@ void GraphStd<id_t, off_t>::readDimacs10(std::ifstream& fin, Property prop){
     }
 }
 
+//------------------------------------------------------------------------------
+
 template<typename id_t, typename off_t>
 void GraphStd<id_t, off_t>::readSnap(std::ifstream& fin, Property prop) {
     _coo_size = GraphBase<id_t, off_t>::getSnapHeader(fin);
@@ -202,6 +212,8 @@ void GraphStd<id_t, off_t>::readSnap(std::ifstream& fin, Property prop) {
     }
     COOtoCSR(prop);
 }
+
+//------------------------------------------------------------------------------
 
 #if defined(__linux__)
 #pragma clang diagnostic push
@@ -239,6 +251,7 @@ void GraphStd<id_t, off_t>::readBinary(const char* filename, Property prop){
 
 #pragma clang diagnostic pop
 #endif
+//------------------------------------------------------------------------------
 
 template class GraphStd<int, int>;
 template class GraphStd<int64_t, int64_t>;

@@ -158,6 +158,8 @@ size_t GraphBase<id_t, off_t>::getMarketHeader(std::ifstream& fin) {
     return num_lines;
 }
 
+//------------------------------------------------------------------------------
+
 template<typename id_t, typename off_t>
 size_t GraphBase<id_t, off_t>::getDimacs9Header(std::ifstream& fin) {
     while (fin.peek() == 'c')
@@ -170,9 +172,12 @@ size_t GraphBase<id_t, off_t>::getDimacs9Header(std::ifstream& fin) {
     xlib::overflowT<off_t>(num_lines * 2);
 
     _structure |= Structure::DIRECTED;
-    _E         = static_cast<off_t>(num_lines);
+    _V          = static_cast<id_t>(n_of_vertices);
+    _E          = static_cast<off_t>(num_lines);
     return num_lines;
 }
+
+//------------------------------------------------------------------------------
 
 template<typename id_t, typename off_t>
 void GraphBase<id_t, off_t>::getDimacs10Header(std::ifstream& fin) {
@@ -196,6 +201,8 @@ void GraphBase<id_t, off_t>::getDimacs10Header(std::ifstream& fin) {
                                         static_cast<off_t>(num_lines);
 }
 
+//------------------------------------------------------------------------------
+
 template<typename id_t, typename off_t>
 void GraphBase<id_t, off_t>::getKonectHeader(std::ifstream& fin) {
     std::string str;
@@ -207,6 +214,8 @@ void GraphBase<id_t, off_t>::getKonectHeader(std::ifstream& fin) {
     xlib::skip_lines(fin);
 }
 
+//------------------------------------------------------------------------------
+
 template<typename id_t, typename off_t>
 void GraphBase<id_t, off_t>::getNetRepoHeader(std::ifstream& fin) {
     std::string str;
@@ -217,6 +226,8 @@ void GraphBase<id_t, off_t>::getNetRepoHeader(std::ifstream& fin) {
     }
     xlib::skip_lines(fin);
 }
+
+//------------------------------------------------------------------------------
 
 template<typename id_t, typename off_t>
 size_t GraphBase<id_t, off_t>::getSnapHeader(std::ifstream& fin) {
@@ -245,6 +256,8 @@ size_t GraphBase<id_t, off_t>::getSnapHeader(std::ifstream& fin) {
                                         static_cast<off_t>(num_lines);
     return num_lines;
 }
+
+//------------------------------------------------------------------------------
 
 template class GraphBase<int, int>;
 template class GraphBase<int64_t, int64_t>;

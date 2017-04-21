@@ -49,19 +49,20 @@ class EdgeIt;
 class Vertex {
     friend class VertexSet;
     friend __global__ void printKernel();
+    //template<typename> friend __global__ cu_stinger_alg::LoadBalancingContract;
 public:
     /**
      * @brief Default costructor
      */
     __device__ __forceinline__
-    Vertex(id_t index) noexcept;
+    Vertex(id_t index);
 
     /**
      * @brief Out-degree of the vertex
      * @return out-degree of the vertex
      */
     __device__ __forceinline__
-    degree_t degree() const noexcept;
+    degree_t degree() const;
 
     /**
      * @brief  value of a user-defined vertex field
@@ -79,7 +80,7 @@ public:
     template<int INDEX>
     __device__ __forceinline__
     typename std::tuple_element<INDEX, VertexTypes>::type
-    field() const noexcept;
+    field() const;
 
     /**
      * @brief Edge of the vertex
@@ -88,8 +89,10 @@ public:
      * The behavior is undefined otherwise.
      */
     __device__ __forceinline__
-    Edge edge(off_t index) const noexcept;
+    Edge edge(off_t index) const;
 
+    ////__device__ __forceinline__
+    //Vertex();
 private:
     VertexBasicData* _vertex_ptr;
     byte_t*  _edge_ptr;
@@ -98,13 +101,13 @@ private:
     degree_t _limit;
 
     __device__ __forceinline__
-    degree_t limit() const noexcept;
+    degree_t limit() const;
 
     __device__ __forceinline__
-    degree_t* degree_ptr() noexcept;
+    degree_t* degree_ptr();
 
     __device__ __forceinline__
-    void store(const Edge& edge, degree_t index) noexcept;
+    void store(const Edge& edge, degree_t index);
 };
 
 //==============================================================================
@@ -130,7 +133,7 @@ public:
      * @return destination of the edge
      */
     __device__ __forceinline__
-    id_t dst() const noexcept;
+    id_t dst() const;
 
     /**
      * @brief weight of the edge (if it exists)
@@ -145,7 +148,7 @@ public:
      */
     template<typename T = EnableWeight>
     __device__ __forceinline__
-    WeightT weight() const noexcept;
+    WeightT weight() const;
 
     /**
      * @brief first time stamp of the edge
@@ -155,7 +158,7 @@ public:
      */
     template<typename T = EnableTimeStamp1>
     __device__ __forceinline__
-    TimeStamp1T time_stamp1() const noexcept;
+    TimeStamp1T time_stamp1() const;
 
     /**
      * @brief second time stamp of the edge
@@ -165,7 +168,7 @@ public:
      */
     template<typename T = EnableTimeStamp2>
     __device__ __forceinline__
-    TimeStamp2T time_stamp2() const noexcept;
+    TimeStamp2T time_stamp2() const;
 
     /**
      * @brief  value of a user-defined edge field
@@ -183,15 +186,14 @@ public:
     template<int INDEX>
     __device__ __forceinline__
     typename std::tuple_element<INDEX, EdgeTypes>::type
-    field() const noexcept;
+    field() const;
 
 private:
     id_t    _dst;
     byte_t* _ptrs[NUM_EXTRA_ETYPES];
-    //Min<> : avoid "warning: subscript out of range"
 
     __device__ __forceinline__
-    Edge(byte_t* block_ptr, degree_t index, degree_t limit) noexcept;
+    Edge(byte_t* block_ptr, degree_t index, degree_t limit);
 };
 
 //==============================================================================
@@ -199,10 +201,10 @@ private:
 class VertexSet {
 public:
     __device__ __forceinline__
-    VertexIt begin() const noexcept;
+    VertexIt begin() const;
 
     __device__ __forceinline__
-    VertexIt end() const noexcept;
+    VertexIt end() const;
 };
 
 //==============================================================================

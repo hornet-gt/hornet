@@ -61,8 +61,9 @@ public:
      * @param[in] csr_offsets csr offsets array
      * @param[in] csr_edges csr edges array
      */
-    cuStingerInit(size_t num_vertices, size_t num_edges,
-                  const off_t* csr_offsets, const id_t* csr_edges) noexcept;
+    explicit cuStingerInit(size_t num_vertices, size_t num_edges,
+                           const off_t* csr_offsets, const id_t* csr_edges)
+                           noexcept;
 
     /**
      * @brief Insert additional vertex data
@@ -91,7 +92,16 @@ public:
     void insertEdgeData(TArgs... edge_data) noexcept;
 
 private:
+    /**
+     * @internal
+     * @brief Array of pointers of the *additional* vertex data
+     */
     byte_t* _vertex_data_ptrs[ NUM_EXTRA_VTYPES ] = {};
+
+    /**
+     * @internal
+     * @brief Array of pointers of the *all* edge data
+     */
     byte_t*   _edge_data_ptrs[ NUM_ETYPES ] = {};
 
     size_t       _nV;
@@ -114,9 +124,9 @@ public:
      *            distribution based on the degree of the vertices
      * @param[in] print print the batch on the standard output
      */
-    BatchProperty(bool           sort = false,
-                  bool weighted_distr = false,
-                  bool          print = false);
+    explicit BatchProperty(bool           sort = false,
+                           bool weighted_distr = false,
+                           bool          print = false) noexcept;
 private:
     bool _sort, _print, _weighted_distr;
 };
@@ -131,7 +141,7 @@ public:
      * @brief default costructor
      * @param[in] batch_size number of edges of the batch
      */
-    BatchUpdate(size_t batch_size) noexcept;
+    explicit BatchUpdate(size_t batch_size) noexcept;
 
     /**
      * @brief Insert additional edge data
@@ -145,7 +155,7 @@ public:
     void insertEdgeData(TArgs... edge_data) noexcept;
 
 private:
-    byte_t*       _edge_data_ptrs[ NUM_ETYPES + 1 ];
+    byte_t*       _edge_data_ptrs[ NUM_ETYPES + 1 ]; //+1 for source ids
     size_t        _batch_size;
 };
 
@@ -160,7 +170,7 @@ public:
      * @brief default costructor
      * @param[in] custinger_init cuStinger initilialization data structure
      */
-    cuStinger(const cuStingerInit& custinger_init) noexcept;
+    explicit cuStinger(const cuStingerInit& custinger_init) noexcept;
 
     /**
      * @brief decostructor
@@ -173,19 +183,16 @@ public:
      */
     void print() noexcept;
 
+    /**
+     * @brief Check the consistency of the device data structure with the host
+     *        data structure provided in the input
+     * @details revert the initilization process to rebuild the device data
+     *          structure on the host
+     */
+    void check_consistency(const cuStingerInit& custinger_init) const noexcept;
+
 private:
     MemoryManagement mem_management;
-
-    /**
-     * @internal
-     * @brief Array of pointers of the *additional* vertex data
-     */
-    byte_t* const (&_vertex_data_ptrs)[ NUM_EXTRA_VTYPES ];
-    /**
-     * @internal
-     * @brief Array of pointers of the *additional* edge data
-     */
-    byte_t* const (&_edge_data_ptrs)[ NUM_ETYPES ];
 
     /**
      * @internal
@@ -193,7 +200,6 @@ private:
      *        (degree and edge pointer included)
      */
     byte_t*      _d_vertices { nullptr };
-    const off_t* _csr_offsets;
     size_t       _nV;
     size_t       _nE;
 
@@ -201,7 +207,8 @@ private:
      * @internal
      * @brief copy the vertex data pointers to the __constant__ memory
      */
-    void initializeVertexGlobal() noexcept;
+    void initializeVertexGlobal(byte_t* (&vertex_data_ptrs)[NUM_VTYPES])
+                                noexcept;
 };
 
 } // namespace cu_stinger

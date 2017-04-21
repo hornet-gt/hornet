@@ -34,6 +34,8 @@
     - typename -> using
     - malloc/free -> new/delete
     - reinterpret_cast, static_cast and const_cast instead of old style cast
+    - _var for private variables
+    - d_var for device variables and h_var for host variables
     - ...
 * cuStinger :
     - print function for small graph
@@ -44,11 +46,12 @@
 TO DO:
 * Code Related:
     - Kernel Interface
-    - Load Balancing
+    - Helix Load Balancing
     - Insert new vertices
     - Batch equal operators
-    - Graph Weights
+    - Graph Weights IO
+    - Kernel Range-loop iterators
 * Others
     - Regression test
     - Added Syntax.txt
-    - README link
+    - Store the graph to disk

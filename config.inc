@@ -45,4 +45,4 @@ const size_t  MIN_EDGES_PER_BLOCK = 2;
  * @brief number of edges for a **BlockArray**
  * @remark `EDGES_PER_BLOCKARRAY` must be a power of two
  */
-const size_t EDGES_PER_BLOCKARRAY = 128;
+const size_t EDGES_PER_BLOCKARRAY = 262144;

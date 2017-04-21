@@ -33,25 +33,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
+#include "Core/cuStingerGlobalSpace.cuh"    //d_vertex_basic_ptr
 #include "Core/cuStinger.hpp"
-#include "Core/cuStingerGlobalSpace.cuh"
-#include "Core/cuStingerTypes.cuh"
+#include "Core/cuStingerTypes.cuh"          //VertexBasicData
 
 namespace cu_stinger {
+/*
+__constant__ size_t  d_nV;
 
-void cuStinger::initializeVertexGlobal() noexcept {
+__constant__ VertexBasicData* d_vertex_basic_ptr;
+__constant__ byte_t*          d_vertex_data_ptrs[NUM_VTYPES];*/
+
+
+
+void cuStinger::initializeVertexGlobal(byte_t* (&vertex_data_ptrs)[NUM_VTYPES])
+                                       noexcept {
     cuMemcpyToSymbol(_nV, d_nV);
-
     auto vertex_basic_ptr = reinterpret_cast<VertexBasicData*>(_d_vertices);
     cuMemcpyToSymbol(vertex_basic_ptr, d_vertex_basic_ptr);
-    //--------------------------------------------------------------------------
-    id_t round_nV = xlib::roundup_pow2(_nV);
-    byte_t* vertex_data_ptrs[NUM_VTYPES];
-
-    for (int i = 0; i < NUM_EXTRA_VTYPES; i++) {
-        vertex_data_ptrs[i] = reinterpret_cast<byte_t*>(_d_vertices) +
-                              round_nV * VTYPE_SIZE_PS[i + 1];
-    }
     cuMemcpyToSymbol(vertex_data_ptrs, d_vertex_data_ptrs);
 }
 
@@ -64,7 +63,7 @@ __global__ void printKernel() {
         auto vertex = Vertex(i);
         auto degree = vertex.degree();
         //auto field0 = vertex.field<0>();
-        printf("%d [%d, %d]:   ", i, vertex.degree(), vertex.limit());
+        printf("%d [%d, %d]:    ", i, vertex.degree(), vertex.limit());
 
         for (degree_t j = 0; j < vertex.degree(); j++) {
             auto   edge = vertex.edge(j);
@@ -73,7 +72,7 @@ __global__ void printKernel() {
             auto field0 = edge.field<0>();
             auto field1 = edge.field<1>();*/
 
-            printf("%d   ", edge.dst());
+            printf("%d    ", edge.dst());
         //    d_array[j] = edge.dst();
         }
         printf("\n");

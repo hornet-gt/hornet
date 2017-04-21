@@ -38,7 +38,7 @@
 namespace cu_stinger {
 
 template<unsigned INDEX = 0, unsigned SIZE, typename T, typename... TArgs>
-void bind(byte_t* (&data_ptrs)[SIZE], const T* data, TArgs... args);
+void bind(byte_t* (&data_ptrs)[SIZE], const T* data, TArgs... args) noexcept;
 
 //==============================================================================
 ///////////////////
@@ -56,8 +56,6 @@ void cuStingerInit::insertVertexData(TArgs... vertex_data) noexcept {
     bind(_vertex_data_ptrs, vertex_data...);
 }
 
-//------------------------------------------------------------------------------
-
 template<typename... TArgs>
 void cuStingerInit::insertEdgeData(TArgs... edge_data) noexcept {
     static_assert(sizeof...(TArgs) == NUM_EXTRA_ETYPES,
@@ -66,17 +64,18 @@ void cuStingerInit::insertEdgeData(TArgs... edge_data) noexcept {
     static_assert(xlib::tuple_compare<EdgeTypes, T>::value,
                   "Incorrect Edge data type");
 
-    bind(_edge_data_ptrs, edge_data...);
+    bind<1>(_edge_data_ptrs, edge_data...);
 }
 //==============================================================================
 /////////////////
 // BatchUpdate //
 /////////////////
 
-inline BatchProperty::BatchProperty(bool sort, bool weighted_distr, bool print):
-                                    _sort(sort),
-                                    _weighted_distr(weighted_distr),
-                                    _print(print) {}
+inline BatchProperty::BatchProperty(bool sort, bool weighted_distr, bool print)
+                                    noexcept:
+                                _sort(sort),
+                                _weighted_distr(weighted_distr),
+                                _print(print) {}
 
 inline BatchUpdate::BatchUpdate(size_t batch_size) noexcept:
                                 _batch_size(batch_size) {}
@@ -96,13 +95,16 @@ void BatchUpdate::insertEdgeData(TArgs... edge_data) noexcept {
 //==============================================================================
 
 template<unsigned INDEX, unsigned SIZE>
-void bind(byte_t* (&data_ptrs)[SIZE]) {}
+void bind(byte_t* (&data_ptrs)[SIZE]) noexcept {}
 
 template<unsigned INDEX, unsigned SIZE, typename T, typename... TArgs>
-void bind(byte_t* (&data_ptrs)[SIZE], const T* data, TArgs... args) {
+void bind(byte_t* (&data_ptrs)[SIZE], const T* data, TArgs... args) noexcept {
+    static_assert(INDEX < SIZE, "Index out-of-bound");
     data_ptrs[INDEX] = reinterpret_cast<byte_t*>(const_cast<T*>(data));
     bind<INDEX + 1>(data_ptrs, args...);
 }
+
+//==============================================================================
 
 
 

@@ -58,6 +58,13 @@ public:
     Vertex(id_t index);
 
     /**
+     * @brief
+     * @return
+     */
+    __device__ __forceinline__
+    degree_t id() const;
+
+    /**
      * @brief Out-degree of the vertex
      * @return out-degree of the vertex
      */
@@ -97,6 +104,7 @@ private:
     VertexBasicData* _vertex_ptr;
     byte_t*  _edge_ptr;
     byte_t*  _ptrs[NUM_EXTRA_VTYPES];
+    id_t     _id;
     degree_t _degree;
     degree_t _limit;
 

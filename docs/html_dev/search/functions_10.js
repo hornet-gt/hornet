@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['weight',['weight',['../classcu__stinger_1_1Edge.html#afe9308bb9e5a877ea428f14c222df827',1,'cu_stinger::Edge']]]
+  ['vertex',['Vertex',['../classcu__stinger_1_1Vertex.html#a44bd5cc9c61685532d6d82c868fcfccc',1,'cu_stinger::Vertex']]]
 ];

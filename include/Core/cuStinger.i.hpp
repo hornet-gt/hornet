@@ -33,8 +33,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "cuStinger.hpp"
-
 namespace cu_stinger {
 
 template<unsigned INDEX = 0, unsigned SIZE, typename T, typename... TArgs>

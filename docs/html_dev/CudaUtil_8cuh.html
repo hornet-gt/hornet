@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>cuSTINGER: include/Support/CudaUtil.cuh File Reference</title>
+<title>cuSTINGER: include/Support/Device/CudaUtil.cuh File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -67,24 +67,24 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_081c14bac5072591c2093ecb32283714.html">Support</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_081c14bac5072591c2093ecb32283714.html">Support</a></li><li class="navelem"><a class="el" href="dir_2e863bc63a7fc84a71ae6883abdaf050.html">Device</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Data Structures</a> &#124;
+<a href="#namespaces">Namespaces</a> &#124;
 <a href="#define-members">Macros</a> &#124;
 <a href="#enum-members">Enumerations</a> &#124;
-<a href="#func-members">Functions</a> &#124;
-<a href="#var-members">Variables</a>  </div>
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">CudaUtil.cuh File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="VectorUtil_8cuh.html">Support/VectorUtil.cuh</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="VectorUtil_8cuh.html">Support/Device/VectorUtil.cuh</a>&quot;</code><br />
+<code>#include &lt;cuda_runtime.h&gt;</code><br />
 <code>#include &lt;limits&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
-<code>#include &lt;cuda_runtime.h&gt;</code><br />
 <code>#include &quot;impl/CudaUtil.i.cuh&quot;</code><br />
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
@@ -92,6 +92,11 @@ Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structxlib_1_1numeric__limits.html">xlib::numeric_limits&lt; T &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classxlib_1_1deviceProperty.html">xlib::deviceProperty</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:namespacexlib"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacexlib.html">xlib</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
@@ -134,49 +139,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>xlib::__cudaErrorHand
 <tr class="memitem:a7e0baba09aac46d62c429d903e5ce690"><td class="memItemLeft" align="right" valign="top"><a id="a7e0baba09aac46d62c429d903e5ce690"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>xlib::__safe_call</b> (cudaError_t err, const char *file, int line, const char *func_name)</td></tr>
 <tr class="separator:a7e0baba09aac46d62c429d903e5ce690"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a87dcaa4de751b60091658ff3ec0cf706"><td class="memTemplParams" colspan="2"><a id="a87dcaa4de751b60091658ff3ec0cf706"></a>
-template&lt;class T &gt; </td></tr>
-<tr class="memitem:a87dcaa4de751b60091658ff3ec0cf706"><td class="memTemplItemLeft" align="right" valign="top">unsigned&#160;</td><td class="memTemplItemRight" valign="bottom"><b>xlib::gridConfig</b> (T FUN, unsigned block_dim, unsigned dyn_shared_mem=0, int problem_size=std::numeric_limits&lt; int &gt;::max())</td></tr>
-<tr class="separator:a87dcaa4de751b60091658ff3ec0cf706"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a14b7d9c145a9533e86fbaad556f863e2"><td class="memItemLeft" align="right" valign="top"><a id="a14b7d9c145a9533e86fbaad556f863e2"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>xlib::memInfoCUDA</b> (std::size_t requested)</td></tr>
-<tr class="separator:a14b7d9c145a9533e86fbaad556f863e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acba4e1c23e8000ad7bc981b4216de47b"><td class="memItemLeft" align="right" valign="top"><a id="acba4e1c23e8000ad7bc981b4216de47b"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>xlib::memCheckCUDA</b> (std::size_t requested)</td></tr>
-<tr class="separator:acba4e1c23e8000ad7bc981b4216de47b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a53adec99d8479a96c3556f3ee579408a"><td class="memItemLeft" align="right" valign="top"><a id="a53adec99d8479a96c3556f3ee579408a"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>xlib::deviceInfo</b> ()</td></tr>
 <tr class="separator:a53adec99d8479a96c3556f3ee579408a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa4cc52dc25a330ad20de6dc12f612253"><td class="memItemLeft" align="right" valign="top"><a id="aa4cc52dc25a330ad20de6dc12f612253"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>NVTX::PushRange</b> (const std::string &amp;s, const int color)</td></tr>
-<tr class="separator:aa4cc52dc25a330ad20de6dc12f612253"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6696dad1c33f9b50b4782d200cf6d04c"><td class="memItemLeft" align="right" valign="top"><a id="a6696dad1c33f9b50b4782d200cf6d04c"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>NVTX::PopRange</b> ()</td></tr>
-<tr class="separator:a6696dad1c33f9b50b4782d200cf6d04c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
-Variables</h2></td></tr>
-<tr class="memitem:a5742dbcefef2f4f398492076d49d0cbc"><td class="memItemLeft" align="right" valign="top"><a id="a5742dbcefef2f4f398492076d49d0cbc"></a>
-const int&#160;</td><td class="memItemRight" valign="bottom"><b>NVTX::GREEN</b> = 0x0000ff00</td></tr>
-<tr class="separator:a5742dbcefef2f4f398492076d49d0cbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a72bfb161adea560e9af362481a8a5b44"><td class="memItemLeft" align="right" valign="top"><a id="a72bfb161adea560e9af362481a8a5b44"></a>
-const int&#160;</td><td class="memItemRight" valign="bottom"><b>NVTX::BLUE</b> = 0x000000ff</td></tr>
-<tr class="separator:a72bfb161adea560e9af362481a8a5b44"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5a75bbab83a0a5ac6009f69e4b29b391"><td class="memItemLeft" align="right" valign="top"><a id="a5a75bbab83a0a5ac6009f69e4b29b391"></a>
-const int&#160;</td><td class="memItemRight" valign="bottom"><b>NVTX::YELLOW</b> = 0x00ffff00</td></tr>
-<tr class="separator:a5a75bbab83a0a5ac6009f69e4b29b391"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af0e46f92cd1590c2244ab49ac7a22733"><td class="memItemLeft" align="right" valign="top"><a id="af0e46f92cd1590c2244ab49ac7a22733"></a>
-const int&#160;</td><td class="memItemRight" valign="bottom"><b>NVTX::PURPLE</b> = 0x00ff00ff</td></tr>
-<tr class="separator:af0e46f92cd1590c2244ab49ac7a22733"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3504e5cb040e676cb546fd28157ead89"><td class="memItemLeft" align="right" valign="top"><a id="a3504e5cb040e676cb546fd28157ead89"></a>
-const int&#160;</td><td class="memItemRight" valign="bottom"><b>NVTX::CYAN</b> = 0x0000ffff</td></tr>
-<tr class="separator:a3504e5cb040e676cb546fd28157ead89"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a508b93cbb1ed41628ab4939081bc3ff4"><td class="memItemLeft" align="right" valign="top"><a id="a508b93cbb1ed41628ab4939081bc3ff4"></a>
-const int&#160;</td><td class="memItemRight" valign="bottom"><b>NVTX::RED</b> = 0x00ff0000</td></tr>
-<tr class="separator:a508b93cbb1ed41628ab4939081bc3ff4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a707456311eff4619fe9d4a744d328eac"><td class="memItemLeft" align="right" valign="top"><a id="a707456311eff4619fe9d4a744d328eac"></a>
-const int&#160;</td><td class="memItemRight" valign="bottom"><b>NVTX::WHITE</b> = 0x00ffffff</td></tr>
-<tr class="separator:a707456311eff4619fe9d4a744d328eac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><dl class="section author"><dt>Author</dt><dd>Federico Busato <br />
@@ -252,7 +217,7 @@ const int&#160;</td><td class="memItemRight" valign="bottom"><b>NVTX::WHITE</b> 
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Apr 19 2017 23:31:50 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Apr 21 2017 21:47:34 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

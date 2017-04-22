@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['remove',['remove',['../classcu__stinger_1_1BitTree.html#accfbf87975f713711fd3e0dd6d110c1a',1,'cu_stinger::BitTree::remove()'],['../classcu__stinger_1_1MemoryManagement.html#a039bdbdc93a277d07087e46a7a64b7e5',1,'cu_stinger::MemoryManagement::remove()']]],
-  ['round_5fdiv',['round_div',['../Numeric_8hpp.html#aa3954b6c9bc14391bb7809ef06cb8103',1,'xlib']]]
+  ['print',['print',['../classcu__stinger_1_1BitTree.html#ac71f2d66a64b5f5ebc0fe5701130f9c2',1,'cu_stinger::BitTree::print()'],['../classcu__stinger_1_1cuStinger.html#a92eb2f3905ec274c8f8a347257ece943',1,'cu_stinger::cuStinger::print()']]],
+  ['printbits',['printBits',['../namespacexlib.html#a0e38dbc56815a3cc759168917a6af79e',1,'xlib']]]
 ];

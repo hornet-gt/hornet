@@ -34,8 +34,8 @@
  * </blockquote>}
  */
 #include "Core/cuStinger.hpp"
-#include "Support/Timer.cuh"
-#include <cstring>      //std::memcpy
+#include "Support/Host/Timer.hpp"//xlib::Timer
+#include <cstring>               //std::memcpy
 
 using namespace timer;
 
@@ -50,6 +50,14 @@ cuStingerInit::cuStingerInit(size_t num_vertices, size_t num_edges,
 
    _edge_data_ptrs[0] = const_cast<byte_t*>(
                         reinterpret_cast<const byte_t*>(csr_edges));
+}
+
+size_t cuStingerInit::nV() const noexcept {
+    return _nV;
+}
+
+const off_t* cuStingerInit::csr_offsets() const noexcept {
+    return _csr_offsets;
 }
 
 //==============================================================================

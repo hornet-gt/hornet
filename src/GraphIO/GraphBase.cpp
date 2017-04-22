@@ -34,11 +34,11 @@
  * </blockquote>}
  */
 #include "GraphIO/GraphBase.hpp"
-#include "Support/Basic.hpp"      //WARNING
-#include "Support/FileUtil.hpp"   //xlib::file_size
-#include "Support/Numeric.hpp"    //xlib::overflowT
-#include <iostream>               //std::cout
-#include <sstream>                //std::istringstream
+#include "Support/Host/Basic.hpp"   //WARNING
+#include "Support/Host/FileUtil.hpp"//xlib::file_size
+#include "Support/Host/Numeric.hpp" //xlib::overflowT
+#include <iostream>                 //std::cout
+#include <sstream>                  //std::istringstream
 
 namespace graph {
 

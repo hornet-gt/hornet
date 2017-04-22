@@ -34,9 +34,10 @@
     - typename -> using
     - malloc/free -> new/delete
     - reinterpret_cast, static_cast and const_cast instead of old style cast
+* Code convetion in addition to LLVM/Google
     - _var for private variables
     - d_var for device variables and h_var for host variables
-    - ...
+    - .hpp/.cpp for host code/CUDA API, .cuh/.cu device code
 * cuStinger :
     - print function for small graph
     - batch generation: uniform/weighted sorted/unsorted

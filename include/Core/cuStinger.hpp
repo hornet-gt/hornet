@@ -91,6 +91,16 @@ public:
     template<typename... TArgs>
     void insertEdgeData(TArgs... edge_data) noexcept;
 
+    /**
+     *
+     */
+    size_t nV() const noexcept;
+
+    /**
+     *
+     */
+    const off_t* csr_offsets() const noexcept;
+
 private:
     /**
      * @internal
@@ -107,56 +117,6 @@ private:
     size_t       _nV;
     size_t       _nE;
     const off_t* _csr_offsets;
-};
-
-//==============================================================================
-
-/**
- * @brief Batch Property
- */
-class BatchProperty {
-public:
-    /**
-     * @brief default costructor
-     * @param[in] sort the edge batch is sorted in lexicographic order
-     *            (source, destination)
-     * @param[in] weighted_distr generate a batch by using a random weighted
-     *            distribution based on the degree of the vertices
-     * @param[in] print print the batch on the standard output
-     */
-    explicit BatchProperty(bool           sort = false,
-                           bool weighted_distr = false,
-                           bool          print = false) noexcept;
-private:
-    bool _sort, _print, _weighted_distr;
-};
-
-/**
- * @brief Batch update class
- */
-class BatchUpdate {
-    friend cuStinger;
-public:
-    /**
-     * @brief default costructor
-     * @param[in] batch_size number of edges of the batch
-     */
-    explicit BatchUpdate(size_t batch_size) noexcept;
-
-    /**
-     * @brief Insert additional edge data
-     * @param[in] edge_data list of edge data. The list must contains atleast
-     *            the source and the destination arrays (id_t type)
-     * @remark the types of the input arrays must be equal to the type List
-     *         for edges specified in the *config.inc* file
-     * @see ::insertVertexData
-     */
-    template<typename... TArgs>
-    void insertEdgeData(TArgs... edge_data) noexcept;
-
-private:
-    byte_t*       _edge_data_ptrs[ NUM_ETYPES + 1 ]; //+1 for source ids
-    size_t        _batch_size;
 };
 
 //==============================================================================
@@ -209,6 +169,56 @@ private:
      */
     void initializeVertexGlobal(byte_t* (&vertex_data_ptrs)[NUM_VTYPES])
                                 noexcept;
+};
+
+//==============================================================================
+
+/**
+ * @brief Batch Property
+ */
+class BatchProperty {
+public:
+    /**
+     * @brief default costructor
+     * @param[in] sort the edge batch is sorted in lexicographic order
+     *            (source, destination)
+     * @param[in] weighted_distr generate a batch by using a random weighted
+     *            distribution based on the degree of the vertices
+     * @param[in] print print the batch on the standard output
+     */
+    explicit BatchProperty(bool           sort = false,
+                           bool weighted_distr = false,
+                           bool          print = false) noexcept;
+private:
+    bool _sort, _print, _weighted_distr;
+};
+
+/**
+ * @brief Batch update class
+ */
+class BatchUpdate {
+    friend cuStinger;
+public:
+    /**
+     * @brief default costructor
+     * @param[in] batch_size number of edges of the batch
+     */
+    explicit BatchUpdate(size_t batch_size) noexcept;
+
+    /**
+     * @brief Insert additional edge data
+     * @param[in] edge_data list of edge data. The list must contains atleast
+     *            the source and the destination arrays (id_t type)
+     * @remark the types of the input arrays must be equal to the type List
+     *         for edges specified in the *config.inc* file
+     * @see ::insertVertexData
+     */
+    template<typename... TArgs>
+    void insertEdgeData(TArgs... edge_data) noexcept;
+
+private:
+    byte_t*       _edge_data_ptrs[ NUM_ETYPES + 1 ]; //+1 for source ids
+    size_t        _batch_size;
 };
 
 } // namespace cu_stinger

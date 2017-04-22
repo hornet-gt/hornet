@@ -1,8 +1,7 @@
 var searchData=
 [
-  ['make2_5fstr',['make2_str',['../structxlib_1_1make2__str.html',1,'xlib']]],
-  ['max',['Max',['../structxlib_1_1Max.html',1,'xlib']]],
-  ['memorymanagement',['MemoryManagement',['../classcu__stinger_1_1MemoryManagement.html',1,'cu_stinger']]],
-  ['min',['Min',['../structxlib_1_1Min.html',1,'xlib']]],
-  ['myseps',['myseps',['../structxlib_1_1myseps.html',1,'xlib']]]
+  ['log2',['Log2',['../structxlib_1_1Log2.html',1,'xlib']]],
+  ['log2ull',['Log2Ull',['../structxlib_1_1Log2Ull.html',1,'xlib']]],
+  ['lowerapprox',['LowerApprox',['../structxlib_1_1LowerApprox.html',1,'xlib']]],
+  ['lowerapproxull',['LowerApproxUll',['../structxlib_1_1LowerApproxUll.html',1,'xlib']]]
 ];

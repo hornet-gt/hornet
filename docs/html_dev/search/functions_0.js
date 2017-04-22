@@ -1,8 +1,5 @@
 var searchData=
 [
-  ['base_5faddress',['base_address',['../classcu__stinger_1_1BitTree.html#a93583462a165a9f183b65a52722bd0b7',1,'cu_stinger::BitTree']]],
-  ['batchproperty',['BatchProperty',['../classcu__stinger_1_1BatchProperty.html#a973819b8515b2f5b8beea55e47b54d35',1,'cu_stinger::BatchProperty']]],
-  ['batchupdate',['BatchUpdate',['../classcu__stinger_1_1BatchUpdate.html#aaf793aafaa1151c32fa6d6f447b2d09c',1,'cu_stinger::BatchUpdate']]],
-  ['belong_5fto',['belong_to',['../classcu__stinger_1_1BitTree.html#ab4c93353aa03bd11b10f98b3ee7cd344',1,'cu_stinger::BitTree']]],
-  ['bittree',['BitTree',['../classcu__stinger_1_1BitTree.html#a035e893a4c89565378fcb6c39d2974ee',1,'cu_stinger::BitTree::BitTree() noexcept'],['../classcu__stinger_1_1BitTree.html#a719c823a9b9debd90a2b12cea2612ca7',1,'cu_stinger::BitTree::BitTree(BitTree &amp;&amp;obj) noexcept']]]
+  ['add',['Add',['../structxlib_1_1WarpExclusiveScan.html#acbd0729359937fb113760c0aa8662195',1,'xlib::WarpExclusiveScan::Add(T &amp;value, T &amp;total)'],['../structxlib_1_1WarpExclusiveScan.html#aad8f6799b0bc351eb3d89b0068ffed75',1,'xlib::WarpExclusiveScan::Add(T &amp;value, T *total_ptr)'],['../structxlib_1_1WarpExclusiveScan.html#a62c5cb1f000a0da358b89209560fce23',1,'xlib::WarpExclusiveScan::Add(T *in_ptr, T *total_ptr)']]],
+  ['addbcast',['AddBcast',['../structxlib_1_1WarpExclusiveScan.html#a969d173d875b35a983f0f6d8ceb8ecc6',1,'xlib::WarpExclusiveScan']]]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['operator_3d',['operator=',['../classcu__stinger_1_1BitTree.html#a3fe684aaec0d7df4ecb193fc1ed3b999',1,'cu_stinger::BitTree']]]
+  ['num_5fblockarrays',['num_blockarrays',['../classcu__stinger_1_1MemoryManagement.html#acbd1254b4d7309874005b105a965d01c',1,'cu_stinger::MemoryManagement']]]
 ];

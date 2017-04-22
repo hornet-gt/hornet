@@ -1,7 +1,4 @@
 var searchData=
 [
-  ['batchproperty',['BatchProperty',['../classcu__stinger_1_1BatchProperty.html',1,'cu_stinger::BatchProperty'],['../structBatchProperty.html',1,'BatchProperty']]],
-  ['batchupdate',['BatchUpdate',['../classcu__stinger_1_1BatchUpdate.html',1,'cu_stinger']]],
-  ['binomialcoeff',['BinomialCoeff',['../structxlib_1_1BinomialCoeff.html',1,'xlib']]],
-  ['bittree',['BitTree',['../classcu__stinger_1_1BitTree.html',1,'cu_stinger']]]
+  ['allocate',['Allocate',['../classcu__stinger__alg_1_1Allocate.html',1,'cu_stinger_alg']]]
 ];

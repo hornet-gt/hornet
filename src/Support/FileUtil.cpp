@@ -33,11 +33,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Support/FileUtil.hpp"
-#include "Support/Basic.hpp"  //ERROR
-#include <cassert>              //assert
-#include <fstream>              //std::ifstream
-#include <limits>               //std::numeric_limits
+#include "Support/Host/FileUtil.hpp"
+#include "Support/Host/Basic.hpp" //ERROR
+#include <cassert>                //assert
+#include <fstream>                //std::ifstream
+#include <limits>                 //std::numeric_limits
 
 namespace xlib {
 

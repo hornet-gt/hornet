@@ -60,7 +60,7 @@ make -j
     * [LLVM Coding Standards](http://llvm.org/docs/CodingStandards.html)
     * [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html)
 * cuSTINGER has been checked with the following tools to ensure the code quality:
-    * clang++: warnings
+    * [clang++: warnings](https://clang.llvm.org/docs/DiagnosticsReference.html)
     * [clang-tidy](http://clang.llvm.org/extra/clang-tidy/): warnings and code styles
 * cuSTINGER has been tested with the following tools:
     * [cuda-memcheck](http://docs.nvidia.com/cuda/cuda-memcheck/)

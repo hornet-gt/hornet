@@ -35,8 +35,8 @@
  */
 #pragma once
 
-#include "Support/Numeric.hpp"
-#include "Support/SafeFunctions.cuh"
+#include "Support/Host/Numeric.hpp"
+#include "Support/Device/SafeFunctions.cuh"
 
 namespace cu_stinger {
 

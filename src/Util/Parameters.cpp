@@ -34,8 +34,7 @@
  * </blockquote>}
  */
 #include "Util/Parameters.hpp"
-#include "Support/Parsing.hpp"     //xlib::is_integer
-#include "Support/Basic.hpp"       //ERROR
+#include "Support/Host/Basic.hpp"   //ERROR, xlib::is_integer
 #include <fstream>
 
 namespace cu_stinger {

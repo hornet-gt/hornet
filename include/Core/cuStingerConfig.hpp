@@ -41,9 +41,9 @@
  */
 #pragma once
 
-#include "Support/Metaprogramming.hpp"  //xlib::TupleToTypeSize
-#include "Support/Basic.hpp"            //xlib::byte_t
-#include "Support/Numeric.hpp"          //xlib::roundup_pow2
+#include "Support/Host/Metaprogramming.hpp"  //xlib::TupleToTypeSize
+#include "Support/Host/Basic.hpp"            //xlib::byte_t
+#include "Support/Host/Numeric.hpp"          //xlib::roundup_pow2
 #include <tuple>
 
 template<typename... TArgs>
@@ -52,7 +52,7 @@ using TypeList = std::tuple<TArgs...>;
 namespace cu_stinger {
 //------------------------------------------------------------------------------
 
-//User configuration include
+//User configuration
 #include "../config.inc"
 
 //------------------------------------------------------------------------------
@@ -64,7 +64,7 @@ using   edge_t = typename xlib::TupleConcat<TypeList<id_t>, EdgeTypes>::type;
 
 struct ALIGN(16) VertexBasicData {
     byte_t* __restrict__ edge_ptr;
-    degree_t degree;
+    degree_t             degree;
 };
 
 using vertex_t = typename xlib::TupleConcat<TypeList<VertexBasicData>,

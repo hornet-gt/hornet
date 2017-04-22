@@ -33,10 +33,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Support/CudaUtil.cuh"
-#include "Support/Basic.hpp"
-#include "Support/PrintExt.hpp"
-#include <nvToolsExt.h>
+#include "Support/Device/CudaUtil.cuh"
+#include "Support/Host/Basic.hpp"
+#include "Support/Host/PrintExt.hpp"
 #include <ostream>
 #include <string>
 
@@ -76,28 +75,6 @@ void __cudaErrorHandler(cudaError_t err, const char* error_message,
     }
 }
 
-void memCheckCUDA(size_t Req) {
-    size_t free, total;
-    cudaMemGetInfo(&free, &total);
-    if (Req > free) {
-        ERROR("Memory too low. Req: ", std::setprecision(1), std::fixed,
-              static_cast<float>(Req) / (1 << 20), " MB, Available: ",
-              static_cast<float>(free) / (1 << 20), " MB");
-    }
-}
-
-bool memInfoCUDA(size_t Req) {
-    size_t free, total;
-    cudaMemGetInfo(&free, &total);
-    float percentage = static_cast<float>((Req >> 20) * 100) / (total >> 20);
-    std::cout << std::endl << "[Device memory]" << std::endl
-              << "     Total  " << (total >> 20) << " MB" << std::endl
-              << " Requested  " << (Req >> 20)   << " MB"
-              << std::setprecision(1) << "  (" << percentage << "%)"
-              << std::endl;
-    return free > Req;
-}
-
 int deviceProperty::NUM_OF_STREAMING_MULTIPROCESSOR = 0;
 
 int deviceProperty::getNum_of_SMs() {
@@ -107,23 +84,6 @@ int deviceProperty::getNum_of_SMs() {
         NUM_OF_STREAMING_MULTIPROCESSOR = devProperty.multiProcessorCount;
     }
     return NUM_OF_STREAMING_MULTIPROCESSOR;
-}
-
-namespace NVTX {
-    /*void PushRange(std::string s, const int color) {
-        nvtxEventAttributes_t eventAttrib = {};
-        eventAttrib.version = NVTX_VERSION;
-        eventAttrib.size = NVTX_EVENT_ATTRIB_STRUCT_SIZE;
-        eventAttrib.colorType = NVTX_COLOR_ARGB;
-        eventAttrib.color = color; //colors[color_id];
-        eventAttrib.messageType = NVTX_MESSAGE_TYPE_ASCII;
-        eventAttrib.message.ascii = s.c_str();
-        nvtxRangePushEx(&eventAttrib);
-    }
-
-    void PopRange() {
-        nvtxRangePop();
-    }*/
 }
 
 void deviceInfo() {

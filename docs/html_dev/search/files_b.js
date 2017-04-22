@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['vectorutil_2ecuh',['VectorUtil.cuh',['../VectorUtil_8cuh.html',1,'']]]
+  ['queue_2ecuh',['Queue.cuh',['../Queue_8cuh.html',1,'']]]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['ptx',['PTX',['../namespacePTX.html',1,'']]]
+  ['cu_5fstinger',['cu_stinger',['../namespacecu__stinger.html',1,'']]]
 ];

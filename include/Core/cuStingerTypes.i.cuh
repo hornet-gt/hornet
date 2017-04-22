@@ -38,7 +38,8 @@
 namespace cu_stinger {
 
 __device__ __forceinline__
-Vertex::Vertex(id_t index) {
+Vertex::Vertex(id_t index) : _id(index) {
+    assert(index < d_nV);
     xlib::SeqDev<VTypeSize> VTYPE_SIZE_D;
     _vertex_ptr     = d_vertex_basic_ptr + index;
     auto basic_data = *_vertex_ptr;
@@ -53,6 +54,11 @@ Vertex::Vertex(id_t index) {
 /*
 __device__ __forceinline__
 Vertex::Vertex() {}*/
+
+__device__ __forceinline__
+degree_t Vertex::id() const {
+    return _id;
+}
 
 __device__ __forceinline__
 degree_t Vertex::degree() const {

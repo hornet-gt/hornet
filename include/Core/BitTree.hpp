@@ -38,7 +38,7 @@
  */
 #pragma once
 
-#include "Support/Metaprogramming.hpp"
+#include "Support/Host/Metaprogramming.hpp"
 #include <utility>  //std::pair
 
 namespace cu_stinger {

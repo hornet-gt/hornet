@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>cuSTINGER: include/Support/Algorithm.hpp File Reference</title>
+<title>cuSTINGER: include/Support/Host/Algorithm.hpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -67,12 +67,13 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_081c14bac5072591c2093ecb32283714.html">Support</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_081c14bac5072591c2093ecb32283714.html">Support</a></li><li class="navelem"><a class="el" href="dir_201b1158c736b3df8c8142f63fcd2d94.html">Host</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Data Structures</a> &#124;
+<a href="#namespaces">Namespaces</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">Algorithm.hpp File Reference</div>  </div>
@@ -88,6 +89,11 @@ $(function() {
 Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classxlib_1_1UniqueMap.html">xlib::UniqueMap&lt; T, R &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">return the old value if exits  <a href="classxlib_1_1UniqueMap.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:namespacexlib"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacexlib.html">xlib</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
@@ -109,7 +115,7 @@ template&lt;bool FAULT = true, class iteratorA_t , class iteratorB_t &gt; </td><
 <tr class="memitem:a5234adeb3d8ad53b758324d0d1102d7d"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>xlib::equalSorted</b> (iteratorA_t start_A, iteratorA_t end_A, iteratorB_t start_B)</td></tr>
 <tr class="separator:a5234adeb3d8ad53b758324d0d1102d7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad77c85a7defa8765128edad823c1a498"><td class="memTemplParams" colspan="2">template&lt;typename T , typename... RArgs&gt; </td></tr>
-<tr class="memitem:ad77c85a7defa8765128edad823c1a498"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="Algorithm_8hpp.html#ad77c85a7defa8765128edad823c1a498">xlib::sort_by_key</a> (T *start, T *end, RArgs... data_packed)</td></tr>
+<tr class="memitem:ad77c85a7defa8765128edad823c1a498"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacexlib.html#ad77c85a7defa8765128edad823c1a498">xlib::sort_by_key</a> (T *start, T *end, RArgs... data_packed)</td></tr>
 <tr class="separator:ad77c85a7defa8765128edad823c1a498"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4f707a3c49e6273f3d92dd0897a304f2"><td class="memTemplParams" colspan="2"><a id="a4f707a3c49e6273f3d92dd0897a304f2"></a>
 template&lt;typename T , typename R &gt; </td></tr>
@@ -160,48 +166,10 @@ template&lt;typename T , typename S &gt; </td></tr>
 </blockquote>
 </dd>
 </dl>
-</div><h2 class="groupheader">Function Documentation</h2>
-<a id="file_ad77c85a7defa8765128edad823c1a498"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#file_ad77c85a7defa8765128edad823c1a498">&#9670;&nbsp;</a></span>sort_by_key()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , typename... RArgs&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">void xlib::sort_by_key </td>
-          <td>(</td>
-          <td class="paramtype">T *&#160;</td>
-          <td class="paramname"><em>start</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">T *&#160;</td>
-          <td class="paramname"><em>end</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">RArgs...&#160;</td>
-          <td class="paramname"><em>data_packed</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>required auxilary space: O(|end -start| * 2) </p>
-
-</div>
-</div>
-</div><!-- contents -->
+</div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Apr 19 2017 23:31:50 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Apr 21 2017 21:47:34 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

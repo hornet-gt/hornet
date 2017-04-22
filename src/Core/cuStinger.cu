@@ -38,11 +38,11 @@
 #include "Core/cuStingerTypes.cuh"          //VertexBasicData
 
 namespace cu_stinger {
-/*
+
 __constant__ size_t  d_nV;
 
 __constant__ VertexBasicData* d_vertex_basic_ptr;
-__constant__ byte_t*          d_vertex_data_ptrs[NUM_VTYPES];*/
+__constant__ byte_t*          d_vertex_data_ptrs[NUM_VTYPES];
 
 
 

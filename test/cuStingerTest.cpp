@@ -1,14 +1,14 @@
 ///@files
 #include "Core/cuStinger.hpp"
 
-#include "GraphIO/GraphStd.hpp" //GraphStd
-#include "Util/Parameters.hpp"  //Param
-#include "Support/FileUtil.hpp" //xlib::extract_filepath_noextension
-#include "Support/CudaUtil.cuh" //xlib::deviceInfo
-#include "Support/Timer.cuh"    //Timer<HOST>
-#include <algorithm>
-#include <chrono>
-#include <random>
+#include "GraphIO/GraphStd.hpp"        //GraphStd
+#include "Util/Parameters.hpp"         //Param
+#include "Support/Host/FileUtil.hpp"   //xlib::extract_filepath_noextension
+#include "Support/Device/CudaUtil.cuh" //xlib::deviceInfo
+#include "Support/Host/Timer.hpp"      //Timer<HOST>
+#include <algorithm>                   //std:.generate
+#include <chrono>                      //std::chrono
+#include <random>                      //std::mt19937_64
 
 using namespace cu_stinger;
 using namespace timer;

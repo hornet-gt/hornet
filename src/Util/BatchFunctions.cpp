@@ -34,7 +34,7 @@
  * </blockquote>}
  */
 #include "Util/BatchFunctions.hpp"
-#include "Support/Numeric.hpp"
+#include "Support/Host/Numeric.hpp"
 #include <chrono>
 #include <random>
 #include <utility>

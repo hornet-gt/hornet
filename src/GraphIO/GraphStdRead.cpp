@@ -34,11 +34,11 @@
  * </blockquote>}
  */
 #include "GraphIO/GraphStd.hpp"
-#include "Support/Algorithm.hpp"  //xlib::UniqueMap
-#include "Support/FileUtil.hpp"   //xlib::skip_lines, xlib::Progress
-#include <cstring>                //std::strtok
-#include <sstream>                //std::istringstream
-#include <vector>                 //std::vector
+#include "Support/Host/Algorithm.hpp" //xlib::UniqueMap
+#include "Support/Host/FileUtil.hpp"  //xlib::skip_lines, xlib::Progress
+#include <cstring>                    //std::strtok
+#include <sstream>                    //std::istringstream
+#include <vector>                     //std::vector
 
 namespace graph {
 

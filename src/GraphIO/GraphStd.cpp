@@ -34,9 +34,9 @@
  * </blockquote>}
  */
 #include "GraphIO/GraphStd.hpp"
-#include "Support/Basic.hpp"          //ERROR
-#include "Support/FileUtil.hpp"       //xlib::MemoryMapped
-#include "Support/PrintExt.hpp"       //xlib::printArray
+#include "Support/Host/Basic.hpp"     //ERROR
+#include "Support/Host/FileUtil.hpp"  //xlib::MemoryMapped
+#include "Support/Host/PrintExt.hpp"  //xlib::printArray
 #include <algorithm>    //std::iota, std::shuffle
 #include <cassert>      //assert
 #include <chrono>       //std::chrono

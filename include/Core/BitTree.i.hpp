@@ -88,6 +88,9 @@ BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>
 template<typename T, unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
 BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>::~BitTree() noexcept {
     cuFree(_d_ptr);
+    delete[] _h_ptr;
+    _d_ptr = nullptr;
+
 }
 
 template<typename T, unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>

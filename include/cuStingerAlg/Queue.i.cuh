@@ -48,6 +48,7 @@ inline Queue::Queue(const cuStingerInit& custinger_init,
     cuMemcpyToSymbol(_d_queue2, d_queue2);
     cuMemcpyToSymbol(_d_work, d_work);
     cuMemcpyToSymbol(xlib::make2(0, 0), d_queue_counter);
+    cuMemset0x00(_d_work, nV * allocation_factor);
 }
 
 inline Queue::~Queue() noexcept {
@@ -58,9 +59,10 @@ __host__ inline void Queue::insert(id_t vertex_id) noexcept {
     degree_t work[2] = {};
     auto csr_offsets = _custinger_init.csr_offsets();
     work[1] = csr_offsets[vertex_id + 1] -  csr_offsets[vertex_id];
-    cuMemcpyToDeviceAsync(&vertex_id, 1, _d_queue1);
-    cuMemcpyToDeviceAsync(work, 2, _d_work);
+    cuMemcpyToDeviceAsync(vertex_id, _d_queue1);
+    cuMemcpyToDeviceAsync(work, _d_work);
     _num_queue_vertices = 1;
+    _num_queue_edges    = work[1];
 }
 
 __host__ inline void Queue::insert(const id_t* vertex_array, int size) noexcept{
@@ -73,9 +75,11 @@ __host__ inline void Queue::insert(const id_t* vertex_array, int size) noexcept{
         work[i + 1]    = csr_offsets[vertex_id + 1] - csr_offsets[vertex_id];
     }
     std::partial_sum(work + 1, work + size + 1, work);
+    _num_queue_vertices = size;
+    _num_queue_edges    = work[size];
+
     cuMemcpyToDeviceAsync(vertex_array, size, _d_queue1);
     cuMemcpyToDeviceAsync(work, size, _d_work);
-    _num_queue_vertices = size;
     delete[] work;
 }
 
@@ -87,27 +91,28 @@ template<typename Operator, typename... TArgs>
 void Queue::traverseAndFilter(TArgs... args) noexcept {
     const int ITEMS_PER_THREADS = xlib::SMemPerBlock<BLOCK_SIZE, id_t>::value;
     int grid_size = xlib::ceil_div<ITEMS_PER_THREADS>(_num_queue_edges);
-    xlib::printCudaArray(_d_queue1, _num_queue_vertices);
+    if (PRINT_VERTEX_FRONTIER)
+        xlib::printCudaArray(_d_queue1, _num_queue_vertices);
 
-    LoadBalancingExpand<ITEMS_PER_THREADS> <<< grid_size, BLOCK_SIZE >>>
+    loadBalancingExpand<ITEMS_PER_THREADS> <<< grid_size, BLOCK_SIZE >>>
         (_num_queue_vertices + 1);
 
     CHECK_CUDA_ERROR
-    xlib::printCudaArray(_d_queue2, _num_queue_edges);
+    if (PRINT_EDGE_FRONTIER)
+        xlib::printCudaArray(_d_queue2, _num_queue_edges);
 
-    LoadBalancingContract<Operator>
+    loadBalancingContract<Operator>
         <<< xlib::ceil_div<BLOCK_SIZE>(_num_queue_edges), BLOCK_SIZE >>>
         (_num_queue_edges, args...);
 
     CHECK_CUDA_ERROR
 
     int2 frontier_info;
-    cuMemcpyFromSymbol(d_queue_counter, frontier_info);
+    cuMemcpyFromSymbolAsync(d_queue_counter, frontier_info);
     _num_queue_vertices = frontier_info.x;
     _num_queue_edges    = frontier_info.y;
-    cuMemcpyToSymbol(xlib::make2(0, 0), d_queue_counter);
-
-    cudaDeviceSynchronize();
+    cuMemcpyToSymbolAsync(xlib::make2(0, 0), d_queue_counter);
+    cuMemcpyToDeviceAsync(_num_queue_edges, _d_work + _num_queue_vertices);
 }
 
 //==============================================================================

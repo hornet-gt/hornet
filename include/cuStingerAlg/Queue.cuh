@@ -71,6 +71,8 @@ private:
     int       _num_queue_edges    { 0 };
 };
 
+//------------------------------------------------------------------------------
+
 class Allocate {
 public:
     template<typename T>

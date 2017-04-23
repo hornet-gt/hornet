@@ -66,9 +66,6 @@
 
 namespace xlib {
 
-//using  cusize_t = int;
-//using cusize2_t = typename make2_str<int>::type;
-
 enum THREAD_GROUP { VOID = 0, WARP, BLOCK };
 
 template<typename T>

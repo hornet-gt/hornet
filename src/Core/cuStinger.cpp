@@ -174,6 +174,7 @@ void cuStinger::check_consistency(const cuStingerInit& custinger_init)
         ERROR("Edge Array not consistent")
 
     delete[] h_vertex_basic_ptr;
+    delete[] csr_offsets;
     delete[] csr_edges;
 }
 

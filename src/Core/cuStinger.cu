@@ -33,7 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Core/cuStingerGlobalSpace.cuh"    //d_vertex_basic_ptr
+#include "Core/GlobalSpace.cuh"    //d_vertex_basic_ptr
 #include "Core/cuStinger.hpp"
 #include "Core/cuStingerTypes.cuh"          //VertexBasicData
 
@@ -44,7 +44,7 @@ __constant__ size_t  d_nV;
 __constant__ VertexBasicData* d_vertex_basic_ptr;
 __constant__ byte_t*          d_vertex_data_ptrs[NUM_VTYPES];
 
-
+//------------------------------------------------------------------------------
 
 void cuStinger::initializeVertexGlobal(byte_t* (&vertex_data_ptrs)[NUM_VTYPES])
                                        noexcept {

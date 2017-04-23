@@ -37,7 +37,7 @@
  */
 #pragma once
 
-#include "Core/cuStingerConfig.hpp"
+#include "Core/RawTypes.hpp"
 #include "Core/MemoryManagement.hpp"
 #include <cstddef>                      //size_t
 

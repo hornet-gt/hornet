@@ -38,7 +38,7 @@
 #pragma once
 
 #include "cuStingerAlg/cuStingerAlgConfig.cuh"
-#include "Core/cuStingerConfig.hpp"
+#include "Core/RawTypes.hpp"
 #include "Core/cuStingerTypes.cuh"
 #include "Support/Device/Definition.cuh"
 #include "Support/Device/PTX.cuh"
@@ -60,15 +60,18 @@ __constant__ int2* d_queue2 = nullptr;
  * @brief
  */
 template<unsigned ITEMS_PER_THREADS>
-__global__ void LoadBalancingExpand(int work_size) {
+__global__ void loadBalancingExpand(int work_size) {
     __shared__ degree_t smem[ITEMS_PER_THREADS];
     int index2 = (blockIdx.x * BLOCK_SIZE + xlib::warp_id() * xlib::WARP_SIZE) *
                  ITEMS_PER_THREADS + xlib::lane_id();
 
+    //if (threadIdx.x < work_size)
+    //    printf("work: %d\n", d_work[threadIdx.x]);
+
     const auto lambda = [](int pos, degree_t offset) {
                             int index = d_work[pos] + offset;
                             id_t  src = d_queue1[pos];
-                            printf("%d\tp: %d\to:%d\ts: %d\n", threadIdx.x, pos, offset, src);
+                            //printf("%d\tp: %d\to:%d\ts: %d\n", threadIdx.x, pos, offset, src);
                             d_queue2[index] = xlib::make2(src, offset);
                         };
     xlib::binarySearchLB<BLOCK_SIZE>(d_work, work_size, smem, lambda);
@@ -78,7 +81,7 @@ __global__ void LoadBalancingExpand(int work_size) {
  * @brief
  */
 template<typename Operator, typename... TArgs>
-__global__ void LoadBalancingContract(unsigned num_queue_edges, TArgs... args) {
+__global__ void loadBalancingContract(unsigned num_queue_edges, TArgs... args) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
     //all warp threads must enter in the loop
@@ -99,7 +102,7 @@ __global__ void LoadBalancingContract(unsigned num_queue_edges, TArgs... args) {
             dst_id = dst_edge.dst();
             Vertex dst_vertex(dst_id);
             degree    = pred ? dst_vertex.degree() : 0;
-            printf("dst_id: %d \t deg: %d\n", dst_id, degree);
+            //printf("dst_id: %d \t deg: %d\n", dst_id, degree);
         } else
             degree = 0;
 
@@ -129,6 +132,8 @@ __global__ void LoadBalancingContract(unsigned num_queue_edges, TArgs... args) {
         }
     }
 }
+
+//==============================================================================
 
 template<typename T, typename Operator>
 __global__ void forAllKernel(T* array, int num_items, Operator op) {

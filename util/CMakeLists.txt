@@ -328,8 +328,8 @@ add_custom_target(ptx cp ${PROJECT_SOURCE_DIR}/build/TMP/*.ptx
                          ${PROJECT_SOURCE_DIR}/build
                   COMMENT "PTX")
 
-add_custom_target(valgrind cp ${CMAKE_CURRENT_LIST_DIR}/script/valgrind.sh
-                              ${CMAKE_CURRENT_LIST_DIR}/script/cuda.supp
+add_custom_target(valgrind cp ${PROJECT_SOURCE_DIR}/util/valgrind.sh
+                              ${PROJECT_SOURCE_DIR}/util/cuda.supp
                               ${PROJECT_SOURCE_DIR}/build
                   COMMAND chmod +x ${PROJECT_SOURCE_DIR}/build/valgrind.sh
                   COMMENT "VALGRIND")

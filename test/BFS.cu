@@ -28,6 +28,7 @@ int main(int argc, char* argv[]) {
     // INIT //
     graph::GraphStd<id_t, off_t> graph;
     graph.read(argv[1]);
+    graph.print();
 
     cuStingerInit custinger_init(graph.nV(), graph.nE(),
                                  graph.out_offsets_array(),

@@ -38,7 +38,7 @@
 #pragma once
 
 #include "GraphIO/GraphStd.hpp"
-#include "Core/cuStingerConfig.hpp"
+#include "Core/RawTypes.hpp"
 
 struct BatchProperty {
     bool sort, print, weighted;

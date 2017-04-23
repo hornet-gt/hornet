@@ -33,17 +33,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Core/cuStingerConfig.hpp"
+#pragma once
+
+#include "Core/RawTypes.hpp"
 
 namespace cu_stinger {
 
-const VTypeSize VTYPE_SIZE;
-const ETypeSize ETYPE_SIZE;
+extern __constant__ size_t  d_nV;
 
-const ExtraVTypeSize EXTRA_VTYPE_SIZE;
-const ExtraETypeSize EXTRA_ETYPE_SIZE;
-
-const VTypeSizePS    VTYPE_SIZE_PS;
-const ETypeSizePS    ETYPE_SIZE_PS;
+extern __constant__ VertexBasicData* d_vertex_basic_ptr;
+extern __constant__ byte_t*          d_vertex_data_ptrs[NUM_VTYPES];
 
 } // namespace cu_stinger

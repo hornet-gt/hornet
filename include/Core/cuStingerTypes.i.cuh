@@ -33,7 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Core/cuStingerGlobalSpace.cuh"
+#include "Core/GlobalSpace.cuh"
 
 namespace cu_stinger {
 

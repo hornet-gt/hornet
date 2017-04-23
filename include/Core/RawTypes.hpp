@@ -41,10 +41,9 @@
  */
 #pragma once
 
-#include "Support/Host/Metaprogramming.hpp"  //xlib::TupleToTypeSize
 #include "Support/Host/Basic.hpp"            //xlib::byte_t
+#include "Support/Host/Metaprogramming.hpp"  //xlib::TupleToTypeSize
 #include "Support/Host/Numeric.hpp"          //xlib::roundup_pow2
-#include <tuple>
 
 template<typename... TArgs>
 using TypeList = std::tuple<TArgs...>;
@@ -106,6 +105,8 @@ const unsigned NUM_EXTRA_VTYPES = std::tuple_size<VertexTypes>::value;
 const unsigned NUM_EXTRA_ETYPES = std::tuple_size<EdgeTypes>::value;
 const unsigned       NUM_VTYPES = std::tuple_size<vertex_t>::value;
 const unsigned       NUM_ETYPES = std::tuple_size<edge_t>::value;
+
+//------------------------------------------------------------------------------
 
 namespace detail {
 

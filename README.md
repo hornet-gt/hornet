@@ -62,16 +62,15 @@ make -j
 * cuSTINGER has been checked with the following tools to ensure the code quality:
     * [clang++: warnings](https://clang.llvm.org/docs/DiagnosticsReference.html)
     * [clang-tidy](http://clang.llvm.org/extra/clang-tidy/): warnings and code styles
-* cuSTINGER has been tested with the following tools:
+* cuSTINGER has been tested with the following tools: (see CodeCheck.txt for details)
     * [cuda-memcheck](http://docs.nvidia.com/cuda/cuda-memcheck/)
-    * [valgrind](http://valgrind.org/)
-    * [clang static analyzer](https://clang-analyzer.llvm.org/)
+    * [valgrind v3.12](http://valgrind.org/)
+    * [clang static analyzer v279](https://clang-analyzer.llvm.org/)
 
 ## Additional Utilities ##
 
-* `utility/count_lines.sh` : some statistics about lines of code used in cuStinger.
-* `utility/uf_graph_download.sh` : simple script to download and extract
-University of Florida Sparse Matrix Collection graphs in a directory.
+* `util/count_lines.sh` : some statistics about lines of code used in cuStinger.
+* `util/uf_graph_download.sh` : simple script to download and extract University of Florida Sparse Matrix Collection graphs in a directory.
 
 ## Reporting bugs and contributing ##
 

@@ -59,11 +59,11 @@ __constant__ int2* d_queue2 = nullptr;
 /**
  * @brief
  */
-template<unsigned ITEMS_PER_THREADS>
+template<unsigned ITEMS_PER_BLOCK>
 __global__ void loadBalancingExpand(int work_size) {
-    __shared__ degree_t smem[ITEMS_PER_THREADS];
+    __shared__ degree_t smem[ITEMS_PER_BLOCK];
     int index2 = (blockIdx.x * BLOCK_SIZE + xlib::warp_id() * xlib::WARP_SIZE) *
-                 ITEMS_PER_THREADS + xlib::lane_id();
+                 ITEMS_PER_BLOCK + xlib::lane_id();
 
     //if (threadIdx.x < work_size)
     //    printf("work: %d\n", d_work[threadIdx.x]);
@@ -102,7 +102,6 @@ __global__ void loadBalancingContract(unsigned num_queue_edges, TArgs... args) {
             dst_id = dst_edge.dst();
             Vertex dst_vertex(dst_id);
             degree    = pred ? dst_vertex.degree() : 0;
-            //printf("dst_id: %d \t deg: %d\n", dst_id, degree);
         } else
             degree = 0;
 

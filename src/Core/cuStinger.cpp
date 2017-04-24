@@ -56,6 +56,10 @@ size_t cuStingerInit::nV() const noexcept {
     return _nV;
 }
 
+size_t cuStingerInit::nE() const noexcept {
+    return _nE;
+}
+
 const off_t* cuStingerInit::csr_offsets() const noexcept {
     return _csr_offsets;
 }

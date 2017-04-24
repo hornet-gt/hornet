@@ -99,6 +99,11 @@ public:
     /**
      *
      */
+    size_t nE() const noexcept;
+
+    /**
+     *
+     */
     const off_t* csr_offsets() const noexcept;
 
 private:

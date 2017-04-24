@@ -54,5 +54,7 @@ TO DO:
     - Kernel Range-loop iterators
 * Others
     - Regression test
-    - Added Syntax.txt
-    - Store the graph to disk
+    - Add Syntax.txt
+    - Store the cuStinger graph to disk
+    - Class diagram to doxygen
+    - Explain Cmake targets 

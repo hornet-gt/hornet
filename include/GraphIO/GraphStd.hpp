@@ -42,10 +42,14 @@
 
 namespace graph {
 
+template<typename id_t, typename off_t>
+class BFS;
+
 template<typename id_t = int, typename off_t = int>
 class GraphStd : public GraphBase<id_t, off_t> {
-using    id2_t = typename std::pair<id_t, id_t>;
-using degree_t = int;
+    using    id2_t = typename std::pair<id_t, id_t>;
+    using degree_t = int;
+    friend class BFS<id_t, off_t>;
 
 public:
     class VertexIt;

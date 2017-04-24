@@ -41,8 +41,9 @@ inline Queue::Queue(const cuStingerInit& custinger_init,
                     float allocation_factor) noexcept :
                                 _custinger_init(custinger_init) {
     size_t nV = custinger_init.nV();
+    size_t nE = custinger_init.nE();
     cuMalloc(_d_queue1, nV * allocation_factor);
-    cuMalloc(_d_queue2, nV * allocation_factor);
+    cuMalloc(_d_queue2, nE * allocation_factor);
     cuMalloc(_d_work, nV * allocation_factor);
     cuMemcpyToSymbol(_d_queue1, d_queue1);
     cuMemcpyToSymbol(_d_queue2, d_queue2);
@@ -89,12 +90,12 @@ __host__ inline int Queue::size() noexcept {
 
 template<typename Operator, typename... TArgs>
 void Queue::traverseAndFilter(TArgs... args) noexcept {
-    const int ITEMS_PER_THREADS = xlib::SMemPerBlock<BLOCK_SIZE, id_t>::value;
-    int grid_size = xlib::ceil_div<ITEMS_PER_THREADS>(_num_queue_edges);
+    const int ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, id_t>::value;
+    int grid_size = xlib::ceil_div<ITEMS_PER_BLOCK>(_num_queue_edges);
     if (PRINT_VERTEX_FRONTIER)
         xlib::printCudaArray(_d_queue1, _num_queue_vertices);
 
-    loadBalancingExpand<ITEMS_PER_THREADS> <<< grid_size, BLOCK_SIZE >>>
+    loadBalancingExpand<ITEMS_PER_BLOCK> <<< grid_size, BLOCK_SIZE >>>
         (_num_queue_vertices + 1);
 
     CHECK_CUDA_ERROR
@@ -119,7 +120,8 @@ void Queue::traverseAndFilter(TArgs... args) noexcept {
 
 template<typename T>
 Allocate::Allocate(T*& pointer, size_t num_items) noexcept {
-    SAFE_CALL( cudaMallocManaged(&pointer, num_items * sizeof(T)) )
+    //SAFE_CALL( cudaMallocManaged(&pointer, num_items * sizeof(T)) )
+    cuMalloc(pointer, num_items);
     _pointer = pointer;
 }
 

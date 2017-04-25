@@ -107,7 +107,11 @@ cuStinger::cuStinger(const cuStingerInit& custinger_init) noexcept :
     auto h_vertex_basic_data = new pair_t[_nV];
 
     for (id_t i = 0; i < _nV; i++) {
-        auto            degree = csr_offsets[i + 1] - csr_offsets[i];
+        auto degree = csr_offsets[i + 1] - csr_offsets[i];
+        if (degree == 0) {
+            h_vertex_basic_data[i] = pair_t(nullptr, 0);
+            continue;
+        }
         const auto&   mem_ptrs = mem_management.insert(degree);
         h_vertex_basic_data[i] = pair_t(mem_ptrs.second, degree);
 

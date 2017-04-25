@@ -33,6 +33,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
+#include <iomanip>  //std::setw
+
 namespace cu_stinger {
 
 namespace detail {

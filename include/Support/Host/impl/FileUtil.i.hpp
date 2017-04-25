@@ -115,16 +115,16 @@ inline MemoryMapped::~MemoryMapped() noexcept {
 
 template<typename, typename... Ts>
 void MemoryMapped::write() const noexcept {
-    if (_partial != _file_size)
-        ERROR("MemoryMapped: file partially wrote");
+    //if (_partial != _file_size)
+    //    ERROR("MemoryMapped: file partially wrote");
     if (_print)
         _progress.per_cent(_partial);
 }
 
 template<typename, typename... Ts>
 void MemoryMapped::read() const noexcept {
-    if (_partial != _file_size)
-        ERROR("MemoryMapped: file partially read");
+    //if (_partial != _file_size)
+    //    ERROR("MemoryMapped: file partially read");
     if (_print)
         _progress.per_cent(_partial);
 }

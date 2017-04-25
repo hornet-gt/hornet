@@ -77,21 +77,6 @@ struct numeric_limits {         // available in CUDA kernels
 
 //------------------------------------------------------------------------------
 
-//iteratorB_t = device
-template<bool FAULT = true, class iteratorA_t, class iteratorB_t>
-bool cuEqual(iteratorA_t start_A, iteratorA_t end_A, iteratorB_t start_B);
-
-template<bool FAULT = true, class iteratorA_t, class iteratorB_t>
-bool cuEqual(iteratorA_t start_A, iteratorA_t end_A, iteratorB_t start_B,
-             bool (*equalFunction)(
-                typename std::iterator_traits<iteratorA_t>::value_type,
-                typename std::iterator_traits<iteratorB_t>::value_type));
-
-template<bool FAULT = true, class iteratorA_t, class iteratorB_t>
-bool cuEqualSorted(iteratorA_t start_A, iteratorA_t end_A,
-                   iteratorB_t start_B);
-
-
 void __getLastCudaError(const char* error_message, const char* file, int line,
                         const char* func_name);
 
@@ -111,5 +96,3 @@ class deviceProperty {
 void deviceInfo();
 
 } // namespace xlib
-
-#include "impl/CudaUtil.i.cuh"

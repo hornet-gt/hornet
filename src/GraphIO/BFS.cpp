@@ -55,9 +55,9 @@ template<typename id_t, typename off_t>
 void BFS<id_t, off_t>::run(id_t source) noexcept {
     if (!_reset)
         ERROR("BFS must be reset before the next run")
-    _queue.insert(0);
-    _bitmask[0]  = true;
-    _distances[0] = 0;
+    _queue.insert(source);
+    _bitmask[source]  = true;
+    _distances[source] = 0;
 
     while (!_queue.is_empty()) {
         auto current = _queue.extract();

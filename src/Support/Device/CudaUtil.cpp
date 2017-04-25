@@ -36,6 +36,7 @@
 #include "Support/Device/CudaUtil.cuh"
 #include "Support/Host/Basic.hpp"
 #include "Support/Host/PrintExt.hpp"
+#include <iomanip>
 #include <ostream>
 #include <string>
 

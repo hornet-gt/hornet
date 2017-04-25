@@ -34,7 +34,7 @@
  * </blockquote>}
  */
 #include "Support/Host/Basic.hpp"   //ERROR
-#include <algorithm>                //std::transform, std::sort
+#include <algorithm>                //std::transform, std::sort, std::equal
 #include <cassert>                  //assert
 #include <thread>                   //std::thread
 
@@ -53,7 +53,7 @@ R UniqueMap<T, R>::insertValue(T id) {
     }
     return it->second;
 }
-
+/*
 template<bool FAULT, class iteratorA_t, class iteratorB_t>
 bool equal(iteratorA_t start_A, iteratorA_t end_A, iteratorB_t start_B) {
     iteratorB_t it_B = start_B;
@@ -87,25 +87,35 @@ bool equal(iteratorA_t start_A, iteratorA_t end_A, iteratorB_t start_B,
         }
     }
     return true;
+}*/
+
+template<class Iterator1, class Iterator2>
+bool equal_sorted(Iterator1 start1, Iterator1 end1, Iterator2 start2) noexcept {
+    return xlib::equal_sorted(start1, end1, start2,
+                              start2 + std::distance(start1, end1));
 }
 
-template<bool FAULT, class iteratorA_t, class iteratorB_t>
-bool equalSorted(iteratorA_t start_A, iteratorA_t end_A, iteratorB_t start_B) {
-    using T = typename std::iterator_traits<iteratorA_t>::value_type;
-    using R = typename std::iterator_traits<iteratorB_t>::value_type;
-    const int size = std::distance(start_A, end_A);
-    auto tmpArray_A = new T[size];
-    auto tmpArray_B = new R[size];
+template<class Iterator1, class Iterator2>
+bool equal_sorted(Iterator1 start1, Iterator1 end1,
+                  Iterator2 start2, Iterator2 end2) noexcept {
+    using T = typename std::iterator_traits<Iterator1>::value_type;
+    using R = typename std::iterator_traits<Iterator2>::value_type;
+    auto size1 = std::distance(start1, end1);
+    auto size2 = std::distance(start1, end1);
+    //if (size1 != size2)
+    //    ERROR("Objects must constains the same numbers of parameters")
+    auto tmp_array1 = new T[size1];
+    auto tmp_array2 = new R[size1];
 
-    std::copy(start_A, end_A, tmpArray_A);
-    std::copy(start_B, start_B + size, tmpArray_B);
-    std::sort(tmpArray_A, tmpArray_A + size);
-    std::sort(tmpArray_B, tmpArray_B + size);
+    std::copy(start1, end1, tmp_array1);
+    std::copy(start2, end2, tmp_array2);
+    std::sort(tmp_array1, tmp_array1 + size1);
+    std::sort(tmp_array2, tmp_array2 + size1);
 
-    bool flag = equal<FAULT>(tmpArray_A, tmpArray_A + size, tmpArray_B);
+    bool flag = std::equal(tmp_array1, tmp_array1 + size1, tmp_array2);
 
-    delete[] tmpArray_A;
-    delete[] tmpArray_B;
+    delete[] tmp_array1;
+    delete[] tmp_array2;
     return flag;
 }
 

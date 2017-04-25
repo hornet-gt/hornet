@@ -52,49 +52,23 @@
 namespace cu_stinger_alg {
 
 __device__   int2  d_queue_counter;
-__constant__ int*    d_work = nullptr;
+__constant__ int*   d_work1 = nullptr;
+__constant__ int*   d_work2 = nullptr;
 __constant__ id_t* d_queue1 = nullptr;
-__constant__ int2* d_queue2 = nullptr;
+__constant__ id_t* d_queue2 = nullptr;
 
 /**
  * @brief
  */
-template<unsigned ITEMS_PER_BLOCK>
-__global__ void loadBalancingExpand(int work_size) {
-    const unsigned ITEMS_PER_THREAD = ITEMS_PER_BLOCK / BLOCK_SIZE;
+template<unsigned ITEMS_PER_BLOCK, typename Operator, typename... TArgs>
+__global__ void loadBalancingExpandContract(int work_size, TArgs... args) {
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
-    int index = (blockIdx.x * BLOCK_SIZE + xlib::warp_id() * xlib::WARP_SIZE) *
-                 ITEMS_PER_THREAD + xlib::lane_id();
 
     const auto lambda = [&](int pos, degree_t offset) {
-                            //int index = d_work[pos] + offset;
-                            id_t  src = d_queue1[pos];
-                            //printf("%d\tp: %d\to:%d\ts: %d\n", threadIdx.x,
-                            //        pos, offset, src);
-                            d_queue2[index] = xlib::make2(src, offset);
-                            index += xlib::WARP_SIZE;
-                        };
-    xlib::binarySearchLB<BLOCK_SIZE>(d_work, work_size, smem, lambda);
-}
-
-/**
- * @brief
- */
-template<typename Operator, typename... TArgs>
-__global__ void loadBalancingContract(unsigned num_queue_edges, TArgs... args) {
-    int     id = blockIdx.x * blockDim.x + threadIdx.x;
-    int stride = gridDim.x * blockDim.x;
-    //all warp threads must enter in the loop
-    int frontier_round = xlib::upper_approx<xlib::WARP_SIZE>(num_queue_edges);
-
-    for (int i = id; i < frontier_round; i += stride) {
         id_t dst_id;
         degree_t degree;
-        if (i < num_queue_edges) {
-            auto   item = d_queue2[i];
-            auto src_id = item.x;
-            auto offset = item.y;
-
+        if (pos != -1) {
+            auto src_id = d_queue1[pos];
             Vertex src(src_id);
             Edge dst_edge = src.edge(offset);
             auto     pred = Operator()(src, dst_edge, args...);
@@ -126,10 +100,11 @@ __global__ void loadBalancingContract(unsigned num_queue_edges, TArgs... args) {
 
         if (degree) {
             queue_offset += __popc(ballot & xlib::LaneMaskLT());
-            d_work[queue_offset]   = prefix_sum;
-            d_queue1[queue_offset] = dst_id;
+            d_work2[queue_offset]  = prefix_sum;
+            d_queue2[queue_offset] = dst_id;
         }
-    }
+    };
+    xlib::binarySearchLBWarp<BLOCK_SIZE>(d_work1, work_size, smem, lambda);
 }
 
 //==============================================================================

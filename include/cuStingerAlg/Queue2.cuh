@@ -1,10 +1,9 @@
 /**
- * @internal
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
  * @date April, 2017
- * @version v1.3
+ * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
  *
@@ -38,70 +37,52 @@
  */
 #pragma once
 
-#include "Support/HostDevice.hpp"
-#include <unordered_map>    //std::unordered_map
+#include <Core/cuStinger.hpp>        //cuStingerInit
+#include <Core/cuStingerTypes.cuh>   //Vertex, Edge
 
-namespace xlib {
+namespace cu_stinger_alg {
+using cu_stinger::cuStingerInit;
+using cu_stinger::id_t;
+using cu_stinger::off_t;
+using cu_stinger::degree_t;
+using cu_stinger::Vertex;
+using cu_stinger::Edge;
 
-template<class FUN_T, typename... T>
-inline void Funtion_TO_multiThreads(bool MultiCore, FUN_T FUN, T... Args);
-
-/**
- * @brief return the old value if exits
- */
-template<typename T, typename R = T>
-class UniqueMap : public std::unordered_map<T, R> {
-static_assert(std::is_integral<R>::value,
-              "UniqueMap accept only Integral types");
+class Queue {
 public:
-    R insertValue(T id);
+    explicit Queue(const cuStingerInit& custinger_init,
+                   float allocation_factor = 2.0f) noexcept;
+    ~Queue() noexcept;
+
+    __host__ void insert(id_t vertex_id) noexcept;
+    __host__ void insert(const id_t* vertex_array, int size) noexcept;
+
+    __host__ int size() noexcept;
+
+    template<typename Operator, typename... TArgs>
+    __host__ void traverseAndFilter(TArgs... args) noexcept;
+private:
+    const  cuStingerInit& _custinger_init;
+    degree_t* _d_work1            { nullptr };
+    degree_t* _d_work2            { nullptr };
+    id_t*     _d_queue1           { nullptr };
+    id_t*     _d_queue2           { nullptr };
+    int*      _d_queue_counter    { nullptr };
+    int       _num_queue_vertices { 0 };
+    int       _num_queue_edges    { 0 };
 };
-
-template<class Iterator1, class Iterator2>
-bool equal_sorted(Iterator1 start1, Iterator1 end1, Iterator2 start2) noexcept;
-
-template<class Iterator1, class Iterator2>
-bool equal_sorted(Iterator1 start1, Iterator1 end1, Iterator2 start2,
-                  Iterator2 end2) noexcept;
-
-/**
- * required auxilary space: O(|end -start| * 2)
- */
-template<typename T, typename... RArgs>
-void sort_by_key(T* start, T* end, RArgs... data_packed);
-
-//==============================================================================
-
-template<typename T, typename R>
-HOST_DEVICE
-R lower_bound_left(const T* mem, R size, T searched);
-
-template<typename T, typename R>
-HOST_DEVICE
-R lower_bound_right(const T* mem, R size, T searched);
-
-template<typename T, typename R>
-HOST_DEVICE
-R upper_bound_left(const T* mem, R size, T searched);
-
-template<typename T, typename R>
-HOST_DEVICE
-R upper_bound_right(const T* mem, R size, T searched);
-
-template<typename T, typename R>
-HOST_DEVICE
-R binary_search(const T* mem, R size, T searched);
 
 //------------------------------------------------------------------------------
 
-template<typename T, typename S>
-HOST_DEVICE
-void merge(const T* left, S size_left, const T* right, S size_right, T* merge);
+class Allocate {
+public:
+    template<typename T>
+    Allocate(T*& pointer, size_t num_items) noexcept;
+    ~Allocate() noexcept;
+private:
+    void* _pointer;
+};
 
-template<typename T, typename S>
-HOST_DEVICE
-void inplace_merge(T* left, S size_left, const T* right, S size_right);
+} // namespace cu_stinger_alg
 
-} // namespace xlib
-
-#include "impl/Algorithm.i.hpp"
+#include "Queue2.i.cuh"

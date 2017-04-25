@@ -57,7 +57,7 @@ if (    (NOT CMAKE_BUILD_TYPE STREQUAL "Release")
     AND (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     AND (NOT CMAKE_BUILD_TYPE STREQUAL "Info"))
     message(FATAL_ERROR
-    "\nwrong BUILD_TYPE: \"-DCMAKE_BUILD_TYPE=[ Release | Debug | Info ]\"")
+    "\nwrong BUILD_TYPE: \"-DCMAKE_BUILD_TYPE=[ Release | Debug | Info | Info2]\"")
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -245,13 +245,15 @@ if (ARCH_FLAG AND MARCH_COMPILER_OPTIONS)
 endif()
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "--use_fast_math"
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "--use_fast_math" "-DNDEBUG"
     "-Xcompiler=-O3,${D_QUNUSED}${D_MARCH}-mtune=native,-funroll-loops,-DNDEBUG")
 
 elseif (CMAKE_BUILD_TYPE STREQUAL "Info")
     file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/build/TMP)
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-lineinfo" "-keep" "--use_fast_math"
-        "--resource-usage" "-keep-dir" "${PROJECT_SOURCE_DIR}/build/TMP")
+        "-DNDEBUG" "--resource-usage"
+        "-keep-dir" "${PROJECT_SOURCE_DIR}/build/TMP"
+        "-Xcompiler=-DNDEBUG")
 
 elseif (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-g" "-G")

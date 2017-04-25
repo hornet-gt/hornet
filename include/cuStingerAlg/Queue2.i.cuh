@@ -33,7 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "cuStingerAlg/Traverse.cuh"    //TraverseAndFilter
+#include "cuStingerAlg/Traverse2.cuh"    //TraverseAndFilter
 
 namespace cu_stinger_alg {
 
@@ -44,16 +44,18 @@ inline Queue::Queue(const cuStingerInit& custinger_init,
     size_t nE = custinger_init.nE();
     cuMalloc(_d_queue1, nV * allocation_factor);
     cuMalloc(_d_queue2, nE * allocation_factor);
-    cuMalloc(_d_work, nV * allocation_factor);
+    cuMalloc(_d_work1, nV * allocation_factor);
+    cuMalloc(_d_work2, nV * allocation_factor);
     cuMemcpyToSymbol(_d_queue1, d_queue1);
     cuMemcpyToSymbol(_d_queue2, d_queue2);
-    cuMemcpyToSymbol(_d_work, d_work);
+    cuMemcpyToSymbol(_d_work1, d_work1);
+    cuMemcpyToSymbol(_d_work2, d_work2);
     cuMemcpyToSymbol(xlib::make2(0, 0), d_queue_counter);
-    cuMemset0x00(_d_work, nV * allocation_factor);
+    //cuMemset0x00(_d_work1, nV * allocation_factor);
 }
 
 inline Queue::~Queue() noexcept {
-    cuFree(_d_queue1, _d_queue2, _d_work);
+    cuFree(_d_queue1, _d_queue2, _d_work1, _d_work2);
 }
 
 __host__ inline void Queue::insert(id_t vertex_id) noexcept {
@@ -61,7 +63,7 @@ __host__ inline void Queue::insert(id_t vertex_id) noexcept {
     auto csr_offsets = _custinger_init.csr_offsets();
     work[1] = csr_offsets[vertex_id + 1] -  csr_offsets[vertex_id];
     cuMemcpyToDeviceAsync(vertex_id, _d_queue1);
-    cuMemcpyToDeviceAsync(work, _d_work);
+    cuMemcpyToDeviceAsync(work, _d_work1);
     _num_queue_vertices = 1;
     _num_queue_edges    = work[1];
 }
@@ -80,7 +82,7 @@ __host__ inline void Queue::insert(const id_t* vertex_array, int size) noexcept{
     _num_queue_edges    = work[size];
 
     cuMemcpyToDeviceAsync(vertex_array, size, _d_queue1);
-    cuMemcpyToDeviceAsync(work, size, _d_work);
+    cuMemcpyToDeviceAsync(work, size, _d_work1);
     delete[] work;
 }
 
@@ -90,22 +92,16 @@ __host__ inline int Queue::size() noexcept {
 
 template<typename Operator, typename... TArgs>
 inline void Queue::traverseAndFilter(TArgs... args) noexcept {
+    //static int level = 0;
+    static int flag = 0;
     const int ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, id_t>::value;
     int grid_size = xlib::ceil_div<ITEMS_PER_BLOCK>(_num_queue_edges);
     if (PRINT_VERTEX_FRONTIER)
         xlib::printCudaArray(_d_queue1, _num_queue_vertices);
+    //std::cout << level++ << "\t" << _num_queue_vertices << std::endl;
 
-    loadBalancingExpand<ITEMS_PER_BLOCK> <<< grid_size, BLOCK_SIZE >>>
-        (_num_queue_vertices + 1);
-
-    if (CHECK_CUDA_ERROR1)
-        CHECK_CUDA_ERROR
-    if (PRINT_EDGE_FRONTIER)
-        xlib::printCudaArray(_d_queue2, _num_queue_edges);
-
-    loadBalancingContract<Operator>
-        <<< xlib::ceil_div<BLOCK_SIZE>(_num_queue_edges), BLOCK_SIZE >>>
-        (_num_queue_edges, args...);
+    loadBalancingExpandContract<ITEMS_PER_BLOCK, Operator>
+        <<< grid_size, BLOCK_SIZE >>> (_num_queue_vertices + 1, args...);
 
     if (CHECK_CUDA_ERROR1)
         CHECK_CUDA_ERROR
@@ -115,7 +111,22 @@ inline void Queue::traverseAndFilter(TArgs... args) noexcept {
     _num_queue_vertices = frontier_info.x;
     _num_queue_edges    = frontier_info.y;
     cuMemcpyToSymbolAsync(xlib::make2(0, 0), d_queue_counter);
-    cuMemcpyToDeviceAsync(_num_queue_edges, _d_work + _num_queue_vertices);
+
+    if (flag) {
+        cuMemcpyToDeviceAsync(_num_queue_edges, _d_work1 + _num_queue_vertices);
+        cuMemcpyToSymbolAsync(_d_queue1, d_queue1);
+        cuMemcpyToSymbolAsync(_d_queue2, d_queue2);
+        cuMemcpyToSymbolAsync(_d_work1, d_work1);
+        cuMemcpyToSymbolAsync(_d_work2, d_work2);
+    }
+    else {
+        cuMemcpyToDeviceAsync(_num_queue_edges, _d_work2 + _num_queue_vertices);
+        cuMemcpyToSymbolAsync(_d_queue2, d_queue1);
+        cuMemcpyToSymbolAsync(_d_queue1, d_queue2);
+        cuMemcpyToSymbolAsync(_d_work2, d_work1);
+        cuMemcpyToSymbolAsync(_d_work1, d_work2);
+    }
+    flag ^= 1;
 }
 
 //==============================================================================

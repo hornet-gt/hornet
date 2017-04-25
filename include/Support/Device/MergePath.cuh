@@ -41,7 +41,7 @@
 #include "Support/Device/Definition.cuh"
 #include "Support/Device/Indexing.cuh"
 #include "Support/Device/Basic.cuh"
-
+#include "Support/Host/Algorithm.hpp"
 
 namespace xlib {
 namespace detail {
@@ -199,6 +199,28 @@ void binarySearchLB(const T* __restrict__ d_prefixsum, int psize,
         for (int i = 0; i < _ITEMS_PER_THREAD; i++)
             lambda(reg_pos[i], reg_offset[i]);
     }
+}
+
+template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_THREAD = 0,
+         typename T, typename Lambda>
+__device__ __forceinline__
+void binarySearchLBWarp(const T* __restrict__ d_prefixsum, int psize,
+                        void*    __restrict__ smem,
+                        const Lambda& lambda) {
+    const unsigned _ITEMS_PER_THREAD = ITEMS_PER_THREAD == 0 ?
+                                           SMemPerThread<T, BLOCK_SIZE>::value :
+                                           ITEMS_PER_THREAD;
+    int reg_pos[_ITEMS_PER_THREAD];
+    T   reg_offset[_ITEMS_PER_THREAD];
+
+    detail::threadPartition<BLOCK_SIZE>(d_prefixsum, psize, smem,
+                                        reg_pos, reg_offset);
+
+    threadToWarpIndexing<_ITEMS_PER_THREAD>(reg_pos, reg_offset, smem);
+
+    #pragma unroll
+    for (int i = 0; i < _ITEMS_PER_THREAD; i++)
+        lambda(reg_pos[i], reg_offset[i]);
 }
 
 } // namespace xlib

@@ -33,57 +33,37 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Support/Host/Algorithm.hpp"
-#include <iomanip>
-#include <string>
+#include "Support/Host/Algorithm.hpp"       //xlib::equal_sorted
+#include "Support/Device/SafeFunctions.cuh" //cuMemcpyToHost
 
-namespace xlib {
+namespace cu {
 
-//to update
-template<bool FAULT, class iteratorA_t, class iteratorB_t>
-bool cuEqual(iteratorA_t start_A, iteratorA_t end_A, iteratorB_t start_B) {
-    using R = typename std::iterator_traits<iteratorB_t>::value_type;
-    const int size = std::distance(start_A, end_A);
-    R* ArrayCMP = new R[size];
-    cudaMemcpy(ArrayCMP, &(*start_B), size * sizeof(R), cudaMemcpyDeviceToHost);
-    CUDA_ERROR("Copy To Host");
+template<typename HostIterator, typename DeviceIterator>
+bool equal(HostIterator host_start, HostIterator host_end,
+           DeviceIterator device_start) noexcept {
+    using R = typename std::iterator_traits<DeviceIterator>::value_type;
+    auto size = std::distance(host_start, host_end);
+    R* array = new R[size];
+    cuMemcpyToHost(&(*device_start), size, array);
+    CHECK_CUDA_ERROR
 
-    bool flag = xlib::equal<FAULT>(start_A, end_A, ArrayCMP);
-    delete[] ArrayCMP;
+    bool flag = std::equal(host_start, host_end, array);
+    delete[] array;
     return flag;
 }
 
-//to update
-template<bool FAULT, class iteratorA_t, class iteratorB_t>
-bool cuEqual(iteratorA_t start_A, iteratorA_t end_A, iteratorB_t start_B,
-             bool (*equalFunction)(
-                typename std::iterator_traits<iteratorA_t>::value_type,
-                typename std::iterator_traits<iteratorB_t>::value_type)) {
+template<typename HostIterator, typename DeviceIterator>
+bool equal_sorted(HostIterator host_start, HostIterator host_end,
+                  DeviceIterator device_start) noexcept {
+    using R = typename std::iterator_traits<DeviceIterator>::value_type;
+    auto size = std::distance(host_start, host_end);
+    R* array = new R[size];
+    cuMemcpyToHost(&(*device_start), size, array);
+    CHECK_CUDA_ERROR
 
-    using R = typename std::iterator_traits<iteratorB_t>::value_type;
-    const int size = std::distance(start_A, end_A);
-    R* ArrayCMP = new R[size];
-    cudaMemcpy(ArrayCMP, &(*start_B), size * sizeof(R), cudaMemcpyDeviceToHost);
-    CUDA_ERROR("Copy To Host");
-
-    bool flag = xlib::equal<FAULT>(start_A, end_A, ArrayCMP, equalFunction);
-    delete[] ArrayCMP;
+    bool flag = xlib::equal_sorted(host_start, host_end, array, array + size);
+    delete[] array;
     return flag;
 }
 
-//to update
-template<bool FAULT, class iteratorA_t, class iteratorB_t>
-bool cuEqualSorted(iteratorA_t start_A, iteratorA_t end_A,
-                   iteratorB_t start_B) {
-    using R = typename std::iterator_traits<iteratorB_t>::value_type;
-    const int size = std::distance(start_A, end_A);
-    R* ArrayCMP = new R[size];
-    cudaMemcpy(ArrayCMP, &(*start_B), size * sizeof(R), cudaMemcpyDeviceToHost);
-    CUDA_ERROR("Copy To Host");
-
-    bool flag = xlib::equalSorted<FAULT>(start_A, end_A, ArrayCMP);
-    delete[] ArrayCMP;
-    return flag;
-}
-
-} // namespace xlib
+} // namespace cu

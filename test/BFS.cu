@@ -1,9 +1,9 @@
-///@files
-#include "Core/cuStinger.hpp"     //cuStingerInit, cuStinger
-#include "cuStingerAlg/Queue.cuh" //Queue
-#include "GraphIO/GraphStd.hpp"   //GraphStd
-#include "GraphIO/BFS.hpp"   //GraphStd
-#include "Support/Host/Timer.hpp"      //Timer
+#include "Core/cuStinger.hpp"           //cuStingerInit, cuStinger
+#include "cuStingerAlg/Queue2.cuh"      //Queue
+#include "GraphIO/BFS.hpp"              //BFS
+#include "GraphIO/GraphStd.hpp"         //GraphStd
+#include "Support/Device/Algorithm.hpp" //cu::equal
+#include "Support/Host/Timer.hpp"       //Timer
 
 using namespace cu_stinger;
 using namespace cu_stinger_alg;
@@ -12,7 +12,7 @@ using namespace timer;
 using     dist_t = int;
 const dist_t INF = std::numeric_limits<dist_t>::max();
 
-struct BFSOperator;
+struct BFSOperatorAtomic;
 struct BFSOperatorNoAtomic;
 
 struct VertexInitialization {
@@ -22,25 +22,28 @@ struct VertexInitialization {
     }
 };
 
+//==============================================================================
+
 int main(int argc, char* argv[]) {
     using cu_stinger::id_t;
     using cu_stinger::off_t;
+    id_t    bfs_source = 0;
     //--------------------------------------------------------------------------
-    // INIT //
+    // HOST BFS //
     graph::GraphStd<id_t, off_t> graph;
     graph.read(argv[1]);
-    //graph.print();
     graph::BFS<id_t, off_t> bfs(graph);
-    bfs.run(0);
+    bfs.run(bfs_source);
 
     auto h_distances = bfs.distances();
-
+    //--------------------------------------------------------------------------
+    // DEVICE INIT //
     cuStingerInit custinger_init(graph.nV(), graph.nE(),
                                  graph.out_offsets_array(),
                                  graph.out_edges_array());
     cuStinger custiger_graph(custinger_init);
-    id_t    bfs_source = 0;
-    dist_t* d_distances;      //d_distances can accessed on both host and device
+
+    dist_t* d_distances;
     Allocate alloc(d_distances, graph.nV());
     //--------------------------------------------------------------------------
     // BFS INIT //
@@ -48,9 +51,8 @@ int main(int argc, char* argv[]) {
     Queue queue(custinger_init);
     queue.insert(bfs_source);
     //queue.insert(bfs_sources, num_sources);               // Multi-sources BFS
-    cuMemcpyToDeviceAsync(0, d_distances + bfs_source);
+    cuMemcpyToDevice(0, d_distances + bfs_source);
     dist_t level = 1;
-    cudaDeviceSynchronize();
 
     Timer<DEVICE> TM;
     TM.start();
@@ -61,23 +63,22 @@ int main(int argc, char* argv[]) {
         level++;
     }
     //--------------------------------------------------------------------------
+    // BFS VALIDATION //
     TM.stop();
     TM.print("BFS");
-    //xlib::printArray(h_distances, graph.nV(), "Host\n");
-    //xlib::printArray(d_distances, graph.nV(), "Device\n");
-    /*auto is_correct = std::equal(h_distances, h_distances + graph.nV(),
-                                 d_distances);
-    std::cout << (is_correct ? "\nCorrect <>\n\n" : "\n! Not Correct\n\n");*/
+
+    auto is_correct = cu::equal(h_distances, h_distances + graph.nV(),
+                                d_distances);
+    std::cout << (is_correct ? "\nCorrect <>\n\n" : "\n! Not Correct\n\n");
 }
 
 //------------------------------------------------------------------------------
 
-struct BFSOperator {
+struct BFSOperatorAtomic {
     __device__ __forceinline__
     bool operator()(Vertex src, Edge edge, dist_t* d_distances, dist_t level) {
         auto dst = edge.dst();
         auto old = atomicCAS(d_distances + dst, INF, level);
-        //printf("src %d\t dest %d\t dist %d\ta: %d\n", src.id(), edge.dst(), old, old == INF);
         return old == INF;
     }
 };
@@ -93,3 +94,15 @@ struct BFSOperatorNoAtomic {
         return false;       // the vertex dst is not active
     }
 };
+
+//------------------------------------------------------------------------------
+//#include <cuda_profiler_api.h>
+//cudaProfilerStart();
+//cudaProfilerStop();
+//xlib::printArray(h_distances, graph.nV(), "Host\n");
+//xlib::printArray(tmp_distance, graph.nV(), "Device\n");
+
+/*auto statistics = bfs.statistics(0);
+int l = 1;
+for (const auto& it : statistics)
+    std::cout << l++ << "\t" << it[2] << std::endl;*/

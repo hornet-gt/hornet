@@ -335,7 +335,7 @@ inline void cuMemcpyFromSymbolAsyncAux(const char* file, int line,
                                        const T& symbol, T& output) {
 
     xlib::__cudaErrorHandler(cudaMemcpyFromSymbolAsync(&output, symbol,
-                                                     sizeof(T)),
+                                                       sizeof(T)),
                            "cuMemcpyFromSymbolAsyncAux", file, line, func_name);
 }
 

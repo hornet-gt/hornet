@@ -37,35 +37,35 @@
 #include "Support/Host/Basic.hpp"     //ERROR
 #include "Support/Host/FileUtil.hpp"  //xlib::MemoryMapped
 #include "Support/Host/PrintExt.hpp"  //xlib::printArray
-#include <algorithm>    //std::iota, std::shuffle
-#include <cassert>      //assert
-#include <chrono>       //std::chrono
-#include <random>       //std::mt19937_64
+#include <algorithm>                  //std::iota, std::shuffle
+#include <cassert>                    //assert
+#include <chrono>                     //std::chrono
+#include <random>                     //std::mt19937_64
 
 namespace graph {
 
 template<typename id_t, typename off_t>
 void GraphStd<id_t, off_t>::allocate() noexcept {
-    assert(_V > 0 && _E > 0 && _structure.is_direction_set());
+    assert(_nV > 0 && _nE > 0 && _structure.is_direction_set());
     try {
-        _out_offsets = new off_t[ _V + 1 ];
-        _out_edges   = new id_t[ _E ];
-        _out_degrees = new degree_t[ _V ]();
+        _out_offsets = new off_t[ _nV + 1 ];
+        _out_edges   = new id_t[ _nE ];
+        _out_degrees = new degree_t[ _nV ]();
         if (_coo_size > 0)
-            _coo_edges   = new id2_t[ _coo_size ];
+            _coo_edges   = new coo_t[ _coo_size ];
         if (_structure.is_undirected()) {
             _in_degrees = _out_degrees;
             _in_offsets = _out_offsets;
             _in_edges   = _out_edges;
         }
         else if (_structure.is_reverse()) {
-            _in_offsets = new off_t[ _V + 1 ];
-            _in_edges   = new id_t[ _E ];
-            _in_degrees = new degree_t[ _V ]();
+            _in_offsets = new off_t[ _nV + 1 ];
+            _in_edges   = new id_t[ _nE ];
+            _in_degrees = new degree_t[ _nV ]();
         }
     }
     catch (const std::bad_alloc&) {
-        ERROR("OUT OF MEMORY: Graph too Large !!   _V: ", _V, " E: ", _E)
+        ERROR("OUT OF MEMORY: Graph too Large !!   _nV: ", _nV, " E: ", _nE)
     }
 }
 
@@ -88,9 +88,9 @@ void GraphStd<id_t, off_t>::COOtoCSR(Property prop) noexcept {
         if (prop.is_print())
             std::cout << "Randomization...\n" << std::flush;
         auto seed = std::chrono::system_clock::now().time_since_epoch().count();
-        auto random_array = new id_t[_V];
-        std::iota(random_array, random_array + _V, 0);
-        std::shuffle(random_array, random_array + _V, std::mt19937_64(seed));
+        auto random_array = new id_t[_nV];
+        std::iota(random_array, random_array + _nV, 0);
+        std::shuffle(random_array, random_array + _nV, std::mt19937_64(seed));
         for (size_t i = 0; i < _coo_size; i++) {
             _coo_edges[i].first  = random_array[ _coo_edges[i].first ];
             _coo_edges[i].second = random_array[ _coo_edges[i].second ];
@@ -115,9 +115,9 @@ void GraphStd<id_t, off_t>::COOtoCSR(Property prop) noexcept {
             _in_degrees[dest]++;
     }
     _out_offsets[0] = 0;
-    std::partial_sum(_out_degrees, _out_degrees + _V, _out_offsets + 1);
+    std::partial_sum(_out_degrees, _out_degrees + _nV, _out_offsets + 1);
 
-    auto tmp = new degree_t[_V]();
+    auto tmp = new degree_t[_nV]();
     for (size_t i = 0; i < _coo_size; i++) {
         id_t  src = _coo_edges[i].first;
         id_t dest = _coo_edges[i].second;
@@ -128,8 +128,8 @@ void GraphStd<id_t, off_t>::COOtoCSR(Property prop) noexcept {
 
     if (_structure.is_directed() && _structure.is_reverse()) {
         _in_offsets[0] = 0;
-        std::partial_sum(_in_degrees, _in_degrees + _V, _in_offsets + 1);
-        std::fill(tmp, tmp + _V, 0);
+        std::partial_sum(_in_degrees, _in_degrees + _nV, _in_offsets + 1);
+        std::fill(tmp, tmp + _nV, 0);
         for (size_t i = 0; i < _coo_size; i++) {
             id_t dest = _coo_edges[i].second;
             _in_edges[ _in_offsets[dest] + tmp[dest]++ ] = _coo_edges[i].first;
@@ -146,7 +146,7 @@ void GraphStd<id_t, off_t>::COOtoCSR(Property prop) noexcept {
 
 template<typename id_t, typename off_t>
 void GraphStd<id_t, off_t>::print() const noexcept {
-    for (id_t i = 0; i < _V; i++) {
+    for (id_t i = 0; i < _nV; i++) {
         std::cout << "[ " << i << " ] : ";
         for (off_t j = _out_offsets[i]; j < _out_offsets[i + 1]; j++)
             std::cout << _out_edges[j] << " ";
@@ -160,13 +160,13 @@ void GraphStd<id_t, off_t>::print() const noexcept {
 
 template<typename id_t, typename off_t>
 void GraphStd<id_t, off_t>::print_raw() const noexcept {
-    xlib::printArray(_out_offsets, _V + 1, "Out-Offsets  ");            //NOLINT
-    xlib::printArray(_out_edges,   _E,     "Out-Edges    ");            //NOLINT
-    xlib::printArray(_out_degrees, _V,     "Out-Degrees  ");            //NOLINT
+    xlib::printArray(_out_offsets, _nV + 1, "Out-Offsets  ");           //NOLINT
+    xlib::printArray(_out_edges,   _nE,     "Out-Edges    ");           //NOLINT
+    xlib::printArray(_out_degrees, _nV,     "Out-Degrees  ");           //NOLINT
     if (_structure.is_directed() && _structure.is_reverse()) {
-        xlib::printArray(_in_offsets, _V + 1, "In-Offsets   ");         //NOLINT
-        xlib::printArray(_in_edges,   _E,     "In-Edges     ");         //NOLINT
-        xlib::printArray(_in_degrees, _V,     "In-Degrees   ");         //NOLINT
+        xlib::printArray(_in_offsets, _nV + 1, "In-Offsets   ");        //NOLINT
+        xlib::printArray(_in_edges,   _nE,     "In-Edges     ");        //NOLINT
+        xlib::printArray(_in_degrees, _nV,     "In-Degrees   ");        //NOLINT
     }
 }
 
@@ -175,9 +175,9 @@ void GraphStd<id_t, off_t>::print_raw() const noexcept {
 template<typename id_t, typename off_t>
 void GraphStd<id_t, off_t>::toBinary(const std::string& filename, bool print)
                                      const {
-    size_t  base_size = sizeof(_V) + sizeof(_E) + sizeof(_structure);
-    size_t file_size1 = (static_cast<size_t>(_V) + 1) * sizeof(off_t) +
-                        (static_cast<size_t>(_E)) * sizeof(id_t);
+    size_t  base_size = sizeof(_nV) + sizeof(_nE) + sizeof(_structure);
+    size_t file_size1 = (static_cast<size_t>(_nV) + 1) * sizeof(off_t) +
+                        (static_cast<size_t>(_nE)) * sizeof(id_t);
 
     bool       twice = _structure.is_directed() && _structure.is_reverse();
     size_t file_size = base_size + (twice ? file_size1 * 2 : file_size1);
@@ -194,14 +194,14 @@ void GraphStd<id_t, off_t>::toBinary(const std::string& filename, bool print)
 
     if (_structure.is_directed() && _structure.is_reverse()) {
         memory_mapped.write(class_id.c_str(), class_id.size(),          //NOLINT
-                            &_V, 1, &_E, 1, &_structure, 1,             //NOLINT
-                            _out_offsets, _V + 1, _in_offsets, _V + 1,  //NOLINT
-                            _out_edges, _E, _in_edges, _E);             //NOLINT
+                            &_nV, 1, &_nE, 1, &_structure, 1,           //NOLINT
+                            _out_offsets, _nV + 1, _in_offsets, _nV + 1,//NOLINT
+                            _out_edges, _nE, _in_edges, _nE);           //NOLINT
     }
     else {
         memory_mapped.write(class_id.c_str(), class_id.size(),          //NOLINT
-                            &_V, 1, &_E, 1, &_structure, 1,             //NOLINT
-                            _out_offsets, _V + 1, _out_edges, _E);      //NOLINT
+                            &_nV, 1, &_nE, 1, &_structure, 1,           //NOLINT
+                            _out_offsets, _nV + 1, _out_edges, _nE);    //NOLINT
     }
 }
 
@@ -209,12 +209,11 @@ void GraphStd<id_t, off_t>::toBinary(const std::string& filename, bool print)
 #endif
 
 template<typename id_t, typename off_t>
-void GraphStd<id_t, off_t>::toMarket(const std::string& filename, bool)
-                                     const {
+void GraphStd<id_t, off_t>::toMarket(const std::string& filename) const {
     std::ofstream fout(filename);
     fout << "%%MatrixMarket matrix coordinate pattern general"
-         << "\n" << _V << " " << _V << " " << _E << "\n";
-    for (id_t i = 0; i < _V; i++) {
+         << "\n" << _nV << " " << _nV << " " << _nE << "\n";
+    for (id_t i = 0; i < _nV; i++) {
         for (off_t j = _out_offsets[i]; j < _out_offsets[i + 1]; j++)
             fout << i + 1 << " " << _out_edges[j] + 1 << "\n";
     }

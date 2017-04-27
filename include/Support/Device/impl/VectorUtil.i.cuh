@@ -235,74 +235,119 @@ HOST_DEVICE bool operator> (const int4& A, const int4& B) {
 
 namespace xlib {
 
-template<> struct make2_str<char>      {
+template<>
+struct Make2Str<char> {
     using type = char2;
+
     __host__ __device__ __forceinline__
     static type get(char a, char b) {
         return make_char2(a, b);
     }
 };
-template<> struct make2_str<short>     {
+
+template<>
+struct Make2Str<unsigned char> {
+    using type = uchar2;
+
+    __host__ __device__ __forceinline__
+    static type get(char a, char b) {
+        return make_uchar2(a, b);
+    }
+};
+
+template<>
+struct Make2Str<short> {
     using type = short2;
+
     __host__ __device__ __forceinline__
     static type get(short a, short b) {
         return make_short2(a, b);
     }
 };
-template<> struct make2_str<int>       {
+
+template<>
+struct Make2Str<unsigned short> {
+    using type = ushort2;
+
+    __host__ __device__ __forceinline__
+    static type get(short a, short b) {
+        return make_ushort2(a, b);
+    }
+};
+
+template<>
+struct Make2Str<int> {
     using type = int2;
+
     __host__ __device__ __forceinline__
     static type get(int a, int b) {
         return make_int2(a, b);
     }
 };
-template<> struct make2_str<unsigned>  {
+
+template<>
+struct Make2Str<unsigned> {
     using type = uint2;
     __host__ __device__ __forceinline__
     static type get(unsigned a, unsigned b) {
         return make_uint2(a, b);
     }
 };
-template<> struct make2_str<float>     {
+
+template<>
+struct Make2Str<long long int> {
+    using type = long2;
+
+    __host__ __device__ __forceinline__
+    static type get(long long int a, long long int b) {
+        return make_long2(a, b);
+    }
+};
+
+template<>
+struct Make2Str<int64_t> {
+    using type = long2;
+
+    __host__ __device__ __forceinline__
+    static type get(long long int a, long long int b) {
+        return make_long2(a, b);
+    }
+};
+
+template<>
+struct Make2Str<long long unsigned> {
+    using type = ulong2;
+
+    __host__ __device__ __forceinline__
+    static type get(long long unsigned a, long long unsigned b) {
+        return make_ulong2(a, b);
+    }
+};
+
+template<>
+struct Make2Str<uint64_t> {
+    using type = ulong2;
+
+    __host__ __device__ __forceinline__
+    static type get(long long unsigned a, long long unsigned b) {
+        return make_ulong2(a, b);
+    }
+};
+
+template<>
+struct Make2Str<float> {
     using type = float2;
     __host__ __device__ __forceinline__
     static type get(float a, float b) {
         return make_float2(a, b);
     }
 };
-template<> struct make2_str<double>    {
+
+template<> struct Make2Str<double> {
     using type = double2;
     __host__ __device__ __forceinline__
     static type get(double a, double b) {
         return make_double2(a, b);
-    }
-};
-template<> struct make2_str<long long int> {
-    using type = long2;
-    __host__ __device__ __forceinline__
-    static type get(long long int a, long long int b) {
-        return make_long2(a, b);
-    }
-};
-template<> struct make2_str<int64_t> {
-    using type = long2;
-    __host__ __device__ __forceinline__
-    static type get(long long int a, long long int b) {
-        return make_long2(a, b);
-    }
-};
-template<> struct make2_str<long long unsigned> {
-    using type = ulong2;
-    __host__ __device__ __forceinline__
-    static type get(long long unsigned a, long long unsigned b) {
-        return make_ulong2(a, b);
-    }
-};
-template<> struct make2_str<uint64_t> {
-    using type = ulong2;
-    __host__ __device__ __forceinline__
-    static type get(long long unsigned a, long long unsigned b) {
-        return make_ulong2(a, b);
     }
 };
 
@@ -310,8 +355,8 @@ template<> struct make2_str<uint64_t> {
 
 template<typename T>
 __host__ __device__ __forceinline__
-typename make2_str<T>::type make2(T a, T b) {
-    return make2_str<T>::get(a, b);
+typename Make2Str<T>::type make2(T a, T b) {
+    return Make2Str<T>::get(a, b);
 }
 
 } // namespace xlib

@@ -33,9 +33,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#if defined(__NVCC__)
-    #include "Support/Device/SafeFunctions.cuh"   //cuMemcpyFromSymbol
-#endif
 #include <cmath>        //std::round
 #include <type_traits>  //std::is_floating_point
 
@@ -165,42 +162,5 @@ void printBits(T* array, int size) {
     }
     printf("\n");
 }
-
-#if defined(__NVCC__)
-
-template<class T>
-void printCudaArray(const T* d_array, size_t size, const std::string& str,
-                    char sep) {
-    using R = typename std::remove_cv<T>::type;
-    auto h_array = new R[size];
-    cuMemcpyToHost(d_array, size, h_array);
-
-    printArray(h_array, size, str, sep);
-    delete[] h_array;
-}
-
-template<class T>
-void printCudaSymbol(const T& d_array, size_t size, const std::string& str,
-                    char sep) {
-    using R = typename std::remove_cv<T>::type;
-    auto h_array = new R[size];
-    cuMemcpyFromSymbol(d_array, size, h_array);
-
-    printArray(h_array, size, str, sep);
-    delete[] h_array;
-}
-
-template<class T, int SIZE>
-void printCudaSymbol(const T (&d_array)[SIZE], const std::string& str,
-                     char sep) {
-    using R = typename std::remove_cv<T>::type;
-    auto h_array = new R[SIZE];
-    cuMemcpyFromSymbol(d_array, h_array);
-
-    printArray(h_array, SIZE, str, sep);
-    delete[] h_array;
-}
-
-#endif
 
 } // namespace xlib

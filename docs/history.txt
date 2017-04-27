@@ -22,9 +22,9 @@
     - Fast switch between compile types (debug, info, release)
 * Updaded project directories structure
 * Added empty build direcory
-* Added doxygen configuration file
+* Added doxygen configuration file (user/developer)
 * Added script to download University of Florida sparse matrices
-* Added a small graph example (.mtx)
+* Added a two small graph examples (.mtxm .gr)
 * Code Refactoring: (Google/LLVM style)
     - Substituted tab '\t' with 4 spaces
     - 80 columns max
@@ -34,7 +34,7 @@
     - typename -> using
     - malloc/free -> new/delete
     - reinterpret_cast, static_cast and const_cast instead of old style cast
-* Code convetion in addition to LLVM/Google
+* Code convention in addition to LLVM/Google
     - _var for private variables
     - d_var for device variables and h_var for host variables
     - .hpp/.cpp for host code/CUDA API, .cuh/.cu device code
@@ -42,19 +42,23 @@
     - print function for small graph
     - batch generation: uniform/weighted sorted/unsorted
     - external configuration "config.inc"
+    - improved load balancing
+    - new memory management
+    - consistency checking
+    - Store cuStinger graph snapshot to disk
 - Added online documentation
 
 TO DO:
 * Code Related:
-    - Kernel Interface
-    - Helix Load Balancing
+    - Consistent APIs
     - Insert new vertices
     - Batch equal operators
-    - Graph Weights IO
+    - Compression
+    - slightly improve load balancing: upper_bound early exit, variable partitioning
     - Kernel Range-loop iterators
+    - CSR representation
+    - SpMV
+    - Faster Initialization
 * Others
-    - Regression test
-    - Add Syntax.txt
-    - Store the cuStinger graph to disk
-    - Class diagram to doxygen
-    - Explain Cmake targets 
+    - Regression test (ctest)
+    - Add class diagram to doxygen

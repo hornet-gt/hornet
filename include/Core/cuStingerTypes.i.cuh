@@ -33,7 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Core/GlobalSpace.cuh"
+#include "GlobalSpace.cuh"
 
 namespace cu_stinger {
 
@@ -41,7 +41,8 @@ __device__ __forceinline__
 Vertex::Vertex(id_t index) : _id(index) {
     assert(index < d_nV);
     xlib::SeqDev<VTypeSize> VTYPE_SIZE_D;
-    _vertex_ptr     = d_vertex_basic_ptr + index;
+    _vertex_ptr     = reinterpret_cast<VertexBasicData*>(d_vertex_data_ptrs[0]) +
+                      index;
     auto basic_data = *_vertex_ptr;
 
     _degree   = basic_data.degree;

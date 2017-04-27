@@ -165,7 +165,7 @@ GraphStd<id_t, off_t>::VerticesContainer::begin() const noexcept {
 template<typename id_t, typename off_t>
 inline typename GraphStd<id_t, off_t>::VertexIt
 GraphStd<id_t, off_t>::VerticesContainer::end() const noexcept {
-    return VertexIt(_graph._out_offsets + _graph._V, _graph);
+    return VertexIt(_graph._out_offsets + _graph._nV, _graph);
 }
 
 //==============================================================================
@@ -185,7 +185,7 @@ GraphStd<id_t, off_t>::EdgesContainer::begin() const noexcept {
 template<typename id_t, typename off_t>
 inline typename GraphStd<id_t, off_t>::EdgeIt
 GraphStd<id_t, off_t>::EdgesContainer::end() const noexcept {
-    return EdgeIt(_graph._out_edges + _graph._E, _graph);
+    return EdgeIt(_graph._out_edges + _graph._nE, _graph);
 }
 
 //==============================================================================
@@ -215,27 +215,27 @@ inline const id_t* GraphStd<id_t, off_t>::in_edges_array() const noexcept {
 
 template<typename id_t, typename off_t>
 inline const typename GraphStd<id_t, off_t>::degree_t*
-GraphStd<id_t, off_t>::out_degrees_array() const noexcept{
+GraphStd<id_t, off_t>::out_degrees_array() const noexcept {
     return _out_degrees;
 }
 
 template<typename id_t, typename off_t>
 inline const typename GraphStd<id_t, off_t>::degree_t*
-GraphStd<id_t, off_t>::in_degrees_array() const noexcept{
+GraphStd<id_t, off_t>::in_degrees_array() const noexcept {
     return _in_degrees;
 }
 
 template<typename id_t, typename off_t>
 inline typename GraphStd<id_t, off_t>::degree_t
-GraphStd<id_t, off_t>::out_degree(id_t index) const noexcept{
-    assert(index >= 0 && index < _V);
+GraphStd<id_t, off_t>::out_degree(id_t index) const noexcept {
+    assert(index >= 0 && index < _nV);
     return _out_degrees[index];
 }
 
 template<typename id_t, typename off_t>
 inline typename GraphStd<id_t, off_t>::degree_t
-GraphStd<id_t, off_t>::in_degree(id_t index) const noexcept{
-    assert(index >= 0 && index < _V);
+GraphStd<id_t, off_t>::in_degree(id_t index) const noexcept {
+    assert(index >= 0 && index < _nV);
     return _in_degrees[index];
 }
 

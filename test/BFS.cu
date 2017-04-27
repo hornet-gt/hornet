@@ -1,8 +1,10 @@
 #include "Core/cuStinger.hpp"           //cuStingerInit, cuStinger
 #include "cuStingerAlg/Queue2.cuh"      //Queue
+#include "cuStingerAlg/Operator.cuh"    //Operator
 #include "GraphIO/BFS.hpp"              //BFS
 #include "GraphIO/GraphStd.hpp"         //GraphStd
-#include "Support/Device/Algorithm.hpp" //cu::equal
+//#include "GraphIO/GraphWeight.hpp"      //GraphWeight
+#include "Support/Device/Algorithm.cuh" //cu::equal
 #include "Support/Host/Timer.hpp"       //Timer
 
 using namespace cu_stinger;
@@ -15,9 +17,9 @@ const dist_t INF = std::numeric_limits<dist_t>::max();
 struct BFSOperatorAtomic;
 struct BFSOperatorNoAtomic;
 
-struct VertexInitialization {
+struct VertexInit {
     __device__ __forceinline__
-    void operator()(dist_t& vertex_distance) {
+    static void apply(dist_t& vertex_distance) {
         vertex_distance = INF;
     }
 };
@@ -27,7 +29,7 @@ struct VertexInitialization {
 int main(int argc, char* argv[]) {
     using cu_stinger::id_t;
     using cu_stinger::off_t;
-    id_t    bfs_source = 0;
+    id_t bfs_source = 0;
     //--------------------------------------------------------------------------
     // HOST BFS //
     graph::GraphStd<id_t, off_t> graph;
@@ -47,7 +49,10 @@ int main(int argc, char* argv[]) {
     Allocate alloc(d_distances, graph.nV());
     //--------------------------------------------------------------------------
     // BFS INIT //
-    forAll(d_distances, graph.nV(), VertexInitialization());
+    forAll<VertexInit>(d_distances, graph.nV());
+
+    forAllnumV<VertexInit>(d_distances);
+
     Queue queue(custinger_init);
     queue.insert(bfs_source);
     //queue.insert(bfs_sources, num_sources);               // Multi-sources BFS

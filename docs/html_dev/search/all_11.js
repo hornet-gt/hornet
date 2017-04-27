@@ -1,9 +1,9 @@
 var searchData=
 [
   ['thousandsep',['ThousandSep',['../classxlib_1_1ThousandSep.html',1,'xlib']]],
-  ['thread_5fexit',['thread_exit',['../namespacexlib.html#a48a6eb4b79e2ec25ab2ba69cd47e4037',1,'xlib']]],
+  ['thread_5fexit',['thread_exit',['../PTX_8cuh.html#a48a6eb4b79e2ec25ab2ba69cd47e4037',1,'xlib']]],
   ['threadpartition',['threadPartition',['../MergePath_8cuh.html#a7e7751b8ad58e385a5b6737a5cf41ebc',1,'xlib::detail']]],
-  ['threadtowarpindexing',['ThreadToWarpIndexing',['../structxlib_1_1detail_1_1ThreadToWarpIndexing.html',1,'xlib::detail::ThreadToWarpIndexing&lt; SIZE, OFFSET, LEFT_BOUND &gt;'],['../namespacexlib.html#a988f6b4a3513c07475e6218889fe8d9f',1,'xlib::threadToWarpIndexing()']]],
+  ['threadtowarpindexing',['ThreadToWarpIndexing',['../structxlib_1_1detail_1_1ThreadToWarpIndexing.html',1,'xlib::detail::ThreadToWarpIndexing&lt; SIZE, OFFSET, LEFT_BOUND &gt;'],['../Indexing_8cuh.html#a988f6b4a3513c07475e6218889fe8d9f',1,'xlib::threadToWarpIndexing()']]],
   ['threadtowarpindexing_3c_200_2c_20offset_2c_20left_5fbound_20_3e',['ThreadToWarpIndexing&lt; 0, OFFSET, LEFT_BOUND &gt;',['../structxlib_1_1detail_1_1ThreadToWarpIndexing_3_010_00_01OFFSET_00_01LEFT__BOUND_01_4.html',1,'xlib::detail']]],
   ['time_5fstamp1',['time_stamp1',['../classcu__stinger_1_1Edge.html#a60f3df44594f3f6ef8c33fb9b8f461c4',1,'cu_stinger::Edge']]],
   ['time_5fstamp2',['time_stamp2',['../classcu__stinger_1_1Edge.html#a893fc70ccd3a0d604c8db63f0e545c01',1,'cu_stinger::Edge']]],
@@ -18,6 +18,7 @@ var searchData=
   ['timerbase_3c_20device_2c_20chronoprecision_20_3e',['TimerBase&lt; DEVICE, ChronoPrecision &gt;',['../classtimer_1_1TimerBase.html',1,'timer']]],
   ['timerbase_3c_20host_2c_20chronoprecision_20_3e',['TimerBase&lt; HOST, ChronoPrecision &gt;',['../classtimer_1_1TimerBase.html',1,'timer']]],
   ['traverse_2ecuh',['Traverse.cuh',['../Traverse_8cuh.html',1,'']]],
+  ['traverse2_2ecuh',['Traverse2.cuh',['../Traverse2_8cuh.html',1,'']]],
   ['tuple_5fcompare',['tuple_compare',['../structxlib_1_1tuple__compare.html',1,'xlib']]],
   ['tuple_5fcompare_3c_20std_3a_3atuple_3c_20t1_2c_20targs1_2e_2e_2e_20_3e_2c_20std_3a_3atuple_3c_20t2_2c_20targs2_2e_2e_2e_20_3e_20_3e',['tuple_compare&lt; std::tuple&lt; T1, TArgs1... &gt;, std::tuple&lt; T2, TArgs2... &gt; &gt;',['../structxlib_1_1tuple__compare_3_01std_1_1tuple_3_01T1_00_01TArgs1_8_8_8_01_4_00_01std_1_1tuple_3_25abcc0c421bb76f455b2436c636537b.html',1,'xlib']]],
   ['tuple_5fcompare_3c_20std_3a_3atuple_3c_3e_2c_20std_3a_3atuple_3c_3e_20_3e',['tuple_compare&lt; std::tuple&lt;&gt;, std::tuple&lt;&gt; &gt;',['../structxlib_1_1tuple__compare_3_01std_1_1tuple_3_4_00_01std_1_1tuple_3_4_01_4.html',1,'xlib']]],

@@ -109,22 +109,22 @@ inline MemoryMapped::MemoryMapped(const char* filename, size_t file_size,
 }
 
 inline MemoryMapped::~MemoryMapped() noexcept {
-    if (::munmap(_mmap_ptr, _file_size) == -1) ERROR("::munmap");
-    if (::close(_fd) == -1) ERROR("::close");
+    if (::munmap(_mmap_ptr, _file_size) == -1)
+        ERROR("::munmap");
+    if (::close(_fd) == -1)
+        ERROR("::close");
+    if (_partial != _file_size)
+        ERROR("MemoryMapped: file partially read/write");
 }
 
 template<typename, typename... Ts>
 void MemoryMapped::write() const noexcept {
-    //if (_partial != _file_size)
-    //    ERROR("MemoryMapped: file partially wrote");
     if (_print)
         _progress.per_cent(_partial);
 }
 
 template<typename, typename... Ts>
 void MemoryMapped::read() const noexcept {
-    //if (_partial != _file_size)
-    //    ERROR("MemoryMapped: file partially read");
     if (_print)
         _progress.per_cent(_partial);
 }

@@ -34,8 +34,10 @@
  * </blockquote>}
  */
 #include "Core/cuStinger.hpp"
-#include "Support/Host/Timer.hpp"//xlib::Timer
-#include <cstring>               //std::memcpy
+#include "GraphIO/GraphBase.hpp"        //graph::structure
+#include "Support/Host/FileUtil.hpp"    //graph::structure
+#include "Support/Host/Timer.hpp"       //xlib::Timer
+#include <cstring>                      //std::memcpy
 
 using namespace timer;
 
@@ -48,8 +50,10 @@ cuStingerInit::cuStingerInit(size_t num_vertices, size_t num_edges,
                                _nE(num_edges),
                                _csr_offsets(csr_offsets) {
 
-   _edge_data_ptrs[0] = const_cast<byte_t*>(
-                        reinterpret_cast<const byte_t*>(csr_edges));
+    _vertex_data_ptrs[0] = const_cast<byte_t*>(
+                           reinterpret_cast<const byte_t*>(csr_offsets));
+   _edge_data_ptrs[0]    = const_cast<byte_t*>(
+                           reinterpret_cast<const byte_t*>(csr_edges));
 }
 
 size_t cuStingerInit::nV() const noexcept {
@@ -93,9 +97,10 @@ cuStinger::cuStinger(const cuStingerInit& custinger_init) noexcept :
     cuMalloc(_d_vertices, round_nV * sizeof(vertex_t));
 
     byte_t* d_vertex_data_ptrs[NUM_VTYPES];
-    for (int i = 0; i < NUM_EXTRA_VTYPES; i++) {
-        d_vertex_data_ptrs[i] = _d_vertices + round_nV * VTYPE_SIZE_PS[i + 1];
-        cuMemcpyToDeviceAsync(h_vertex_data_ptrs[i], _nV * EXTRA_VTYPE_SIZE[i],
+    d_vertex_data_ptrs[0] = reinterpret_cast<byte_t*>(_d_vertices);
+    for (int i = 1; i < NUM_VTYPES; i++) {
+        d_vertex_data_ptrs[i] = _d_vertices + round_nV * VTYPE_SIZE_PS[i];
+        cuMemcpyToDeviceAsync(h_vertex_data_ptrs[i], _nV * VTYPE_SIZE[i],
                               d_vertex_data_ptrs[i]);
     }
     initializeVertexGlobal(d_vertex_data_ptrs);
@@ -126,6 +131,7 @@ cuStinger::cuStinger(const cuStingerInit& custinger_init) noexcept :
                         num_bytes);
         }
     }
+    //copy BlockArrays to the device
     int num_blockarrays = mem_management.num_blockarrays();
     for (int i = 0; i < num_blockarrays; i++) {
         const auto& mem_ptrs = mem_management.get_block_array_ptr(i);
@@ -139,6 +145,7 @@ cuStinger::cuStinger(const cuStingerInit& custinger_init) noexcept :
     auto d_vertex_basic_ptr = reinterpret_cast<pair_t*>(_d_vertices);
     cuMemcpyToDeviceAsync(h_vertex_basic_data, _nV, d_vertex_basic_ptr);
     delete[] h_vertex_basic_data;
+
     TM.stop();
     TM.print("Initilization Time:");
     //mem_management.free_host_ptr();
@@ -148,40 +155,70 @@ cuStinger::~cuStinger() noexcept {
     cuFree(_d_vertices);
 }
 
-void cuStinger::check_consistency(const cuStingerInit& custinger_init)
-                                    const noexcept {
+void cuStinger::convert_to_csr(off_t* csr_offsets, id_t* csr_edges)
+                               const noexcept {
+
     using pair_t = typename std::pair<id_t*, degree_t>;
     auto d_vertex_basic_ptr = reinterpret_cast<pair_t*>(_d_vertices);
 
     auto h_vertex_basic_ptr = new pair_t[_nV];
     cuMemcpyToHost(d_vertex_basic_ptr, _nV, h_vertex_basic_ptr);
 
-    auto csr_offsets = new off_t[_nV + 1];
     csr_offsets[0] = 0;
     for (id_t i = 1; i <= _nV; i++)
         csr_offsets[i] = h_vertex_basic_ptr[i - 1].second + csr_offsets[i - 1];
-
-    bool offset_check = std::equal(csr_offsets, csr_offsets + _nV,
-                                   custinger_init._csr_offsets);
-    if (!offset_check)
-        ERROR("Vertex Array not consistent")
     //--------------------------------------------------------------------------
-    auto csr_edges = new id_t[_nE];
     off_t   offset = 0;
     for (id_t i = 0; i < _nV; i++) {
         degree_t degree = h_vertex_basic_ptr[i].second;
         if (degree == 0) continue;
-        cuMemcpyToHost(h_vertex_basic_ptr[i].first,
-                       h_vertex_basic_ptr[i].second, csr_edges + offset);
+        cuMemcpyToHostAsync(h_vertex_basic_ptr[i].first,
+                            h_vertex_basic_ptr[i].second, csr_edges + offset);
         offset += degree;
     }
-
-    auto edge_ptr = reinterpret_cast<id_t*>(custinger_init._edge_data_ptrs[0]);
-    bool edges_check = std::equal(csr_edges, csr_edges + _nE, edge_ptr);
-    if (!edges_check)
-        ERROR("Edge Array not consistent")
-
+    cudaDeviceSynchronize();
     delete[] h_vertex_basic_ptr;
+}
+
+void cuStinger::check_consistency(const cuStingerInit& custinger_init)
+                                  const noexcept {
+    auto csr_offsets = new off_t[_nV + 1];
+    auto csr_edges   = new id_t[_nE];
+    convert_to_csr(csr_offsets, csr_edges);
+
+    if (!std::equal(csr_offsets, csr_offsets + _nV,custinger_init._csr_offsets))
+        ERROR("Vertex Array not consistent")
+    auto edge_ptr = reinterpret_cast<id_t*>(custinger_init._edge_data_ptrs[0]);
+    if (!std::equal(csr_edges, csr_edges + _nE, edge_ptr))
+        ERROR("Edge Array not consistent")
+    delete[] csr_offsets;
+    delete[] csr_edges;
+}
+
+void cuStinger::store_snapshot(const std::string& filename) const noexcept {
+    auto csr_offsets = new off_t[_nV + 1];
+    auto csr_edges   = new id_t[_nE];
+    convert_to_csr(csr_offsets, csr_edges);
+
+    graph::Structure structure(graph::Structure::DIRECTED);
+    size_t  base_size = sizeof(_nV) + sizeof(_nE) + sizeof(structure);
+    size_t file_size1 = (static_cast<size_t>(_nV) + 1) * sizeof(off_t) +
+                        (static_cast<size_t>(_nE)) * sizeof(id_t);
+
+    size_t file_size  = base_size + file_size1;
+
+    std::cout << "Graph To binary file: " << filename
+              << " (" << (file_size >> 20) << ") MB" << std::endl;
+
+    std::string class_id = xlib::type_name<id_t>() + xlib::type_name<off_t>();
+    file_size           += class_id.size();
+    xlib::MemoryMapped memory_mapped(filename.c_str(), file_size,
+                                     xlib::MemoryMapped::WRITE, true);
+
+    memory_mapped.write(class_id.c_str(), class_id.size(),              //NOLINT
+                        &_nV, 1, &_nE, 1,                               //NOLINT
+                        csr_offsets, _nV + 1, csr_edges, _nE);          //NOLINT
+
     delete[] csr_offsets;
     delete[] csr_edges;
 }

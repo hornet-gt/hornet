@@ -82,6 +82,9 @@
 #define cuMemcpyToHost(...)                                                    \
     xlib::detail::cuMemcpyToHostAux(__FILE__, __LINE__, __func__, __VA_ARGS__) \
 
+#define cuMemcpyToHostAsync(...)                                               \
+    xlib::detail::cuMemcpyToHostAsyncAux(__FILE__, __LINE__, __func__,         \
+                                         __VA_ARGS__)                          \
 //------------------------------------------------------------------------------
 
 #define cuMemcpyToSymbol(...)                                                  \

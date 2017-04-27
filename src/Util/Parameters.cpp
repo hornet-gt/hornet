@@ -49,8 +49,10 @@ Param::Param(int argc, char* argv[]) : //strategy(Strategy::UNDEF),
                                        spmv(false),
                                        binary(false) {
     if (argc == 1) {
-        ERROR("Invalid number of parameters. "
-               "See ", argv[0], " --help for syntax");
+L1:     std::ifstream syntax_file("../util/Syntax.txt");
+        std::cout << syntax_file.rdbuf() << "\n\n";
+        syntax_file.close();
+        std::exit(EXIT_SUCCESS);
     }
     for (int i = 2; i < argc; i++) {
         std::string str(argv[i]);
@@ -138,11 +140,8 @@ Param::Param(int argc, char* argv[]) : //strategy(Strategy::UNDEF),
             print            = true;
             batch_prop.print = true;
         }*/
-        else if (str == "--help") {
-            std::ifstream syntax_file("../Syntax.txt");
-            std::cout << syntax_file.rdbuf() << "\n\n";
-            std::exit(EXIT_SUCCESS);
-        }
+        else if (str == "--help")
+            goto L1;
         else {
             ERROR("Invalid parameter: ", str, "\n"
                   " See ", argv[0], " --help for syntax)")

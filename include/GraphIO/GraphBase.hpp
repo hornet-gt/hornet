@@ -43,8 +43,9 @@
 namespace graph {
 
 class Property {
-    template<typename id_t, typename off_t> friend class GraphBase;
-    template<typename id_t, typename off_t> friend class GraphStd;
+    template<typename, typename> friend class GraphBase;
+    template<typename, typename> friend class GraphStd;
+    template<typename, typename, typename> friend class GraphWeight;
 public:
     enum Enum { PRINT = 1, RANDOMIZE = 2, SORT = 4 };
     explicit Property(int state = 0) noexcept;
@@ -58,14 +59,17 @@ private:
 };
 
 class Structure {
-    template<typename id_t, typename off_t> friend class GraphBase;
-    template<typename id_t, typename off_t> friend class GraphStd;
+    template<typename, typename> friend class GraphBase;
+    template<typename, typename> friend class GraphStd;
+    template<typename, typename, typename> friend class GraphWeight;
 public:
     enum Enum { DIRECTED = 1, UNDIRECTED = 2, REVERSE = 4, COO = 8 };
     explicit Structure(int state = 0) noexcept;
     void operator|=(int value)        noexcept;
 private:
-    int _state;
+    enum WType { NONE, INTEGER, REAL };
+    int   _state;
+    WType _wtype { NONE };
 
     bool is_undefined()     const noexcept;
     bool is_directed()      const noexcept;
@@ -73,6 +77,7 @@ private:
     bool is_reverse()       const noexcept;
     bool is_coo()           const noexcept;
     bool is_direction_set() const noexcept;
+    bool is_weighted()      const noexcept;
 };
 
 
@@ -92,8 +97,8 @@ public:
     void operator=(const GraphBase&) = delete;
 protected:
     std::string _graph_name { "" };
-    id_t        _V { 0 };
-    off_t       _E { 0 };
+    id_t        _nV { 0 };
+    off_t       _nE { 0 };
     Structure   _structure;
 
     explicit GraphBase(Structure structure = Structure(Structure::REVERSE))

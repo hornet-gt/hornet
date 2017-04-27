@@ -107,20 +107,4 @@ __global__ void loadBalancingExpandContract(int work_size, TArgs... args) {
     xlib::binarySearchLBWarp<BLOCK_SIZE>(d_work1, work_size, smem, lambda);
 }
 
-//==============================================================================
-
-template<typename T, typename Operator>
-__global__ void forAllKernel(T* array, int num_items, Operator op) {
-    int     id = blockIdx.x * blockDim.x + threadIdx.x;
-    int stride = gridDim.x * blockDim.x;
-    for (int i = id; i < num_items; i += stride)
-        op(array[i]);
-}
-
-template<typename Operator, typename T>
-void forAll(T* array, int num_items, Operator op) {
-    forAllKernel <<< xlib::ceil_div<BLOCK_SIZE>(num_items), BLOCK_SIZE >>>
-        (array, num_items, op);
-}
-
 } // namespace cu_stinger_alg

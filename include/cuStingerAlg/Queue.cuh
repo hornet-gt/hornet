@@ -54,10 +54,10 @@ public:
                    float allocation_factor = 2.0f) noexcept;
     ~Queue() noexcept;
 
-    __host__ void insert(id_t vertex_id) noexcept;
+    __host__ void insert(id_t vertex_id)                     noexcept;
     __host__ void insert(const id_t* vertex_array, int size) noexcept;
 
-    __host__ int size() noexcept;
+    __host__ int size() const noexcept;
 
     template<typename Operator, typename... TArgs>
     __host__ void traverseAndFilter(TArgs... args) noexcept;

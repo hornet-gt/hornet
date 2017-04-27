@@ -112,6 +112,14 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
+<tr class="memitem:ab3c821ab36f94ce33b30c8078dd35671"><td class="memTemplParams" colspan="2"><a id="ab3c821ab36f94ce33b30c8078dd35671"></a>
+template&lt;typename T &gt; </td></tr>
+<tr class="memitem:ab3c821ab36f94ce33b30c8078dd35671"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>Container</b> = std::vector&lt; T &gt;</td></tr>
+<tr class="separator:ab3c821ab36f94ce33b30c8078dd35671"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a678895bea2eb78342607f6a6c7be96ac"><td class="memTemplParams" colspan="2"><a id="a678895bea2eb78342607f6a6c7be96ac"></a>
+template&lt;degree_t BLOCK_ITEMS, degree_t BLOCKARRAY_ITEMS&gt; </td></tr>
+<tr class="memitem:a678895bea2eb78342607f6a6c7be96ac"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>BitTreeContainer</b> = Container&lt; <a class="el" href="classcu__stinger_1_1BitTree.html">BitTree</a>&lt; edge_t, BLOCK_ITEMS, BLOCKARRAY_ITEMS &gt; &gt;</td></tr>
+<tr class="separator:a678895bea2eb78342607f6a6c7be96ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8c4cd7721a8d139c202297241025fb28"><td class="memItemLeft" align="right" valign="top"><a id="a8c4cd7721a8d139c202297241025fb28"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>degree_t</b> = int</td></tr>
 <tr class="separator:a8c4cd7721a8d139c202297241025fb28"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -139,14 +147,6 @@ using&#160;</td><td class="memItemRight" valign="bottom"><b>VTypeSizePS</b> = ty
 <tr class="memitem:af0785ed09d09f996921d57df3ffe7142"><td class="memItemLeft" align="right" valign="top"><a id="af0785ed09d09f996921d57df3ffe7142"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>ETypeSizePS</b> = typename xlib::ExcPrefixSum&lt; ETypeSize &gt;::type</td></tr>
 <tr class="separator:af0785ed09d09f996921d57df3ffe7142"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab3c821ab36f94ce33b30c8078dd35671"><td class="memTemplParams" colspan="2"><a id="ab3c821ab36f94ce33b30c8078dd35671"></a>
-template&lt;typename T &gt; </td></tr>
-<tr class="memitem:ab3c821ab36f94ce33b30c8078dd35671"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>Container</b> = std::vector&lt; T &gt;</td></tr>
-<tr class="separator:ab3c821ab36f94ce33b30c8078dd35671"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a678895bea2eb78342607f6a6c7be96ac"><td class="memTemplParams" colspan="2"><a id="a678895bea2eb78342607f6a6c7be96ac"></a>
-template&lt;degree_t BLOCK_ITEMS, degree_t BLOCKARRAY_ITEMS&gt; </td></tr>
-<tr class="memitem:a678895bea2eb78342607f6a6c7be96ac"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>BitTreeContainer</b> = Container&lt; <a class="el" href="classcu__stinger_1_1BitTree.html">BitTree</a>&lt; edge_t, BLOCK_ITEMS, BLOCKARRAY_ITEMS &gt; &gt;</td></tr>
-<tr class="separator:a678895bea2eb78342607f6a6c7be96ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
@@ -156,6 +156,15 @@ struct&#160;</td><td class="memItemRight" valign="bottom"><b>ALIGN</b> (16) Vert
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
+<tr class="memitem:a5cdf90d81285f1daf298e913c6148aec"><td class="memItemLeft" align="right" valign="top"><a id="a5cdf90d81285f1daf298e913c6148aec"></a>
+__constant__ size_t&#160;</td><td class="memItemRight" valign="bottom"><b>d_nV</b></td></tr>
+<tr class="separator:a5cdf90d81285f1daf298e913c6148aec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa3d465878521766bfeefcfa137874530"><td class="memItemLeft" align="right" valign="top"><a id="aa3d465878521766bfeefcfa137874530"></a>
+__constant__ VertexBasicData *&#160;</td><td class="memItemRight" valign="bottom"><b>d_vertex_basic_ptr</b></td></tr>
+<tr class="separator:aa3d465878521766bfeefcfa137874530"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaaa33c44124013e7836ef07858185226"><td class="memItemLeft" align="right" valign="top"><a id="aaaa33c44124013e7836ef07858185226"></a>
+__constant__ byte_t *&#160;</td><td class="memItemRight" valign="bottom"><b>d_vertex_data_ptrs</b> [NUM_VTYPES]</td></tr>
+<tr class="separator:aaaa33c44124013e7836ef07858185226"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acc299cfd78297b95656aa258cabbbb26"><td class="memItemLeft" align="right" valign="top"><a id="acc299cfd78297b95656aa258cabbbb26"></a>
 const VTypeSize&#160;</td><td class="memItemRight" valign="bottom"><b>VTYPE_SIZE</b></td></tr>
 <tr class="separator:acc299cfd78297b95656aa258cabbbb26"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -186,15 +195,6 @@ const unsigned&#160;</td><td class="memItemRight" valign="bottom"><b>NUM_VTYPES<
 <tr class="memitem:af982a19454437533e9dbb2ee94078377"><td class="memItemLeft" align="right" valign="top"><a id="af982a19454437533e9dbb2ee94078377"></a>
 const unsigned&#160;</td><td class="memItemRight" valign="bottom"><b>NUM_ETYPES</b> = std::tuple_size&lt;edge_t&gt;::value</td></tr>
 <tr class="separator:af982a19454437533e9dbb2ee94078377"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5cdf90d81285f1daf298e913c6148aec"><td class="memItemLeft" align="right" valign="top"><a id="a5cdf90d81285f1daf298e913c6148aec"></a>
-__constant__ size_t&#160;</td><td class="memItemRight" valign="bottom"><b>d_nV</b></td></tr>
-<tr class="separator:a5cdf90d81285f1daf298e913c6148aec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa3d465878521766bfeefcfa137874530"><td class="memItemLeft" align="right" valign="top"><a id="aa3d465878521766bfeefcfa137874530"></a>
-__constant__ VertexBasicData *&#160;</td><td class="memItemRight" valign="bottom"><b>d_vertex_basic_ptr</b></td></tr>
-<tr class="separator:aa3d465878521766bfeefcfa137874530"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaaa33c44124013e7836ef07858185226"><td class="memItemLeft" align="right" valign="top"><a id="aaaa33c44124013e7836ef07858185226"></a>
-__constant__ byte_t *&#160;</td><td class="memItemRight" valign="bottom"><b>d_vertex_data_ptrs</b> [NUM_VTYPES]</td></tr>
-<tr class="separator:aaaa33c44124013e7836ef07858185226"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><dl class="section author"><dt>Author</dt><dd>Federico Busato <br />
@@ -219,7 +219,7 @@ __constant__ byte_t *&#160;</td><td class="memItemRight" valign="bottom"><b>d_ve
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 21 2017 21:47:34 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Apr 26 2017 16:18:45 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

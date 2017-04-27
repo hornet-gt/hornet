@@ -47,7 +47,7 @@ class BFS;
 
 template<typename id_t = int, typename off_t = int>
 class GraphStd : public GraphBase<id_t, off_t> {
-    using    id2_t = typename std::pair<id_t, id_t>;
+    using    coo_t = typename std::pair<id_t, id_t>;
     using degree_t = int;
     friend class BFS<id_t, off_t>;
 
@@ -104,8 +104,8 @@ public:
     class Edge {
         template<typename T, typename R> friend class GraphStd;
     public:
-        off_t  id()                  const noexcept;
-        Vertex dest()                const noexcept;
+        off_t  id()   const noexcept;
+        Vertex dest() const noexcept;
 
         template<typename>
         friend inline std::ostream& operator<<(std::ostream& os,
@@ -125,7 +125,7 @@ public:
     public:
         EdgeIt& operator++()              noexcept;
         Edge    operator*()               const noexcept;
-        bool operator!=(const EdgeIt& it) const noexcept;
+        bool    operator!=(const EdgeIt& it) const noexcept;
     private:
         const GraphStd& _graph;
         id_t* _current;
@@ -188,7 +188,7 @@ public:
     degree_t out_degree(id_t index)  const noexcept;
     degree_t in_degree (id_t index)  const noexcept;
 
-    const id2_t*    coo_array()         const noexcept;
+    const coo_t*    coo_array()         const noexcept;
     const off_t*    out_offsets_array() const noexcept;
     const off_t*    in_offsets_array()  const noexcept;
     const id_t*     out_edges_array()   const noexcept;
@@ -199,7 +199,7 @@ public:
     void print()     const noexcept override;
     void print_raw() const noexcept override;
     void toBinary(const std::string& filename, bool print = true) const;
-    void toMarket(const std::string& filename, bool print = true) const;
+    void toMarket(const std::string& filename) const;
 private:
     off_t     *_out_offsets { nullptr };
     off_t     *_in_offsets  { nullptr };
@@ -207,10 +207,10 @@ private:
     id_t      *_in_edges    { nullptr };
     degree_t* _out_degrees  { nullptr };
     degree_t* _in_degrees   { nullptr };
-    id2_t*    _coo_edges    { nullptr };
+    coo_t*    _coo_edges    { nullptr };
     size_t    _coo_size     { 0 };
-    using GraphBase<id_t, off_t>::_E;
-    using GraphBase<id_t, off_t>::_V;
+    using GraphBase<id_t, off_t>::_nE;
+    using GraphBase<id_t, off_t>::_nV;
     using GraphBase<id_t, off_t>::_structure;
 
     void allocate() noexcept override;

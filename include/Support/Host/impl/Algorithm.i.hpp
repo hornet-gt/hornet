@@ -53,41 +53,6 @@ R UniqueMap<T, R>::insertValue(T id) {
     }
     return it->second;
 }
-/*
-template<bool FAULT, class iteratorA_t, class iteratorB_t>
-bool equal(iteratorA_t start_A, iteratorA_t end_A, iteratorB_t start_B) {
-    iteratorB_t it_B = start_B;
-    for (iteratorA_t it_A = start_A; it_A != end_A; it_A++, it_B++) {
-        if (*it_A != *it_B) {
-            if (FAULT) {
-                auto dist = std::distance(start_A, it_A);
-                ERROR("Array Difference at: ", std::distance(start_A, it_A),
-                      " -> Left Array: ", *it_A, "     Right Array: ", *it_B);
-            }
-            return false;
-        }
-    }
-    return true;
-}
-
-template<bool FAULT, class iteratorA_t, class iteratorB_t>
-bool equal(iteratorA_t start_A, iteratorA_t end_A, iteratorB_t start_B,
-        bool (*equalFunction)(
-                typename std::iterator_traits<iteratorA_t>::value_type,
-                typename std::iterator_traits<iteratorB_t>::value_type)) {
-
-    iteratorB_t it_B = start_B;
-    for (iteratorA_t it_A = start_A; it_A != end_A; it_A++, it_B++) {
-        if (!equalFunction(*it_A, *it_B)) {
-            if (FAULT) {
-                ERROR("Array Difference at: ", std::distance(start_A, it_A),
-                      " -> Left Array: ", *it_A, "     Right Array: ", *it_B);
-            }
-            return false;
-        }
-    }
-    return true;
-}*/
 
 template<class Iterator1, class Iterator2>
 bool equal_sorted(Iterator1 start1, Iterator1 end1, Iterator2 start2) noexcept {

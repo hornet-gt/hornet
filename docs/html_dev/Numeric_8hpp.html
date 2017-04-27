@@ -73,7 +73,6 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Data Structures</a> &#124;
-<a href="#namespaces">Namespaces</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">Numeric.hpp File Reference</div>  </div>
@@ -92,11 +91,6 @@ Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structxlib_1_1CompareFloatRelativeErr.html">xlib::CompareFloatRelativeErr&lt; R &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classxlib_1_1WeightedRandomGenerator.html">xlib::WeightedRandomGenerator&lt; T, typename &gt;</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
-Namespaces</h2></td></tr>
-<tr class="memitem:namespacexlib"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacexlib.html">xlib</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
@@ -134,7 +128,7 @@ template&lt;uint64_t DIV, typename T &gt; </td></tr>
 <tr class="memitem:a33960f651733489f623ffd2bc3146165"><td class="memTemplItemLeft" align="right" valign="top">HOST_DEVICE CONST_EXPR T&#160;</td><td class="memTemplItemRight" valign="bottom"><b>xlib::ceil_div</b> (T value) noexcept</td></tr>
 <tr class="separator:a33960f651733489f623ffd2bc3146165"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa3954b6c9bc14391bb7809ef06cb8103"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:aa3954b6c9bc14391bb7809ef06cb8103"><td class="memTemplItemLeft" align="right" valign="top">HOST_DEVICE CONST_EXPR T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacexlib.html#aa3954b6c9bc14391bb7809ef06cb8103">xlib::round_div</a> (T value, T div) noexcept</td></tr>
+<tr class="memitem:aa3954b6c9bc14391bb7809ef06cb8103"><td class="memTemplItemLeft" align="right" valign="top">HOST_DEVICE CONST_EXPR T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="Numeric_8hpp.html#aa3954b6c9bc14391bb7809ef06cb8103">xlib::round_div</a> (T value, T div) noexcept</td></tr>
 <tr class="separator:aa3954b6c9bc14391bb7809ef06cb8103"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a58923cc543d315305aeadc3ec5071eb9"><td class="memTemplParams" colspan="2"><a id="a58923cc543d315305aeadc3ec5071eb9"></a>
 template&lt;typename T &gt; </td></tr>
@@ -193,8 +187,8 @@ template&lt;typename T &gt; </td></tr>
 <tr class="memitem:a2797b7473fa5365acc51652d1b6eedc5"><td class="memTemplItemLeft" align="right" valign="top">HOST_DEVICE CONST_EXPR T&#160;</td><td class="memTemplItemRight" valign="bottom"><b>xlib::roundup_pow2</b> (T value) noexcept</td></tr>
 <tr class="separator:a2797b7473fa5365acc51652d1b6eedc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae01ccf345e4e975ac58e2c07679fd930"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:ae01ccf345e4e975ac58e2c07679fd930"><td class="memTemplItemLeft" align="right" valign="top">HOST_DEVICE int&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacexlib.html#ae01ccf345e4e975ac58e2c07679fd930">xlib::log2</a> (T value) noexcept</td></tr>
-<tr class="memdesc:ae01ccf345e4e975ac58e2c07679fd930"><td class="mdescLeft">&#160;</td><td class="mdescRight">calculate the integer logarithm of 'value'  <a href="namespacexlib.html#ae01ccf345e4e975ac58e2c07679fd930">More...</a><br /></td></tr>
+<tr class="memitem:ae01ccf345e4e975ac58e2c07679fd930"><td class="memTemplItemLeft" align="right" valign="top">HOST_DEVICE int&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="Numeric_8hpp.html#ae01ccf345e4e975ac58e2c07679fd930">xlib::log2</a> (T value) noexcept</td></tr>
+<tr class="memdesc:ae01ccf345e4e975ac58e2c07679fd930"><td class="mdescLeft">&#160;</td><td class="mdescRight">calculate the integer logarithm of 'value'  <a href="Numeric_8hpp.html#ae01ccf345e4e975ac58e2c07679fd930">More...</a><br /></td></tr>
 <tr class="separator:ae01ccf345e4e975ac58e2c07679fd930"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad9398e08e51715cf63aa7602c65d751b"><td class="memTemplParams" colspan="2"><a id="ad9398e08e51715cf63aa7602c65d751b"></a>
 template&lt;typename T &gt; </td></tr>
@@ -225,10 +219,81 @@ template&lt;typename T &gt; </td></tr>
 </blockquote>
 </dd>
 </dl>
-</div></div><!-- contents -->
+</div><h2 class="groupheader">Function Documentation</h2>
+<a id="file_aa3954b6c9bc14391bb7809ef06cb8103"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#file_aa3954b6c9bc14391bb7809ef06cb8103">&#9670;&nbsp;</a></span>round_div()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">HOST_DEVICE CONST_EXPR T xlib::round_div </td>
+          <td>(</td>
+          <td class="paramtype">T&#160;</td>
+          <td class="paramname"><em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">T&#160;</td>
+          <td class="paramname"><em>div</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>15 / 4 = 3.75 &ndash;&gt; 4 13 / 4 = 3.25 &ndash;&gt; 3 .0 to .0.4 round down, .5 to .9 round up </p>
+
+</div>
+</div>
+<a id="file_ae01ccf345e4e975ac58e2c07679fd930"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#file_ae01ccf345e4e975ac58e2c07679fd930">&#9670;&nbsp;</a></span>log2()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">T xlib::log2 </td>
+          <td>(</td>
+          <td class="paramtype">T&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>calculate the integer logarithm of 'value' </p>
+<dl class="section return"><dt>Returns</dt><dd>&lfloor; log2 ( value ) &rfloor; </dd></dl>
+
+</div>
+</div>
+</div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 21 2017 21:47:34 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Apr 26 2017 16:18:45 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

@@ -78,33 +78,25 @@ $(function() {
 <div class="title">Traverse.cuh File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;cuStingerAlg/cuStingerAlgConfig.cuh&quot;</code><br />
-<code>#include &quot;<a class="el" href="cuStingerConfig_8hpp_source.html">Core/cuStingerConfig.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="cuStingerTypes_8cuh.html">Core/cuStingerTypes.cuh</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="cuStingerTypes_8cuh.html">Core/cuStingerTypes.cuh</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="RawTypes_8hpp_source.html">Core/RawTypes.hpp</a>&quot;</code><br />
+<code>#include &quot;cuStingerAlg/cuStingerAlgConfig.cuh&quot;</code><br />
 <code>#include &quot;<a class="el" href="Definition_8cuh.html">Support/Device/Definition.cuh</a>&quot;</code><br />
-<code>#include &quot;Support/Device/PTX.cuh&quot;</code><br />
-<code>#include &quot;Support/Device/WarpScan.cuh&quot;</code><br />
+<code>#include &quot;<a class="el" href="PTX_8cuh.html">Support/Device/PTX.cuh</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="WarpScan_8cuh.html">Support/Device/WarpScan.cuh</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="MergePath_8cuh.html">Support/Device/MergePath.cuh</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="Numeric_8hpp_source.html">Support/Host/Numeric.hpp</a>&quot;</code><br />
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ac1a14847f9743a271db8d4b0d1df0e1a"><td class="memTemplParams" colspan="2"><a id="ac1a14847f9743a271db8d4b0d1df0e1a"></a>
-template&lt;unsigned ITEMS_PER_THREADS&gt; </td></tr>
-<tr class="memitem:ac1a14847f9743a271db8d4b0d1df0e1a"><td class="memTemplItemLeft" align="right" valign="top">__global__ void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>cu_stinger_alg::LoadBalancingExpand</b> (int work_size)</td></tr>
-<tr class="separator:ac1a14847f9743a271db8d4b0d1df0e1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1869541f230608ca47e29d1c99b6335d"><td class="memTemplParams" colspan="2"><a id="a1869541f230608ca47e29d1c99b6335d"></a>
+<tr class="memitem:a19a724ebcf8855abab5021a1495bb8b7"><td class="memTemplParams" colspan="2"><a id="a19a724ebcf8855abab5021a1495bb8b7"></a>
+template&lt;unsigned ITEMS_PER_BLOCK&gt; </td></tr>
+<tr class="memitem:a19a724ebcf8855abab5021a1495bb8b7"><td class="memTemplItemLeft" align="right" valign="top">__global__ void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>cu_stinger_alg::loadBalancingExpand</b> (int work_size)</td></tr>
+<tr class="separator:a19a724ebcf8855abab5021a1495bb8b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd37886781c1059c92ec5d87233aedb0"><td class="memTemplParams" colspan="2"><a id="abd37886781c1059c92ec5d87233aedb0"></a>
 template&lt;typename Operator , typename... TArgs&gt; </td></tr>
-<tr class="memitem:a1869541f230608ca47e29d1c99b6335d"><td class="memTemplItemLeft" align="right" valign="top">__global__ void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>cu_stinger_alg::LoadBalancingContract</b> (unsigned num_queue_edges, TArgs... args)</td></tr>
-<tr class="separator:a1869541f230608ca47e29d1c99b6335d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae103253f88a83b46bfcdc986bbafe6be"><td class="memTemplParams" colspan="2"><a id="ae103253f88a83b46bfcdc986bbafe6be"></a>
-template&lt;typename T , typename Operator &gt; </td></tr>
-<tr class="memitem:ae103253f88a83b46bfcdc986bbafe6be"><td class="memTemplItemLeft" align="right" valign="top">__global__ void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>cu_stinger_alg::forAllKernel</b> (T *array, int num_items, Operator op)</td></tr>
-<tr class="separator:ae103253f88a83b46bfcdc986bbafe6be"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5e860a49f17c93a4ad4a4945d9f45614"><td class="memTemplParams" colspan="2"><a id="a5e860a49f17c93a4ad4a4945d9f45614"></a>
-template&lt;typename Operator , typename T &gt; </td></tr>
-<tr class="memitem:a5e860a49f17c93a4ad4a4945d9f45614"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>cu_stinger_alg::forAll</b> (T *array, int num_items, Operator op)</td></tr>
-<tr class="separator:a5e860a49f17c93a4ad4a4945d9f45614"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd37886781c1059c92ec5d87233aedb0"><td class="memTemplItemLeft" align="right" valign="top">__global__ void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>cu_stinger_alg::loadBalancingContract</b> (unsigned num_queue_edges, TArgs... args)</td></tr>
+<tr class="separator:abd37886781c1059c92ec5d87233aedb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
@@ -114,12 +106,12 @@ __device__ int2&#160;</td><td class="memItemRight" valign="bottom"><b>cu_stinger
 <tr class="memitem:aa8313ead616f3c9e828ab4196d167276"><td class="memItemLeft" align="right" valign="top"><a id="aa8313ead616f3c9e828ab4196d167276"></a>
 __constant__ int *&#160;</td><td class="memItemRight" valign="bottom"><b>cu_stinger_alg::d_work</b> = nullptr</td></tr>
 <tr class="separator:aa8313ead616f3c9e828ab4196d167276"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adab0031f2c9b9fe85b6ff3abded19405"><td class="memItemLeft" align="right" valign="top"><a id="adab0031f2c9b9fe85b6ff3abded19405"></a>
+<tr class="memitem:a4180e992c5f5efb3dcf16ab534408d9a"><td class="memItemLeft" align="right" valign="top"><a id="a4180e992c5f5efb3dcf16ab534408d9a"></a>
 __constant__ <a class="el" href="config_8inc.html#ab4acf2b4e4dd8a30dc3383ab6d0de804">id_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>cu_stinger_alg::d_queue1</b> = nullptr</td></tr>
-<tr class="separator:adab0031f2c9b9fe85b6ff3abded19405"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4a109d839524319cac9d01f7d27d5c55"><td class="memItemLeft" align="right" valign="top"><a id="a4a109d839524319cac9d01f7d27d5c55"></a>
+<tr class="separator:a4180e992c5f5efb3dcf16ab534408d9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a62ecf35b881b3fe703999dcfa11c0113"><td class="memItemLeft" align="right" valign="top"><a id="a62ecf35b881b3fe703999dcfa11c0113"></a>
 __constant__ int2 *&#160;</td><td class="memItemRight" valign="bottom"><b>cu_stinger_alg::d_queue2</b> = nullptr</td></tr>
-<tr class="separator:a4a109d839524319cac9d01f7d27d5c55"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:a62ecf35b881b3fe703999dcfa11c0113"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><dl class="section author"><dt>Author</dt><dd>Federico Busato <br />
@@ -144,7 +136,7 @@ __constant__ int2 *&#160;</td><td class="memItemRight" valign="bottom"><b>cu_sti
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 21 2017 21:47:34 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Apr 26 2017 16:18:45 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

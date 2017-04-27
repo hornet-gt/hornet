@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['iadd3',['IADD3',['../namespacexlib.html#a388eb2aa365d5f93b49ade1504960b31',1,'xlib']]],
+  ['iadd3',['IADD3',['../PTX_8cuh.html#a388eb2aa365d5f93b49ade1504960b31',1,'xlib']]],
   ['id',['id',['../classcu__stinger_1_1Vertex.html#a45bea783c54772cb3fc1859af374744c',1,'cu_stinger::Vertex']]],
   ['insert',['insert',['../classcu__stinger_1_1BitTree.html#ab826805c6098d205325d9064bbed8c66',1,'cu_stinger::BitTree::insert()'],['../classcu__stinger_1_1MemoryManagement.html#a0b783ab596aecb4fb0f815ac3686c89a',1,'cu_stinger::MemoryManagement::insert()']]],
   ['insertedgedata',['insertEdgeData',['../classcu__stinger_1_1cuStingerInit.html#a0c7e20e31f020ad78f8757771f0160d3',1,'cu_stinger::cuStingerInit::insertEdgeData()'],['../classcu__stinger_1_1BatchUpdate.html#ad5f39a6b11d9d92308eaca72c6c302e9',1,'cu_stinger::BatchUpdate::insertEdgeData()']]],

@@ -41,14 +41,14 @@
  */
 #pragma once
 
-#include "Support/Host/Basic.hpp"            //xlib::byte_t
 #include "Support/Host/Metaprogramming.hpp"  //xlib::TupleToTypeSize
 #include "Support/Host/Numeric.hpp"          //xlib::roundup_pow2
+
+namespace cu_stinger {
 
 template<typename... TArgs>
 using TypeList = std::tuple<TArgs...>;
 
-namespace cu_stinger {
 //------------------------------------------------------------------------------
 
 //User configuration
@@ -56,10 +56,8 @@ namespace cu_stinger {
 
 //------------------------------------------------------------------------------
 
-using xlib::byte_t;
-
+using byte_t = char;
 using degree_t = int;
-using   edge_t = typename xlib::TupleConcat<TypeList<id_t>, EdgeTypes>::type;
 
 struct ALIGN(16) VertexBasicData {
     byte_t* __restrict__ edge_ptr;
@@ -69,43 +67,9 @@ struct ALIGN(16) VertexBasicData {
 using vertex_t = typename xlib::TupleConcat<TypeList<VertexBasicData>,
                                             VertexTypes>::type;
 
-//------------------------------------------------------------------------------
+using   edge_t = typename xlib::TupleConcat<TypeList<id_t>, EdgeTypes>::type;
 
-static_assert(xlib::IsPower2<MIN_EDGES_PER_BLOCK>::value  &&
-              xlib::IsPower2<EDGES_PER_BLOCKARRAY>::value &&
-              MIN_EDGES_PER_BLOCK <= EDGES_PER_BLOCKARRAY,
-              "Memory Management Constrains");
-
-static_assert(std::is_integral<id_t>::value, "id_t must be integral");
-static_assert(std::is_integral<off_t>::value, "off_t must be integral");
-
-static_assert(std::is_same<degree_t, int>::value ||
-              std::is_same<degree_t, unsigned>::value ||
-              std::is_same<degree_t, unsigned long long>::value,
-              "degree_t type must allows atomicAdd operation");
-
-//------------------------------------------------------------------------------
-
-using      VTypeSize = typename xlib::TupleToTypeSize<vertex_t>::type;
-using      ETypeSize = typename xlib::TupleToTypeSize<edge_t>::type;
-using ExtraVTypeSize = typename xlib::TupleToTypeSize<VertexTypes>::type;
-using ExtraETypeSize = typename xlib::TupleToTypeSize<EdgeTypes>::type;
-using    VTypeSizePS = typename xlib::ExcPrefixSum<VTypeSize>::type;
-using    ETypeSizePS = typename xlib::ExcPrefixSum<ETypeSize>::type;
-
-extern const VTypeSize      VTYPE_SIZE;
-extern const ETypeSize      ETYPE_SIZE;
-extern const ExtraVTypeSize EXTRA_VTYPE_SIZE;
-extern const ExtraETypeSize EXTRA_ETYPE_SIZE;
-
-extern const VTypeSizePS    VTYPE_SIZE_PS;
-extern const ETypeSizePS    ETYPE_SIZE_PS;
-
-const unsigned NUM_EXTRA_VTYPES = std::tuple_size<VertexTypes>::value;
-const unsigned NUM_EXTRA_ETYPES = std::tuple_size<EdgeTypes>::value;
-const unsigned       NUM_VTYPES = std::tuple_size<vertex_t>::value;
-const unsigned       NUM_ETYPES = std::tuple_size<edge_t>::value;
-
+#include "RawTypesUtil.hpp"
 //------------------------------------------------------------------------------
 
 namespace detail {

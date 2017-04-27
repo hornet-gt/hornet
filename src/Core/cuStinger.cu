@@ -33,25 +33,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Core/GlobalSpace.cuh"    //d_vertex_basic_ptr
 #include "Core/cuStinger.hpp"
-#include "Core/cuStingerTypes.cuh"          //VertexBasicData
+#include "GlobalSpace.cuh"          //d_nV
+#include "Core/cuStingerTypes.cuh"  //VertexBasicData
 
 namespace cu_stinger {
 
-__constant__ size_t  d_nV;
-
-__constant__ VertexBasicData* d_vertex_basic_ptr;
-__constant__ byte_t*          d_vertex_data_ptrs[NUM_VTYPES];
-
-//------------------------------------------------------------------------------
-
-void cuStinger::initializeVertexGlobal(byte_t* (&vertex_data_ptrs)[NUM_VTYPES])
-                                       noexcept {
+void cuStinger::initializeVertexGlobal(byte_t** h_vertex_data_ptrs) noexcept {
     cuMemcpyToSymbol(_nV, d_nV);
-    auto vertex_basic_ptr = reinterpret_cast<VertexBasicData*>(_d_vertices);
-    cuMemcpyToSymbol(vertex_basic_ptr, d_vertex_basic_ptr);
-    cuMemcpyToSymbol(vertex_data_ptrs, d_vertex_data_ptrs);
+    cuMemcpyToSymbol(h_vertex_data_ptrs, NUM_VTYPES, d_vertex_data_ptrs);
 }
 
 //==============================================================================

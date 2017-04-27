@@ -47,4 +47,4 @@ bool equal_sorted(HostIterator host_start, HostIterator host_end,
 
 } // namespace cu
 
-#include "impl/Algorithm.i.hpp"
+#include "impl/Algorithm.i.cuh"

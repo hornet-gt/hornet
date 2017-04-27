@@ -3,7 +3,7 @@
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
  * @date April, 2017
- * @version v1.3
+ * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
  *
@@ -33,37 +33,50 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Support/Host/Algorithm.hpp"       //xlib::equal_sorted
-#include "Support/Device/SafeFunctions.cuh" //cuMemcpyToHost
+#include "Csr/Csr.hpp"
+#include "GlobalSpace.cuh"          //d_nV
 
-namespace cu {
+namespace csr {
 
-template<typename HostIterator, typename DeviceIterator>
-bool equal(HostIterator host_start, HostIterator host_end,
-           DeviceIterator device_start) noexcept {
-    using R = typename std::iterator_traits<DeviceIterator>::value_type;
-    auto size = std::distance(host_start, host_end);
-    R* array = new R[size];
-    cuMemcpyToHost(&(*device_start), size, array);
-    CHECK_CUDA_ERROR
-
-    bool flag = std::equal(host_start, host_end, array);
-    delete[] array;
-    return flag;
+void Csr::initializeGlobal(byte_t* (&vertex_data_ptrs)[NUM_VTYPES],
+                           byte_t* (&edge_data_ptrs)[NUM_ETYPES]) noexcept {
+    cuMemcpyToSymbol(_nV, d_nV);
+    /*auto vertex_basic_ptr = reinterpret_cast<VertexBasicData*>(_d_vertices);
+    cuMemcpyToSymbol(vertex_basic_ptr, d_vertex_basic_ptr);
+    cuMemcpyToSymbol(vertex_data_ptrs, d_vertex_data_ptrs);
+    cuMemcpyToSymbol(edge_data_ptrs, d_edge_data_ptrs);*/
 }
 
-template<typename HostIterator, typename DeviceIterator>
-bool equal_sorted(HostIterator host_start, HostIterator host_end,
-                  DeviceIterator device_start) noexcept {
-    using R = typename std::iterator_traits<DeviceIterator>::value_type;
-    auto size = std::distance(host_start, host_end);
-    R* array = new R[size];
-    cuMemcpyToHost(&(*device_start), size, array);
-    CHECK_CUDA_ERROR
+//==============================================================================
 
-    bool flag = xlib::equal_sorted(host_start, host_end, array, array + size);
-    delete[] array;
-    return flag;
+__global__ void printKernel() {
+    /*for (id_t i = 0; i < d_nV; i++) {
+        auto vertex = Vertex(i);
+        auto degree = vertex.degree();
+        //auto field0 = vertex.field<0>();
+        printf("%d [%d, %d]:    ", i, vertex.degree(), vertex.limit());
+
+        for (degree_t j = 0; j < vertex.degree(); j++) {
+            auto   edge = vertex.edge(j);*/
+            /*auto weight = edge.weight();
+            auto  time1 = edge.time_stamp1();
+            auto field0 = edge.field<0>();
+            auto field1 = edge.field<1>();*/
+
+    //        printf("%d    ", edge.dst());
+        //    d_array[j] = edge.dst();
+    //    }
+    //    printf("\n");
+    //}
 }
 
-} // namespace cu
+void Csr::print() noexcept {
+    if (sizeof(degree_t) == 4 && sizeof(id_t) == 4) {
+        printKernel<<<1, 1>>>();
+        CHECK_CUDA_ERROR
+    }
+    else
+        WARNING("Graph print is enable only with degree_t/id_t of size 4 bytes")
+}
+
+} // namespace csr

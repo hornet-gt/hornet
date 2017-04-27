@@ -73,7 +73,6 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Data Structures</a> &#124;
-<a href="#namespaces">Namespaces</a> &#124;
 <a href="#define-members">Macros</a> &#124;
 <a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a>  </div>
@@ -85,18 +84,12 @@ $(function() {
 <code>#include &lt;cuda_runtime.h&gt;</code><br />
 <code>#include &lt;limits&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
-<code>#include &quot;impl/CudaUtil.i.cuh&quot;</code><br />
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structxlib_1_1numeric__limits.html">xlib::numeric_limits&lt; T &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classxlib_1_1deviceProperty.html">xlib::deviceProperty</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
-Namespaces</h2></td></tr>
-<tr class="memitem:namespacexlib"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacexlib.html">xlib</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
@@ -118,18 +111,6 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a633941ed1d3eb0e4bc72756ca6be1cbf"><td class="memTemplParams" colspan="2"><a id="a633941ed1d3eb0e4bc72756ca6be1cbf"></a>
-template&lt;bool FAULT = true, class iteratorA_t , class iteratorB_t &gt; </td></tr>
-<tr class="memitem:a633941ed1d3eb0e4bc72756ca6be1cbf"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>xlib::cuEqual</b> (iteratorA_t start_A, iteratorA_t end_A, iteratorB_t start_B)</td></tr>
-<tr class="separator:a633941ed1d3eb0e4bc72756ca6be1cbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a27f96071bffc379c404ea7639631aa67"><td class="memTemplParams" colspan="2"><a id="a27f96071bffc379c404ea7639631aa67"></a>
-template&lt;bool FAULT = true, class iteratorA_t , class iteratorB_t &gt; </td></tr>
-<tr class="memitem:a27f96071bffc379c404ea7639631aa67"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>xlib::cuEqual</b> (iteratorA_t start_A, iteratorA_t end_A, iteratorB_t start_B, bool(*equalFunction)(typename std::iterator_traits&lt; iteratorA_t &gt;::value_type, typename std::iterator_traits&lt; iteratorB_t &gt;::value_type))</td></tr>
-<tr class="separator:a27f96071bffc379c404ea7639631aa67"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af30240c07e5a6b25b0f6fff74e188cf5"><td class="memTemplParams" colspan="2"><a id="af30240c07e5a6b25b0f6fff74e188cf5"></a>
-template&lt;bool FAULT = true, class iteratorA_t , class iteratorB_t &gt; </td></tr>
-<tr class="memitem:af30240c07e5a6b25b0f6fff74e188cf5"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>xlib::cuEqualSorted</b> (iteratorA_t start_A, iteratorA_t end_A, iteratorB_t start_B)</td></tr>
-<tr class="separator:af30240c07e5a6b25b0f6fff74e188cf5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a68403e6a9cd00171558235f64730f7c3"><td class="memItemLeft" align="right" valign="top"><a id="a68403e6a9cd00171558235f64730f7c3"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>xlib::__getLastCudaError</b> (const char *error_message, const char *file, int line, const char *func_name)</td></tr>
 <tr class="separator:a68403e6a9cd00171558235f64730f7c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -217,7 +198,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>xlib::deviceInfo</b> 
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 21 2017 21:47:34 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Apr 26 2017 16:18:45 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

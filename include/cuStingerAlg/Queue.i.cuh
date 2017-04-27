@@ -84,7 +84,7 @@ __host__ inline void Queue::insert(const id_t* vertex_array, int size) noexcept{
     delete[] work;
 }
 
-__host__ inline int Queue::size() noexcept {
+__host__ inline int Queue::size() const noexcept {
     return _num_queue_vertices;
 }
 

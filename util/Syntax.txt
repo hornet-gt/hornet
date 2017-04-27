@@ -1,0 +1,7 @@
+
+Usage: ./cuStingerTest <graph_file> [ options ]
+
+Options:
+        --binary    Convert the input graph into a binary format and store it in
+                    the same directory (.bin extension)
+        --help      print this help

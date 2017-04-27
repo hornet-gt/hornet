@@ -41,11 +41,11 @@
 #include <cuda_runtime.h>
 #include <ostream>
 
-inline std::ostream& operator << (std::ostream& out, const uint2& value);
-inline std::ostream& operator << (std::ostream& out, const int4& value);
-inline std::ostream& operator << (std::ostream& out, const ulong2& value);
-inline std::ostream& operator << (std::ostream& out, const long2& value);
-inline std::ostream& operator << (std::ostream& out, const int2& value);
+inline std::ostream& operator<< (std::ostream& out, const uint2& value);
+inline std::ostream& operator<< (std::ostream& out, const int4& value);
+inline std::ostream& operator<< (std::ostream& out, const ulong2& value);
+inline std::ostream& operator<< (std::ostream& out, const long2& value);
+inline std::ostream& operator<< (std::ostream& out, const int2& value);
 
 HOST_DEVICE bool operator== (const int2& A, const int2& B);
 HOST_DEVICE bool operator!= (const int2& A, const int2& B);
@@ -85,13 +85,13 @@ HOST_DEVICE bool operator>= (const int4& A, const int4& B);
 namespace xlib {
 
 template<typename T>
-struct make2_str {
-    using type = typename std::nullptr_t;
+struct Make2Str {
+    using type = void;
 };
 
 template<typename T>
 __host__ __device__ __forceinline__
-typename make2_str<T>::type make2(T a, T b);
+typename Make2Str<T>::type make2(T a, T b);
 
 } // namespace xlib
 

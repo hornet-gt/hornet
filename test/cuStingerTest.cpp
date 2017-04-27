@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
     delete[] time_stamp;
     delete[] weights;
 
-    //custiger_graph.print();
+    custiger_graph.print();
     //--------------------------------------------------------------------------
 
     BatchUpdate batch_update(100);

@@ -13,18 +13,20 @@ The document is organized as follows:
 * Acknowledgements
 * License
 
-The syntax and the input parameters of cuSTINGER are explained in details in the `Syntax.txt` file or by typing `./cuStingerTest --help`.
+The syntax and the input parameters of cuSTINGER are explained in details in the `util/Syntax.txt` file or by typing `./cuStingerTest --help`.
 
-The code documentation is located in the `doc` directory (*doxygen* html format).
+The code documentation is located in the `docs` directory (*doxygen* html format).
 The documentation is also accessible online at this [**link**.](https://federicounivr.github.io/cuStinger/)
 
 ### Requirements ###
 
-* NVIDIA Modern GPU (compute capability > 3.0): Maxwell, Pascal architectures.
-* CUDA toolkit v7.5 or greater. (CUDA toolkit v8.0 recommended, CUDA toolkit v7.0 supported but not tested)
+* [NVIDIA Modern GPU](https://developer.nvidia.com/cuda-gpus) (compute capability > 3.0): Kerpler, Maxwell, Pascal architectures.
+* [CUDA toolkit](https://developer.nvidia.com/cuda-toolkit) v7.5 or greater. (CUDA toolkit v8.0 recommended, CUDA toolkit v7.0 supported but not tested)
 
-* GCC or Clang host compiler with support for C++11.
-* CMake v3.5 or greater.
+* GCC or [Clang](https://clang.llvm.org) host compiler with support for C++11<sup>*</sup>.
+* [CMake](https://cmake.org) v3.5 or greater.
+
+<sup>*The next release will be rewritten in C++14 (CUDA Toolkit v8.5). </sup>
 
 ### Supported graph formats ###
 
@@ -34,9 +36,9 @@ cuSTINGER supports the following graph input formats:
 * Metis (.graph), [10th DIMACS Implementation Challenge](http://www.cc.gatech.edu/dimacs10/)
 * SNAP (.txt), [Stanford Network Analysis Project](http://snap.stanford.edu/)
 * Dimacs9th (.gr), [9th DIMACS Implementation Challenge](http://www.dis.uniroma1.it/challenge9/)
-* Binary (.bin)
 * The Koblenz Network Collection (out.< name >), [The Koblenz Network Collection](http://konect.uni-koblenz.de/)
 * Network Data Repository (.edges), [Network Data Repository](http://networkrepository.com/index.php)
+* Binary (.bin)
 
 cuSTINGER directly deduces the graph structure (directed/undirected) from the input file header.
 
@@ -55,14 +57,14 @@ make -j
 ```
 ## Notes ##
 
-* The changelog can be fouund in the util directory (history.txt)
+* The changelog can be found here: [history](../../util/history.txt)
 * cuSTINGER has been written by adopting (when possible) the following coding styles:
     * [LLVM Coding Standards](http://llvm.org/docs/CodingStandards.html)
     * [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html)
 * cuSTINGER has been checked with the following tools to ensure the code quality:
     * [clang++: warnings](https://clang.llvm.org/docs/DiagnosticsReference.html)
     * [clang-tidy](http://clang.llvm.org/extra/clang-tidy/): warnings and code styles
-* cuSTINGER has been tested with the following tools: (see CodeCheck.txt for details)
+* cuSTINGER has been tested with the following tools: (see `util/CodeCheck.txt` for details)
     * [cuda-memcheck](http://docs.nvidia.com/cuda/cuda-memcheck/)
     * [valgrind v3.12](http://valgrind.org/)
     * [clang static analyzer v279](https://clang-analyzer.llvm.org/)
@@ -77,11 +79,22 @@ make -j
 If you find any bugs please report them by using the repository (github **issues** panel).
 We are also ready to engage in improving and extending the framework if you request some new features.
 
-Additional information on cuSTINGER can be found in the [HPEC'16 conference paper](https://www.researchgate.net/publication/308174457_cuSTINGER_Supporting_Dynamic_Graph_Algorithms_for_GPUs).
+## Publications ##
+
+* Oded Green, David A. Bader, [*cuSTINGER: Supporting dynamic graph algorithms for GPUs*](https://www.researchgate.net/publication/308174457_cuSTINGER_Supporting_dynamic_graph_algorithms_for_GPUs), IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September, 2016, Waltham, MA, USA, pp. 1-6.
+
 
 ---
-#### If you find this software useful in academic work, please acknowledge cuStinger. ####
+### <center>If you find this software useful in academic work, please acknowledge cuStinger. </center> ###
 ***
+
+## cuSTINGER Developers ##
+
+* *Oded Green*, Georgia Institute of Technology
+* *Federico Busato*, University of Verona (Italy)
+* *James Fox*, Georgia Institute of Technology
+* *Devavret Makkar*, Georgia Institute of Technology
+* ...
 
 ## License ##
 

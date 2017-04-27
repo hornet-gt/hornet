@@ -81,6 +81,10 @@ inline bool Structure::is_direction_set() const noexcept {
            static_cast<bool>(_state & static_cast<int>(Enum::UNDIRECTED));
 }
 
+inline bool Structure::is_weighted() const noexcept {
+    return _wtype != NONE;
+}
+
 inline void Structure::operator|=(int value) noexcept {
     _state &= ~3;   //clear DIRECTED/UNDIRECTED
     _state |= value;
@@ -96,12 +100,12 @@ inline GraphBase<id_t, off_t>::GraphBase(Structure structure) noexcept :
 
 template<typename id_t, typename off_t>
 inline id_t GraphBase<id_t, off_t>::nV() const noexcept {
-    return _V;
+    return _nV;
 }
 
 template<typename id_t, typename off_t>
 inline off_t GraphBase<id_t, off_t>::nE() const noexcept {
-    return _E;
+    return _nE;
 }
 
 template<typename id_t, typename off_t>

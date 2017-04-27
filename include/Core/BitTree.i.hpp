@@ -36,7 +36,7 @@
 #pragma once
 
 #include "Support/Host/Numeric.hpp"
-#include "Support/Device/SafeFunctions.cuh"
+#include "Support/Device/SafeCudaAPI.cuh"
 
 namespace cu_stinger {
 

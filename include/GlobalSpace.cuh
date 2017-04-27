@@ -35,13 +35,8 @@
  */
 #pragma once
 
-#include "Core/RawTypes.hpp"
-
-namespace cu_stinger {
+using byte_t = char;
 
 extern __constant__ size_t  d_nV;
-
-extern __constant__ VertexBasicData* d_vertex_basic_ptr;
-extern __constant__ byte_t*          d_vertex_data_ptrs[NUM_VTYPES];
-
-} // namespace cu_stinger
+extern __constant__ byte_t* d_vertex_data_ptrs[32];
+extern __constant__ byte_t* d_edge_data_ptrs[32];

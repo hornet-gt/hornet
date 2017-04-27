@@ -41,6 +41,10 @@
 #include "Core/MemoryManagement.hpp"
 #include <cstddef>                      //size_t
 
+namespace csr {
+    class Csr;
+}
+
 /**
  * @brief
  */
@@ -48,11 +52,13 @@ namespace cu_stinger {
 
 class cuStinger;
 
+
 /**
  * @brief cuStinger initialization class
  */
 class cuStingerInit {
     friend cuStinger;
+    friend csr::Csr;
 public:
     /**
      * @brief default costructor
@@ -106,22 +112,28 @@ public:
      */
     const off_t* csr_offsets() const noexcept;
 
+    /**
+     *
+     */
+    const id_t* csr_edges() const noexcept;
+
 private:
     /**
      * @internal
-     * @brief Array of pointers of the *additional* vertex data
+     * @brief Array of pointers of the *all* vertex data
      */
-    byte_t* _vertex_data_ptrs[ NUM_EXTRA_VTYPES ] = {};
+    byte_t* _vertex_data_ptrs[ NUM_VTYPES ] = {};
 
     /**
      * @internal
      * @brief Array of pointers of the *all* edge data
      */
-    byte_t*   _edge_data_ptrs[ NUM_ETYPES ] = {};
+    byte_t* _edge_data_ptrs[ NUM_ETYPES ] = {};
 
     size_t       _nV;
     size_t       _nE;
     const off_t* _csr_offsets;
+    const id_t*  _csr_edges;
 };
 
 //==============================================================================
@@ -156,6 +168,8 @@ public:
      */
     void check_consistency(const cuStingerInit& custinger_init) const noexcept;
 
+    void store_snapshot(const std::string& filename) const noexcept;
+
 private:
     MemoryManagement mem_management;
 
@@ -172,8 +186,9 @@ private:
      * @internal
      * @brief copy the vertex data pointers to the __constant__ memory
      */
-    void initializeVertexGlobal(byte_t* (&vertex_data_ptrs)[NUM_VTYPES])
-                                noexcept;
+    void initializeVertexGlobal(byte_t** h_vertex_data_ptrs) noexcept;
+
+    void convert_to_csr(off_t* csr_offsets, id_t* csr_edges) const noexcept;
 };
 
 //==============================================================================

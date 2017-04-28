@@ -24,6 +24,7 @@ int main(int argc, char* argv[]) {
 
     graph::GraphStd<cu_stinger::id_t, cu_stinger::off_t> graph;
     graph.read(argv[1]);
+    graph.print_raw();
 
     if (param.binary)
         graph.toBinary(xlib::extract_filepath_noextension(argv[1]) + ".bin");

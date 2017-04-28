@@ -33,41 +33,39 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Core/GlobalSpace.cuh"
+#include "GlobalSpace.cuh"
 
 namespace csr {
 
 __device__ __forceinline__
-Vertex::Vertex(id_t index) : _id(index) {
+Vertex::Vertex(id_t index) {
     assert(index < d_nV);
     xlib::SeqDev<VTypeSize> VTYPE_SIZE_D;
-    _vertex_ptr     = d_vertex_basic_ptr + index;
-    auto basic_data = *_vertex_ptr;
-
-    _degree   = basic_data.degree;
-    _limit    = detail::limit(_degree);
-    _edge_ptr = basic_data.edge_ptr;
+    auto v_offsets = reinterpret_cast<off2_t*>(d_vertex_data_ptrs[0])[index];
+    _degree        = v_offsets.y - v_offsets.x;
+    _id            = index;
+    _offset        = v_offsets.x;
     #pragma unroll
     for (int i = 0; i < NUM_EXTRA_VTYPES; i++)
-        _ptrs[i] = d_vertex_data_ptrs[i] + index * VTYPE_SIZE_D[i + 1];
+        _ptrs[i] = d_vertex_data_ptrs[i + 1] + index * VTYPE_SIZE_D[i + 1];
 }
 
 __device__ __forceinline__
 Edge Vertex::edge(degree_t index) const {
-    return Edge(_edge_ptr, index, _limit);
+    return Edge(_offset + index);
 }
 
 //==============================================================================
 
 __device__ __forceinline__
-Edge::Edge(byte_t* edge_ptr, degree_t index, degree_t limit) {
+Edge::Edge(degree_t index) {
     //Edge Type Sizes Prefixsum
-    xlib::SeqDev<ETypeSizePS> ETYPE_SIZE_PS_D;
+    xlib::SeqDev<ETypeSize> ETYPE_SIZE_D;
 
-    _dst = reinterpret_cast<id_t*>(edge_ptr)[index];
+    _dst = reinterpret_cast<id_t*>(d_edge_data_ptrs[0])[index];
     #pragma unroll
     for (int i = 0; i < NUM_EXTRA_ETYPES; i++)
-        _ptrs[i] = edge_ptr + limit * ETYPE_SIZE_PS_D[i + 1];
+        _ptrs[i] = d_edge_data_ptrs[i + 1] + index * ETYPE_SIZE_D[i + 1];
 }
 
 } // namespace csr

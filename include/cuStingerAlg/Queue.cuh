@@ -37,49 +37,27 @@
  */
 #pragma once
 
-#include <Core/cuStinger.hpp>        //cuStingerInit
-#include <Core/cuStingerTypes.cuh>   //Vertex, Edge
+#include <utility>      //std::pair
 
 namespace cu_stinger_alg {
-using cu_stinger::cuStingerInit;
-using cu_stinger::id_t;
-using cu_stinger::off_t;
-using cu_stinger::degree_t;
-using cu_stinger::Vertex;
-using cu_stinger::Edge;
 
+template<typename T>
 class Queue {
 public:
-    explicit Queue(const cuStingerInit& custinger_init,
-                   float allocation_factor = 2.0f) noexcept;
+    explicit Queue(size_t max_allocated_items) noexcept;
     ~Queue() noexcept;
 
-    __host__ void insert(id_t vertex_id)                     noexcept;
-    __host__ void insert(const id_t* vertex_array, int size) noexcept;
+    __host__ void insert(const T& item) noexcept;
+
+    __host__ void insert(const T* items_array, int num_items) noexcept;
 
     __host__ int size() const noexcept;
 
-    template<typename Operator, typename... TArgs>
-    __host__ void traverseAndFilter(TArgs... args) noexcept;
 private:
-    const  cuStingerInit& _custinger_init;
-    degree_t* _d_work             { nullptr };
-    id_t*     _d_queue1           { nullptr };
-    int2*     _d_queue2           { nullptr };
-    int*      _d_queue_counter    { nullptr };
-    int       _num_queue_vertices { 0 };
-    int       _num_queue_edges    { 0 };
-};
-
-//------------------------------------------------------------------------------
-
-class Allocate {
-public:
-    template<typename T>
-    Allocate(T*& pointer, size_t num_items) noexcept;
-    ~Allocate() noexcept;
-private:
-    void* _pointer;
+    std::pair<T*, T*> _d_queue         { nullptr, nullptr };
+    int*              _d_queue_counter { nullptr };
+    int               _size            { 0 };
+    bool              _inserted;
 };
 
 } // namespace cu_stinger_alg

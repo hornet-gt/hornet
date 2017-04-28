@@ -152,11 +152,11 @@ void threadPartition(const T* __restrict__ d_prefixsum, int psize,
     __syncthreads();
     //--------------------------------------------------------------------------
     //THREAD PARTITION
-	T  block_search_low = static_cast<T>(blockIdx.x) * ITEMS_PER_BLOCK;
-	T          searched = block_search_low +
+    T  block_search_low = static_cast<T>(blockIdx.x) * ITEMS_PER_BLOCK;
+    T          searched = block_search_low +
                           static_cast<T>(threadIdx.x) * ITEMS_PER_THREAD;
 
-	int      chunk_size = block_end_pos - block_start_pos + 2;
+    int      chunk_size = block_end_pos - block_start_pos + 2;
     const T*        ptr = d_prefixsum + block_start_pos;
 
     if (blockIdx.x == gridDim.x - 1)

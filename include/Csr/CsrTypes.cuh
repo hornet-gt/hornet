@@ -37,57 +37,23 @@
  */
 #pragma once
 
-namespace cu_stinger {
+#include "Csr/RawTypes.hpp"
+#include "Core/cuStingerTypes.cuh"
+
+namespace csr {
 
 class Edge;
-class VertexSet;
-class VertexIt;
-class EdgeIt;
 
 //==============================================================================
 
-class Vertex {
-    friend class VertexSet;
+class Vertex : public cu_stinger::Vertex {
     friend __global__ void printKernel();
-    //template<typename> friend __global__ cu_stinger_alg::LoadBalancingContract;
 public:
     /**
      * @brief Default costructor
      */
     __device__ __forceinline__
     Vertex(id_t index);
-
-    /**
-     * @brief
-     * @return
-     */
-    __device__ __forceinline__
-    degree_t id() const;
-
-    /**
-     * @brief Out-degree of the vertex
-     * @return out-degree of the vertex
-     */
-    __device__ __forceinline__
-    degree_t degree() const;
-
-    /**
-     * @brief  value of a user-defined vertex field
-     * @tparam INDEX index of the user-defined vertex field to return
-     * @return value of the user-defined vertex field at the index `INDEX`
-     *         (type at the index `INDEX` in the `EdgeTypes` list)
-     * @remark the method does not compile if the `VertexTypes` list does not
-     *         contain atleast `INDEX` fields
-     * @details **Example:**
-     * @code{.cpp}
-     *      Vertex vertex = ...
-     *      auto vertex_label = vertex.field<0>();
-     * @endcode
-     */
-    template<int INDEX>
-    __device__ __forceinline__
-    typename std::tuple_element<INDEX, VertexTypes>::type
-    field() const;
 
     /**
      * @brief Edge of the vertex
@@ -97,127 +63,19 @@ public:
      */
     __device__ __forceinline__
     Edge edge(off_t index) const;
-
-    ////__device__ __forceinline__
-    //Vertex();
 private:
-    VertexBasicData* _vertex_ptr;
-    byte_t*  _edge_ptr;
-    byte_t*  _ptrs[NUM_EXTRA_VTYPES];
-    id_t     _id;
-    degree_t _degree;
-    degree_t _limit;
+    off_t _offset;
 };
 
 //==============================================================================
 
-class Edge {
-    friend class Vertex;
-    using     WeightT = typename std::tuple_element<(NUM_ETYPES > 1 ? 1 : 0),
-                                                     edge_t>::type;
-    using TimeStamp1T = typename std::tuple_element<(NUM_ETYPES > 2 ? 2 : 0),
-                                                     edge_t>::type;
-    using TimeStamp2T = typename std::tuple_element<(NUM_ETYPES > 3 ? 3 : 0),
-                                                     edge_t>::type;
-
-    using     EnableWeight = typename std::conditional<(NUM_ETYPES > 1),
-                                                        int, void>::type;
-    using EnableTimeStamp1 = typename std::conditional<(NUM_ETYPES > 2),
-                                                        int, void>::type;
-    using EnableTimeStamp2 = typename std::conditional<(NUM_ETYPES > 3),
-                                                        int, void>::type;
-public:
-    /**
-     * @brief destination of the edge
-     * @return destination of the edge
-     */
-    __device__ __forceinline__
-    id_t dst() const;
-
-    /**
-     * @brief weight of the edge (if it exists)
-     * @return weight of the edge (first `EdgeTypes` type)
-     * @remark the method is disabled if the `EdgeTypes` list does not contain
-     *         atleast one field
-     * @details **Example:**
-     * @code{.cpp}
-     *      Edge edge = ...
-     *      auto edge_weight = edge.weight();
-     * @endcode
-     */
-    template<typename T = EnableWeight>
-    __device__ __forceinline__
-    WeightT weight() const;
-
-    /**
-     * @brief first time stamp of the edge
-     * @return first time stamp of the edge (second `EdgeTypes` type)
-     * @remark the method is disabled if the `EdgeTypes` list does not contain
-     *         atleast two fields
-     */
-    template<typename T = EnableTimeStamp1>
-    __device__ __forceinline__
-    TimeStamp1T time_stamp1() const;
-
-    /**
-     * @brief second time stamp of the edge
-     * @return second time stamp of the edge (third `EdgeTypes` list type)
-     * @remark the method is disabled if the `EdgeTypes` list does not contain
-     *         atleast three fields
-     */
-    template<typename T = EnableTimeStamp2>
-    __device__ __forceinline__
-    TimeStamp2T time_stamp2() const;
-
-    /**
-     * @brief  value of a user-defined edge field
-     * @tparam INDEX index of the user-defined edge field to return
-     * @return value of the user-defined edge field at the index `INDEX`
-     *         (type at the index `INDEX` in the `EdgeTypes` list)
-     * @remark the method does not compile if the `EdgeTypes` list does not
-     *         contain atleast `INDEX` fields
-     * @details **Example:**
-     * @code{.cpp}
-     * Edge edge = ...
-     *      auto edge_label = edge.field<0>();
-     * @endcode
-     */
-    template<int INDEX>
-    __device__ __forceinline__
-    typename std::tuple_element<INDEX, EdgeTypes>::type
-    field() const;
-
+class Edge : public cu_stinger::Edge {
+    friend class csr::Vertex;
 private:
-    id_t    _dst;
-    byte_t* _ptrs[NUM_EXTRA_ETYPES];
-
     __device__ __forceinline__
-    Edge(byte_t* block_ptr, degree_t index, degree_t limit);
+    Edge(degree_t index);
 };
 
-//==============================================================================
+} // namespace csr
 
-class VertexSet {
-public:
-    __device__ __forceinline__
-    VertexIt begin() const;
-
-    __device__ __forceinline__
-    VertexIt end() const;
-};
-
-//==============================================================================
-
-class VertexIt {
-
-};
-
-//================================================================s==============
-
-class EdgeIt {
-
-};
-
-} // namespace cu_stinger
-
-#include "cuStingerTypes.i.cuh"
+#include "CsrTypes.i.cuh"

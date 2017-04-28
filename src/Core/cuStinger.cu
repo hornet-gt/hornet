@@ -39,9 +39,10 @@
 
 namespace cu_stinger {
 
-void cuStinger::initializeVertexGlobal(byte_t** h_vertex_data_ptrs) noexcept {
+void cuStinger::initializeVertexGlobal(byte_t* (&vertex_data_ptrs)[NUM_VTYPES])
+                                       noexcept {
     cuMemcpyToSymbol(_nV, d_nV);
-    cuMemcpyToSymbol(h_vertex_data_ptrs, NUM_VTYPES, d_vertex_data_ptrs);
+    cuMemcpyToSymbol(vertex_data_ptrs, NUM_VTYPES, d_vertex_data_ptrs);
 }
 
 //==============================================================================

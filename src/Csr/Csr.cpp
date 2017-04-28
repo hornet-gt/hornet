@@ -46,11 +46,13 @@ Csr::Csr(const cu_stinger::cuStingerInit& custinger_init) noexcept :
                             _nV(custinger_init._nV),
                             _nE(custinger_init._nE) {
 
-    auto        csr_offsets = custinger_init._csr_offsets;
-    auto h_vertex_data_ptrs = custinger_init._vertex_data_ptrs;
-    auto   h_edge_data_ptrs = custinger_init._edge_data_ptrs;
+    auto      csr_offsets = custinger_init.csr_offsets();
+    auto h_edge_data_ptrs = custinger_init._edge_data_ptrs;
+    auto      vertex_data = custinger_init._vertex_data_ptrs;
+    const byte_t* h_vertex_data_ptrs[NUM_VTYPES];
+    std::copy(vertex_data, vertex_data + NUM_VTYPES, h_vertex_data_ptrs);
 
-    const auto lamba = [](byte_t* ptr) { return ptr != nullptr; };
+    const auto lamba = [](const byte_t* ptr) { return ptr != nullptr; };
     bool vertex_init_data = std::all_of(h_vertex_data_ptrs,
                                         h_vertex_data_ptrs + NUM_VTYPES, lamba);
     bool   edge_init_data = std::all_of(h_edge_data_ptrs,
@@ -75,6 +77,7 @@ Csr::Csr(const cu_stinger::cuStingerInit& custinger_init) noexcept :
     cuMalloc(_d_vertices, round_nV * sizeof(vertex_t));
 
     byte_t* d_vertex_data_ptrs[NUM_VTYPES];
+    h_vertex_data_ptrs[0] = reinterpret_cast<byte_t*>(csr2_offsets);
     for (int i = 0; i < NUM_VTYPES; i++) {
         d_vertex_data_ptrs[i] = _d_vertices + round_nV * VTYPE_SIZE_PS[i];
         cuMemcpyToDeviceAsync(h_vertex_data_ptrs[i], _nV * VTYPE_SIZE[i],

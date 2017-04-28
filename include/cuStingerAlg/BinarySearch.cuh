@@ -38,7 +38,6 @@
 #pragma once
 
 #include "Core/cuStingerTypes.cuh"
-#include "Core/RawTypes.hpp"
 #include "cuStingerAlg/cuStingerAlgConfig.cuh"
 #include "Support/Device/Definition.cuh"
 #include "Support/Device/PTX.cuh"
@@ -49,7 +48,7 @@
 /**
  * @brief
  */
-namespace cu_stinger_alg {
+namespace load_balacing {
 
 __device__   int2  d_queue_counter;
 __constant__ int*   d_work1 = nullptr;
@@ -57,21 +56,43 @@ __constant__ int*   d_work2 = nullptr;
 __constant__ id_t* d_queue1 = nullptr;
 __constant__ id_t* d_queue2 = nullptr;
 
+class DQueue {
+public:
+    __device__ __forceinline__
+    DQueue() {}
+
+    template<typename T>
+    __device__ __forceinline__
+    void insert(T item) {
+        inserted = true;
+    }
+
+    bool inserted = false;
+};
+
 /**
  * @brief
  */
-template<unsigned ITEMS_PER_BLOCK, typename Operator, typename... TArgs>
-__global__ void loadBalancingExpandContract(int work_size, TArgs... args) {
+template<unsigned ITEMS_PER_BLOCK, typename Operator,
+         typename T, typename... TArgs>
+__global__ void binarySearch(TArgs... args) {
+    using namespace cu_stinger_alg;
+    using namespace cu_stinger;
+    using cu_stinger::id_t;
+    //using namespace csr;
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
-
+    int work_size = 10;
+    
     const auto lambda = [&](int pos, degree_t offset) {
-        id_t dst_id;
+        id_t     dst_id;
         degree_t degree;
         if (pos != -1) {
+            DQueue dqueue;
             auto src_id = d_queue1[pos];
             Vertex src(src_id);
             Edge dst_edge = src.edge(offset);
-            auto     pred = Operator()(src, dst_edge, args...);
+            Operator::apply(src, dst_edge, dqueue, args...);
+            auto pred = true;//queue.inserted;
 
             dst_id = dst_edge.dst();
             Vertex dst_vertex(dst_id);
@@ -107,4 +128,4 @@ __global__ void loadBalancingExpandContract(int work_size, TArgs... args) {
     xlib::binarySearchLBWarp<BLOCK_SIZE>(d_work1, work_size, smem, lambda);
 }
 
-} // namespace cu_stinger_alg
+} // namespace load_balacing

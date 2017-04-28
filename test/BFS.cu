@@ -1,37 +1,39 @@
-#include "Core/cuStinger.hpp"           //cuStingerInit, cuStinger
-#include "cuStingerAlg/Queue2.cuh"      //Queue
+#include "cuStingerAlg/cuStingerAlg.cuh"      //cuStingerAlg
+#include "cuStingerAlg/Queue.cuh"       //Queue
 #include "cuStingerAlg/Operator.cuh"    //Operator
 #include "GraphIO/BFS.hpp"              //BFS
 #include "GraphIO/GraphStd.hpp"         //GraphStd
-//#include "GraphIO/GraphWeight.hpp"      //GraphWeight
 #include "Support/Device/Algorithm.cuh" //cu::equal
 #include "Support/Host/Timer.hpp"       //Timer
+#include "cuStingerAlg/BinarySearch.cuh"
 
-using namespace cu_stinger;
+//#include "Core/cuStinger.hpp"           //cuStingerInit, cuStinger
+#include "Csr/Csr.hpp"           //cuStingerInit, cuStinger
+#include "Csr/CsrTypes.cuh"           //cuStingerInit, cuStinger
+
+using namespace csr;
 using namespace cu_stinger_alg;
 using namespace timer;
+using namespace load_balacing;
 
-using     dist_t = int;
-const dist_t INF = std::numeric_limits<dist_t>::max();
+using dist_t = int;
 
+struct VertexInit;
 struct BFSOperatorAtomic;
 struct BFSOperatorNoAtomic;
-
-struct VertexInit {
-    __device__ __forceinline__
-    static void apply(dist_t& vertex_distance) {
-        vertex_distance = INF;
-    }
-};
 
 //==============================================================================
 
 int main(int argc, char* argv[]) {
+    using namespace cu_stinger;
     using cu_stinger::id_t;
     using cu_stinger::off_t;
+    cudaSetDevice(1);
     id_t bfs_source = 0;
     //--------------------------------------------------------------------------
+    //////////////
     // HOST BFS //
+    //////////////
     graph::GraphStd<id_t, off_t> graph;
     graph.read(argv[1]);
     graph::BFS<id_t, off_t> bfs(graph);
@@ -39,36 +41,44 @@ int main(int argc, char* argv[]) {
 
     auto h_distances = bfs.distances();
     //--------------------------------------------------------------------------
+    /////////////////
     // DEVICE INIT //
+    /////////////////
     cuStingerInit custinger_init(graph.nV(), graph.nE(),
                                  graph.out_offsets_array(),
                                  graph.out_edges_array());
-    cuStinger custiger_graph(custinger_init);
+    //cuStinger custiger_graph(custinger_init);
+    Csr csr_graph(custinger_init);
 
     dist_t* d_distances;
     Allocate alloc(d_distances, graph.nV());
     //--------------------------------------------------------------------------
+    //////////////
     // BFS INIT //
-    forAll<VertexInit>(d_distances, graph.nV());
-
+    //////////////
     forAllnumV<VertexInit>(d_distances);
-
-    Queue queue(custinger_init);
-    queue.insert(bfs_source);
-    //queue.insert(bfs_sources, num_sources);               // Multi-sources BFS
     cuMemcpyToDevice(0, d_distances + bfs_source);
     dist_t level = 1;
+    //load_balacing::BinarySearch traverse_edges;
+
+    Queue<id_t> queue(graph.nV() * 2);
+    queue.insert(bfs_source);
+    //queue.insert(bfs_sources, num_sources);               // Multi-sources BFS
 
     Timer<DEVICE> TM;
     TM.start();
     //--------------------------------------------------------------------------
+    ///////////////////
     // BFS ALGORITHM //
+    ///////////////////
     while (queue.size() > 0) {
-        queue.traverseAndFilter<BFSOperatorNoAtomic>(d_distances, level);
+        //traverse_edges<BFSOperatorNoAtomic>(queue, d_distances, level);
         level++;
     }
     //--------------------------------------------------------------------------
+    ////////////////////
     // BFS VALIDATION //
+    ////////////////////
     TM.stop();
     TM.print("BFS");
 
@@ -78,25 +88,40 @@ int main(int argc, char* argv[]) {
 }
 
 //------------------------------------------------------------------------------
+using csr::Vertex;
+using csr::Edge;
+
+const dist_t INF = std::numeric_limits<dist_t>::max();
+
+struct VertexInit {
+    __device__ __forceinline__
+    static void apply(dist_t& vertex_distance) {
+        vertex_distance = INF;
+    }
+};
 
 struct BFSOperatorAtomic {
     __device__ __forceinline__
-    bool operator()(Vertex src, Edge edge, dist_t* d_distances, dist_t level) {
+    static void apply(Vertex src, Edge edge, DQueue& queue,
+                      dist_t* d_distances, dist_t level) {
+
         auto dst = edge.dst();
         auto old = atomicCAS(d_distances + dst, INF, level);
-        return old == INF;
+        if (old == INF)
+            queue.insert(src.id());     // the vertex dst is active
     }
 };
 
 struct BFSOperatorNoAtomic {
     __device__ __forceinline__
-    bool operator()(Vertex src, Edge edge, dist_t* d_distances, dist_t level) {
+    static void apply(Vertex src, Edge edge, DQueue& queue,
+                      dist_t* d_distances, dist_t level) {
+
         auto dst = edge.dst();
         if (d_distances[dst] == INF) {
             d_distances[dst] = level;
-            return true;    // the vertex dst is active
+            queue.insert(src.id());    // the vertex dst is active
         }
-        return false;       // the vertex dst is not active
     }
 };
 

@@ -33,36 +33,67 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
+#include "cuStingerAlg/Traverse2.cuh"    //TraverseAndFilter
+
 namespace cu_stinger_alg {
 
 template<typename T>
-Queue<T>::Queue(size_t max_allocated_items) noexcept {
-    cuMalloc(_d_queue.first, max_allocated_items);
-    cuMalloc(_d_queue.second, max_allocated_items);
-    //cuMemcpyToSymbol(_d_queue, d_queue);
-    //cuMemcpyToSymbol(xlib::make2(0, 0), d_queue_counter);
+inline Queue<T>::Queue(const cuStingerInit& custinger_init,
+                    float allocation_factor) noexcept :
+                                _custinger_init(custinger_init) {
+    size_t nV = custinger_init.nV();
+    size_t nE = custinger_init.nE();
+    cuMalloc(_d_queue1, nV * allocation_factor);
+    cuMalloc(_d_queue2, nE * allocation_factor);
+    cuMalloc(_d_work1, nV * allocation_factor);
+    cuMalloc(_d_work2, nV * allocation_factor);
+    cuMemcpyToSymbol(_d_queue1, d_queue1);
+    cuMemcpyToSymbol(_d_queue2, d_queue2);
+    cuMemcpyToSymbol(_d_work1, d_work1);
+    cuMemcpyToSymbol(_d_work2, d_work2);
+    cuMemcpyToSymbol(xlib::make2(0, 0), d_queue_counter);
+    //cuMemset0x00(_d_work1, nV * allocation_factor);
 }
 
 template<typename T>
 inline Queue<T>::~Queue() noexcept {
-    cuFree(_d_queue.first, _d_queue.second);
+    cuFree(_d_queue1, _d_queue2, _d_work1, _d_work2);
 }
 
 template<typename T>
-__host__ void Queue<T>::insert(const T& item) noexcept {
-    cuMemcpyToDeviceAsync(item, _d_queue.first);
+__host__ inline void Queue<T>::insert(id_t vertex_id) noexcept {
+    degree_t work[2] = {};
+    auto csr_offsets = _custinger_init.csr_offsets();
+    work[1] = csr_offsets[vertex_id + 1] -  csr_offsets[vertex_id];
+    cuMemcpyToDeviceAsync(vertex_id, _d_queue1);
+    cuMemcpyToDeviceAsync(work, _d_work1);
+    _num_queue_vertices = 1;
+    _num_queue_edges    = work[1];
 }
 
 template<typename T>
-__host__ inline void Queue<T>::insert(const T* items_array, int num_items)
-                                      noexcept {
-    cuMemcpyToDeviceAsync(items_array, num_items, _d_queue.first);
-    _size = num_items;
+__host__ inline void Queue<T>::insert(const id_t* vertex_array, int size) noexcept{
+    auto        work = new degree_t[size];
+    auto csr_offsets = _custinger_init.csr_offsets();
+
+    work[0] = 0;
+    for (int i = 0; i < size; i++) {
+        id_t vertex_id = vertex_array[i];
+        work[i + 1]    = csr_offsets[vertex_id + 1] - csr_offsets[vertex_id];
+    }
+    std::partial_sum(work + 1, work + size + 1, work);
+    _num_queue_vertices = size;
+    _num_queue_edges    = work[size];
+
+    cuMemcpyToDeviceAsync(vertex_array, size, _d_queue1);
+    cuMemcpyToDeviceAsync(work, size, _d_work1);
+    delete[] work;
 }
 
 template<typename T>
-__host__ int Queue<T>::size() const noexcept {
-    return _size;
+__host__ __device__ __forceinline__
+int Queue<T>::size() const noexcept {
+    return _num_queue_vertices;
 }
 /*
 template<typename Operator, typename... TArgs>
@@ -104,5 +135,6 @@ inline void Queue::traverseAndFilter(TArgs... args) noexcept {
     flag ^= 1;
 }
 */
+
 
 } // namespace cu_stinger_alg

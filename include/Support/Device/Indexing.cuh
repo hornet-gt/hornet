@@ -53,7 +53,7 @@ struct ThreadToWarpIndexing {
     __device__ __forceinline__ static
     void run(T (&reg)[ITEMS_PER_THREAD], void* smem_thread, void* smem_warp) {
         #pragma unroll
-     	for (int i = 0; i < ITEMS_PER_THREAD; i++)
+         for (int i = 0; i < ITEMS_PER_THREAD; i++)
             static_cast<T*>(smem_thread)[i] = reg[i];
         #pragma unroll
         for (int i = 0; i < ITEMS_PER_THREAD; i++)
@@ -72,7 +72,7 @@ struct ThreadToWarpIndexing {
         if (static_cast<int>(lane_id()) >= LEFT_BOUND &&
                 lane_id() < RIGHT_BOUND) {
             #pragma unroll
-         	for (int i = 0; i < ITEMS_PER_THREAD; i++)
+             for (int i = 0; i < ITEMS_PER_THREAD; i++)
                 smem_thread[i] = reg_in[i];
         }
         #pragma unroll

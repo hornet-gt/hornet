@@ -46,6 +46,7 @@
     - new memory management
     - consistency checking
     - Store cuStinger graph snapshot to disk
+    - CSR representation
 - Added online documentation
 
 TO DO:
@@ -56,7 +57,7 @@ TO DO:
     - Compression
     - slightly improve load balancing: upper_bound early exit, variable partitioning
     - Kernel Range-loop iterators
-    - CSR representation
+    - Understand performance difference between CSR and Helix
     - SpMV
     - Faster Initialization
 * Others

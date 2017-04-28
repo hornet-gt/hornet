@@ -38,5 +38,6 @@
 using byte_t = char;
 
 extern __constant__ size_t  d_nV;
+extern __constant__ size_t  d_nE;
 extern __constant__ byte_t* d_vertex_data_ptrs[32];
 extern __constant__ byte_t* d_edge_data_ptrs[32];

@@ -36,5 +36,6 @@
 #include "GlobalSpace.cuh"
 
 __constant__ size_t  d_nV;
+__constant__ size_t  d_nE;
 __constant__ byte_t* d_vertex_data_ptrs[32] = {};
 __constant__ byte_t* d_edge_data_ptrs[32]   = {};

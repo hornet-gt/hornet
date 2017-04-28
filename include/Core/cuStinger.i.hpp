@@ -51,7 +51,7 @@ void cuStingerInit::insertVertexData(TArgs... vertex_data) noexcept {
     static_assert(xlib::tuple_compare<VertexTypes, T>::value,
                   "Incorrect Vertex data type");
 
-    bind(_vertex_data_ptrs, vertex_data...);
+    bind<1>(_vertex_data_ptrs, vertex_data...);
 }
 
 template<typename... TArgs>

@@ -37,6 +37,8 @@
  */
 #pragma once
 
+#include "Core/RawTypes.hpp"
+
 namespace cu_stinger {
 
 class Edge;
@@ -98,14 +100,17 @@ public:
     __device__ __forceinline__
     Edge edge(off_t index) const;
 
-    ////__device__ __forceinline__
-    //Vertex();
+protected:
+    id_t     _id;
+    degree_t _degree;
+    byte_t*  _ptrs[NUM_EXTRA_VTYPES];
+
+    __device__ __forceinline__
+    Vertex() {}
+
 private:
     VertexBasicData* _vertex_ptr;
     byte_t*  _edge_ptr;
-    byte_t*  _ptrs[NUM_EXTRA_VTYPES];
-    id_t     _id;
-    degree_t _degree;
     degree_t _limit;
 
     __device__ __forceinline__
@@ -196,10 +201,13 @@ public:
     typename std::tuple_element<INDEX, EdgeTypes>::type
     field() const;
 
-private:
+protected:
     id_t    _dst;
     byte_t* _ptrs[NUM_EXTRA_ETYPES];
 
+    __device__ __forceinline__
+    Edge() {}
+private:
     __device__ __forceinline__
     Edge(byte_t* block_ptr, degree_t index, degree_t limit);
 };

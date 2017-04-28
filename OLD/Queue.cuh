@@ -54,19 +54,18 @@ public:
                    float allocation_factor = 2.0f) noexcept;
     ~Queue() noexcept;
 
-    __host__ void insert(id_t vertex_id) noexcept;
+    __host__ void insert(id_t vertex_id)                     noexcept;
     __host__ void insert(const id_t* vertex_array, int size) noexcept;
 
-    __host__ int size() noexcept;
+    __host__ int size() const noexcept;
 
     template<typename Operator, typename... TArgs>
     __host__ void traverseAndFilter(TArgs... args) noexcept;
 private:
     const  cuStingerInit& _custinger_init;
-    degree_t* _d_work1            { nullptr };
-    degree_t* _d_work2            { nullptr };
+    degree_t* _d_work             { nullptr };
     id_t*     _d_queue1           { nullptr };
-    id_t*     _d_queue2           { nullptr };
+    int2*     _d_queue2           { nullptr };
     int*      _d_queue_counter    { nullptr };
     int       _num_queue_vertices { 0 };
     int       _num_queue_edges    { 0 };
@@ -85,4 +84,4 @@ private:
 
 } // namespace cu_stinger_alg
 
-#include "Queue2.i.cuh"
+#include "Queue.i.cuh"

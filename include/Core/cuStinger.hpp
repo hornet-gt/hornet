@@ -122,18 +122,16 @@ private:
      * @internal
      * @brief Array of pointers of the *all* vertex data
      */
-    byte_t* _vertex_data_ptrs[ NUM_VTYPES ] = {};
+    const byte_t* _vertex_data_ptrs[ NUM_VTYPES ] = {};
 
     /**
      * @internal
      * @brief Array of pointers of the *all* edge data
      */
-    byte_t* _edge_data_ptrs[ NUM_ETYPES ] = {};
+    const byte_t* _edge_data_ptrs[ NUM_ETYPES ] = {};
 
     size_t       _nV;
     size_t       _nE;
-    const off_t* _csr_offsets;
-    const id_t*  _csr_edges;
 };
 
 //==============================================================================
@@ -186,7 +184,8 @@ private:
      * @internal
      * @brief copy the vertex data pointers to the __constant__ memory
      */
-    void initializeVertexGlobal(byte_t** h_vertex_data_ptrs) noexcept;
+    void initializeVertexGlobal(byte_t* (&vertex_data_ptrs)[NUM_VTYPES])
+                                noexcept;
 
     void convert_to_csr(off_t* csr_offsets, id_t* csr_edges) const noexcept;
 };

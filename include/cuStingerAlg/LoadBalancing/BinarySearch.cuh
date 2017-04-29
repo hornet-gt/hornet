@@ -37,29 +37,23 @@
  */
 #pragma once
 
-#include <utility>      //std::pair
+/**
+ * @brief
+ */
+namespace load_balacing {
 
-namespace cu_stinger_alg {
+__constant__ int* d_work1 = nullptr;
+__constant__ int* d_work2 = nullptr;
 
-template<typename T>
-class Queue {
+class BinarySearch {
 public:
-    explicit Queue(size_t max_allocated_items) noexcept;
-    ~Queue() noexcept;
+    explicit BinarySearch() noexcept;
+    ~BinarySearch() noexcept;
 
-    __host__ void insert(const T& item) noexcept;
-
-    __host__ void insert(const T* items_array, int num_items) noexcept;
-
-    __host__ int size() const noexcept;
-
-private:
-    std::pair<T*, T*> _d_queue         { nullptr, nullptr };
-    int*              _d_queue_counter { nullptr };
-    int               _size            { 0 };
-    bool              _inserted;
+    template<void (*)(Vertex, Edge, void*) Operator>
+    void traverse_edges(void* optional_field);
 };
 
-} // namespace cu_stinger_alg
+} // namespace load_balacing
 
-#include "Queue.i.cuh"
+#include "cuStingerAlg/LoadBalacing/BinarySearch.i.cuh"

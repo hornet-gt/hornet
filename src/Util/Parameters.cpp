@@ -49,7 +49,7 @@ Param::Param(int argc, char* argv[]) : //strategy(Strategy::UNDEF),
                                        spmv(false),
                                        binary(false) {
     if (argc == 1) {
-L1:     std::ifstream syntax_file("../util/Syntax.txt");
+L1:     std::ifstream syntax_file("../docs/Syntax.txt");
         std::cout << syntax_file.rdbuf() << "\n\n";
         syntax_file.close();
         std::exit(EXIT_SUCCESS);

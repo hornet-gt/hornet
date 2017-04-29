@@ -35,10 +35,9 @@
  *
  * @file
  */
-#pragma once
-
 #include "Core/cuStingerTypes.cuh"
 #include "cuStingerAlg/cuStingerAlgConfig.cuh"
+#include "cuStingerAlg/DeviceQueue.cuh"
 #include "Support/Device/Definition.cuh"
 #include "Support/Device/PTX.cuh"
 #include "Support/Device/WarpScan.cuh"
@@ -50,49 +49,38 @@
  */
 namespace load_balacing {
 
-__device__   int2  d_queue_counter;
-__constant__ int*   d_work1 = nullptr;
-__constant__ int*   d_work2 = nullptr;
-__constant__ id_t* d_queue1 = nullptr;
-__constant__ id_t* d_queue2 = nullptr;
-
-class DQueue {
-public:
-    __device__ __forceinline__
-    DQueue() {}
-
-    template<typename T>
-    __device__ __forceinline__
-    void insert(T item) {
-        inserted = true;
-    }
-
-    bool inserted = false;
-};
+using cu_stinger::Vertex;
 
 /**
  * @brief
  */
 template<unsigned ITEMS_PER_BLOCK, typename Operator,
-         typename T, typename... TArgs>
-__global__ void binarySearch(TArgs... args) {
+         typename... TArgs>
+__global__ void binarySearchKernel(int work_size, TArgs... args) {
     using namespace cu_stinger_alg;
     using namespace cu_stinger;
     using cu_stinger::id_t;
     //using namespace csr;
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
-    int work_size = 10;
-    
-    const auto lambda = [&](int pos, degree_t offset) {
+
+    DeviceQueue<cu_stinger::id_t> queue;
+    ptr2_t<id_t>& queue_ptrs = reinterpret_cast<ptr2_t<id_t>&>(d_queue_ptrs);
+    work_t& work_ptrs = d_work;
+    id_t*&   d_queue1 = queue_ptrs.first;
+    id_t*&   d_queue2 = queue_ptrs.second;
+    int*&     d_work1 = work_ptrs.first;
+    int*&     d_work2 = work_ptrs.second;
+
+    auto lambda = [&](int pos, degree_t offset) {
         id_t     dst_id;
         degree_t degree;
         if (pos != -1) {
-            DQueue dqueue;
             auto src_id = d_queue1[pos];
             Vertex src(src_id);
             Edge dst_edge = src.edge(offset);
-            Operator::apply(src, dst_edge, dqueue, args...);
-            auto pred = true;//queue.inserted;
+            Operator::apply(src, dst_edge, queue, args...);
+            auto pred = queue.size();
+            queue.clear();
 
             dst_id = dst_edge.dst();
             Vertex dst_vertex(dst_id);
@@ -111,7 +99,7 @@ __global__ void binarySearch(TArgs... args) {
             int2      info = xlib::make2(num_active_nodes, total_sum);
             auto  to_write = reinterpret_cast<long long unsigned&>(info);
             auto       old = atomicAdd(reinterpret_cast<long long unsigned*>
-                                       (&d_queue_counter), to_write);
+                                       (&d_counters), to_write);
             auto      old2 = reinterpret_cast<int2&>(old);
             queue_offset   = old2.x;
             prefix_sum_old = old2.y;

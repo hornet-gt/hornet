@@ -52,7 +52,7 @@ void printArray(const T (&d_array)[SIZE], const std::string& str = "",
                 char sep = ' ') noexcept;
 
 template<class T>
-void printSymbol(const T& d_array, const std::string& str = "") noexcept;
+void printSymbol(const T& d_symbol, const std::string& str = "") noexcept;
 
 } // namespace cu
 

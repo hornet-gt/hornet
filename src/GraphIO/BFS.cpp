@@ -118,7 +118,8 @@ BFS<id_t, off_t>::eccentricity() const noexcept {
 }
 
 template<typename id_t, typename off_t>
-std::vector<std::array<id_t, 4>> BFS<id_t, off_t>::statistics(id_t source) noexcept {
+std::vector<std::array<id_t, 4>>
+BFS<id_t, off_t>::statistics(id_t source) noexcept {
     if (!_reset)
         ERROR("BFS must be reset before the next run")
     std::vector<std::array<id_t, 4>> statistics;

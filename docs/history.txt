@@ -24,7 +24,7 @@
 * Added empty build direcory
 * Added doxygen configuration file (user/developer)
 * Added script to download University of Florida sparse matrices
-* Added a two small graph examples (.mtxm .gr)
+* Added a three small graph examples (.mtx .gr)
 * Code Refactoring: (Google/LLVM style)
     - Substituted tab '\t' with 4 spaces
     - 80 columns max
@@ -34,6 +34,7 @@
     - typename -> using
     - malloc/free -> new/delete
     - reinterpret_cast, static_cast and const_cast instead of old style cast
+    - Includes in alphabetical order
 * Code convention in addition to LLVM/Google
     - _var for private variables
     - d_var for device variables and h_var for host variables
@@ -44,22 +45,25 @@
     - external configuration "config.inc"
     - improved load balancing
     - new memory management
-    - consistency checking
-    - Store cuStinger graph snapshot to disk
+    - graph consistency checking
+    - store cuStinger graph snapshot to disk
     - CSR representation
+    - Parsing of weighted graphs
 - Added online documentation
 
 TO DO:
 * Code Related:
     - Consistent APIs
+    - Working algorithms
+    - Compression
     - Insert new vertices
     - Batch equal operators
-    - Compression
-    - slightly improve load balancing: upper_bound early exit, variable partitioning
+    - Slightly improve load balancing: upper_bound early exit, variable host partitioning
     - Kernel Range-loop iterators
     - Understand performance difference between CSR and Helix
     - SpMV
-    - Faster Initialization
+    - Faster Initialization (device allocation)
+    - Support 2^64 edges
 * Others
     - Regression test (ctest)
     - Add class diagram to doxygen

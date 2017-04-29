@@ -3,7 +3,7 @@
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
  * @date April, 2017
- * @version v1.3
+ * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
  *
@@ -32,38 +32,44 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
+ *
+ * @file
  */
-#include "Support/Host/PrintExt.hpp"        //xlib::printArray
-#include "Support/Device/SafeCudaAPI.cuh"   //cuMemcpyFromSymbol
+#pragma once
 
-namespace cu {
+namespace cu_stinger_alg {
 
-template<class T>
-void printArray(const T* d_array, size_t size, const std::string& str,
-                char sep) noexcept {
-    auto h_array = new T[size];
-    cuMemcpyToHost(d_array, size, h_array);
+template<typename T, int SIZE = 1>
+class DeviceQueue {
+public:
+    __device__ __forceinline__
+    DeviceQueue();
 
-    xlib::printArray(h_array, size, str, sep);
-    delete[] h_array;
-}
+    __device__ __forceinline__
+    DeviceQueue(T*   __restrict__ queue_ptr,
+                int* __restrict__ size_ptr);
 
-template<class T, int SIZE>
-void printArray(const T (&d_array)[SIZE], const std::string& str, char sep)
-                noexcept {
-    auto h_array = new T[SIZE];
-    cuMemcpyFromSymbol(d_array, h_array);
+    __device__ __forceinline__
+    void insert(T item);
 
-    xlib::printArray(h_array, SIZE, str, sep);
-    delete[] h_array;
-}
+    __device__ __forceinline__
+    int size() const;
 
-template<class T>
-void printSymbol(const T& d_symbol, const std::string& str) noexcept {
-    T h_data;
-    cuMemcpyFromSymbol(d_symbol, h_data);
+    __device__ __forceinline__
+    void clear();
 
-    std::cout << str << h_data << std::endl;
-}
+    __device__ __forceinline__
+    void store_localqueue();
 
-} // namespace cu
+    __device__ __forceinline__
+    void store_ballot();
+private:
+    T*   _queue_ptr;
+    int* _size_ptr;
+    T    _queue[SIZE];
+    int  _size { 0 };
+};
+
+} // namespace cu_stinger_alg
+
+#include "DeviceQueue.i.cuh"

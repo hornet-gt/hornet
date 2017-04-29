@@ -33,76 +33,85 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
+#include "Support/Device/PrintExt.cuh"      //cu::printArray
+#include "Support/Device/SafeCudaAPI.cuh"   //cuMemcpyToDeviceAsync
+
+
 namespace cu_stinger_alg {
 
 template<typename T>
-Queue<T>::Queue(size_t max_allocated_items) noexcept {
+inline void ptr2_t<T>::swap() noexcept {
+    std::swap(first, second);
+}
+
+template<typename T>
+TwoLevelQueue<T>::TwoLevelQueue(size_t max_allocated_items) noexcept :
+                                     _max_allocated_items(max_allocated_items) {
     cuMalloc(_d_queue.first, max_allocated_items);
     cuMalloc(_d_queue.second, max_allocated_items);
-    //cuMemcpyToSymbol(_d_queue, d_queue);
-    //cuMemcpyToSymbol(xlib::make2(0, 0), d_queue_counter);
+    auto queue_ptrs = reinterpret_cast<ptr2_t<void>&>(_d_queue);
+    cuMemcpyToSymbol(queue_ptrs, d_queue_ptrs);
+    cuMemcpyToSymbol(0, d_queue_counter);
 }
 
 template<typename T>
-inline Queue<T>::~Queue() noexcept {
+inline TwoLevelQueue<T>::~TwoLevelQueue() noexcept {
     cuFree(_d_queue.first, _d_queue.second);
+    delete[] _host_data;
 }
 
 template<typename T>
-__host__ void Queue<T>::insert(const T& item) noexcept {
+__host__ void TwoLevelQueue<T>::insert(const T& item) noexcept {
     cuMemcpyToDeviceAsync(item, _d_queue.first);
+    _size = 1;
 }
 
 template<typename T>
-__host__ inline void Queue<T>::insert(const T* items_array, int num_items)
-                                      noexcept {
+__host__ inline void TwoLevelQueue<T>
+::insert(const T* items_array,int num_items) noexcept {
     cuMemcpyToDeviceAsync(items_array, num_items, _d_queue.first);
     _size = num_items;
 }
 
 template<typename T>
-__host__ int Queue<T>::size() const noexcept {
+__host__ int TwoLevelQueue<T>::size() const noexcept {
     return _size;
 }
-/*
-template<typename Operator, typename... TArgs>
-inline void Queue::traverseAndFilter(TArgs... args) noexcept {
-    //static int level = 0;
-    static int flag = 0;
-    const int ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, id_t>::value;
-    int grid_size = xlib::ceil_div<ITEMS_PER_BLOCK>(_num_queue_edges);
-    if (PRINT_VERTEX_FRONTIER)
-        xlib::printCudaArray(_d_queue1, _num_queue_vertices);
-    //std::cout << level++ << "\t" << _num_queue_vertices << std::endl;
 
-    loadBalancingExpandContract<ITEMS_PER_BLOCK, Operator>
-        <<< grid_size, BLOCK_SIZE >>> (_num_queue_vertices + 1, args...);
-
-    if (CHECK_CUDA_ERROR1)
-        CHECK_CUDA_ERROR
-
-    int2 frontier_info;
-    cuMemcpyFromSymbolAsync(d_queue_counter, frontier_info);
-    _num_queue_vertices = frontier_info.x;
-    _num_queue_edges    = frontier_info.y;
-    cuMemcpyToSymbolAsync(xlib::make2(0, 0), d_queue_counter);
-
-    if (flag) {
-        cuMemcpyToDeviceAsync(_num_queue_edges, _d_work1 + _num_queue_vertices);
-        cuMemcpyToSymbolAsync(_d_queue1, d_queue1);
-        cuMemcpyToSymbolAsync(_d_queue2, d_queue2);
-        cuMemcpyToSymbolAsync(_d_work1, d_work1);
-        cuMemcpyToSymbolAsync(_d_work2, d_work2);
-    }
-    else {
-        cuMemcpyToDeviceAsync(_num_queue_edges, _d_work2 + _num_queue_vertices);
-        cuMemcpyToSymbolAsync(_d_queue2, d_queue1);
-        cuMemcpyToSymbolAsync(_d_queue1, d_queue2);
-        cuMemcpyToSymbolAsync(_d_work2, d_work1);
-        cuMemcpyToSymbolAsync(_d_work1, d_work2);
-    }
-    flag ^= 1;
+template<typename T>
+__host__ int TwoLevelQueue<T>::max_allocated_items() const noexcept {
+    return _max_allocated_items;
 }
-*/
+/*
+template<typename T>
+__host__ int TwoLevelQueue<T>::update_size() noexcept {
+    cuMemcpyFromSymbolAsync(d_queue_counter, _size);
+    return _size;
+}*/
+
+template<typename T>
+__host__ void TwoLevelQueue<T>::update_size(int size) noexcept {
+    _size = size;
+}
+
+template<typename T>
+__host__ void TwoLevelQueue<T>::swap() noexcept {
+    _d_queue.swap();
+    auto queue_ptrs = reinterpret_cast<ptr2_t<void>&>(_d_queue);
+    cuMemcpyToSymbolAsync(queue_ptrs, d_queue_ptrs);
+}
+
+template<typename T>
+__host__ const T* TwoLevelQueue<T>::host_data() noexcept {
+    if (_host_data == nullptr)
+        _host_data = new T[_max_allocated_items];
+    cuMemcpyToHost(_d_queue.second, _size, _host_data);
+    return _host_data;
+}
+
+template<typename T>
+__host__ void TwoLevelQueue<T>::print() const noexcept {
+    cu::printArray(_d_queue.first, _size);
+}
 
 } // namespace cu_stinger_alg

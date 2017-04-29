@@ -235,7 +235,7 @@ template<typename T>
 inline void cuMemcpyToHostAux(const char* file, int line,
                               const char* func_name,
                               const T* input, size_t num_items, T* output) {
-    assert(num_items > 0 && input != nullptr && output!= nullptr);
+    assert(num_items > 0 && input != nullptr && output != nullptr);
     xlib::__cudaErrorHandler(cudaMemcpy(output, input, num_items * sizeof(T),
                                         cudaMemcpyDeviceToHost),
                             "cudaMemcpy(ToHost)", file, line, func_name);

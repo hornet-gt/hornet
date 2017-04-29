@@ -151,7 +151,7 @@ template<typename T>
 HOST_DEVICE void
 printBits(T* array, int size);
 //------------------------------------------------------------------------------
-
+/*
 #if defined(__NVCC__)
 
 template<class T>
@@ -166,7 +166,7 @@ template<class T, int SIZE>
 void printCudaSymbol(const T (&d_array)[SIZE], const std::string& str = "",
                      char sep = ' ');
 
-#endif
+#endif*/
 } // namespace xlib
 
 #include "impl/PrintExt.i.hpp"

@@ -1,5 +1,10 @@
-#include "cuStingerAlgConfig.cuh"
-#include "GlobalSpace.cuh"
+#include "Core/cuStingerTypes.cuh"          //cu_stinger::Vertex
+#include "Csr/CsrTypes.cuh"                 //csr::Vertex
+#include "cuStingerAlgConfig.cuh"           //BLOCK_SIZE
+#include "GlobalSpace.cuh"                  //d_nV, d_nE
+#include "Support/Device/SafeCudaAPI.cuh"   //cuMemcpyFromSymbol
+
+using cu_stinger::Vertex;
 
 namespace cu_stinger_alg {
 
@@ -42,8 +47,8 @@ template<typename Operator, typename... TArgs>
 __global__ void forAllVerticesKernel(TArgs... args) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
-    //for (int i = id; i < d_nV; i += stride)
-    //    Operator::apply(Vertex(i), args...);
+    for (int i = id; i < d_nV; i += stride)
+        Operator::apply(Vertex(i), args...);
 }
 
 template<typename Operator, typename... TArgs>
@@ -64,16 +69,6 @@ void forAllEdges(TArgs... optional_data) {
 
 template<typename Operator, typename... TArgs>
 void forAllBatchEdges(TArgs... optional_data) {
-
-}
-
-template<typename Operator, typename T, typename... TArgs>
-void forAllTraverseEdges(Queue<T> queue, TArgs... optional_data) {
-
-}
-
-template<typename Operator, typename T, typename... TArgs>
-void forAllTraverseEdges(T* d_array, int num_items, TArgs... optional_data) {
 
 }
 

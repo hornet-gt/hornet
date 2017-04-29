@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/cuStinger.hpp"
+#include "Core/cuStinger.hpp"   //cu_stinger::cuStinger
 
 namespace cu_stinger_alg {
 
@@ -11,9 +11,10 @@ public:
                     _custinger(custinger) {}
     virtual ~StaticAlgorithm() = 0;
 
-    virtual void run()     = 0;
-    virtual void reset()   = 0;
-    virtual void release() = 0;
+    virtual void run()      = 0;
+    virtual void reset()    = 0;
+    virtual void release()  = 0;
+    virtual bool validate() = 0;
 protected:
     const cu_stinger::cuStinger& _custinger;
 };
@@ -28,7 +29,6 @@ public:
 private:
     void* _pointer;
 };
-
 
 template<typename T>
 Allocate::Allocate(T*& pointer, size_t num_items) noexcept {

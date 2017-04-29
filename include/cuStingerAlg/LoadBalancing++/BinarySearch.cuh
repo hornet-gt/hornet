@@ -3,7 +3,7 @@
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
  * @date April, 2017
- * @version v1.3
+ * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
  *
@@ -32,38 +32,44 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
+ *
+ * @file
  */
-#include "Support/Host/PrintExt.hpp"        //xlib::printArray
-#include "Support/Device/SafeCudaAPI.cuh"   //cuMemcpyFromSymbol
+#pragma once
 
-namespace cu {
+#include "cuStingerAlg/TwoLevelQueue.cuh"
 
-template<class T>
-void printArray(const T* d_array, size_t size, const std::string& str,
-                char sep) noexcept {
-    auto h_array = new T[size];
-    cuMemcpyToHost(d_array, size, h_array);
+/**
+ * @brief
+ */
+namespace load_balacing {
 
-    xlib::printArray(h_array, size, str, sep);
-    delete[] h_array;
-}
+struct work_t {
+    int*  first;
+    int* second;
 
-template<class T, int SIZE>
-void printArray(const T (&d_array)[SIZE], const std::string& str, char sep)
-                noexcept {
-    auto h_array = new T[SIZE];
-    cuMemcpyFromSymbol(d_array, h_array);
+    void swap() noexcept;
+};
 
-    xlib::printArray(h_array, SIZE, str, sep);
-    delete[] h_array;
-}
+__device__   int2   d_counters;
+__constant__ work_t d_work;
 
-template<class T>
-void printSymbol(const T& d_symbol, const std::string& str) noexcept {
-    T h_data;
-    cuMemcpyFromSymbol(d_symbol, h_data);
+class BinarySearch {
+public:
+    explicit BinarySearch(cu_stinger_alg::TwoLevelQueue<cu_stinger::id_t>& queue,
+                          const cu_stinger::off_t* csr_offsets) noexcept;
+    ~BinarySearch() noexcept;
 
-    std::cout << str << h_data << std::endl;
-}
+    template<typename Operator, typename... TArgs>
+    void traverse_edges(TArgs... optional_data) noexcept;
+private:
+    static const int         BLOCK_SIZE = 256;
+    static const bool CHECK_CUDA_ERROR1 = 0;
+    work_t _d_work;
+    int    _total_work;
+    cu_stinger_alg::TwoLevelQueue<cu_stinger::id_t>& _queue;
+};
 
-} // namespace cu
+} // namespace load_balacing
+
+#include "cuStingerAlg/LoadBalancing++/BinarySearch.i.cuh"

@@ -1,17 +1,25 @@
-#include "cuStingerAlg/cuStingerAlg.cuh"      //cuStingerAlg
-#include "cuStingerAlg/Queue.cuh"       //Queue
+
+
+
+#include "cuStingerAlg/DeviceQueue.cuh"
 #include "cuStingerAlg/Operator.cuh"    //Operator
+
+
+
+#include "cuStingerAlg/cuStingerAlg.cuh"      //cuStingerAlg
+#include "cuStingerAlg/TwoLevelQueue.cuh"       //Queue
+
 #include "GraphIO/BFS.hpp"              //BFS
 #include "GraphIO/GraphStd.hpp"         //GraphStd
 #include "Support/Device/Algorithm.cuh" //cu::equal
 #include "Support/Host/Timer.hpp"       //Timer
-#include "cuStingerAlg/BinarySearch.cuh"
+#include "cuStingerAlg/LoadBalancing++/BinarySearch.cuh"
 
 //#include "Core/cuStinger.hpp"           //cuStingerInit, cuStinger
 #include "Csr/Csr.hpp"           //cuStingerInit, cuStinger
 #include "Csr/CsrTypes.cuh"           //cuStingerInit, cuStinger
 
-using namespace csr;
+//using namespace csr;
 using namespace cu_stinger_alg;
 using namespace timer;
 using namespace load_balacing;
@@ -30,6 +38,7 @@ int main(int argc, char* argv[]) {
     using cu_stinger::off_t;
     cudaSetDevice(1);
     id_t bfs_source = 0;
+
     //--------------------------------------------------------------------------
     //////////////
     // HOST BFS //
@@ -47,8 +56,9 @@ int main(int argc, char* argv[]) {
     cuStingerInit custinger_init(graph.nV(), graph.nE(),
                                  graph.out_offsets_array(),
                                  graph.out_edges_array());
-    //cuStinger custiger_graph(custinger_init);
-    Csr csr_graph(custinger_init);
+
+    cuStinger custiger_graph(custinger_init);
+    //Csr csr_graph(custinger_init);
 
     dist_t* d_distances;
     Allocate alloc(d_distances, graph.nV());
@@ -58,12 +68,12 @@ int main(int argc, char* argv[]) {
     //////////////
     forAllnumV<VertexInit>(d_distances);
     cuMemcpyToDevice(0, d_distances + bfs_source);
-    dist_t level = 1;
-    //load_balacing::BinarySearch traverse_edges;
 
-    Queue<id_t> queue(graph.nV() * 2);
+    dist_t level = 1;
+    TwoLevelQueue<id_t> queue(graph.nV() * 2);
     queue.insert(bfs_source);
     //queue.insert(bfs_sources, num_sources);               // Multi-sources BFS
+    load_balacing::BinarySearch lb(queue, graph.out_offsets_array());
 
     Timer<DEVICE> TM;
     TM.start();
@@ -72,7 +82,7 @@ int main(int argc, char* argv[]) {
     // BFS ALGORITHM //
     ///////////////////
     while (queue.size() > 0) {
-        //traverse_edges<BFSOperatorNoAtomic>(queue, d_distances, level);
+        lb.traverse_edges<BFSOperatorNoAtomic>(d_distances, level);
         level++;
     }
     //--------------------------------------------------------------------------
@@ -88,8 +98,9 @@ int main(int argc, char* argv[]) {
 }
 
 //------------------------------------------------------------------------------
-using csr::Vertex;
-using csr::Edge;
+
+using cu_stinger::Vertex;
+using cu_stinger::Edge;
 
 const dist_t INF = std::numeric_limits<dist_t>::max();
 
@@ -102,7 +113,8 @@ struct VertexInit {
 
 struct BFSOperatorAtomic {
     __device__ __forceinline__
-    static void apply(Vertex src, Edge edge, DQueue& queue,
+    static void apply(Vertex src, Edge edge,
+                      DeviceQueue<cu_stinger::id_t>& queue,
                       dist_t* d_distances, dist_t level) {
 
         auto dst = edge.dst();
@@ -114,7 +126,8 @@ struct BFSOperatorAtomic {
 
 struct BFSOperatorNoAtomic {
     __device__ __forceinline__
-    static void apply(Vertex src, Edge edge, DQueue& queue,
+    static void apply(Vertex src, Edge edge,
+                      DeviceQueue<cu_stinger::id_t>& queue,
                       dist_t* d_distances, dist_t level) {
 
         auto dst = edge.dst();

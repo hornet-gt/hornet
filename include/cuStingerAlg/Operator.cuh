@@ -1,3 +1,4 @@
+
 #pragma once
 
 namespace cu_stinger_alg {
@@ -23,12 +24,6 @@ void forAllEdges(TArgs... optional_data);
 
 template<typename Operator, typename... TArgs>
 void forAllBatchEdges(TArgs... optional_data);
-
-template<typename Operator, typename T, typename... TArgs>
-void forAllTraverseEdges(Queue<T> queue, TArgs... optional_data);
-
-template<typename Operator, typename T, typename... TArgs>
-void forAllTraverseEdges(T* d_array, int num_items, TArgs... optional_data);
 
 } // namespace cu_stinger_alg
 

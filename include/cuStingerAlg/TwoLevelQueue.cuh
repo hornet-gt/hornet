@@ -3,7 +3,7 @@
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
  * @date April, 2017
- * @version v1.3
+ * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
  *
@@ -32,38 +32,57 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
+ *
+ * @file
  */
-#include "Support/Host/PrintExt.hpp"        //xlib::printArray
-#include "Support/Device/SafeCudaAPI.cuh"   //cuMemcpyFromSymbol
+#pragma once
 
-namespace cu {
+#include "Support/Device/VectorUtil.cuh"
 
-template<class T>
-void printArray(const T* d_array, size_t size, const std::string& str,
-                char sep) noexcept {
-    auto h_array = new T[size];
-    cuMemcpyToHost(d_array, size, h_array);
+namespace cu_stinger_alg {
 
-    xlib::printArray(h_array, size, str, sep);
-    delete[] h_array;
-}
+template<typename T>
+struct ptr2_t {
+    T* first;
+    T* second;
 
-template<class T, int SIZE>
-void printArray(const T (&d_array)[SIZE], const std::string& str, char sep)
-                noexcept {
-    auto h_array = new T[SIZE];
-    cuMemcpyFromSymbol(d_array, h_array);
+    void swap() noexcept;
+};
 
-    xlib::printArray(h_array, SIZE, str, sep);
-    delete[] h_array;
-}
+__device__   int          d_queue_counter;
+__constant__ ptr2_t<void> d_queue_ptrs;
 
-template<class T>
-void printSymbol(const T& d_symbol, const std::string& str) noexcept {
-    T h_data;
-    cuMemcpyFromSymbol(d_symbol, h_data);
+template<typename T>
+class TwoLevelQueue {
+public:
+    explicit TwoLevelQueue(size_t max_allocated_items) noexcept;
+    ~TwoLevelQueue() noexcept;
 
-    std::cout << str << h_data << std::endl;
-}
+    __host__ void insert(const T& item) noexcept;
 
-} // namespace cu
+    __host__ void insert(const T* items_array, int num_items) noexcept;
+
+    __host__ int size() const noexcept;
+
+    //__host__ int update_size() noexcept;
+
+    __host__ void update_size(int size) noexcept;
+
+    __host__ void swap() noexcept;
+
+    __host__ const T* host_data() noexcept;
+
+    __host__ void print() const noexcept;
+
+    __host__ int max_allocated_items() const noexcept;
+private:
+    ptr2_t<T> _d_queue             { nullptr, nullptr };
+    int*      _d_queue_counter     { nullptr };
+    T*        _host_data           { nullptr };
+    size_t    _max_allocated_items { 0 };
+    int       _size                { 0 };
+};
+
+} // namespace cu_stinger_alg
+
+#include "TwoLevelQueue.i.cuh"

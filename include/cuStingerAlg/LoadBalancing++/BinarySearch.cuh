@@ -56,8 +56,8 @@ __constant__ work_t d_work;
 
 class BinarySearch {
 public:
-    explicit BinarySearch(cu_stinger_alg::TwoLevelQueue<cu_stinger::id_t>& queue,
-                          const cu_stinger::off_t* csr_offsets) noexcept;
+    explicit BinarySearch(cu_stinger_alg::TwoLevelQueue<cu_stinger::vid_t>& queue,
+                          const cu_stinger::eoff_t* csr_offsets) noexcept;
     ~BinarySearch() noexcept;
 
     template<typename Operator, typename... TArgs>
@@ -67,7 +67,7 @@ private:
     static const bool CHECK_CUDA_ERROR1 = 0;
     work_t _d_work;
     int    _total_work;
-    cu_stinger_alg::TwoLevelQueue<cu_stinger::id_t>& _queue;
+    cu_stinger_alg::TwoLevelQueue<cu_stinger::vid_t>& _queue;
 };
 
 } // namespace load_balacing

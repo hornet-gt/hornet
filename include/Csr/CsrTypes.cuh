@@ -53,7 +53,7 @@ public:
      * @brief Default costructor
      */
     __device__ __forceinline__
-    Vertex(id_t index);
+    Vertex(vid_t index);
 
     /**
      * @brief Edge of the vertex
@@ -62,9 +62,9 @@ public:
      * The behavior is undefined otherwise.
      */
     __device__ __forceinline__
-    Edge edge(off_t index) const;
+    Edge edge(eoff_t index) const;
 private:
-    off_t _offset;
+    eoff_t _offset;
 };
 
 //==============================================================================

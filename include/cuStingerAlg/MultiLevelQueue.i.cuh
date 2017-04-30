@@ -40,28 +40,21 @@
 namespace cu_stinger_alg {
 
 template<typename T>
-inline void ptr2_t<T>::swap() noexcept {
-    std::swap(first, second);
-}
-
-template<typename T>
-TwoLevelQueue<T>::TwoLevelQueue(size_t max_allocated_items) noexcept :
+MulyiLevelQueue<T>::MulyiLevelQueue(size_t max_allocated_items) noexcept :
                                      _max_allocated_items(max_allocated_items) {
-    cuMalloc(_d_queue.first, max_allocated_items);
-    cuMalloc(_d_queue.second, max_allocated_items);
-    auto queue_ptrs = reinterpret_cast<ptr2_t<void>&>(_d_queue);
+    cuMalloc(_d_multiqueue, max_allocated_items);
     cuMemcpyToSymbol(queue_ptrs, d_queue_ptrs);
     cuMemcpyToSymbol(0, d_queue_counter);
 }
 
 template<typename T>
-inline TwoLevelQueue<T>::~TwoLevelQueue() noexcept {
-    cuFree(_d_queue.first, _d_queue.second);
+inline MulyiLevelQueue<T>::~MulyiLevelQueue() noexcept {
+    cuFree(_d_multiqueue);
     delete[] _host_data;
 }
 
 template<typename T>
-__host__ void TwoLevelQueue<T>::insert(const T& item) noexcept {
+__host__ void MulyiLevelQueue<T>::insert(const T& item) noexcept {
 #if defined(__CUDA_ARCH__)
     unsigned       ballot = __ballot(true);
     unsigned elected_lane = xlib::__msb(ballot);
@@ -78,38 +71,34 @@ __host__ void TwoLevelQueue<T>::insert(const T& item) noexcept {
 }
 
 template<typename T>
-__host__ inline void TwoLevelQueue<T>
+__host__ inline void MulyiLevelQueue<T>
 ::insert(const T* items_array, int num_items) noexcept {
     cuMemcpyToDeviceAsync(items_array + _size, num_items, _d_queue.first);
     _size += num_items;
 }
 
 template<typename T>
-__host__ int TwoLevelQueue<T>::size() const noexcept {
+__host__ int MulyiLevelQueue<T>::size() const noexcept {
     return _size;
 }
 
-/*
 template<typename T>
-__host__ int TwoLevelQueue<T>::max_allocated_items() const noexcept {
-    return _max_allocated_items;
-}*/
-
-template<typename T>
-__host__ void TwoLevelQueue<T>::update_size(int size) noexcept {
-    _size = size;
+__host__ int MulyiLevelQueue<T>::size(int level) const noexcept {
+    return level_sizes[level + 1] - level_sizes[level];
 }
 
 template<typename T>
-__host__ void TwoLevelQueue<T>::swap() noexcept {
-    _d_queue.swap();
+__host__ void MulyiLevelQueue<T>::next() noexcept {
+    _d_queue.first   = _d_queue.second;
+    _d_queue.second += _size;
+
     auto queue_ptrs = reinterpret_cast<ptr2_t<void>&>(_d_queue);
     cuMemcpyToSymbolAsync(queue_ptrs, d_queue_ptrs);
-    cuMemcpyToSymbolAsync(0, d_queue_counter);
+    level_sizes[current + 1] = level_sizes[current] + ;
 }
 
 template<typename T>
-__host__ const T* TwoLevelQueue<T>::host_data() noexcept {
+__host__ const T* MulyiLevelQueue<T>::host_data() noexcept {
     if (_host_data == nullptr)
         _host_data = new T[_max_allocated_items];
     cuMemcpyToHost(_d_queue.second, _size, _host_data);
@@ -117,8 +106,21 @@ __host__ const T* TwoLevelQueue<T>::host_data() noexcept {
 }
 
 template<typename T>
-__host__ void TwoLevelQueue<T>::print() const noexcept {
+__host__ const T* MulyiLevelQueue<T>::host_data(int level) noexcept {
+    if (_host_data == nullptr)
+        _host_data = new T[_max_allocated_items];
+    cuMemcpyToHost(_d_multiqueue + level_sizes[level], size(level), _host_data);
+    return _host_data;
+}
+
+template<typename T>
+__host__ void MulyiLevelQueue<T>::print() const noexcept {
     cu::printArray(_d_queue.first, _size);
+}
+
+template<typename T>
+__host__ void MulyiLevelQueue<T>::print(int level) const noexcept {
+    cu::printArray(_d_multiqueue + level_sizes[level], size(level));
 }
 
 } // namespace cu_stinger_alg

@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
     xlib::deviceInfo();
     Param param(argc, argv);
 
-    graph::GraphStd<cu_stinger::id_t, cu_stinger::off_t> graph;
+    graph::GraphStd<cu_stinger::vid_t, cu_stinger::eoff_t> graph;
     graph.read(argv[1]);
     graph.print_raw();
 

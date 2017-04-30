@@ -37,8 +37,8 @@
 
 namespace graph {
 
-template<typename id_t, typename off_t>
-BFS<id_t, off_t>::BFS(const GraphStd<id_t, off_t>& _graph) noexcept :
+template<typename vid_t, typename eoff_t>
+BFS<vid_t, eoff_t>::BFS(const GraphStd<vid_t, eoff_t>& _graph) noexcept :
                                             _graph(_graph),
                                             _bitmask(_graph.nV()),
                                             _queue(_graph.nV()) {
@@ -46,13 +46,13 @@ BFS<id_t, off_t>::BFS(const GraphStd<id_t, off_t>& _graph) noexcept :
     std::fill(_distances, _distances + _graph.nV(), INF);
 }
 
-template<typename id_t, typename off_t>
-BFS<id_t, off_t>::~BFS() noexcept {
+template<typename vid_t, typename eoff_t>
+BFS<vid_t, eoff_t>::~BFS() noexcept {
     delete[] _distances;
 }
 
-template<typename id_t, typename off_t>
-void BFS<id_t, off_t>::run(id_t source) noexcept {
+template<typename vid_t, typename eoff_t>
+void BFS<vid_t, eoff_t>::run(vid_t source) noexcept {
     if (!_reset)
         ERROR("BFS must be reset before the next run")
     _queue.insert(source);
@@ -61,7 +61,7 @@ void BFS<id_t, off_t>::run(id_t source) noexcept {
 
     while (!_queue.is_empty()) {
         auto current = _queue.extract();
-        for (off_t j = _graph._out_offsets[current];
+        for (eoff_t j = _graph._out_offsets[current];
                 j < _graph._out_offsets[current + 1]; j++) {
             auto dest = _graph._out_edges[j];
             if (!_bitmask[dest]) {
@@ -74,63 +74,63 @@ void BFS<id_t, off_t>::run(id_t source) noexcept {
     _reset = false;
 }
 
-template<typename id_t, typename off_t>
-void BFS<id_t, off_t>::reset() noexcept {
+template<typename vid_t, typename eoff_t>
+void BFS<vid_t, eoff_t>::reset() noexcept {
     std::fill(_distances, _distances + _graph.nV(), INF);
     _queue.clear();
     _bitmask.clear();
     _reset = true;
 }
 
-template<typename id_t, typename off_t>
-id_t BFS<id_t, off_t>::visited_nodes() const noexcept {
+template<typename vid_t, typename eoff_t>
+vid_t BFS<vid_t, eoff_t>::visited_nodes() const noexcept {
     if (_reset)
         ERROR("BFS not ready")
     return _queue.getTotalEnqueueItems();
 }
 
-template<typename id_t, typename off_t>
-off_t BFS<id_t, off_t>::visited_edges() const noexcept {
+template<typename vid_t, typename eoff_t>
+eoff_t BFS<vid_t, eoff_t>::visited_edges() const noexcept {
     if (_reset)
         ERROR("BFS not ready")
     if (_queue.getTotalEnqueueItems() == _graph.nV())
         return _graph.nE();
-    off_t sum = 0;
+    eoff_t sum = 0;
     for (int i = 0; i < _queue.getTotalEnqueueItems(); i++)
         sum += _graph._out_degrees[ _queue.at(i) ];
     return sum;
 }
 
-template<typename id_t, typename off_t>
-const typename BFS<id_t, off_t>::dist_t*
-BFS<id_t, off_t>::distances() const noexcept {
+template<typename vid_t, typename eoff_t>
+const typename BFS<vid_t, eoff_t>::dist_t*
+BFS<vid_t, eoff_t>::distances() const noexcept {
     if (_reset)
         ERROR("BFS not ready")
     return _distances;
 }
 
-template<typename id_t, typename off_t>
-typename BFS<id_t, off_t>::dist_t
-BFS<id_t, off_t>::eccentricity() const noexcept {
+template<typename vid_t, typename eoff_t>
+typename BFS<vid_t, eoff_t>::dist_t
+BFS<vid_t, eoff_t>::eccentricity() const noexcept {
     if (_reset)
         ERROR("BFS not ready")
     return _distances[ _queue.tail() ] + 1;
 }
 
-template<typename id_t, typename off_t>
-std::vector<std::array<id_t, 4>>
-BFS<id_t, off_t>::statistics(id_t source) noexcept {
+template<typename vid_t, typename eoff_t>
+std::vector<std::array<vid_t, 4>>
+BFS<vid_t, eoff_t>::statistics(vid_t source) noexcept {
     if (!_reset)
         ERROR("BFS must be reset before the next run")
-    std::vector<std::array<id_t, 4>> statistics;
-    std::array<id_t, 4> counter = { { 0, 0, 0, 0 } };
+    std::vector<std::array<vid_t, 4>> statistics;
+    std::array<vid_t, 4> counter = { { 0, 0, 0, 0 } };
 
     dist_t      level = 0;
     _distances[source] = 0;
     _queue.insert(source);
 
     while (!_queue.is_empty()) {
-        id_t current = _queue.extract();
+        vid_t current = _queue.extract();
 
         if (_distances[current] > level) {
             level++;
@@ -138,10 +138,10 @@ BFS<id_t, off_t>::statistics(id_t source) noexcept {
             counter.fill(0);
         }
 
-        for (off_t i = _graph._out_offsets[current];
+        for (eoff_t i = _graph._out_offsets[current];
             i < _graph._out_offsets[current + 1]; i++) {
 
-            id_t dest = _graph._out_edges[i];
+            vid_t dest = _graph._out_edges[i];
             if (_distances[dest] < level)
                 counter[PARENT]++;
             else if (_distances[dest] == level)
@@ -158,36 +158,36 @@ BFS<id_t, off_t>::statistics(id_t source) noexcept {
     return statistics;
 }
 
-template<typename id_t, typename off_t>
-std::vector<id_t> BFS<id_t, off_t>::weaklyConnectedComponents() noexcept {
+template<typename vid_t, typename eoff_t>
+std::vector<vid_t> BFS<vid_t, eoff_t>::weaklyConnectedComponents() noexcept {
     if (!_reset)
         ERROR("BFS must be reset before the next run")
-    std::vector<id_t> wcc_distr;
+    std::vector<vid_t> wcc_distr;
 
-    for (id_t source = 0; source < _graph.nV(); source++) {
+    for (vid_t source = 0; source < _graph.nV(); source++) {
         if (_bitmask[source]) continue;
 
-        id_t       count = 0;
+        vid_t       count = 0;
         _bitmask[source] = true;
         _queue.insert(source);
 
         while (!_queue.is_empty()) {
-            id_t current = _queue.extract();
+            vid_t current = _queue.extract();
             count++;
 
-            for (off_t i = _graph._out_offsets[current];
+            for (eoff_t i = _graph._out_offsets[current];
                  i < _graph._out_offsets[current + 1]; i++) {
 
-                id_t dest = _graph._out_edges[i];
+                vid_t dest = _graph._out_edges[i];
                 if (!_bitmask[dest]) {
                     _bitmask[dest] = true;
                     _queue.insert(dest);
                 }
             }
-            for (off_t i = _graph._in_offsets[current];
+            for (eoff_t i = _graph._in_offsets[current];
                 i < _graph._in_offsets[current + 1]; i++) {
 
-                id_t incoming = _graph._in_edges[i];
+                vid_t incoming = _graph._in_edges[i];
                 if (!_bitmask[incoming]) {
                     _bitmask[incoming] = true;
                     _queue.insert(incoming);

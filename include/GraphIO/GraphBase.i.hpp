@@ -94,22 +94,22 @@ inline void Structure::operator|=(int value) noexcept {
 }
 //------------------------------------------------------------------------------
 
-template<typename id_t, typename off_t>
-inline GraphBase<id_t, off_t>::GraphBase(Structure structure) noexcept :
+template<typename vid_t, typename eoff_t>
+inline GraphBase<vid_t, eoff_t>::GraphBase(Structure structure) noexcept :
                                                     _structure(structure) {}
 
-template<typename id_t, typename off_t>
-inline id_t GraphBase<id_t, off_t>::nV() const noexcept {
+template<typename vid_t, typename eoff_t>
+inline vid_t GraphBase<vid_t, eoff_t>::nV() const noexcept {
     return _nV;
 }
 
-template<typename id_t, typename off_t>
-inline off_t GraphBase<id_t, off_t>::nE() const noexcept {
+template<typename vid_t, typename eoff_t>
+inline eoff_t GraphBase<vid_t, eoff_t>::nE() const noexcept {
     return _nE;
 }
 
-template<typename id_t, typename off_t>
-inline const std::string& GraphBase<id_t, off_t>::name() const noexcept {
+template<typename vid_t, typename eoff_t>
+inline const std::string& GraphBase<vid_t, eoff_t>::name() const noexcept {
     return _graph_name;
 }
 

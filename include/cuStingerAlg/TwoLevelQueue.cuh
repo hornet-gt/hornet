@@ -45,7 +45,6 @@ template<typename T>
 struct ptr2_t {
     T* first;
     T* second;
-
     void swap() noexcept;
 };
 
@@ -58,15 +57,11 @@ public:
     explicit TwoLevelQueue(size_t max_allocated_items) noexcept;
     ~TwoLevelQueue() noexcept;
 
-    __host__ void insert(const T& item) noexcept;
+    __host__ __device__ void insert(const T& item) noexcept;
 
     __host__ void insert(const T* items_array, int num_items) noexcept;
 
     __host__ int size() const noexcept;
-
-    //__host__ int update_size() noexcept;
-
-    __host__ void update_size(int size) noexcept;
 
     __host__ void swap() noexcept;
 
@@ -74,7 +69,9 @@ public:
 
     __host__ void print() const noexcept;
 
-    __host__ int max_allocated_items() const noexcept;
+
+    __host__ void update_size(int size) noexcept;
+    //__host__ int max_allocated_items() const noexcept;
 private:
     ptr2_t<T> _d_queue             { nullptr, nullptr };
     int*      _d_queue_counter     { nullptr };

@@ -59,10 +59,10 @@ using TypeList = std::tuple<TArgs...>;
 //------------------------------------------------------------------------------
 
 using degree_t = int;
-using   off2_t = typename xlib::Make2Str<off_t>::type;
+using   off2_t = typename xlib::Make2Str<eoff_t>::type;
 
 using vertex_t = typename xlib::TupleConcat<TypeList<off2_t>,VertexTypes>::type;
-using   edge_t = typename xlib::TupleConcat<TypeList<id_t>, EdgeTypes>::type;
+using   edge_t = typename xlib::TupleConcat<TypeList<vid_t>, EdgeTypes>::type;
 
 #include "RawTypesUtil.hpp"
 

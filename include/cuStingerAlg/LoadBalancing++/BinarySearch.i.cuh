@@ -44,8 +44,8 @@ inline void work_t::swap() noexcept {
     std::swap(first, second);
 }
 
-inline BinarySearch::BinarySearch(cu_stinger_alg::TwoLevelQueue<cu_stinger::id_t>& queue,
-                                  const cu_stinger::off_t* csr_offsets) noexcept : _queue(queue) {
+inline BinarySearch::BinarySearch(cu_stinger_alg::TwoLevelQueue<cu_stinger::vid_t>& queue,
+                                  const cu_stinger::eoff_t* csr_offsets) noexcept : _queue(queue) {
     int max_allocated_items = queue.max_allocated_items();
     cuMalloc(_d_work.first, max_allocated_items);
     cuMalloc(_d_work.second, max_allocated_items);
@@ -72,7 +72,7 @@ template<typename Operator, typename... TArgs>
 inline void BinarySearch::traverse_edges(TArgs... optional_data) noexcept {
     int num_queue_vertices = _queue.size();
 
-    const int ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, id_t>::value;
+    const int ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
     int grid_size = xlib::ceil_div<ITEMS_PER_BLOCK>(_total_work);
 
     binarySearchKernel<ITEMS_PER_BLOCK, Operator>

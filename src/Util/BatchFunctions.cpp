@@ -39,21 +39,22 @@
 #include <random>
 #include <utility>
 
-void generateInsertBatch(id_t* batch_src, id_t* batch_dest,
+void generateInsertBatch(cu_stinger::vid_t* batch_src,
+                         cu_stinger::vid_t* batch_dest,
                          int batch_size, const graph::GraphStd<>& graph,
                          BatchProperty prop) {
-
+    using cu_stinger::vid_t;
     if (!prop.weighted) {
         auto seed = std::chrono::system_clock::now().time_since_epoch().count();
         std::mt19937_64 gen(seed);
-        std::uniform_int_distribution<id_t> distribution(0, graph.nV() - 1);
+        std::uniform_int_distribution<vid_t> distribution(0, graph.nV() - 1);
         for (int i = 0; i < batch_size; i++) {
             batch_src[i]  = distribution(gen);
             batch_dest[i] = distribution(gen);
         }
     }
     else {
-        xlib::WeightedRandomGenerator<id_t>
+        xlib::WeightedRandomGenerator<vid_t>
             weighted_gen(graph.out_degrees_array(), graph.nV());
         for (int i = 0; i < batch_size; i++) {
             batch_src[i]  = weighted_gen.get();
@@ -62,7 +63,7 @@ void generateInsertBatch(id_t* batch_src, id_t* batch_dest,
     }
 
     if (prop.print || prop.sort) {
-        auto tmp_batch = new std::pair<id_t, id_t>[batch_size];
+        auto tmp_batch = new std::pair<vid_t, vid_t>[batch_size];
         for (int i = 0; i < batch_size; i++)
             tmp_batch[i] = std::make_pair(batch_src[i], batch_dest[i]);
 

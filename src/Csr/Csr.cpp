@@ -67,13 +67,13 @@ Csr::Csr(const cu_stinger::cuStingerInit& custinger_init) noexcept :
     //////////////////////
     // COPY VERTEX DATA //
     //////////////////////
-    using      pair_t = std::pair<id_t, id_t>;
+    using      pair_t = std::pair<vid_t, vid_t>;
     auto csr2_offsets = new pair_t[_nV];
-    for (id_t i = 0; i < _nV; i++)
+    for (vid_t i = 0; i < _nV; i++)
         csr2_offsets[i] = pair_t(csr_offsets[i], csr_offsets[i + 1]);
 
     //see cudaMallocPitch
-    id_t round_nV = xlib::upper_approx(_nV, 512 / sizeof(vertex_t));
+    vid_t round_nV = xlib::upper_approx(_nV, 512 / sizeof(vertex_t));
     cuMalloc(_d_vertices, round_nV * sizeof(vertex_t));
 
     byte_t* d_vertex_data_ptrs[NUM_VTYPES];
@@ -88,7 +88,7 @@ Csr::Csr(const cu_stinger::cuStingerInit& custinger_init) noexcept :
     ////////////////
     // EDGES COPY //
     ////////////////
-    off_t round_nE = xlib::upper_approx(_nE, 512 / sizeof(edge_t));
+    eoff_t round_nE = xlib::upper_approx(_nE, 512 / sizeof(edge_t));
     cuMalloc(_d_edges, round_nE * sizeof(edge_t));
 
     byte_t* d_edge_data_ptrs[NUM_ETYPES];

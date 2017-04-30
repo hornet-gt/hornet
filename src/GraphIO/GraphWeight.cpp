@@ -44,12 +44,12 @@
 
 namespace graph {
 
-template<typename id_t, typename off_t, typename weight_t>
-void GraphWeight<id_t, off_t, weight_t>::allocate() noexcept {
+template<typename vid_t, typename eoff_t, typename weight_t>
+void GraphWeight<vid_t, eoff_t, weight_t>::allocate() noexcept {
     assert(_nV > 0 && _nE > 0 && _structure.is_direction_set());
     try {
-        _out_offsets = new off_t[ _nV + 1 ];
-        _out_edges   = new id_t[ _nE ];
+        _out_offsets = new eoff_t[ _nV + 1 ];
+        _out_edges   = new vid_t[ _nE ];
         _out_weights = new weight_t[ _nE ];
         _out_degrees = new degree_t[ _nV ]();
         if (_coo_size > 0)
@@ -61,8 +61,8 @@ void GraphWeight<id_t, off_t, weight_t>::allocate() noexcept {
             _in_degrees = _out_degrees;
         }
         else if (_structure.is_reverse()) {
-            _in_offsets = new off_t[ _nV + 1 ];
-            _in_edges   = new id_t[ _nE ];
+            _in_offsets = new eoff_t[ _nV + 1 ];
+            _in_edges   = new vid_t[ _nE ];
             _in_weights = new weight_t[ _nE ];
             _in_degrees = new degree_t[ _nV ]();
         }
@@ -72,8 +72,8 @@ void GraphWeight<id_t, off_t, weight_t>::allocate() noexcept {
     }
 }
 
-template<typename id_t, typename off_t, typename weight_t>
-GraphWeight<id_t, off_t, weight_t>::~GraphWeight() noexcept {
+template<typename vid_t, typename eoff_t, typename weight_t>
+GraphWeight<vid_t, eoff_t, weight_t>::~GraphWeight() noexcept {
     delete[] _out_offsets;
     delete[] _out_edges;
     delete[] _out_weights;
@@ -87,18 +87,18 @@ GraphWeight<id_t, off_t, weight_t>::~GraphWeight() noexcept {
     }
 }
 
-template<typename id_t, typename off_t, typename weight_t>
-void GraphWeight<id_t, off_t, weight_t>::COOtoCSR(Property prop) noexcept {
+template<typename vid_t, typename eoff_t, typename weight_t>
+void GraphWeight<vid_t, eoff_t, weight_t>::COOtoCSR(Property prop) noexcept {
     if (prop.is_randomize()) {
         if (prop.is_print())
             std::cout << "Randomization...\n" << std::flush;
         auto seed = std::chrono::system_clock::now().time_since_epoch().count();
-        auto random_array = new id_t[_nV];
+        auto random_array = new vid_t[_nV];
         std::iota(random_array, random_array + _nV, 0);
         std::shuffle(random_array, random_array + _nV, std::mt19937_64(seed));
         for (size_t i = 0; i < _coo_size; i++) {
-            id_t  src = std::get<0>(_coo_edges[i]);
-            id_t dest = std::get<1>(_coo_edges[i]);
+            vid_t  src = std::get<0>(_coo_edges[i]);
+            vid_t dest = std::get<1>(_coo_edges[i]);
             std::get<0>(_coo_edges[i]) = random_array[ src ];
             std::get<1>(_coo_edges[i]) = random_array[ dest ];
         }
@@ -113,8 +113,8 @@ void GraphWeight<id_t, off_t, weight_t>::COOtoCSR(Property prop) noexcept {
         std::cout << "COO to CSR...\t" << std::flush;
 
     for (size_t i = 0; i < _coo_size; i++) {
-        id_t  src = std::get<0>(_coo_edges[i]);
-        id_t dest = std::get<1>(_coo_edges[i]);
+        vid_t  src = std::get<0>(_coo_edges[i]);
+        vid_t dest = std::get<1>(_coo_edges[i]);
         _out_degrees[src]++;
         if (_structure.is_undirected())
             _out_degrees[dest]++;
@@ -126,8 +126,8 @@ void GraphWeight<id_t, off_t, weight_t>::COOtoCSR(Property prop) noexcept {
 
     auto tmp = new degree_t[_nV]();
     for (size_t i = 0; i < _coo_size; i++) {
-        id_t    src = std::get<0>(_coo_edges[i]);
-        id_t   dest = std::get<1>(_coo_edges[i]);
+        vid_t    src = std::get<0>(_coo_edges[i]);
+        vid_t   dest = std::get<1>(_coo_edges[i]);
         auto offset1 = _out_offsets[src] + tmp[src]++;
         _out_edges[ offset1 ]   = dest;
         _out_weights[ offset1 ] = std::get<2>(_coo_edges[i]);
@@ -143,8 +143,8 @@ void GraphWeight<id_t, off_t, weight_t>::COOtoCSR(Property prop) noexcept {
         std::partial_sum(_in_degrees, _in_degrees + _nV, _in_offsets + 1);
         std::fill(tmp, tmp + _nV, 0);
         for (size_t i = 0; i < _coo_size; i++) {
-            id_t  src = std::get<0>(_coo_edges[i]);
-            id_t dest = std::get<1>(_coo_edges[i]);
+            vid_t  src = std::get<0>(_coo_edges[i]);
+            vid_t dest = std::get<1>(_coo_edges[i]);
             auto offset = _in_offsets[dest] + tmp[dest]++;
             _in_edges[ offset ]   = src;
             _in_weights[ offset ] = std::get<2>(_coo_edges[i]);
@@ -159,11 +159,11 @@ void GraphWeight<id_t, off_t, weight_t>::COOtoCSR(Property prop) noexcept {
         std::cout << "Complete!\n" << std::endl;
 }
 
-template<typename id_t, typename off_t, typename weight_t>
-void GraphWeight<id_t, off_t, weight_t>::print() const noexcept {
-    for (id_t i = 0; i < _nV; i++) {
+template<typename vid_t, typename eoff_t, typename weight_t>
+void GraphWeight<vid_t, eoff_t, weight_t>::print() const noexcept {
+    for (vid_t i = 0; i < _nV; i++) {
         std::cout << "[ " << i << " ] : ";
-        for (off_t j = _out_offsets[i]; j < _out_offsets[i + 1]; j++) {
+        for (eoff_t j = _out_offsets[i]; j < _out_offsets[i + 1]; j++) {
             std::cout << "(" << _out_edges[j] << ","
                       << _out_weights[j] << ")  ";
         }
@@ -175,8 +175,8 @@ void GraphWeight<id_t, off_t, weight_t>::print() const noexcept {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-conversion"
 
-template<typename id_t, typename off_t, typename weight_t>
-void GraphWeight<id_t, off_t, weight_t>::print_raw() const noexcept {
+template<typename vid_t, typename eoff_t, typename weight_t>
+void GraphWeight<vid_t, eoff_t, weight_t>::print_raw() const noexcept {
     xlib::printArray(_out_offsets, _nV + 1, "Out-Offsets  ");           //NOLINT
     xlib::printArray(_out_edges,   _nE,     "Out-Edges    ");           //NOLINT
     xlib::printArray(_out_weights, _nE,     "Out-Weights  ");           //NOLINT
@@ -191,12 +191,12 @@ void GraphWeight<id_t, off_t, weight_t>::print_raw() const noexcept {
 
 #if defined(__linux__)
 
-template<typename id_t, typename off_t, typename weight_t>
-void GraphWeight<id_t, off_t, weight_t>
+template<typename vid_t, typename eoff_t, typename weight_t>
+void GraphWeight<vid_t, eoff_t, weight_t>
 ::toBinary(const std::string& filename, bool print) const {
     size_t  base_size = sizeof(_nV) + sizeof(_nE) + sizeof(_structure);
-    size_t file_size1 = (static_cast<size_t>(_nV) + 1) * sizeof(off_t) +
-                        (static_cast<size_t>(_nE)) * sizeof(id_t) +
+    size_t file_size1 = (static_cast<size_t>(_nV) + 1) * sizeof(eoff_t) +
+                        (static_cast<size_t>(_nE)) * sizeof(vid_t) +
                         (static_cast<size_t>(_nE)) * sizeof(weight_t);
 
     bool       twice = _structure.is_directed() && _structure.is_reverse();
@@ -207,7 +207,7 @@ void GraphWeight<id_t, off_t, weight_t>
                 << " (" << (file_size >> 20) << ") MB" << std::endl;
     }
 
-    std::string class_id = xlib::type_name<id_t>() + xlib::type_name<off_t>() +
+    std::string class_id = xlib::type_name<vid_t>() + xlib::type_name<eoff_t>() +
                            xlib::type_name<weight_t>();
     file_size           += class_id.size();
     xlib::MemoryMapped memory_mapped(filename.c_str(), file_size,
@@ -231,14 +231,14 @@ void GraphWeight<id_t, off_t, weight_t>
 #pragma clang diagnostic pop
 #endif
 
-template<typename id_t, typename off_t, typename weight_t>
-void GraphWeight<id_t, off_t, weight_t>
+template<typename vid_t, typename eoff_t, typename weight_t>
+void GraphWeight<vid_t, eoff_t, weight_t>
 ::toMarket(const std::string& filename) const {
     std::ofstream fout(filename);
     fout << "%%MatrixMarket matrix coordinate pattern general"
          << "\n" << _nV << " " << _nV << " " << _nE << "\n";
-    for (id_t i = 0; i < _nV; i++) {
-        for (off_t j = _out_offsets[i]; j < _out_offsets[i + 1]; j++) {
+    for (vid_t i = 0; i < _nV; i++) {
+        for (eoff_t j = _out_offsets[i]; j < _out_offsets[i + 1]; j++) {
             fout << i + 1 << " " << _out_edges[j] + 1 << " "
                  << _out_weights[j] << "\n";
         }

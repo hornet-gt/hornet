@@ -42,15 +42,15 @@
 
 namespace graph {
 
-template<typename id_t, typename off_t, typename weight_t>
-void GraphWeight<id_t, off_t, weight_t>
+template<typename vid_t, typename eoff_t, typename weight_t>
+void GraphWeight<vid_t, eoff_t, weight_t>
 ::readMarket(std::ifstream& fin, Property prop) {
-    _coo_size = GraphBase<id_t, off_t>::getMarketHeader(fin);
+    _coo_size = GraphBase<vid_t, eoff_t>::getMarketHeader(fin);
     allocate();
     xlib::Progress progress(_coo_size);
 
     for (size_t lines = 0; lines < _coo_size; lines++) {
-        id_t index1, index2;
+        vid_t index1, index2;
         weight_t weight;
         fin >> index1 >> index2 >> weight;
         _coo_edges[lines] = coo_t(index1 - 1, index2 - 1, weight);
@@ -63,51 +63,51 @@ void GraphWeight<id_t, off_t, weight_t>
 }
 
 
-template<typename id_t, typename off_t, typename weight_t>
-void GraphWeight<id_t, off_t, weight_t>
+template<typename vid_t, typename eoff_t, typename weight_t>
+void GraphWeight<vid_t, eoff_t, weight_t>
 ::readDimacs9(std::ifstream& fin, Property prop) {
     ERROR("Not Implemented")
 }
 
 //------------------------------------------------------------------------------
 
-template<typename id_t, typename off_t, typename weight_t>
-void GraphWeight<id_t, off_t, weight_t>
+template<typename vid_t, typename eoff_t, typename weight_t>
+void GraphWeight<vid_t, eoff_t, weight_t>
 ::readKonect(std::ifstream& fin, Property prop) {
     ERROR("Not Implemented")
 }
 
 //------------------------------------------------------------------------------
 
-template<typename id_t, typename off_t, typename weight_t>
-void GraphWeight<id_t, off_t, weight_t>
+template<typename vid_t, typename eoff_t, typename weight_t>
+void GraphWeight<vid_t, eoff_t, weight_t>
 ::readNetRepo(std::ifstream& fin, Property prop) {
     ERROR("Not Implemented")
 }
 
 //------------------------------------------------------------------------------
 
-template<typename id_t, typename off_t, typename weight_t>
-void GraphWeight<id_t, off_t, weight_t>
+template<typename vid_t, typename eoff_t, typename weight_t>
+void GraphWeight<vid_t, eoff_t, weight_t>
 ::readDimacs10(std::ifstream& fin, Property prop) {
     ERROR("Not Implemented")
 }
 
 //------------------------------------------------------------------------------
 
-template<typename id_t, typename off_t, typename weight_t>
-void GraphWeight<id_t, off_t, weight_t>
+template<typename vid_t, typename eoff_t, typename weight_t>
+void GraphWeight<vid_t, eoff_t, weight_t>
 ::readSnap(std::ifstream& fin, Property prop) {
-    _coo_size = GraphBase<id_t, off_t>::getSnapHeader(fin);
+    _coo_size = GraphBase<vid_t, eoff_t>::getSnapHeader(fin);
     allocate();
 
     xlib::Progress progress(_coo_size);
     while (fin.peek() == '#')
         xlib::skip_lines(fin);
 
-    xlib::UniqueMap<id_t, id_t> map;
+    xlib::UniqueMap<vid_t, vid_t> map;
     for (size_t lines = 0; lines < _coo_size; lines++) {
-        id_t v1, v2;
+        vid_t v1, v2;
         weight_t weight;
         fin >> v1 >> v2 >> weight;
         _coo_edges[lines] = coo_t(map.insertValue(v1), map.insertValue(v2),
@@ -124,14 +124,14 @@ void GraphWeight<id_t, off_t, weight_t>
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-conversion"
 
-template<typename id_t, typename off_t, typename weight_t>
-void GraphWeight<id_t, off_t, weight_t>
+template<typename vid_t, typename eoff_t, typename weight_t>
+void GraphWeight<vid_t, eoff_t, weight_t>
 ::readBinary(const char* filename, Property prop) {
     size_t file_size = xlib::file_size(filename);
     xlib::MemoryMapped memory_mapped(filename, file_size,
                                      xlib::MemoryMapped::READ, prop.is_print());
 
-    std::string class_id = xlib::type_name<id_t>() + xlib::type_name<off_t>() +
+    std::string class_id = xlib::type_name<vid_t>() + xlib::type_name<eoff_t>() +
                            xlib::type_name<weight_t>();
     auto tmp = new char[class_id.size()];
     memory_mapped.read(tmp, class_id.size());
@@ -147,14 +147,14 @@ void GraphWeight<id_t, off_t, weight_t>
         memory_mapped.read(_out_offsets, _nV + 1, _in_offsets, _nV + 1, //NOLINT
                            _out_edges, _nE, _in_edges, _nE,             //NOLINT
                            _out_weights, _nE, _in_weights, _nE);
-        for (id_t i = 0; i < _nV; i++)
+        for (vid_t i = 0; i < _nV; i++)
             _in_degrees[i] = _in_offsets[i + 1] - _in_offsets[i - 1];
     }
     else {
         memory_mapped.read(_out_offsets, _nV + 1, _out_edges, _nE,      //NOLINT
                            _out_weights, _nE);                          //NOLINT
     }
-    for (id_t i = 0; i < _nV; i++)
+    for (vid_t i = 0; i < _nV; i++)
         _out_degrees[i] = _out_offsets[i + 1] - _out_offsets[i - 1];
 }
 

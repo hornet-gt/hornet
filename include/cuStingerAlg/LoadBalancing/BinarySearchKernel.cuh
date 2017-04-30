@@ -1,8 +1,4 @@
 /**
- * @internal
- * @brief Internal cuStinger types
- * @details Lowest level layer of the cuStinger programming model
- *          (hidden for the users)
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
@@ -39,48 +35,41 @@
  *
  * @file
  */
-#pragma once
+#include "Core/cuStingerTypes.cuh"
+/*#include "cuStingerAlg/cuStingerAlgConfig.cuh"
+#include "cuStingerAlg/DeviceQueue.cuh"
+#include "Support/Device/Definition.cuh"
+#include "Support/Device/PTX.cuh"
+#include "Support/Device/WarpScan.cuh"*/
+#include "Support/Device/MergePath.cuh"
+//#include "Support/Host/Numeric.hpp"
 
-#include "Support/Host/Metaprogramming.hpp"  //xlib::TupleToTypeSize
-#include "Support/Host/Numeric.hpp"          //xlib::roundup_pow2
+/**
+ * @brief
+ */
+namespace load_balacing {
 
-namespace cu_stinger {
+using cu_stinger::Vertex;
 
-template<typename... TArgs>
-using TypeList = std::tuple<TArgs...>;
+/**
+ * @brief
+ */
+template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
+         void (*Operator)(cu_stinger::Vertex, cu_stinger::Edge, void*)>
+__global__
+void binarySearchKernel(const cu_stinger::vid_t* __restrict__ d_input,
+                        const int*               __restrict__ d_work,
+                        int work_size,
+                        void* __restrict__ optional_field) {
+    using cu_stinger::degree_t;
+    __shared__ degree_t smem[ITEMS_PER_BLOCK];
 
-using   byte_t = char;
-using degree_t = int;
-
-struct ALIGN(16) VertexBasicData {
-    byte_t* __restrict__ edge_ptr;
-    degree_t             degree;
-};
-
-//User configuration
-#include "../config.inc"
-
-using vertex_t = typename xlib::TupleConcat<TypeList<VertexBasicData>,
-                                            VertexTypes>::type;
-
-using   edge_t = typename xlib::TupleConcat<TypeList<vid_t>, EdgeTypes>::type;
-
-#include "RawTypesUtil.hpp"
-//------------------------------------------------------------------------------
-
-namespace detail {
-
-HOST_DEVICE degree_t limit(degree_t degree) noexcept {
-    const degree_t MIN_EDGES_PER_BLOCK = 1;
-    #if defined(__CUDACC__)
-        return ::max(static_cast<degree_t>(MIN_EDGES_PER_BLOCK),
-                     xlib::roundup_pow2(degree + 1));
-    #else
-        return std::max(static_cast<degree_t>(MIN_EDGES_PER_BLOCK),
-                        xlib::roundup_pow2(degree + 1));
-    #endif
+    auto lambda = [&](int pos, degree_t offset) {
+        Vertex vertex( d_input[pos] );
+        auto edge = vertex.edge(offset);
+        Operator(vertex, edge, optional_field);
+    };
+    xlib::binarySearchLB<BLOCK_SIZE>(d_work, work_size, smem, lambda);
 }
 
-} //namespace detail
-
-} // namespace cu_stinger
+} // namespace load_balacing

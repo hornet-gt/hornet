@@ -68,7 +68,7 @@ public:
      * @param[in] csr_edges csr edges array
      */
     explicit cuStingerInit(size_t num_vertices, size_t num_edges,
-                           const off_t* csr_offsets, const id_t* csr_edges)
+                           const eoff_t* csr_offsets, const vid_t* csr_edges)
                            noexcept;
 
     /**
@@ -110,12 +110,12 @@ public:
     /**
      *
      */
-    const off_t* csr_offsets() const noexcept;
+    const eoff_t* csr_offsets() const noexcept;
 
     /**
      *
      */
-    const id_t* csr_edges() const noexcept;
+    const vid_t* csr_edges() const noexcept;
 
 private:
     /**
@@ -176,9 +176,9 @@ private:
      * @brief device pointer for *all* vertex data
      *        (degree and edge pointer included)
      */
-    byte_t*      _d_vertices { nullptr };
-    size_t       _nV;
-    size_t       _nE;
+    byte_t* _d_vertices { nullptr };
+    size_t  _nV;
+    size_t  _nE;
 
     /**
      * @internal
@@ -187,7 +187,7 @@ private:
     void initializeVertexGlobal(byte_t* (&vertex_data_ptrs)[NUM_VTYPES])
                                 noexcept;
 
-    void convert_to_csr(off_t* csr_offsets, id_t* csr_edges) const noexcept;
+    void convert_to_csr(eoff_t* csr_offsets, vid_t* csr_edges) const noexcept;
 };
 
 //==============================================================================
@@ -227,7 +227,7 @@ public:
     /**
      * @brief Insert additional edge data
      * @param[in] edge_data list of edge data. The list must contains atleast
-     *            the source and the destination arrays (id_t type)
+     *            the source and the destination arrays (vid_t type)
      * @remark the types of the input arrays must be equal to the type List
      *         for edges specified in the *config.inc* file
      * @see ::insertVertexData
@@ -236,8 +236,8 @@ public:
     void insertEdgeData(TArgs... edge_data) noexcept;
 
 private:
-    byte_t*       _edge_data_ptrs[ NUM_ETYPES + 1 ]; //+1 for source ids
-    size_t        _batch_size;
+    byte_t* _edge_data_ptrs[ NUM_ETYPES + 1 ]; //+1 for source ids
+    size_t  _batch_size;
 };
 
 } // namespace cu_stinger

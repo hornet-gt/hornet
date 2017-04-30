@@ -64,6 +64,18 @@ TO DO:
     - SpMV
     - Faster Initialization (device allocation)
     - Support 2^64 edges
+    - GPU Graph Transpose
+    - GPU graph generation
 * Others
     - Regression test (ctest)
     - Add class diagram to doxygen
+
+
+NOTES:
+* Lambda expression limitations:
+    - Cannot be used in class inline costructur
+    - It captures "this" by default, also with [=] capture list
+    - May be slower since __forceinline__ and __restrict__ are lost in template
+* Pass function vs. struct as Operator:
+    - Function must have fixed types. It requires explicit type casting
+    - May be slower since __forceinline__ is lost in template

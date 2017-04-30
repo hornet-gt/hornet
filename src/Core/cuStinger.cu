@@ -50,7 +50,7 @@ void cuStinger::initializeVertexGlobal(byte_t* (&vertex_data_ptrs)[NUM_VTYPES])
 __device__ int d_array[10];
 
 __global__ void printKernel() {
-    for (id_t i = 0; i < d_nV; i++) {
+    for (vid_t i = 0; i < d_nV; i++) {
         auto vertex = Vertex(i);
         auto degree = vertex.degree();
         //auto field0 = vertex.field<0>();
@@ -71,7 +71,7 @@ __global__ void printKernel() {
     //printf("\n");
     //from RAW:
     //
-    //for (id_t i = 0; i < d_nV; i++) {
+    //for (vid_t i = 0; i < d_nV; i++) {
     //  for (degree_t j = 0; j < vertex.degrees(); j++) {
     //       auto edge = vertex.edge(i);
     //----------------------------------------------------
@@ -82,12 +82,12 @@ __global__ void printKernel() {
 }
 
 void cuStinger::print() noexcept {
-    if (sizeof(degree_t) == 4 && sizeof(id_t) == 4) {
+    if (sizeof(degree_t) == 4 && sizeof(vid_t) == 4) {
         printKernel<<<1, 1>>>();
         CHECK_CUDA_ERROR
     }
     else
-        WARNING("Graph print is enable only with degree_t/id_t of size 4 bytes")
+        WARNING("Graph print is enable only with degree_t/vid_t of size 4 bytes")
 }
 
 } // namespace cu_stinger

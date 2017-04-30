@@ -36,6 +36,7 @@ int main(int argc, char* argv[]) {
     using namespace cu_stinger;
     cudaSetDevice(1);
     vid_t bfs_source = 0;
+
     //--------------------------------------------------------------------------
     //////////////
     // HOST BFS //
@@ -55,6 +56,7 @@ int main(int argc, char* argv[]) {
                                  graph.out_edges_array());
 
     cuStinger custiger_graph(custinger_init);
+    //Csr csr_graph(custinger_init);
 
     dist_t* d_distances;
     Allocate alloc(d_distances, graph.nV());
@@ -69,7 +71,7 @@ int main(int argc, char* argv[]) {
     TwoLevelQueue<vid_t> queue(graph.nV() * 2);
     queue.insert(bfs_source);
     //queue.insert(bfs_sources, num_sources);               // Multi-sources BFS
-    load_balacing::BinarySearch lb(custinger_init, graph.nV() * 2);
+    load_balacing::BinarySearch lb(queue, graph.out_offsets_array());
 
     Timer<DEVICE> TM;
     TM.start();
@@ -78,8 +80,7 @@ int main(int argc, char* argv[]) {
     // BFS ALGORITHM //
     ///////////////////
     while (queue.size() > 0) {
-        //lb.traverse_edges<BFSOperatorNoAtomic>(queue.device_ptr(), queue.size(),
-        //                                       d_distances);
+        lb.traverse_edges<BFSOperatorNoAtomic>(d_distances, level);
         level++;
     }
     //--------------------------------------------------------------------------
@@ -108,20 +109,41 @@ struct VertexInit {
     }
 };
 
+struct BFSOperatorAtomic {
+    __device__ __forceinline__
+    static void apply(Vertex src, Edge edge,
+                      DeviceQueue<cu_stinger::vid_t>& queue,
+                      dist_t* d_distances, dist_t level) {
 
-__device__ __forceinline__
-static void BFSOperatorAtomic(Vertex src, Edge edge, void* optional_field) {
-    /*auto dst = edge.dst();
-    auto old = atomicCAS(d_distances + dst, INF, level);
-    if (old == INF)
-        queue.insert(src.id());     // the vertex dst is active*/
-}
+        auto dst = edge.dst();
+        auto old = atomicCAS(d_distances + dst, INF, level);
+        if (old == INF)
+            queue.insert(src.id());     // the vertex dst is active
+    }
+};
 
-__device__ __forceinline__
-static void BFSOperatorNoAtomic(Vertex src, Edge edge, void* optional_field) {
-    /*auto dst = edge.dst();
-    if (d_distances[dst] == INF) {
-        d_distances[dst] = level;
-        queue.insert(src.id());    // the vertex dst is active
-    }*/
-}
+struct BFSOperatorNoAtomic {
+    __device__ __forceinline__
+    static void apply(Vertex src, Edge edge,
+                      DeviceQueue<cu_stinger::vid_t>& queue,
+                      dist_t* d_distances, dist_t level) {
+
+        auto dst = edge.dst();
+        if (d_distances[dst] == INF) {
+            d_distances[dst] = level;
+            queue.insert(src.id());    // the vertex dst is active
+        }
+    }
+};
+
+//------------------------------------------------------------------------------
+//#include <cuda_profiler_api.h>
+//cudaProfilerStart();
+//cudaProfilerStop();
+//xlib::printArray(h_distances, graph.nV(), "Host\n");
+//xlib::printArray(tmp_distance, graph.nV(), "Device\n");
+
+/*auto statistics = bfs.statistics(0);
+int l = 1;
+for (const auto& it : statistics)
+    std::cout << l++ << "\t" << it[2] << std::endl;*/

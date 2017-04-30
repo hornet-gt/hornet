@@ -40,13 +40,8 @@
  * @file
  */
 
-static_assert(xlib::IsPower2<MIN_EDGES_PER_BLOCK>::value  &&
-              xlib::IsPower2<EDGES_PER_BLOCKARRAY>::value &&
-              MIN_EDGES_PER_BLOCK <= EDGES_PER_BLOCKARRAY,
-              "Memory Management Constrains");
-
-static_assert(std::is_integral<id_t>::value, "id_t must be integral");
-static_assert(std::is_integral<off_t>::value, "off_t must be integral");
+static_assert(std::is_integral<vid_t>::value, "vid_t must be integral");
+static_assert(std::is_integral<eoff_t>::value, "eoff_t must be integral");
 
 static_assert(std::is_same<degree_t, int>::value ||
               std::is_same<degree_t, unsigned>::value ||

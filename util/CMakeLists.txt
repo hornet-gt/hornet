@@ -169,7 +169,7 @@ set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}
 endif()
 endif()
 
-set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-std=c++11"
+set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-std=c++11" "--expt-extended-lambda"
     "-Xcompiler=-Wno-unknown-pragmas"
     -Xcudafe \\\"--diag_suppress=initialization_not_reachable\\\"
     -Xcudafe \\\"--diag_suppress=code_is_unreachable\\\"

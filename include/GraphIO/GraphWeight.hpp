@@ -42,14 +42,14 @@
 
 namespace graph {
 
-template<typename id_t, typename off_t>
+template<typename vid_t, typename eoff_t>
 class BFS;
 
-template<typename id_t = int, typename off_t = int, typename weight_t = int>
-class GraphWeight : public GraphBase<id_t, off_t> {
-    using    coo_t = typename std::tuple<id_t, id_t, weight_t>;
+template<typename vid_t = int, typename eoff_t = int, typename weight_t = int>
+class GraphWeight : public GraphBase<vid_t, eoff_t> {
+    using    coo_t = typename std::tuple<vid_t, vid_t, weight_t>;
     using degree_t = int;
-    friend class BFS<id_t, off_t>;
+    friend class BFS<vid_t, eoff_t>;
 
 public:
     explicit GraphWeight()                                   noexcept = default;
@@ -59,14 +59,14 @@ public:
                          Property property) noexcept;
     virtual ~GraphWeight() noexcept final;                              //NOLINT
 
-    degree_t out_degree(id_t index)  const noexcept;
-    degree_t in_degree (id_t index)  const noexcept;
+    degree_t out_degree(vid_t index)  const noexcept;
+    degree_t in_degree (vid_t index)  const noexcept;
 
     const coo_t*    coo_array()         const noexcept;
-    const off_t*    out_offsets_array() const noexcept;
-    const off_t*    in_offsets_array()  const noexcept;
-    const id_t*     out_edges_array()   const noexcept;
-    const id_t*     in_edges_array()    const noexcept;
+    const eoff_t*    out_offsets_array() const noexcept;
+    const eoff_t*    in_offsets_array()  const noexcept;
+    const vid_t*     out_edges_array()   const noexcept;
+    const vid_t*     in_edges_array()    const noexcept;
     const degree_t* out_degrees_array() const noexcept;
     const degree_t* in_degrees_array()  const noexcept;
     const weight_t* out_weights_array() const noexcept;
@@ -77,19 +77,19 @@ public:
     void toBinary(const std::string& filename, bool print = true) const;
     void toMarket(const std::string& filename) const;
 private:
-    off_t     *_out_offsets { nullptr };
-    off_t     *_in_offsets  { nullptr };
-    id_t      *_out_edges   { nullptr };
-    id_t      *_in_edges    { nullptr };
+    eoff_t     *_out_offsets { nullptr };
+    eoff_t     *_in_offsets  { nullptr };
+    vid_t      *_out_edges   { nullptr };
+    vid_t      *_in_edges    { nullptr };
     degree_t* _out_degrees  { nullptr };
     degree_t* _in_degrees   { nullptr };
     coo_t*    _coo_edges    { nullptr };
     weight_t* _out_weights  { nullptr };
     weight_t* _in_weights   { nullptr };
     size_t    _coo_size     { 0 };
-    using GraphBase<id_t, off_t>::_nE;
-    using GraphBase<id_t, off_t>::_nV;
-    using GraphBase<id_t, off_t>::_structure;
+    using GraphBase<vid_t, eoff_t>::_nE;
+    using GraphBase<vid_t, eoff_t>::_nV;
+    using GraphBase<vid_t, eoff_t>::_structure;
 
     void allocate() noexcept override;
 

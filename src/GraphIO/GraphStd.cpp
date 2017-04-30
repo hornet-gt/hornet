@@ -44,12 +44,12 @@
 
 namespace graph {
 
-template<typename id_t, typename off_t>
-void GraphStd<id_t, off_t>::allocate() noexcept {
+template<typename vid_t, typename eoff_t>
+void GraphStd<vid_t, eoff_t>::allocate() noexcept {
     assert(_nV > 0 && _nE > 0 && _structure.is_direction_set());
     try {
-        _out_offsets = new off_t[ _nV + 1 ];
-        _out_edges   = new id_t[ _nE ];
+        _out_offsets = new eoff_t[ _nV + 1 ];
+        _out_edges   = new vid_t[ _nE ];
         _out_degrees = new degree_t[ _nV ]();
         if (_coo_size > 0)
             _coo_edges   = new coo_t[ _coo_size ];
@@ -59,8 +59,8 @@ void GraphStd<id_t, off_t>::allocate() noexcept {
             _in_edges   = _out_edges;
         }
         else if (_structure.is_reverse()) {
-            _in_offsets = new off_t[ _nV + 1 ];
-            _in_edges   = new id_t[ _nE ];
+            _in_offsets = new eoff_t[ _nV + 1 ];
+            _in_edges   = new vid_t[ _nE ];
             _in_degrees = new degree_t[ _nV ]();
         }
     }
@@ -69,8 +69,8 @@ void GraphStd<id_t, off_t>::allocate() noexcept {
     }
 }
 
-template<typename id_t, typename off_t>
-GraphStd<id_t, off_t>::~GraphStd() noexcept {
+template<typename vid_t, typename eoff_t>
+GraphStd<vid_t, eoff_t>::~GraphStd() noexcept {
     delete[] _out_offsets;
     delete[] _out_edges;
     delete[] _out_degrees;
@@ -82,13 +82,13 @@ GraphStd<id_t, off_t>::~GraphStd() noexcept {
     }
 }
 
-template<typename id_t, typename off_t>
-void GraphStd<id_t, off_t>::COOtoCSR(Property prop) noexcept {
+template<typename vid_t, typename eoff_t>
+void GraphStd<vid_t, eoff_t>::COOtoCSR(Property prop) noexcept {
     if (prop.is_randomize()) {
         if (prop.is_print())
             std::cout << "Randomization...\n" << std::flush;
         auto seed = std::chrono::system_clock::now().time_since_epoch().count();
-        auto random_array = new id_t[_nV];
+        auto random_array = new vid_t[_nV];
         std::iota(random_array, random_array + _nV, 0);
         std::shuffle(random_array, random_array + _nV, std::mt19937_64(seed));
         for (size_t i = 0; i < _coo_size; i++) {
@@ -106,8 +106,8 @@ void GraphStd<id_t, off_t>::COOtoCSR(Property prop) noexcept {
         std::cout << "COO to CSR...\t" << std::flush;
 
     for (size_t i = 0; i < _coo_size; i++) {
-        id_t  src = _coo_edges[i].first;
-        id_t dest = _coo_edges[i].second;
+        vid_t  src = _coo_edges[i].first;
+        vid_t dest = _coo_edges[i].second;
         _out_degrees[src]++;
         if (_structure.is_undirected())
             _out_degrees[dest]++;
@@ -119,8 +119,8 @@ void GraphStd<id_t, off_t>::COOtoCSR(Property prop) noexcept {
 
     auto tmp = new degree_t[_nV]();
     for (size_t i = 0; i < _coo_size; i++) {
-        id_t  src = _coo_edges[i].first;
-        id_t dest = _coo_edges[i].second;
+        vid_t  src = _coo_edges[i].first;
+        vid_t dest = _coo_edges[i].second;
         _out_edges[ _out_offsets[src] + tmp[src]++ ] = dest;
         if (_structure.is_undirected())
             _out_edges[ _out_offsets[dest] + tmp[dest]++ ] = src;
@@ -131,7 +131,7 @@ void GraphStd<id_t, off_t>::COOtoCSR(Property prop) noexcept {
         std::partial_sum(_in_degrees, _in_degrees + _nV, _in_offsets + 1);
         std::fill(tmp, tmp + _nV, 0);
         for (size_t i = 0; i < _coo_size; i++) {
-            id_t dest = _coo_edges[i].second;
+            vid_t dest = _coo_edges[i].second;
             _in_edges[ _in_offsets[dest] + tmp[dest]++ ] = _coo_edges[i].first;
         }
     }
@@ -144,11 +144,11 @@ void GraphStd<id_t, off_t>::COOtoCSR(Property prop) noexcept {
         std::cout << "Complete!\n" << std::endl;
 }
 
-template<typename id_t, typename off_t>
-void GraphStd<id_t, off_t>::print() const noexcept {
-    for (id_t i = 0; i < _nV; i++) {
+template<typename vid_t, typename eoff_t>
+void GraphStd<vid_t, eoff_t>::print() const noexcept {
+    for (vid_t i = 0; i < _nV; i++) {
         std::cout << "[ " << i << " ] : ";
-        for (off_t j = _out_offsets[i]; j < _out_offsets[i + 1]; j++)
+        for (eoff_t j = _out_offsets[i]; j < _out_offsets[i + 1]; j++)
             std::cout << _out_edges[j] << " ";
         std::cout << "\n";
     }
@@ -158,8 +158,8 @@ void GraphStd<id_t, off_t>::print() const noexcept {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-conversion"
 
-template<typename id_t, typename off_t>
-void GraphStd<id_t, off_t>::print_raw() const noexcept {
+template<typename vid_t, typename eoff_t>
+void GraphStd<vid_t, eoff_t>::print_raw() const noexcept {
     xlib::printArray(_out_offsets, _nV + 1, "Out-Offsets  ");           //NOLINT
     xlib::printArray(_out_edges,   _nE,     "Out-Edges    ");           //NOLINT
     xlib::printArray(_out_degrees, _nV,     "Out-Degrees  ");           //NOLINT
@@ -172,12 +172,12 @@ void GraphStd<id_t, off_t>::print_raw() const noexcept {
 
 #if defined(__linux__)
 
-template<typename id_t, typename off_t>
-void GraphStd<id_t, off_t>::toBinary(const std::string& filename, bool print)
+template<typename vid_t, typename eoff_t>
+void GraphStd<vid_t, eoff_t>::toBinary(const std::string& filename, bool print)
                                      const {
     size_t  base_size = sizeof(_nV) + sizeof(_nE) + sizeof(_structure);
-    size_t file_size1 = (static_cast<size_t>(_nV) + 1) * sizeof(off_t) +
-                        (static_cast<size_t>(_nE)) * sizeof(id_t);
+    size_t file_size1 = (static_cast<size_t>(_nV) + 1) * sizeof(eoff_t) +
+                        (static_cast<size_t>(_nE)) * sizeof(vid_t);
 
     bool       twice = _structure.is_directed() && _structure.is_reverse();
     size_t file_size = base_size + (twice ? file_size1 * 2 : file_size1);
@@ -187,7 +187,7 @@ void GraphStd<id_t, off_t>::toBinary(const std::string& filename, bool print)
                 << " (" << (file_size >> 20) << ") MB" << std::endl;
     }
 
-    std::string class_id = xlib::type_name<id_t>() + xlib::type_name<off_t>();
+    std::string class_id = xlib::type_name<vid_t>() + xlib::type_name<eoff_t>();
     file_size           += class_id.size();
     xlib::MemoryMapped memory_mapped(filename.c_str(), file_size,
                                      xlib::MemoryMapped::WRITE, print);
@@ -208,13 +208,13 @@ void GraphStd<id_t, off_t>::toBinary(const std::string& filename, bool print)
 #pragma clang diagnostic pop
 #endif
 
-template<typename id_t, typename off_t>
-void GraphStd<id_t, off_t>::toMarket(const std::string& filename) const {
+template<typename vid_t, typename eoff_t>
+void GraphStd<vid_t, eoff_t>::toMarket(const std::string& filename) const {
     std::ofstream fout(filename);
     fout << "%%MatrixMarket matrix coordinate pattern general"
          << "\n" << _nV << " " << _nV << " " << _nE << "\n";
-    for (id_t i = 0; i < _nV; i++) {
-        for (off_t j = _out_offsets[i]; j < _out_offsets[i + 1]; j++)
+    for (vid_t i = 0; i < _nV; i++) {
+        for (eoff_t j = _out_offsets[i]; j < _out_offsets[i + 1]; j++)
             fout << i + 1 << " " << _out_edges[j] + 1 << "\n";
     }
     fout.close();

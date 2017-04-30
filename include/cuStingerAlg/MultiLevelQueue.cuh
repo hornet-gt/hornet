@@ -49,39 +49,44 @@ struct ptr2_t {
     void swap() noexcept;
 };
 
-__device__   int          d_queue_counter;
 __constant__ ptr2_t<void> d_queue_ptrs;
 
 template<typename T>
-class TwoLevelQueue {
+class MultiLevelQueue {
 public:
-    explicit TwoLevelQueue(size_t max_allocated_items) noexcept;
-    ~TwoLevelQueue() noexcept;
+    explicit MultiLevelQueue(size_t max_allocated_items) noexcept;
+    ~MultiLevelQueue() noexcept;
 
-    __host__ void insert(const T& item) noexcept;
+    __host__ __device__ void insert(const T& item) noexcept;
 
     __host__ void insert(const T* items_array, int num_items) noexcept;
 
     __host__ int size() const noexcept;
 
+    __host__ int size(int level) const noexcept;
+
     //__host__ int update_size() noexcept;
 
     __host__ void update_size(int size) noexcept;
 
-    __host__ void swap() noexcept;
+    __host__ const T* host_data(int level) noexcept;
 
-    __host__ const T* host_data() const noexcept;
+    __host__ void print(int level) const noexcept;
 
-    __host__ void print() const noexcept;
+    __host__ void next() noexcept;
 
+    __host__ T* device_ptr() noexcept;
+
+    __host__ T* device_ptr(int level) noexcept;
 private:
     ptr2_t<T> _d_queue             { nullptr, nullptr };
     int*      _d_queue_counter     { nullptr };
     T*        _host_data           { nullptr };
     size_t    _max_allocated_items { 0 };
     int       _size                { 0 };
+    std::vector<int> level_sizes(32768);
 };
 
 } // namespace cu_stinger_alg
 
-#include "TwoLevelQueue.i.cuh"
+#include "MultiLevelQueue.i.cuh"

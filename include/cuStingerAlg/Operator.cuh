@@ -25,6 +25,28 @@ void forAllEdges(TArgs... optional_data);
 template<typename Operator, typename... TArgs>
 void forAllBatchEdges(TArgs... optional_data);
 
+//==============================================================================
+//==============================================================================
+//==============================================================================
+/////////////////
+/// C++11 API ///
+/////////////////
+
+template<typename Lambda>
+void forAll(size_t size, Lambda lambda);
+
+template<typename Lambda>
+void forAllVertices(Lambda lambda);
+
+template<typename Lambda>
+void forAllEdges(Lambda lambda);
+
+template<typename Lambda>
+void forAllnumV(Lambda lambda);
+
+template<typename Lambda>
+void forAllnumE(Lambda lambda);
+
 } // namespace cu_stinger_alg
 
 #include "Operator.i.cuh"

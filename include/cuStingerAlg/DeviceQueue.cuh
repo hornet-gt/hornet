@@ -46,8 +46,7 @@ public:
     DeviceQueue();
 
     __device__ __forceinline__
-    DeviceQueue(T*   __restrict__ queue_ptr,
-                int* __restrict__ size_ptr);
+    DeviceQueue(T*   __restrict__ queue_ptr, int* __restrict__ size_ptr);
 
     __device__ __forceinline__
     void insert(T item);

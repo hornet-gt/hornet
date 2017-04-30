@@ -38,11 +38,11 @@
 namespace cu_stinger {
 
 __device__ __forceinline__
-Vertex::Vertex(id_t index) : _id(index) {
+Vertex::Vertex(vid_t index) : _id(index) {
     assert(index < d_nV);
     xlib::SeqDev<VTypeSize> VTYPE_SIZE_D;
-    _vertex_ptr     = reinterpret_cast<VertexBasicData*>(d_vertex_data_ptrs[0]) +
-                      index;
+    _vertex_ptr = reinterpret_cast<VertexBasicData*>(d_vertex_data_ptrs[0]) +
+                   index;
     auto basic_data = *_vertex_ptr;
 
     _degree   = basic_data.degree;
@@ -113,7 +113,7 @@ __device__ __forceinline__
 void Vertex::store(const Edge& edge, degree_t index) {
     Edge to_replace(_edge_ptr, index, _limit);
 
-    reinterpret_cast<id_t*>(_edge_ptr)[index] = edge.dst();
+    reinterpret_cast<vid_t*>(_edge_ptr)[index] = edge.dst();
     detail::store_edge(edge._ptrs, to_replace._ptrs);
 }
 
@@ -125,14 +125,14 @@ Edge::Edge(byte_t* edge_ptr, degree_t index, degree_t limit) {
     //Edge Type Sizes Prefixsum
     xlib::SeqDev<ETypeSizePS> ETYPE_SIZE_PS_D;
 
-    _dst = reinterpret_cast<id_t*>(edge_ptr)[index];
+    _dst = reinterpret_cast<vid_t*>(edge_ptr)[index];
     #pragma unroll
     for (int i = 0; i < NUM_EXTRA_ETYPES; i++)
         _ptrs[i] = edge_ptr + limit * ETYPE_SIZE_PS_D[i + 1];
 }
 
 __device__ __forceinline__
-id_t Edge::dst() const {
+vid_t Edge::dst() const {
     return _dst;
 }
 
@@ -167,8 +167,5 @@ Edge::field() const  {
     using T = typename std::tuple_element<INDEX, EdgeTypes>::type;
     return *reinterpret_cast<T*>(_ptrs[INDEX]);
 }
-
-//==============================================================================
-
 
 } // namespace cu_stinger

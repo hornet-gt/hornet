@@ -81,11 +81,11 @@ private:
 };
 
 
-template<typename id_t, typename off_t>
+template<typename vid_t, typename eoff_t>
 class GraphBase {
 public:
-    virtual id_t  nV() const noexcept final;
-    virtual off_t nE() const noexcept final;
+    virtual vid_t  nV() const noexcept final;
+    virtual eoff_t nE() const noexcept final;
     virtual const std::string& name() const noexcept final;
 
     virtual void read(const char* filename,                             //NOLINT
@@ -97,8 +97,8 @@ public:
     void operator=(const GraphBase&) = delete;
 protected:
     std::string _graph_name { "" };
-    id_t        _nV { 0 };
-    off_t       _nE { 0 };
+    vid_t        _nV { 0 };
+    eoff_t       _nE { 0 };
     Structure   _structure;
 
     explicit GraphBase(Structure structure = Structure(Structure::REVERSE))

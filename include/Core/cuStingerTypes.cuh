@@ -57,7 +57,7 @@ public:
      * @brief Default costructor
      */
     __device__ __forceinline__
-    Vertex(id_t index);
+    Vertex(vid_t index);
 
     /**
      * @brief
@@ -98,10 +98,10 @@ public:
      * The behavior is undefined otherwise.
      */
     __device__ __forceinline__
-    Edge edge(off_t index) const;
+    Edge edge(eoff_t index) const;
 
 protected:
-    id_t     _id;
+    vid_t     _id;
     degree_t _degree;
     byte_t*  _ptrs[NUM_EXTRA_VTYPES];
 
@@ -146,7 +146,7 @@ public:
      * @return destination of the edge
      */
     __device__ __forceinline__
-    id_t dst() const;
+    vid_t dst() const;
 
     /**
      * @brief weight of the edge (if it exists)
@@ -202,7 +202,7 @@ public:
     field() const;
 
 protected:
-    id_t    _dst;
+    vid_t    _dst;
     byte_t* _ptrs[NUM_EXTRA_ETYPES];
 
     __device__ __forceinline__

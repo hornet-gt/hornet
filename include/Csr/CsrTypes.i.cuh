@@ -38,7 +38,7 @@
 namespace csr {
 
 __device__ __forceinline__
-Vertex::Vertex(id_t index) {
+Vertex::Vertex(vid_t index) {
     assert(index < d_nV);
     xlib::SeqDev<VTypeSize> VTYPE_SIZE_D;
     auto v_offsets = reinterpret_cast<off2_t*>(d_vertex_data_ptrs[0])[index];
@@ -62,7 +62,7 @@ Edge::Edge(degree_t index) {
     //Edge Type Sizes Prefixsum
     xlib::SeqDev<ETypeSize> ETYPE_SIZE_D;
 
-    _dst = reinterpret_cast<id_t*>(d_edge_data_ptrs[0])[index];
+    _dst = reinterpret_cast<vid_t*>(d_edge_data_ptrs[0])[index];
     #pragma unroll
     for (int i = 0; i < NUM_EXTRA_ETYPES; i++)
         _ptrs[i] = d_edge_data_ptrs[i + 1] + index * ETYPE_SIZE_D[i + 1];

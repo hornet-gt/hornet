@@ -37,23 +37,33 @@
  */
 #pragma once
 
+#include "Core/cuStingerTypes.cuh"
+
 /**
  * @brief
  */
 namespace load_balacing {
 
-__constant__ int* d_work1 = nullptr;
-__constant__ int* d_work2 = nullptr;
-
 class BinarySearch {
 public:
-    explicit BinarySearch() noexcept;
+    explicit BinarySearch(const cu_stinger::cuStingerInit& custinger_int,
+                          int max_allocated_items) noexcept;
     ~BinarySearch() noexcept;
 
-    template<void (*)(Vertex, Edge, void*) Operator>
-    void traverse_edges(void* optional_field);
+    template<void (*Operator)(cu_stinger::Vertex, cu_stinger::Edge, void*)>
+    void traverse_edges(const cu_stinger::vid_t* d_input, int num_vertices,
+                        void* optional_field) noexcept;
+
+    void build_degrees(const cu_stinger::eoff_t* csr_offsets, size_t size)
+                       noexcept;
+
+private:
+    static const int         BLOCK_SIZE = 256;
+    static const bool CHECK_CUDA_ERROR1 = 1;
+    int* _d_work    { nullptr };
+    int* _d_degrees { nullptr };
 };
 
 } // namespace load_balacing
 
-#include "cuStingerAlg/LoadBalacing/BinarySearch.i.cuh"
+#include "cuStingerAlg/LoadBalancing/BinarySearch.i.cuh"

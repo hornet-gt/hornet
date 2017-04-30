@@ -42,8 +42,8 @@
 
 namespace graph {
 
-template<typename id_t, typename off_t>
-void GraphBase<id_t, off_t>::read(const char* filename, Property prop) {//NOLINT
+template<typename vid_t, typename eoff_t>
+void GraphBase<vid_t, eoff_t>::read(const char* filename, Property prop) {//NOLINT
     xlib::check_regular_file(filename);
     size_t size = xlib::file_size(filename);
     _graph_name = xlib::extract_filename(filename);
@@ -119,8 +119,8 @@ void GraphBase<id_t, off_t>::read(const char* filename, Property prop) {//NOLINT
         print_property();
 }
 
-template<typename id_t, typename off_t>
-void GraphBase<id_t, off_t>::print_property() {
+template<typename vid_t, typename eoff_t>
+void GraphBase<vid_t, eoff_t>::print_property() {
     assert(_structure.is_direction_set() && _nV > 0 && _nE > 0);
     const char* graph_dir = _structure.is_undirected()
                                 ? "\tGraph Structure: Undirected"
@@ -132,8 +132,8 @@ void GraphBase<id_t, off_t>::print_property() {
 
 //==============================================================================
 
-template<typename id_t, typename off_t>
-size_t GraphBase<id_t, off_t>::getMarketHeader(std::ifstream& fin) {
+template<typename vid_t, typename eoff_t>
+size_t GraphBase<vid_t, eoff_t>::getMarketHeader(std::ifstream& fin) {
     std::string header_lines;
     std::getline(fin, header_lines);
     if (!_structure.is_direction_set()) {
@@ -152,47 +152,47 @@ size_t GraphBase<id_t, off_t>::getMarketHeader(std::ifstream& fin) {
     if (rows != columns)
         WARNING("Rectangular matrix");
 
-    xlib::overflowT<id_t>(std::max(rows, columns));
-    xlib::overflowT<off_t>(num_lines * 2);
+    xlib::overflowT<vid_t>(std::max(rows, columns));
+    xlib::overflowT<eoff_t>(num_lines * 2);
 
-    _nV = static_cast<id_t>(std::max(rows, columns));
-    _nE = (_structure.is_undirected()) ? static_cast<off_t>(num_lines) * 2 :
-                                         static_cast<off_t>(num_lines);
+    _nV = static_cast<vid_t>(std::max(rows, columns));
+    _nE = (_structure.is_undirected()) ? static_cast<eoff_t>(num_lines) * 2 :
+                                         static_cast<eoff_t>(num_lines);
     xlib::skip_lines(fin);
     return num_lines;
 }
 
 //------------------------------------------------------------------------------
 
-template<typename id_t, typename off_t>
-size_t GraphBase<id_t, off_t>::getDimacs9Header(std::ifstream& fin) {
+template<typename vid_t, typename eoff_t>
+size_t GraphBase<vid_t, eoff_t>::getDimacs9Header(std::ifstream& fin) {
     while (fin.peek() == 'c')
         xlib::skip_lines(fin);
 
     size_t num_lines, n_of_vertices;
     xlib::skip_words(fin, 2);
     fin >> n_of_vertices >> num_lines;
-    xlib::overflowT<id_t>(n_of_vertices);
-    xlib::overflowT<off_t>(num_lines * 2);
+    xlib::overflowT<vid_t>(n_of_vertices);
+    xlib::overflowT<eoff_t>(num_lines * 2);
 
     _structure |= Structure::DIRECTED;
-    _nV          = static_cast<id_t>(n_of_vertices);
-    _nE          = static_cast<off_t>(num_lines);
+    _nV          = static_cast<vid_t>(n_of_vertices);
+    _nE          = static_cast<eoff_t>(num_lines);
     return num_lines;
 }
 
 //------------------------------------------------------------------------------
 
-template<typename id_t, typename off_t>
-void GraphBase<id_t, off_t>::getDimacs10Header(std::ifstream& fin) {
+template<typename vid_t, typename eoff_t>
+void GraphBase<vid_t, eoff_t>::getDimacs10Header(std::ifstream& fin) {
     while (fin.peek() == '%')
         xlib::skip_lines(fin);
 
     size_t num_lines, n_of_vertices;
     fin >> n_of_vertices >> num_lines;
-    xlib::overflowT<id_t>(n_of_vertices);
-    xlib::overflowT<off_t>(num_lines * 2);
-    _nV = static_cast<id_t>(n_of_vertices);
+    xlib::overflowT<vid_t>(n_of_vertices);
+    xlib::overflowT<eoff_t>(num_lines * 2);
+    _nV = static_cast<vid_t>(n_of_vertices);
 
     if (fin.peek() != '\n' && fin.peek() != ' ') {
         xlib::skip_words(fin, 1);
@@ -201,14 +201,14 @@ void GraphBase<id_t, off_t>::getDimacs10Header(std::ifstream& fin) {
         _structure |= Structure::UNDIRECTED;
     xlib::skip_lines(fin);
 
-    _nE = (_structure.is_undirected()) ? static_cast<off_t>(num_lines) * 2 :
-                                        static_cast<off_t>(num_lines);
+    _nE = (_structure.is_undirected()) ? static_cast<eoff_t>(num_lines) * 2 :
+                                        static_cast<eoff_t>(num_lines);
 }
 
 //------------------------------------------------------------------------------
 
-template<typename id_t, typename off_t>
-void GraphBase<id_t, off_t>::getKonectHeader(std::ifstream& fin) {
+template<typename vid_t, typename eoff_t>
+void GraphBase<vid_t, eoff_t>::getKonectHeader(std::ifstream& fin) {
     std::string str;
     fin >> str >> str;
     if (!_structure.is_direction_set()) {
@@ -220,8 +220,8 @@ void GraphBase<id_t, off_t>::getKonectHeader(std::ifstream& fin) {
 
 //------------------------------------------------------------------------------
 
-template<typename id_t, typename off_t>
-void GraphBase<id_t, off_t>::getNetRepoHeader(std::ifstream& fin) {
+template<typename vid_t, typename eoff_t>
+void GraphBase<vid_t, eoff_t>::getNetRepoHeader(std::ifstream& fin) {
     std::string str;
     fin >> str >> str;
     if (!_structure.is_direction_set()) {
@@ -233,8 +233,8 @@ void GraphBase<id_t, off_t>::getNetRepoHeader(std::ifstream& fin) {
 
 //------------------------------------------------------------------------------
 
-template<typename id_t, typename off_t>
-size_t GraphBase<id_t, off_t>::getSnapHeader(std::ifstream& fin) {
+template<typename vid_t, typename eoff_t>
+size_t GraphBase<vid_t, eoff_t>::getSnapHeader(std::ifstream& fin) {
     std::string tmp;
     fin >> tmp >> tmp;
     if (!_structure.is_direction_set()) {
@@ -257,11 +257,11 @@ size_t GraphBase<id_t, off_t>::getSnapHeader(std::ifstream& fin) {
         }
     }
     xlib::skip_lines(fin);
-    xlib::overflowT<id_t>(_nV);
-    xlib::overflowT<off_t>(num_lines * 2);
-    _nV = static_cast<id_t>(num_vertices);
-    _nE = _structure.is_undirected() ? static_cast<off_t>(num_lines) * 2 :
-                                       static_cast<off_t>(num_lines);
+    xlib::overflowT<vid_t>(_nV);
+    xlib::overflowT<eoff_t>(num_lines * 2);
+    _nV = static_cast<vid_t>(num_vertices);
+    _nE = _structure.is_undirected() ? static_cast<eoff_t>(num_lines) * 2 :
+                                       static_cast<eoff_t>(num_lines);
     return num_lines;
 }
 

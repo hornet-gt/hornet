@@ -42,65 +42,65 @@ namespace graph {
 ///        GRAPH WEIGHTS     ///
 ////////////////////////////////
 
-template<typename id_t, typename off_t, typename weight_t>
-inline const off_t*
-GraphWeight<id_t, off_t, weight_t>::out_offsets_array() const noexcept {
+template<typename vid_t, typename eoff_t, typename weight_t>
+inline const eoff_t*
+GraphWeight<vid_t, eoff_t, weight_t>::out_offsets_array() const noexcept {
     return _out_offsets;
 }
 
-template<typename id_t, typename off_t, typename weight_t>
-inline const off_t*
-GraphWeight<id_t, off_t, weight_t>::in_offsets_array() const noexcept {
+template<typename vid_t, typename eoff_t, typename weight_t>
+inline const eoff_t*
+GraphWeight<vid_t, eoff_t, weight_t>::in_offsets_array() const noexcept {
     return _in_offsets;
 }
 
-template<typename id_t, typename off_t, typename weight_t>
-inline const id_t*
-GraphWeight<id_t, off_t, weight_t>::out_edges_array() const noexcept {
+template<typename vid_t, typename eoff_t, typename weight_t>
+inline const vid_t*
+GraphWeight<vid_t, eoff_t, weight_t>::out_edges_array() const noexcept {
     return _out_edges;
 }
 
-template<typename id_t, typename off_t, typename weight_t>
-inline const id_t*
-GraphWeight<id_t, off_t, weight_t>::in_edges_array() const noexcept {
+template<typename vid_t, typename eoff_t, typename weight_t>
+inline const vid_t*
+GraphWeight<vid_t, eoff_t, weight_t>::in_edges_array() const noexcept {
     return _in_edges;
 }
 
-template<typename id_t, typename off_t, typename weight_t>
-inline const typename GraphWeight<id_t, off_t, weight_t>::degree_t*
-GraphWeight<id_t, off_t, weight_t>::out_degrees_array() const noexcept {
+template<typename vid_t, typename eoff_t, typename weight_t>
+inline const typename GraphWeight<vid_t, eoff_t, weight_t>::degree_t*
+GraphWeight<vid_t, eoff_t, weight_t>::out_degrees_array() const noexcept {
     return _out_degrees;
 }
 
-template<typename id_t, typename off_t, typename weight_t>
-inline const typename GraphWeight<id_t, off_t, weight_t>::degree_t*
-GraphWeight<id_t, off_t, weight_t>::in_degrees_array() const noexcept {
+template<typename vid_t, typename eoff_t, typename weight_t>
+inline const typename GraphWeight<vid_t, eoff_t, weight_t>::degree_t*
+GraphWeight<vid_t, eoff_t, weight_t>::in_degrees_array() const noexcept {
     return _in_degrees;
 }
 
-template<typename id_t, typename off_t, typename weight_t>
-inline typename GraphWeight<id_t, off_t, weight_t>::degree_t
-GraphWeight<id_t, off_t, weight_t>::out_degree(id_t index) const noexcept {
+template<typename vid_t, typename eoff_t, typename weight_t>
+inline typename GraphWeight<vid_t, eoff_t, weight_t>::degree_t
+GraphWeight<vid_t, eoff_t, weight_t>::out_degree(vid_t index) const noexcept {
     assert(index >= 0 && index < _nV);
     return _out_degrees[index];
 }
 
-template<typename id_t, typename off_t, typename weight_t>
-inline typename GraphWeight<id_t, off_t, weight_t>::degree_t
-GraphWeight<id_t, off_t, weight_t>::in_degree(id_t index) const noexcept {
+template<typename vid_t, typename eoff_t, typename weight_t>
+inline typename GraphWeight<vid_t, eoff_t, weight_t>::degree_t
+GraphWeight<vid_t, eoff_t, weight_t>::in_degree(vid_t index) const noexcept {
     assert(index >= 0 && index < _nV);
     return _in_degrees[index];
 }
 
-template<typename id_t, typename off_t, typename weight_t>
+template<typename vid_t, typename eoff_t, typename weight_t>
 inline const weight_t*
-GraphWeight<id_t, off_t, weight_t>::out_weights_array() const noexcept {
+GraphWeight<vid_t, eoff_t, weight_t>::out_weights_array() const noexcept {
     return _out_weights;
 }
 
-template<typename id_t, typename off_t, typename weight_t>
+template<typename vid_t, typename eoff_t, typename weight_t>
 inline const weight_t*
-GraphWeight<id_t, off_t, weight_t>::in_weights_array() const noexcept {
+GraphWeight<vid_t, eoff_t, weight_t>::in_weights_array() const noexcept {
     return _in_weights;
 }
 

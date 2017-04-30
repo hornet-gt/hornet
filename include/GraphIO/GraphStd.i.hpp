@@ -40,131 +40,131 @@ namespace graph {
 ////////////////////////////////
 ///         Vertex           ///
 ////////////////////////////////
-template<typename id_t, typename off_t>
-inline GraphStd<id_t, off_t>
-::Vertex::Vertex(id_t id, const GraphStd& graph) noexcept : _graph(graph),
+template<typename vid_t, typename eoff_t>
+inline GraphStd<vid_t, eoff_t>
+::Vertex::Vertex(vid_t id, const GraphStd& graph) noexcept : _graph(graph),
                                                             _id(id) {};
 
-template<typename id_t, typename off_t>
-inline id_t GraphStd<id_t, off_t>::Vertex::id() const noexcept {
+template<typename vid_t, typename eoff_t>
+inline vid_t GraphStd<vid_t, eoff_t>::Vertex::id() const noexcept {
     return _id;
 }
 
-template<typename id_t, typename off_t>
-inline typename GraphStd<id_t, off_t>::degree_t
-GraphStd<id_t, off_t>::Vertex::out_degree() const noexcept {
+template<typename vid_t, typename eoff_t>
+inline typename GraphStd<vid_t, eoff_t>::degree_t
+GraphStd<vid_t, eoff_t>::Vertex::out_degree() const noexcept {
     return _graph._out_degrees[_id];
 }
 
-template<typename id_t, typename off_t>
-inline typename GraphStd<id_t, off_t>::degree_t
-GraphStd<id_t, off_t>::Vertex::in_degree() const noexcept {
+template<typename vid_t, typename eoff_t>
+inline typename GraphStd<vid_t, eoff_t>::degree_t
+GraphStd<vid_t, eoff_t>::Vertex::in_degree() const noexcept {
     return _graph._in_degrees[_id];
 }
 
-template<typename id_t, typename off_t>
-inline typename GraphStd<id_t, off_t>::EdgeIt
-GraphStd<id_t, off_t>::Vertex::begin() const noexcept {
+template<typename vid_t, typename eoff_t>
+inline typename GraphStd<vid_t, eoff_t>::EdgeIt
+GraphStd<vid_t, eoff_t>::Vertex::begin() const noexcept {
     return EdgeIt(_graph._out_edges + _graph._out_offsets[_id], _graph);
 }
 
-template<typename id_t, typename off_t>
-inline typename GraphStd<id_t, off_t>::EdgeIt
-GraphStd<id_t, off_t>::Vertex::end() const noexcept {
+template<typename vid_t, typename eoff_t>
+inline typename GraphStd<vid_t, eoff_t>::EdgeIt
+GraphStd<vid_t, eoff_t>::Vertex::end() const noexcept {
     return EdgeIt(_graph._out_edges + _graph._out_offsets[_id + 1], _graph);
 }
 //==============================================================================
 ////////////////////////////////
 ///         VertexIt         ///
 ////////////////////////////////
-template<typename id_t, typename off_t>
-inline GraphStd<id_t, off_t>::VertexIt
-::VertexIt(off_t* current, const GraphStd& graph) noexcept :
+template<typename vid_t, typename eoff_t>
+inline GraphStd<vid_t, eoff_t>::VertexIt
+::VertexIt(eoff_t* current, const GraphStd& graph) noexcept :
                     _graph(graph), _current(current) {}
 
-template<typename id_t, typename off_t>
-inline typename GraphStd<id_t, off_t>::VertexIt&
-GraphStd<id_t, off_t>::VertexIt::VertexIt::operator++ () noexcept {
+template<typename vid_t, typename eoff_t>
+inline typename GraphStd<vid_t, eoff_t>::VertexIt&
+GraphStd<vid_t, eoff_t>::VertexIt::VertexIt::operator++ () noexcept {
     _current++;
     return *this;
 }
 
-template<typename id_t, typename off_t>
+template<typename vid_t, typename eoff_t>
 inline bool
-GraphStd<id_t, off_t>::VertexIt::operator!= (const VertexIt& it)
+GraphStd<vid_t, eoff_t>::VertexIt::operator!= (const VertexIt& it)
                                         const noexcept {
     return _current != it._current;
 }
 
-template<typename id_t, typename off_t>
-inline typename GraphStd<id_t, off_t>::Vertex
-GraphStd<id_t, off_t>::VertexIt::operator* () const noexcept {
-    return Vertex(static_cast<id_t>(_current - _graph._out_offsets), _graph);
+template<typename vid_t, typename eoff_t>
+inline typename GraphStd<vid_t, eoff_t>::Vertex
+GraphStd<vid_t, eoff_t>::VertexIt::operator* () const noexcept {
+    return Vertex(static_cast<vid_t>(_current - _graph._out_offsets), _graph);
 }
 //==============================================================================
 ////////////////////////////////
 ///         Edge             ///
 ////////////////////////////////
-template<typename id_t, typename off_t>
-inline GraphStd<id_t, off_t>
-::Edge::Edge(off_t id, const GraphStd& graph) noexcept : _graph(graph),
+template<typename vid_t, typename eoff_t>
+inline GraphStd<vid_t, eoff_t>
+::Edge::Edge(eoff_t id, const GraphStd& graph) noexcept : _graph(graph),
                                                          _id(id) {};
 
-template<typename id_t, typename off_t>
-inline off_t GraphStd<id_t, off_t>::Edge::id() const noexcept {
+template<typename vid_t, typename eoff_t>
+inline eoff_t GraphStd<vid_t, eoff_t>::Edge::id() const noexcept {
     return _id;
 }
 
-template<typename id_t, typename off_t>
-inline typename GraphStd<id_t, off_t>::Vertex
-GraphStd<id_t, off_t>::Edge::dest() const noexcept {
+template<typename vid_t, typename eoff_t>
+inline typename GraphStd<vid_t, eoff_t>::Vertex
+GraphStd<vid_t, eoff_t>::Edge::dest() const noexcept {
     return Vertex(_graph._out_edges[_id], _graph);
 }
 //==============================================================================
 ////////////////////////////////
 ///         EdgeIt           ///
 ////////////////////////////////
-template<typename id_t, typename off_t>
-inline GraphStd<id_t, off_t>::EdgeIt
-::EdgeIt(id_t* current, const GraphStd& graph) noexcept :
+template<typename vid_t, typename eoff_t>
+inline GraphStd<vid_t, eoff_t>::EdgeIt
+::EdgeIt(vid_t* current, const GraphStd& graph) noexcept :
                            _graph(graph), _current(current) {}
 
-template<typename id_t, typename off_t>
-inline typename GraphStd<id_t, off_t>::EdgeIt&
-GraphStd<id_t, off_t>::EdgeIt::EdgeIt::operator++() noexcept {
+template<typename vid_t, typename eoff_t>
+inline typename GraphStd<vid_t, eoff_t>::EdgeIt&
+GraphStd<vid_t, eoff_t>::EdgeIt::EdgeIt::operator++() noexcept {
     _current++;
     return *this;
 }
 
-template<typename id_t, typename off_t>
+template<typename vid_t, typename eoff_t>
 inline bool
-GraphStd<id_t, off_t>::EdgeIt::operator!=(const EdgeIt& it) const noexcept {
+GraphStd<vid_t, eoff_t>::EdgeIt::operator!=(const EdgeIt& it) const noexcept {
     return _current != it._current;
 }
 
-template<typename id_t, typename off_t>
-inline typename GraphStd<id_t, off_t>::Edge
-GraphStd<id_t, off_t>::EdgeIt::operator*() const noexcept {
-    return Edge(static_cast<id_t>(_current - _graph._out_edges), _graph);
+template<typename vid_t, typename eoff_t>
+inline typename GraphStd<vid_t, eoff_t>::Edge
+GraphStd<vid_t, eoff_t>::EdgeIt::operator*() const noexcept {
+    return Edge(static_cast<vid_t>(_current - _graph._out_edges), _graph);
 }
 
 //==============================================================================
 ////////////////////////////////
 ///  VerticesContainer       ///
 ////////////////////////////////
-template<typename id_t, typename off_t>
-inline GraphStd<id_t, off_t>::VerticesContainer
+template<typename vid_t, typename eoff_t>
+inline GraphStd<vid_t, eoff_t>::VerticesContainer
 ::VerticesContainer(const GraphStd& graph) noexcept : _graph(graph) {}
 
-template<typename id_t, typename off_t>
-inline typename GraphStd<id_t, off_t>::VertexIt
-GraphStd<id_t, off_t>::VerticesContainer::begin() const noexcept {
+template<typename vid_t, typename eoff_t>
+inline typename GraphStd<vid_t, eoff_t>::VertexIt
+GraphStd<vid_t, eoff_t>::VerticesContainer::begin() const noexcept {
     return VertexIt(_graph._out_offsets, _graph);
 }
 
-template<typename id_t, typename off_t>
-inline typename GraphStd<id_t, off_t>::VertexIt
-GraphStd<id_t, off_t>::VerticesContainer::end() const noexcept {
+template<typename vid_t, typename eoff_t>
+inline typename GraphStd<vid_t, eoff_t>::VertexIt
+GraphStd<vid_t, eoff_t>::VerticesContainer::end() const noexcept {
     return VertexIt(_graph._out_offsets + _graph._nV, _graph);
 }
 
@@ -172,19 +172,19 @@ GraphStd<id_t, off_t>::VerticesContainer::end() const noexcept {
 ////////////////////////////////
 ///     EdgesContainer       ///
 ////////////////////////////////
-template<typename id_t, typename off_t>
-inline GraphStd<id_t, off_t>::EdgesContainer
+template<typename vid_t, typename eoff_t>
+inline GraphStd<vid_t, eoff_t>::EdgesContainer
 ::EdgesContainer(const GraphStd& graph) noexcept : _graph(graph) {}
 
-template<typename id_t, typename off_t>
-inline typename GraphStd<id_t, off_t>::EdgeIt
-GraphStd<id_t, off_t>::EdgesContainer::begin() const noexcept {
+template<typename vid_t, typename eoff_t>
+inline typename GraphStd<vid_t, eoff_t>::EdgeIt
+GraphStd<vid_t, eoff_t>::EdgesContainer::begin() const noexcept {
     return EdgeIt(_graph._out_edges, _graph);
 }
 
-template<typename id_t, typename off_t>
-inline typename GraphStd<id_t, off_t>::EdgeIt
-GraphStd<id_t, off_t>::EdgesContainer::end() const noexcept {
+template<typename vid_t, typename eoff_t>
+inline typename GraphStd<vid_t, eoff_t>::EdgeIt
+GraphStd<vid_t, eoff_t>::EdgesContainer::end() const noexcept {
     return EdgeIt(_graph._out_edges + _graph._nE, _graph);
 }
 
@@ -193,55 +193,55 @@ GraphStd<id_t, off_t>::EdgesContainer::end() const noexcept {
 ///         GRAPHSTD         ///
 ////////////////////////////////
 
-template<typename id_t, typename off_t>
-inline const off_t* GraphStd<id_t, off_t>::out_offsets_array() const noexcept {
+template<typename vid_t, typename eoff_t>
+inline const eoff_t* GraphStd<vid_t, eoff_t>::out_offsets_array() const noexcept {
     return _out_offsets;
 }
 
-template<typename id_t, typename off_t>
-inline const off_t* GraphStd<id_t, off_t>::in_offsets_array() const noexcept {
+template<typename vid_t, typename eoff_t>
+inline const eoff_t* GraphStd<vid_t, eoff_t>::in_offsets_array() const noexcept {
     return _in_offsets;
 }
 
-template<typename id_t, typename off_t>
-inline const id_t* GraphStd<id_t, off_t>::out_edges_array() const noexcept {
+template<typename vid_t, typename eoff_t>
+inline const vid_t* GraphStd<vid_t, eoff_t>::out_edges_array() const noexcept {
     return _out_edges;
 }
 
-template<typename id_t, typename off_t>
-inline const id_t* GraphStd<id_t, off_t>::in_edges_array() const noexcept {
+template<typename vid_t, typename eoff_t>
+inline const vid_t* GraphStd<vid_t, eoff_t>::in_edges_array() const noexcept {
     return _in_edges;
 }
 
-template<typename id_t, typename off_t>
-inline const typename GraphStd<id_t, off_t>::degree_t*
-GraphStd<id_t, off_t>::out_degrees_array() const noexcept {
+template<typename vid_t, typename eoff_t>
+inline const typename GraphStd<vid_t, eoff_t>::degree_t*
+GraphStd<vid_t, eoff_t>::out_degrees_array() const noexcept {
     return _out_degrees;
 }
 
-template<typename id_t, typename off_t>
-inline const typename GraphStd<id_t, off_t>::degree_t*
-GraphStd<id_t, off_t>::in_degrees_array() const noexcept {
+template<typename vid_t, typename eoff_t>
+inline const typename GraphStd<vid_t, eoff_t>::degree_t*
+GraphStd<vid_t, eoff_t>::in_degrees_array() const noexcept {
     return _in_degrees;
 }
 
-template<typename id_t, typename off_t>
-inline typename GraphStd<id_t, off_t>::degree_t
-GraphStd<id_t, off_t>::out_degree(id_t index) const noexcept {
+template<typename vid_t, typename eoff_t>
+inline typename GraphStd<vid_t, eoff_t>::degree_t
+GraphStd<vid_t, eoff_t>::out_degree(vid_t index) const noexcept {
     assert(index >= 0 && index < _nV);
     return _out_degrees[index];
 }
 
-template<typename id_t, typename off_t>
-inline typename GraphStd<id_t, off_t>::degree_t
-GraphStd<id_t, off_t>::in_degree(id_t index) const noexcept {
+template<typename vid_t, typename eoff_t>
+inline typename GraphStd<vid_t, eoff_t>::degree_t
+GraphStd<vid_t, eoff_t>::in_degree(vid_t index) const noexcept {
     assert(index >= 0 && index < _nV);
     return _in_degrees[index];
 }
 
-template<typename id_t, typename off_t>
-inline typename GraphStd<id_t, off_t>::Vertex
-GraphStd<id_t, off_t>::get_vertex(id_t index) const noexcept {
+template<typename vid_t, typename eoff_t>
+inline typename GraphStd<vid_t, eoff_t>::Vertex
+GraphStd<vid_t, eoff_t>::get_vertex(vid_t index) const noexcept {
     return Vertex(index, *this);
 }
 

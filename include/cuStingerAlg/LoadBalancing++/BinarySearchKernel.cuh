@@ -59,20 +59,20 @@ template<unsigned ITEMS_PER_BLOCK, typename Operator,
 __global__ void binarySearchKernel(int work_size, TArgs... args) {
     using namespace cu_stinger_alg;
     using namespace cu_stinger;
-    using cu_stinger::id_t;
+    using cu_stinger::vid_t;
     //using namespace csr;
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
 
-    DeviceQueue<cu_stinger::id_t> queue;
-    ptr2_t<id_t>& queue_ptrs = reinterpret_cast<ptr2_t<id_t>&>(d_queue_ptrs);
-    work_t& work_ptrs = d_work;
-    id_t*&   d_queue1 = queue_ptrs.first;
-    id_t*&   d_queue2 = queue_ptrs.second;
-    int*&     d_work1 = work_ptrs.first;
-    int*&     d_work2 = work_ptrs.second;
+    DeviceQueue<cu_stinger::vid_t> queue;
+    auto queue_ptrs = reinterpret_cast<ptr2_t<vid_t>&>(d_queue_ptrs);
+    auto  work_ptrs = d_work;
+    auto   d_queue1 = queue_ptrs.first;
+    auto   d_queue2 = queue_ptrs.second;
+    auto    d_work1 = work_ptrs.first;
+    auto    d_work2 = work_ptrs.second;
 
     auto lambda = [&](int pos, degree_t offset) {
-        id_t     dst_id;
+        vid_t     dst_id;
         degree_t degree;
         if (pos != -1) {
             auto src_id = d_queue1[pos];

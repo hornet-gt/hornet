@@ -46,38 +46,38 @@
 
 namespace graph {
 
-template<typename id_t, typename off_t>
+template<typename vid_t, typename eoff_t>
 class BFS {
 public:
     using dist_t = int;
     enum { PARENT = 0, PEER = 1, VALID = 2, NOT_VALID = 3 };
 
-    explicit BFS(const GraphStd<id_t, off_t>& graph) noexcept;
+    explicit BFS(const GraphStd<vid_t, eoff_t>& graph) noexcept;
     ~BFS() noexcept;
 
-    void run(id_t source) noexcept;
-    void run(const id_t* sources, int num_sources) noexcept;
+    void run(vid_t source) noexcept;
+    void run(const vid_t* sources, int num_sources) noexcept;
     void reset() noexcept;
 
     const dist_t* distances() const noexcept;
 
-    id_t   visited_nodes() const noexcept;
-    off_t  visited_edges() const noexcept;
+    vid_t  visited_nodes() const noexcept;
+    eoff_t visited_edges() const noexcept;
     dist_t eccentricity()  const noexcept;
 
-    std::vector<std::array<id_t, 4>> statistics(id_t source) noexcept;
-    std::vector<id_t>                weaklyConnectedComponents() noexcept;
+    std::vector<std::array<vid_t, 4>> statistics(vid_t source) noexcept;
+    std::vector<vid_t>                weaklyConnectedComponents() noexcept;
 
-    id_t radius() noexcept;
-    id_t diameter() noexcept;
+    vid_t radius() noexcept;
+    vid_t diameter() noexcept;
 private:
     const dist_t INF = std::numeric_limits<dist_t>::max();
 
-    const GraphStd<id_t, off_t>&  _graph;
-    xlib::Bitmask     _bitmask;
-    xlib::Queue<id_t> _queue;
-    dist_t*           _distances { nullptr };
-    bool              _reset    { true };
+    const GraphStd<vid_t, eoff_t>&  _graph;
+    xlib::Bitmask      _bitmask;
+    xlib::Queue<vid_t> _queue;
+    dist_t*            _distances { nullptr };
+    bool               _reset     { true };
 };
 
 } // namespace graph

@@ -83,7 +83,7 @@ void BatchUpdate::insertEdgeData(TArgs... edge_data) noexcept {
     static_assert(sizeof...(TArgs) + 2 == NUM_EXTRA_ETYPES,
                   "Number of Edge data type not correct");
     using T = typename xlib::tuple_rm_pointers<std::tuple<TArgs...>>::type;
-    using R = typename xlib::TupleConcat<std::tuple<id_t, id_t>,
+    using R = typename xlib::TupleConcat<std::tuple<vid_t, vid_t>,
                                          EdgeTypes>::type;
     static_assert(xlib::tuple_compare<R, T>::value, "Incorrect Edge data type");
 
@@ -131,7 +131,7 @@ __global__ void insertBatchKernel(edge_t* batch_ptr,
     int stride = blockIdx.x * BLOCK_DIM + gridDim.x;
 
     for (int i = id; i < batch_size; i++) {
-        auto     src_id = reinterpret_cast<id_t*>(batch_ptr)[i];
+        auto     src_id = reinterpret_cast<vid_t*>(batch_ptr)[i];
         auto batch_edge = Edge(batch_ptr + batch_size, batch_size);
         auto        dst = batch_edge.dst();
 

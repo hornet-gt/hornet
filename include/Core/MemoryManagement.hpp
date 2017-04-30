@@ -43,6 +43,26 @@
 
 namespace cu_stinger {
 
+
+/**
+ * @brief minimum number of edges for a **block**
+ * @remark `MIN_EDGES_PER_BLOCK` must be a power of two
+ */
+const size_t MIN_EDGES_PER_BLOCK = 1;
+
+/**
+ * @brief number of edges for a **BlockArray**
+ * @remark `EDGES_PER_BLOCKARRAY` must be a power of two
+ */
+const size_t EDGES_PER_BLOCKARRAY = 262144;
+
+
+static_assert(xlib::IsPower2<MIN_EDGES_PER_BLOCK>::value  &&
+              xlib::IsPower2<EDGES_PER_BLOCKARRAY>::value &&
+              MIN_EDGES_PER_BLOCK <= EDGES_PER_BLOCKARRAY,
+              "Memory Management Constrains");
+
+//------------------------------------------------------------------------------
 template<typename T>
 using Container = std::vector<T>;
 

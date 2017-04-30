@@ -49,14 +49,7 @@ struct BatchProperty {
                         sort(_sort), weighted(_weighted), print(_print) {}
 };
 
-void generateInsertBatch(id_t* batch_src, id_t* batch_dest,
+void generateInsertBatch(cu_stinger::vid_t* batch_src,
+                         cu_stinger::vid_t* batch_dest,
                          int batch_size, const graph::GraphStd<>& graph,
                          BatchProperty prop = BatchProperty());
-
-//==============================================================================
-/*typedef struct dxor128_env {
-  unsigned x,y,z,w;
-} dxor128_env_t;
-*/
-
-//void generateEdgeUpdatesRMAT(length_t nv, length_t numEdges, vertexId_t* edgeSrc, vertexId_t* edgeDst,double A, double B, double C, double D, dxor128_env_t * env);

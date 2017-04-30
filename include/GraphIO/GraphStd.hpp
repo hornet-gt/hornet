@@ -42,14 +42,14 @@
 
 namespace graph {
 
-template<typename id_t, typename off_t>
+template<typename vid_t, typename eoff_t>
 class BFS;
 
-template<typename id_t = int, typename off_t = int>
-class GraphStd : public GraphBase<id_t, off_t> {
-    using    coo_t = typename std::pair<id_t, id_t>;
+template<typename vid_t = int, typename eoff_t = int>
+class GraphStd : public GraphBase<vid_t, eoff_t> {
+    using    coo_t = typename std::pair<vid_t, vid_t>;
     using degree_t = int;
-    friend class BFS<id_t, off_t>;
+    friend class BFS<vid_t, eoff_t>;
 
 public:
     class VertexIt;
@@ -59,7 +59,7 @@ public:
     class Vertex {
         template<typename T, typename R> friend class GraphStd;
     public:
-        id_t     id()         const noexcept;
+        vid_t     id()         const noexcept;
         degree_t out_degree() const noexcept;
         degree_t in_degree()  const noexcept;
 
@@ -73,11 +73,11 @@ public:
         EdgeIt end()    const noexcept;
     private:
         const GraphStd& _graph;
-        const id_t      _id;
-        Vertex(id_t id, const GraphStd& graph) noexcept;
+        const vid_t      _id;
+        Vertex(vid_t id, const GraphStd& graph) noexcept;
     };
 
-    class VertexIt : public std::iterator<std::forward_iterator_tag, id_t> {
+    class VertexIt : public std::iterator<std::forward_iterator_tag, vid_t> {
         template<typename T, typename R> friend class GraphStd;
     public:
         VertexIt& operator++()                   noexcept;
@@ -85,8 +85,8 @@ public:
         bool      operator!=(const VertexIt& it) const noexcept;
     private:
         const GraphStd& _graph;
-        off_t*          _current;
-        explicit VertexIt(off_t* current, const GraphStd& graph) noexcept;
+        eoff_t*         _current;
+        explicit VertexIt(eoff_t* current, const GraphStd& graph) noexcept;
     };
 
     class VerticesContainer {
@@ -104,7 +104,7 @@ public:
     class Edge {
         template<typename T, typename R> friend class GraphStd;
     public:
-        off_t  id()   const noexcept;
+        eoff_t id()   const noexcept;
         Vertex dest() const noexcept;
 
         template<typename>
@@ -115,12 +115,12 @@ public:
         }
     private:
         const GraphStd& _graph;
-        const off_t     _id;
+        const eoff_t    _id;
 
-        explicit Edge(off_t id, const GraphStd& graph) noexcept;
+        explicit Edge(eoff_t id, const GraphStd& graph) noexcept;
     };
 
-    class EdgeIt : public std::iterator<std::forward_iterator_tag, id_t> {
+    class EdgeIt : public std::iterator<std::forward_iterator_tag, vid_t> {
         template<typename T, typename R> friend class GraphStd;
     public:
         EdgeIt& operator++()              noexcept;
@@ -128,9 +128,9 @@ public:
         bool    operator!=(const EdgeIt& it) const noexcept;
     private:
         const GraphStd& _graph;
-        id_t* _current;
+        vid_t*          _current;
 
-        explicit EdgeIt(id_t* current, const GraphStd& graph) noexcept;
+        explicit EdgeIt(vid_t* current, const GraphStd& graph) noexcept;
     };
 
     class EdgesContainer {
@@ -146,8 +146,8 @@ public:
     //--------------------------------------------------------------------------
 
     /*class InVertexIt :
-                        public std::iterator<std::forward_iterator_tag, id_t> {
-        friend class GraphStd<id_t, off_t>::IncomingVerticesContainer;
+                        public std::iterator<std::forward_iterator_tag, vid_t> {
+        friend class GraphStd<vid_t, eoff_t>::IncomingVerticesContainer;
     public:
         InVertexIt& operator++()                   noexcept;
         IncomingVertex    operator*()                    const noexcept;
@@ -183,16 +183,16 @@ public:
                       Property property) noexcept;
     virtual ~GraphStd() noexcept final;                                 //NOLINT
 
-    Vertex   get_vertex(id_t index)  const noexcept;
-    Edge     get_edge  (off_t index) const noexcept;
-    degree_t out_degree(id_t index)  const noexcept;
-    degree_t in_degree (id_t index)  const noexcept;
+    Vertex   get_vertex(vid_t index)  const noexcept;
+    Edge     get_edge  (eoff_t index) const noexcept;
+    degree_t out_degree(vid_t index)  const noexcept;
+    degree_t in_degree (vid_t index)  const noexcept;
 
     const coo_t*    coo_array()         const noexcept;
-    const off_t*    out_offsets_array() const noexcept;
-    const off_t*    in_offsets_array()  const noexcept;
-    const id_t*     out_edges_array()   const noexcept;
-    const id_t*     in_edges_array()    const noexcept;
+    const eoff_t*    out_offsets_array() const noexcept;
+    const eoff_t*    in_offsets_array()  const noexcept;
+    const vid_t*     out_edges_array()   const noexcept;
+    const vid_t*     in_edges_array()    const noexcept;
     const degree_t* out_degrees_array() const noexcept;
     const degree_t* in_degrees_array()  const noexcept;
 
@@ -201,17 +201,17 @@ public:
     void toBinary(const std::string& filename, bool print = true) const;
     void toMarket(const std::string& filename) const;
 private:
-    off_t     *_out_offsets { nullptr };
-    off_t     *_in_offsets  { nullptr };
-    id_t      *_out_edges   { nullptr };
-    id_t      *_in_edges    { nullptr };
+    eoff_t    *_out_offsets { nullptr };
+    eoff_t    *_in_offsets  { nullptr };
+    vid_t     *_out_edges   { nullptr };
+    vid_t     *_in_edges    { nullptr };
     degree_t* _out_degrees  { nullptr };
     degree_t* _in_degrees   { nullptr };
     coo_t*    _coo_edges    { nullptr };
     size_t    _coo_size     { 0 };
-    using GraphBase<id_t, off_t>::_nE;
-    using GraphBase<id_t, off_t>::_nV;
-    using GraphBase<id_t, off_t>::_structure;
+    using GraphBase<vid_t, eoff_t>::_nE;
+    using GraphBase<vid_t, eoff_t>::_nV;
+    using GraphBase<vid_t, eoff_t>::_structure;
 
     void allocate() noexcept override;
 

@@ -48,9 +48,11 @@ struct ptr2_t {
     void swap() noexcept;
 };
 
-__device__   int          d_queue_counter;
-__constant__ ptr2_t<void> d_queue_ptrs;
+__device__ int d_queue_counter;
 
+/**
+ * @warning known limitations: only one instance if allowed
+ */
 template<typename T>
 class TwoLevelQueue {
 public:
@@ -61,22 +63,25 @@ public:
 
     __host__ void insert(const T* items_array, int num_items) noexcept;
 
+    __host__ void swap() noexcept;
+
     __host__ int size() const noexcept;
 
-    __host__ void swap() noexcept;
+    __host__ const T* device_ptr_q1() const noexcept;
+    __host__ const T* device_ptr_q2() const noexcept;
 
     __host__ const T* host_data() noexcept;
 
     __host__ void print() const noexcept;
 
-
+    ///???
     __host__ void update_size(int size) noexcept;
     //__host__ int max_allocated_items() const noexcept;
 private:
-    ptr2_t<T> _d_queue             { nullptr, nullptr };
+    ptr2_t<T> _d_queue_ptrs        { nullptr, nullptr };
     int*      _d_queue_counter     { nullptr };
     T*        _host_data           { nullptr };
-    size_t    _max_allocated_items { 0 };
+    size_t    _max_allocated_items;
     int       _size                { 0 };
 };
 

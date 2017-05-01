@@ -8,6 +8,8 @@
 
 #include "cuStingerAlg/cuStingerAlg.cuh"      //cuStingerAlg
 #include "cuStingerAlg/TwoLevelQueue.cuh"       //Queue
+#include "cuStingerAlg/MultiLevelQueue.cuh"       //Queue
+
 
 #include "GraphIO/BFS.hpp"              //BFS
 #include "GraphIO/GraphStd.hpp"         //GraphStd

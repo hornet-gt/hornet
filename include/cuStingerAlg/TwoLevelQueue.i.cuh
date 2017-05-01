@@ -36,7 +36,6 @@
 #include "Support/Device/PrintExt.cuh"      //cu::printArray
 #include "Support/Device/SafeCudaAPI.cuh"   //cuMemcpyToDeviceAsync
 
-
 namespace cu_stinger_alg {
 
 template<typename T>
@@ -47,16 +46,14 @@ inline void ptr2_t<T>::swap() noexcept {
 template<typename T>
 TwoLevelQueue<T>::TwoLevelQueue(size_t max_allocated_items) noexcept :
                                      _max_allocated_items(max_allocated_items) {
-    cuMalloc(_d_queue.first, max_allocated_items);
-    cuMalloc(_d_queue.second, max_allocated_items);
-    auto queue_ptrs = reinterpret_cast<ptr2_t<void>&>(_d_queue);
-    cuMemcpyToSymbol(queue_ptrs, d_queue_ptrs);
+    cuMalloc(_d_queue_ptrs.first, max_allocated_items);
+    cuMalloc(_d_queue_ptrs.second, max_allocated_items);
     cuMemcpyToSymbol(0, d_queue_counter);
 }
 
 template<typename T>
 inline TwoLevelQueue<T>::~TwoLevelQueue() noexcept {
-    cuFree(_d_queue.first, _d_queue.second);
+    cuFree(_d_queue_ptrs.first, _d_queue_ptrs.second);
     delete[] _host_data;
 }
 
@@ -67,12 +64,12 @@ __host__ void TwoLevelQueue<T>::insert(const T& item) noexcept {
     unsigned elected_lane = xlib::__msb(ballot);
     int warp_offset;
     if (xlib::lane_id() == elected_lane)
-        warp_offset = atomicAdd(d_queue_counter, __popc(ballot));
+        warp_offset = atomicAdd(&d_queue_counter, __popc(ballot));
     int offset = __popc(ballot & xlib::LaneMaskLT()) +
                  __shfl(warp_offset, elected_lane);
-    _d_queue.second[offset] = item;
+    _d_queue_ptrs.second[offset] = item;
 #else
-    cuMemcpyToDeviceAsync(item, _d_queue.first + _size);
+    cuMemcpyToDeviceAsync(item, _d_queue_ptrs.first + _size);
     _size++;
 #endif
 }
@@ -80,8 +77,38 @@ __host__ void TwoLevelQueue<T>::insert(const T& item) noexcept {
 template<typename T>
 __host__ inline void TwoLevelQueue<T>
 ::insert(const T* items_array, int num_items) noexcept {
-    cuMemcpyToDeviceAsync(items_array + _size, num_items, _d_queue.first);
+    cuMemcpyToDeviceAsync(items_array, num_items, _d_queue_ptrs.first + _size);
     _size += num_items;
+}
+
+template<typename T>
+__host__ void TwoLevelQueue<T>::swap() noexcept {
+    _d_queue_ptrs.swap();
+    auto queue_ptrs = reinterpret_cast<ptr2_t<void>&>(_d_queue_ptrs);
+    cuMemcpyToSymbolAsync(0, d_queue_counter);
+}
+
+/*
+template<typename T>
+__host__ void TwoLevelQueue<T>::update_size(int size) noexcept {
+    _size = size;
+}*/
+template<typename T>
+__host__ const T* TwoLevelQueue<T>::device_ptr_q1() const noexcept {
+    return _d_queue_ptrs.first;
+}
+
+template<typename T>
+__host__ const T* TwoLevelQueue<T>::device_ptr_q2() const noexcept {
+    return _d_queue_ptrs.first;
+}
+
+template<typename T>
+__host__ const T* TwoLevelQueue<T>::host_data() noexcept {
+    if (_host_data == nullptr)
+        _host_data = new T[_max_allocated_items];
+    cuMemcpyToHost(_d_queue_ptrs.second, _size, _host_data);
+    return _host_data;
 }
 
 template<typename T>
@@ -89,36 +116,9 @@ __host__ int TwoLevelQueue<T>::size() const noexcept {
     return _size;
 }
 
-/*
-template<typename T>
-__host__ int TwoLevelQueue<T>::max_allocated_items() const noexcept {
-    return _max_allocated_items;
-}*/
-
-template<typename T>
-__host__ void TwoLevelQueue<T>::update_size(int size) noexcept {
-    _size = size;
-}
-
-template<typename T>
-__host__ void TwoLevelQueue<T>::swap() noexcept {
-    _d_queue.swap();
-    auto queue_ptrs = reinterpret_cast<ptr2_t<void>&>(_d_queue);
-    cuMemcpyToSymbolAsync(queue_ptrs, d_queue_ptrs);
-    cuMemcpyToSymbolAsync(0, d_queue_counter);
-}
-
-template<typename T>
-__host__ const T* TwoLevelQueue<T>::host_data() noexcept {
-    if (_host_data == nullptr)
-        _host_data = new T[_max_allocated_items];
-    cuMemcpyToHost(_d_queue.second, _size, _host_data);
-    return _host_data;
-}
-
 template<typename T>
 __host__ void TwoLevelQueue<T>::print() const noexcept {
-    cu::printArray(_d_queue.first, _size);
+    cu::printArray(_d_queue_ptrs.first, _size);
 }
 
 } // namespace cu_stinger_alg

@@ -1,51 +1,66 @@
-
 #pragma once
 
+#include "Core/cuStingerTypes.cuh" //cu_stinger::Vertex
+#include "Csr/CsrTypes.cuh"        //csr::Vertex
+
+using cu_stinger::Vertex;
+using cu_stinger::Edge;
+const int BLOCK_SIZE_OP = 256;
+
 namespace cu_stinger_alg {
+/////////////////
+// C Style API //
+/////////////////
 
-template<typename Operator, typename T, typename... TArgs>
-void forAll(T* d_array, int num_items, TArgs... args);
+template<void (*Operator)(int, void*)>
+void forAll(int num_items, void* optional_data);
 
-template<typename Operator, typename T, typename... TArgs>
-void forAllnumV(T* d_array, TArgs... args);
+template<void (*Operator)(vid_t, void*)>
+void forAllnumV(void* optional_data);
 
-template<typename Operator, typename T, typename... TArgs>
-void forAllnumE(T* d_array, TArgs... args);
+template<void (*Operator)(eoff_t, void*)>
+void forAllnumE(void* optional_data);
 
 //------------------------------------------------------------------------------
 
-template<typename Operator, typename... TArgs>
-void forAllVertices(TArgs... optional_data);
+template<void (*Operator)(cu_stinger::Vertex, void*)>
+void forAllVertices(void* optional_data);
 
-template<typename Operator, typename... TArgs>
-void forAllEdges(TArgs... optional_data);
+template<void (*Operator)(cu_stinger::Vertex, cu_stinger::Edge, void*)>
+void forAllEdges(void* optional_data);
 
 //------------------------------------------------------------------------------
 
-template<typename Operator, typename... TArgs>
-void forAllBatchEdges(TArgs... optional_data);
+template<void (*Operator)(cu_stinger::Vertex, cu_stinger::Edge, void*)>
+void forAllBatchEdges(void* optional_data);
 
 //==============================================================================
 //==============================================================================
-//==============================================================================
-/////////////////
-/// C++11 API ///
-/////////////////
+///////////////
+// C++11 API //
+///////////////
 
-template<typename Lambda>
-void forAll(size_t size, Lambda lambda);
+template<typename Operator>
+void forAll(int num_items, Operator op);
 
-template<typename Lambda>
-void forAllVertices(Lambda lambda);
+template<typename Operator>
+void forAllnumV(Operator op);
 
-template<typename Lambda>
-void forAllEdges(Lambda lambda);
+template<typename Operator>
+void forAllnumE(Operator op);
 
-template<typename Lambda>
-void forAllnumV(Lambda lambda);
+//------------------------------------------------------------------------------
 
-template<typename Lambda>
-void forAllnumE(Lambda lambda);
+template<typename Operator>
+void forAllVertices(Operator op);
+
+template<typename Operator>
+void forAllEdges(Operator op);
+
+//------------------------------------------------------------------------------
+
+template<typename Operator>
+void forAllBatchEdges(Operator op);
 
 } // namespace cu_stinger_alg
 

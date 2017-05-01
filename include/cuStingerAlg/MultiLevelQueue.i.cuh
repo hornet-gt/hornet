@@ -36,91 +36,107 @@
 #include "Support/Device/PrintExt.cuh"      //cu::printArray
 #include "Support/Device/SafeCudaAPI.cuh"   //cuMemcpyToDeviceAsync
 
-
 namespace cu_stinger_alg {
 
 template<typename T>
-MulyiLevelQueue<T>::MulyiLevelQueue(size_t max_allocated_items) noexcept :
+MultiLevelQueue<T>::MultiLevelQueue(size_t max_allocated_items) noexcept :
+                                     _level_sizes(32768),
                                      _max_allocated_items(max_allocated_items) {
     cuMalloc(_d_multiqueue, max_allocated_items);
-    cuMemcpyToSymbol(queue_ptrs, d_queue_ptrs);
-    cuMemcpyToSymbol(0, d_queue_counter);
+    _d_queue_ptrs.first  = _d_multiqueue;
+    _d_queue_ptrs.second = _d_multiqueue;
+    cuMemcpyToSymbolAsync(0, d_queue_counter);
+    _level_sizes.push_back(0);
+    _level_sizes.push_back(0);
 }
 
 template<typename T>
-inline MulyiLevelQueue<T>::~MulyiLevelQueue() noexcept {
+inline MultiLevelQueue<T>::~MultiLevelQueue() noexcept {
     cuFree(_d_multiqueue);
     delete[] _host_data;
 }
 
 template<typename T>
-__host__ void MulyiLevelQueue<T>::insert(const T& item) noexcept {
+__host__ void MultiLevelQueue<T>::insert(const T& item) noexcept {
 #if defined(__CUDA_ARCH__)
     unsigned       ballot = __ballot(true);
     unsigned elected_lane = xlib::__msb(ballot);
     int warp_offset;
     if (xlib::lane_id() == elected_lane)
-        warp_offset = atomicAdd(d_queue_counter, __popc(ballot));
+        warp_offset = atomicAdd(&d_queue_counter, __popc(ballot));
     int offset = __popc(ballot & xlib::LaneMaskLT()) +
                  __shfl(warp_offset, elected_lane);
-    _d_queue.second[offset] = item;
+    _d_queue_ptrs.second[offset] = item;
 #else
-    cuMemcpyToDeviceAsync(item, _d_queue.first + _size);
-    _size++;
+    cuMemcpyToDeviceAsync(item, _d_queue_ptrs.second);
+    _d_queue_ptrs.second++;
+    _level_sizes[_current_level + 1]++;
 #endif
 }
 
 template<typename T>
-__host__ inline void MulyiLevelQueue<T>
+__host__ inline void MultiLevelQueue<T>
 ::insert(const T* items_array, int num_items) noexcept {
-    cuMemcpyToDeviceAsync(items_array + _size, num_items, _d_queue.first);
-    _size += num_items;
+    cuMemcpyToDeviceAsync(items_array, num_items, _d_queue_ptrs.second);
+    _d_queue_ptrs.second += num_items;
+    _level_sizes[_current_level + 1] += num_items;
 }
 
 template<typename T>
-__host__ int MulyiLevelQueue<T>::size() const noexcept {
-    return _size;
+__host__ void MultiLevelQueue<T>::next() noexcept {
+    int h_queue_counter;
+    cuMemcpyFromSymbolAsync(d_queue_counter, h_queue_counter);
+    _d_queue_ptrs.first   = _d_queue_ptrs.second;
+    _d_queue_ptrs.second += h_queue_counter;
+    cuMemcpyToSymbolAsync(0, d_queue_counter);
+
+    _level_sizes.push_back(_level_sizes[_current_level + 1] + h_queue_counter);
+    _current_level++;
 }
 
 template<typename T>
-__host__ int MulyiLevelQueue<T>::size(int level) const noexcept {
-    return level_sizes[level + 1] - level_sizes[level];
+__host__ int MultiLevelQueue<T>::size() const noexcept {
+    return size(_current_level);
 }
 
 template<typename T>
-__host__ void MulyiLevelQueue<T>::next() noexcept {
-    _d_queue.first   = _d_queue.second;
-    _d_queue.second += _size;
-
-    auto queue_ptrs = reinterpret_cast<ptr2_t<void>&>(_d_queue);
-    cuMemcpyToSymbolAsync(queue_ptrs, d_queue_ptrs);
-    level_sizes[current + 1] = level_sizes[current] + ;
+__host__ int MultiLevelQueue<T>::size(int level) const noexcept {
+    if (level < 0 || level > _current_level)
+        ERROR("Level out-of-bound. level < 0 || level > current")
+    return _level_sizes[level + 1] - _level_sizes[level];
 }
 
 template<typename T>
-__host__ const T* MulyiLevelQueue<T>::host_data() noexcept {
+__host__ const T* MultiLevelQueue<T>::device_ptr() const noexcept {
+    return device_ptr(_current_level);
+}
+
+template<typename T>
+__host__ const T* MultiLevelQueue<T>::device_ptr(int level) const noexcept {
+    return _d_multiqueue + _level_sizes[level];
+}
+
+template<typename T>
+__host__ const T* MultiLevelQueue<T>::host_data() noexcept {
+    return host_data(_current_level);
+}
+
+template<typename T>
+__host__ const T* MultiLevelQueue<T>::host_data(int level) noexcept {
     if (_host_data == nullptr)
         _host_data = new T[_max_allocated_items];
-    cuMemcpyToHost(_d_queue.second, _size, _host_data);
+    cuMemcpyToHost(_d_multiqueue + _level_sizes[level], size(level),_host_data);
     return _host_data;
 }
 
 template<typename T>
-__host__ const T* MulyiLevelQueue<T>::host_data(int level) noexcept {
-    if (_host_data == nullptr)
-        _host_data = new T[_max_allocated_items];
-    cuMemcpyToHost(_d_multiqueue + level_sizes[level], size(level), _host_data);
-    return _host_data;
+__host__ void MultiLevelQueue<T>::print() const noexcept {
+    cu::printArray(_d_queue_ptrs.first, size());
 }
 
 template<typename T>
-__host__ void MulyiLevelQueue<T>::print() const noexcept {
-    cu::printArray(_d_queue.first, _size);
-}
-
-template<typename T>
-__host__ void MulyiLevelQueue<T>::print(int level) const noexcept {
-    cu::printArray(_d_multiqueue + level_sizes[level], size(level));
+__host__ void MultiLevelQueue<T>::print(int level) const noexcept {
+    cu::printArray(_d_multiqueue + _level_sizes[level], size(level));
 }
 
 } // namespace cu_stinger_alg

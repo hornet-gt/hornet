@@ -1,4 +1,3 @@
-
 *April, 2017: Version v2 - Federico Busato*
 
 * GraphIO
@@ -24,34 +23,23 @@
 * Added empty build direcory
 * Added doxygen configuration file (user/developer)
 * Added script to download University of Florida sparse matrices
-* Added a three small graph examples (.mtx .gr)
-* Code Refactoring: (Google/LLVM style)
-    - Substituted tab '\t' with 4 spaces
-    - 80 columns max
-    - NULL --> nullptr
-    - Code alignment
-    - int32_t -> int
-    - typename -> using
-    - malloc/free -> new/delete
-    - reinterpret_cast, static_cast and const_cast instead of old style cast
-    - Includes in alphabetical order
-* Code convention in addition to LLVM/Google
-    - _var for private variables
-    - d_var for device variables and h_var for host variables
-    - .hpp/.cpp for host code/CUDA API, .cuh/.cu device code
-* cuStinger :
-    - print function for small graph
-    - batch generation: uniform/weighted sorted/unsorted
-    - external configuration "config.inc"
-    - improved load balancing
-    - new memory management
-    - graph consistency checking
-    - store cuStinger graph snapshot to disk
-    - CSR representation
-    - Parsing of weighted graphs
-- Added online documentation
+* Added a three small graph examples (.mtx, .gr)
+* Added online documentation
 
-TO DO:
+## Tasks done ##
+
+* print function for small graph
+* batch generation: uniform/weighted sorted/unsorted
+* minimal external configuration "config.inc"
+* improved load balancing: Single pass and 3-steps
+* new memory management
+* graph consistency checking
+* store cuStinger graph snapshot to disk
+* CSR representation in addition to cuStinger
+* Parsing of weighted graphs
+* Two-level and Multi-level Parallel Queues
+
+## Tasks to do ##
 * Code Related:
     - Consistent APIs
     - Working algorithms
@@ -71,8 +59,7 @@ TO DO:
     - Regression test (ctest)
     - Add class diagram to doxygen
 
-
-NOTES:
+ ## NOTES ##
 
 * Generic Queue vs. Custom Queue:
     - Generic Queue requires 4x times memory movements in global memory
@@ -83,7 +70,7 @@ NOTES:
     - Operator header must knows Vertex, Edge, vid_t, eoff_t types
     - Function may be slower since __forceinline__ may be lost in template
 
-* Lambda expression limitations:
+* Extended Lambda expression limitations:
     - Cannot be used in class inline costructur
     - It captures "this" by default, also with [=] capture list
     - May be slower than struct static function since __forceinline__ and

@@ -1,44 +1,90 @@
+#include "GlobalSpace.cuh"                  //d_nV, d_nE
+#include "Support/Device/SafeCudaAPI.cuh"   //cuMemcpyFromSymbol
 
+namespace cu_stinger_alg {
 /////////////////
 /// C++11 API ///
 /////////////////
 
-template<typename Lambda>
-__global__ void forAllKernel(int size, Lambda lambda) {
+template<typename Operator>
+__global__ void forAllKernel(int size, Operator op) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
     for (int i = id; i < size; i += stride)
-        lambda(i);
+        op(i);
 }
 
-template<typename Lambda>
-void forAll(size_t size, Lambda lambda) {
-    forAllKernel<<< xlib::ceil_div<BLOCK_SIZE_OP>(size), BLOCK_SIZE_OP >>>
-        (size, lambda);
-}
-
-template<typename Lambda>
-void forAllnumV(Lambda lambda) {
-    size_t num_items;
-    cuMemcpyFromSymbol(d_nV, num_items);
-    forAll(num_items, lambda);
-}
-
-template<typename Lambda>
-void forAllnumE(Lambda lambda) {
-    size_t num_items;
-    cuMemcpyFromSymbol(d_nE, num_items);
-    forAll(num_items, lambda);
+template<typename Operator>
+void forAll(size_t size, Operator op) {
+    forAllKernel <<< xlib::ceil_div<BLOCK_SIZE_OP2>(size), BLOCK_SIZE_OP2 >>>
+        (size, op);
 }
 
 //------------------------------------------------------------------------------
 
-template<typename Lambda>
-void forAllVertices(Lambda lambda) {
+template<typename Operator>
+__global__ void forAllnumVKernel(Operator op) {
+    int     id = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = gridDim.x * blockDim.x;
+    vid_t size = static_cast<vid_t>(d_nV);
+
+    for (vid_t i = id; i < size; i += stride)
+        op(i);
+}
+
+template<typename Operator>
+void forAllnumV(Operator op) {
+    size_t num_items;
+    cuMemcpyFromSymbol(d_nV, num_items);
+    forAllnumVKernel
+        <<< xlib::ceil_div<BLOCK_SIZE_OP2>(num_items), BLOCK_SIZE_OP2 >>> (op);
+}
+
+//------------------------------------------------------------------------------
+
+template<void (*Operator)(eoff_t, void*)>
+__global__ void forAllnumEKernel(Operator op) {
+    int      id = blockIdx.x * blockDim.x + threadIdx.x;
+    int  stride = gridDim.x * blockDim.x;
+    eoff_t size = static_cast<eoff_t>(d_nE);
+
+    for (eoff_t i = id; i < size; i += stride)
+        op(i);
+}
+
+template<typename Operator>
+void forAllnumE(Operator op) {
+    size_t num_items;
+    cuMemcpyFromSymbol(d_nE, num_items);
+    forAllnumEKernel
+        <<< xlib::ceil_div<BLOCK_SIZE_OP2>(num_items), BLOCK_SIZE_OP2 >>> (op);
+}
+
+//------------------------------------------------------------------------------
+
+template<typename Operator>
+__global__ void forAllVerticesKernel(Operator op) {
+    int     id = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = gridDim.x * blockDim.x;
+    vid_t size = static_cast<vid_t>(d_nV);
+
+    for (vid_t i = id; i < size; i += stride)
+        op(Vertex(i));
+}
+
+template<typename Operator>
+void forAllVertices(Operator op) {
+    size_t num_items;
+    cuMemcpyFromSymbol(d_nV, num_items);
+    forAllVerticesKernel<Operator>
+        <<< xlib::ceil_div<BLOCK_SIZE_OP2>(num_items), BLOCK_SIZE_OP2 >>> (op);
+}
+
+//------------------------------------------------------------------------------
+
+template<typename Operator>
+void forAllEdges(Operator op) {
 
 }
 
-template<typename Lambda>
-void forAllEdges(Lambda lambda) {
-
-}
+} // namespace cu_stinger_alg

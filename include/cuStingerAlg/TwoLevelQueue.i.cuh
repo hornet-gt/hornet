@@ -88,11 +88,6 @@ __host__ void TwoLevelQueue<T>::swap() noexcept {
     cuMemcpyToSymbolAsync(0, d_queue_counter);
 }
 
-/*
-template<typename T>
-__host__ void TwoLevelQueue<T>::update_size(int size) noexcept {
-    _size = size;
-}*/
 template<typename T>
 __host__ const T* TwoLevelQueue<T>::device_ptr_q1() const noexcept {
     return _d_queue_ptrs.first;

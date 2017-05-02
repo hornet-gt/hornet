@@ -48,8 +48,8 @@ int main(int argc, char* argv[]) {
                   [&]{ return int_dist(gen); });
     //--------------------------------------------------------------------------
     cuStingerInit custinger_init(graph.nV(), graph.nE(),
-                                 graph.out_offsets_array(),
-                                 graph.out_edges_array());
+                                 graph.out_offsets(),
+                                 graph.out_edges());
 
     //custinger_init.insertVertexData(labels);
     //custinger_init.insertEdgeData(time_stamp, weights);

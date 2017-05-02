@@ -194,7 +194,7 @@ GraphStd<vid_t, eoff_t>::EdgesContainer::end() const noexcept {
 ////////////////////////////////
 
 template<typename vid_t, typename eoff_t>
-inline const eoff_t* GraphStd<vid_t, eoff_t>::out_offsets_array() const noexcept {
+inline const eoff_t* GraphStd<vid_t, eoff_t>::out_offsets() const noexcept {
     return _out_offsets;
 }
 
@@ -204,7 +204,7 @@ inline const eoff_t* GraphStd<vid_t, eoff_t>::in_offsets_array() const noexcept 
 }
 
 template<typename vid_t, typename eoff_t>
-inline const vid_t* GraphStd<vid_t, eoff_t>::out_edges_array() const noexcept {
+inline const vid_t* GraphStd<vid_t, eoff_t>::out_edges() const noexcept {
     return _out_edges;
 }
 

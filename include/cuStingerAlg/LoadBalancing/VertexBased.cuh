@@ -35,40 +35,32 @@
  *
  * @file
  */
+#pragma once
+
 #include "Core/cuStingerTypes.cuh"
-/*#include "cuStingerAlg/cuStingerAlgConfig.cuh"
-#include "cuStingerAlg/DeviceQueue.cuh"
-#include "Support/Device/Definition.cuh"
-#include "Support/Device/PTX.cuh"
-#include "Support/Device/WarpScan.cuh"*/
-#include "Support/Device/BinarySearchLB.cuh"
-//#include "Support/Host/Numeric.hpp"
 
 /**
  * @brief
  */
 namespace load_balacing {
 
-/**
- * @brief
- */
-template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
-         void (*Operator)(cu_stinger::Vertex, cu_stinger::Edge, void*)>
-__global__
-void binarySearchKernel(const cu_stinger::vid_t* __restrict__ d_input,
-                        const int*               __restrict__ d_work,
-                        int work_size,
-                        void* __restrict__ optional_field) {
-    using cu_stinger::degree_t;
-    using cu_stinger::Vertex;
-    __shared__ degree_t smem[ITEMS_PER_BLOCK];
+class VertexBased {
+public:
+    explicit VertexBased() noexcept = default;
 
-    auto lambda = [&](int pos, degree_t offset) {
-        Vertex vertex( d_input[pos] );
-        auto edge = vertex.edge(offset);
-        Operator(vertex, edge, optional_field);
-    };
-    xlib::binarySearchLB<BLOCK_SIZE>(d_work, work_size, smem, lambda);
-}
+    template<void (*Operator)(cu_stinger::Vertex, cu_stinger::Edge, void*)>
+    void traverse_edges(const cu_stinger::vid_t* d_input, int num_vertices,
+                        void* optional_field) noexcept;
+
+    template<typename Operator>
+    void traverse_edges(const cu_stinger::vid_t* d_input, int num_vertices,
+                        Operator op) noexcept;
+
+private:
+    static const int         BLOCK_SIZE = 256;
+    static const bool CHECK_CUDA_ERROR1 = 1;
+};
 
 } // namespace load_balacing
+
+#include "cuStingerAlg/LoadBalancing/VertexBased.i.cuh"

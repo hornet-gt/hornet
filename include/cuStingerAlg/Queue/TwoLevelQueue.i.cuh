@@ -56,12 +56,17 @@ TwoLevelQueue<T>::TwoLevelQueue(size_t max_allocated_items) noexcept :
 }
 
 template<typename T>
-TwoLevelQueue<T>::TwoLevelQueue(size_t max_allocated_items) noexcept :
-                                     TwoLevelQueue(max_allocated_items) {
-    cuMalloc(_d_work_ptrs.first,  _max_allocated_items);
-    cuMalloc(_d_work_ptrs.second, _max_allocated_items);
-    cuMemcpyToSymbol(make_int2(0, 0), d_queue2_counter);
+TwoLevelQueue<T>::TwoLevelQueue(size_t max_allocated_items,
+                                const cu_stinger::eoff_t* csr_offsets) noexcept:
+                                     _max_allocated_items(max_allocated_items),
+                                     _csr_offsets(csr_offsets) {
+    cuMalloc(_d_queue_ptrs.first,  max_allocated_items);
+    cuMalloc(_d_queue_ptrs.second, max_allocated_items);
+    cuMalloc(_d_work_ptrs.first,  max_allocated_items);
+    cuMalloc(_d_work_ptrs.second, max_allocated_items);
+    cuMemcpyToSymbol(0, d_queue_counter);
     cuMemcpyToDevice(0, const_cast<int*>(_d_work_ptrs.first));
+    cuMemcpyToSymbol(make_int2(0, 0), d_queue2_counter);
     _enable_traverse = true;
 }
 
@@ -87,13 +92,8 @@ __host__ void TwoLevelQueue<T>::insert(const T& item) noexcept {
     cuMemcpyToDeviceAsync(item, const_cast<int*>(_d_queue_ptrs.first) +
                                                  _num_queue_vertices);
     if (_enable_traverse)
-        work_evaluate(&items, 1);
+        work_evaluate(&item, 1);
     _num_queue_vertices++;
-    /*    int work = _csr_offsets[item + 1] - _csr_offsets[item];
-        auto ptr = const_cast<int*>(_d_queue_ptrs.first) + _num_queue_vertices;
-        cuMemcpyToDeviceAsync(work + _num_queue_edges, ptr);
-        _num_queue_edges += work;*/
-
 #endif
 }
 
@@ -102,8 +102,7 @@ __host__ inline void TwoLevelQueue<T>
 ::insert(const T* items_array, int num_items) noexcept {
     cuMemcpyToDeviceAsync(items_array, num_items,
                           _d_queue_ptrs.first + _num_queue_vertices);
-
-    if (_enable_traverse) {
+    if (_enable_traverse)
         work_evaluate(items_array, num_items);
     _num_queue_vertices += num_items;
 }
@@ -151,7 +150,7 @@ TwoLevelQueue<T>::work_evaluate(const T* items_array, int num_items) noexcept {}
 
 template<>
 __host__ void TwoLevelQueue<cu_stinger::vid_t>
-::work_evaluate(const T* items_array, int num_items) noexcept{
+::work_evaluate(const cu_stinger::vid_t* items_array, int num_items) noexcept{
     using cu_stinger::vid_t;
 
     auto work = new int[num_items + 1];
@@ -161,8 +160,8 @@ __host__ void TwoLevelQueue<cu_stinger::vid_t>
         work[i + 1] = _csr_offsets[index + 1] - _csr_offsets[index];
     }
     std::partial_sum(work, work + num_items + 1, work);
-    auto ptr = const_cast<int*>(_d_work_ptrs.first) + _num_queue_vertices - 1;
-    cuMemcpyToDevice(work + 1, num_items, ptr);
+    auto ptr = const_cast<int*>(_d_work_ptrs.first) + _num_queue_vertices;
+    cuMemcpyToDevice(work, num_items + 1, ptr);
     _num_queue_edges = work[num_items];
     delete[] work;
 }
@@ -172,10 +171,9 @@ template<typename Operator>
 __host__ typename TwoLevelQueue<T>::EnableTraverse
 TwoLevelQueue<T>::traverse_edges(Operator op) noexcept {
     using cu_stinger::vid_t;
-    static int flag = 0;
     const int ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
     if (!_enable_traverse)
-        ERROR("work_evaluate() must be executed before traverse_edges()");
+        ERROR("traverse_edges() not enabled: wrong costructor");
 
     int grid_size = xlib::ceil_div<ITEMS_PER_BLOCK>(_num_queue_edges);
     if (PRINT_VERTEX_FRONTIER)
@@ -193,13 +191,10 @@ TwoLevelQueue<T>::traverse_edges(Operator op) noexcept {
     _num_queue_edges    = frontier_info.y;
     cuMemcpyToSymbolAsync(make_int2(0, 0), d_queue2_counter);
 
-    auto d_work_ptr = flag ? const_cast<int*>(_d_work_ptrs.first) :
-                             _d_work_ptrs.second;
-    cuMemcpyToDeviceAsync(_num_queue_edges, d_work_ptr + _num_queue_vertices);
-
+    cuMemcpyToDeviceAsync(_num_queue_edges, _d_work_ptrs.second +
+                                            _num_queue_vertices);
     _d_queue_ptrs.swap();
     _d_work_ptrs.swap();
-    flag ^= 1;
 }
 
 } // namespace cu_stinger_alg

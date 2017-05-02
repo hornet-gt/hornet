@@ -44,7 +44,7 @@ extending Google/LLVM stype
     - *Functions*:
         - *Expensive functions*: Lower case start, camel style
             (ex. `expensiveFunction`)
-        - *Cheap functions:*: lower case, underscore (`var_name`)
+        - *Cheap functions:*: lower case, underscore (`cheap_function`)
     - *Constant Value*:    upper case, underscore
     - *Macro*:             upper case, underscore
     - *Private Variables*: lower case, underscore (`_var_name`)
@@ -52,7 +52,7 @@ extending Google/LLVM stype
     - *Host variable*:   `h_` prefix (`h_var`) (use only to avoid confusion)
     - *Class name/Complex type*: upper case, camel Style
     - *Simple type*:  lower case, underscore, `_t` postfix (`weight_t`)
-    - *Namespace*: lower case, underscore
+    - *Namespace*: lower case, underscore (`my_namespace`)
     - *Namespace end*: close with `// namespace <name>`
     - *variable names*: not too short, not too long
     - *File name*: upper case, camel style
@@ -73,8 +73,8 @@ extending Google/LLVM stype
     - Initialize *all* class members in class declaration `{ 0 }` if they do not
       depends on costructor, in costructor initializer list otherwise
     - Global namespaces `using namespace std` are forbidden in *all* project
-      files. They are allowed *only* in test programs.
-    - Function parameters:
+      files. They are allowed *only* in test programs after includes.
+    - *Function parameters*:
         - Inputs, then outputs
         - Prefer whether possible reference instead pointer
         - Do not use `const` for parameters passed by value

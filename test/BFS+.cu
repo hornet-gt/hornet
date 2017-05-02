@@ -1,56 +1,20 @@
 #include "cuStingerAlg/cuStingerAlg.cuh"    //cuStingerAlg
+#include "cuStingerAlg/Queue/TwoLevelQueue.cuh"   //Queue
 #include "cuStingerAlg/LoadBalancing/BinarySearch.cuh"
-#include "cuStingerAlg/LoadBalancing/VertexBased.cuh"
-#include "cuStingerAlg/Operator.cuh"        //Operator
-#include "cuStingerAlg/TwoLevelQueue.cuh"   //Queue
-
-#include <GraphIO/BFS.hpp>              //BFS
-#include <GraphIO/GraphStd.hpp>         //GraphStd
-#include <Support/Device/Algorithm.cuh> //cu::equal
-#include <Support/Host/Timer.hpp>       //Timer
-
-using namespace cu_stinger_alg;
-using namespace timer;
-using namespace load_balacing;
-using namespace cu_stinger;
+#include "cuStingerAlg/Operator++.cuh"      //Operator
+#include <GraphIO/BFS.hpp>                  //BFS
+#include <GraphIO/GraphStd.hpp>             //GraphStd
+#include <Support/Device/Algorithm.cuh>     //cu::equal
+#include <Support/Host/Timer.hpp>           //Timer
 
 using dist_t = int;
 const dist_t INF = std::numeric_limits<dist_t>::max();
 
-struct BFSData {
-    BFSData() {}
-};
-
-__device__ __forceinline__
-static void VertexInit(int index, void* optional_field) {
-    auto bfs_data = *reinterpret_cast<BFSData*>(optional_field);
-    bfs_data.d_distances[index] = INF;
-}
-
-__device__ __forceinline__
-static void BFSOperatorAtomic(Vertex src, Edge edge, void* optional_field) {
-    auto bfs_data = *reinterpret_cast<BFSData*>(optional_field);
-    auto dst = edge.dst();
-    auto old = atomicCAS(bfs_data.d_distances + dst, INF, bfs_data.level);
-    if (old == INF)
-        bfs_data.queue.insert(src.id());     // the vertex dst is active*/
-}
-
-__device__ __forceinline__
-static void BFSOperatorNoAtomic(Vertex src, Edge edge, void* optional_field) {
-    auto bfs_data = *reinterpret_cast<BFSData*>(optional_field);
-    auto dst = edge.dst();
-    if (bfs_data.d_distances[dst] == INF) {
-        bfs_data.d_distances[dst] = bfs_data.level;
-        bfs_data.queue.insert(src.id());    // the vertex dst is active
-    }
-}
-
-//==============================================================================
-
 int main(int argc, char* argv[]) {
     using namespace cu_stinger;
-    cudaSetDevice(1);
+    using namespace cu_stinger_alg;
+    using namespace timer;
+    cudaSetDevice(2);
     vid_t bfs_source = 0;
     //--------------------------------------------------------------------------
     //////////////
@@ -60,7 +24,6 @@ int main(int argc, char* argv[]) {
     graph.read(argv[1]);
     graph::BFS<vid_t, eoff_t> bfs(graph);
     bfs.run(bfs_source);
-
     auto h_distances = bfs.distances();
     //--------------------------------------------------------------------------
     /////////////////
@@ -70,22 +33,30 @@ int main(int argc, char* argv[]) {
                                  graph.out_edges());
 
     cuStinger custiger_graph(custinger_init);
-
     dist_t* d_distances;
     Allocate alloc(d_distances, graph.nV());
     //--------------------------------------------------------------------------
     //////////////
     // BFS INIT //
     //////////////
-    forAllnumV<VertexInit>(d_distances);
+    forAllnumV( [=] __device__ (int i){ d_distances[i] = INF; } );
     cuMemcpyToDevice(0, d_distances + bfs_source);
 
     dist_t level = 1;
-    TwoLevelQueue<vid_t> queue(graph.nV() * 2);
+    TwoLevelQueue<vid_t> queue(graph.nV() * 2, graph.out_offsets());
     queue.insert(bfs_source);
 
     load_balacing::BinarySearch lb(graph.out_offsets(), graph.nV());
     //load_balacing::VertexBased lb;
+
+    auto lambda1 = [=] __device__
+         (Vertex vertex, Edge edge, dist_t level1, TwoLevelQueue<vid_t> queue) {
+            auto dst = edge.dst();
+            if (d_distances[dst] == INF) {
+                d_distances[dst] = level1;
+                queue.insert(dst);
+            }
+        };
 
     Timer<DEVICE> TM;
     TM.start();
@@ -94,7 +65,9 @@ int main(int argc, char* argv[]) {
     // BFS ALGORITHM //
     ///////////////////
     while (queue.size() > 0) {
-        lb.traverse_edges<BFSOperatorNoAtomic>(bfs_data);
+        auto lambda2 = [=] __device__ (Vertex vertex, Edge edge)
+                        { return lambda1(vertex, edge, level, queue); };
+        lb.traverse_edges(lambda2);
         queue.swap();
         level++;
     }

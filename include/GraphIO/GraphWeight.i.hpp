@@ -44,7 +44,7 @@ namespace graph {
 
 template<typename vid_t, typename eoff_t, typename weight_t>
 inline const eoff_t*
-GraphWeight<vid_t, eoff_t, weight_t>::out_offsets_array() const noexcept {
+GraphWeight<vid_t, eoff_t, weight_t>::out_offsets() const noexcept {
     return _out_offsets;
 }
 
@@ -56,7 +56,7 @@ GraphWeight<vid_t, eoff_t, weight_t>::in_offsets_array() const noexcept {
 
 template<typename vid_t, typename eoff_t, typename weight_t>
 inline const vid_t*
-GraphWeight<vid_t, eoff_t, weight_t>::out_edges_array() const noexcept {
+GraphWeight<vid_t, eoff_t, weight_t>::out_edges() const noexcept {
     return _out_edges;
 }
 

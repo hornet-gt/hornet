@@ -203,15 +203,17 @@ void threadPartitionNoDup(const T* __restrict__ d_prefixsum,
 
     #pragma unroll
     for (int i = 0; i < ITEMS_PER_THREAD; i++) {
+        reg_pos[i]    = searched < limit ? block_start_pos + smem_pos : -1;
+        reg_offset[i] = offset;
+        searched++;
         if (searched == next) {
             smem_pos++;
             next   = smem_prefix[smem_pos + 1];
             offset = 0;
-        }
-        reg_pos[i]    = searched < limit ? block_start_pos + smem_pos : -1;
-        reg_offset[i] = offset++;
-        searched++;
+        } else
+            offset++;
     }
+    __syncthreads();
 }
 //==============================================================================
 //==============================================================================
@@ -221,10 +223,10 @@ template<bool BLOCK_PARTITION_FROM_GLOBAL, bool NO_DUPLICATE,
          unsigned ITEMS_PER_THREAD = 0, typename T, typename Lambda>
 __device__ __forceinline__
 void binarySearchLBGen(const T* __restrict__ d_prefixsum,
-                           int                   prefixsum_size,
-                           int*     __restrict__ d_partitions,
-                           void*    __restrict__ smem,
-                           const                 Lambda& lambda) {
+                       int                   prefixsum_size,
+                       int*     __restrict__ d_partitions,
+                       void*    __restrict__ smem,
+                       const                 Lambda& lambda) {
 
     const unsigned _ITEMS_PER_THREAD = ITEMS_PER_THREAD == 0 ?
                                        SMemPerThread<T, BLOCK_SIZE>::value :

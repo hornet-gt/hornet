@@ -66,7 +66,7 @@ __global__ void ExpandContractLBKernel(ptr2_t<cu_stinger::vid_t> d_queue,
             auto src_id = d_queue.first[pos];
             Vertex src(src_id);
             Edge dst_edge = src.edge(offset);
-            bool pred = op(src, dst_edge);
+            bool     pred = op(src, dst_edge);
 
             dst_id = dst_edge.dst();
             Vertex dst_vertex(dst_id);
@@ -82,7 +82,7 @@ __global__ void ExpandContractLBKernel(ptr2_t<cu_stinger::vid_t> d_queue,
         xlib::WarpExclusiveScan<>::Add(prefix_sum, total_sum);
 
         if (xlib::lane_id() == xlib::WARP_SIZE - 1) {
-            int2      info = xlib::make2(num_active_nodes, total_sum);
+            int2      info = make_int2(num_active_nodes, total_sum);
             auto  to_write = reinterpret_cast<long long unsigned&>(info);
             auto       old = atomicAdd(reinterpret_cast<long long unsigned*>
                                        (&d_queue2_counter), to_write);

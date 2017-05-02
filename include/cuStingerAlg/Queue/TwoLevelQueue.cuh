@@ -60,6 +60,9 @@ static const bool is_vid = std::is_same<T, cu_stinger::vid_t>::value;
 using     EnableTraverse = typename std::enable_if< is_vid >::type;
 public:
     explicit TwoLevelQueue(size_t max_allocated_items) noexcept;
+    explicit TwoLevelQueue(size_t max_allocated_items,
+                           const cu_stinger::eoff_t* csr_offset) noexcept;
+
     ~TwoLevelQueue() noexcept;
 
     __host__ __device__ void insert(const T& item) noexcept;
@@ -84,13 +87,14 @@ public:
 
 private:
     static const bool     CHECK_CUDA_ERROR1 = true;
-    static const bool PRINT_VERTEX_FRONTIER = true;
+    static const bool PRINT_VERTEX_FRONTIER = 0;
     static const unsigned        BLOCK_SIZE = 256;
 
     ptr2_t<T>   _d_queue_ptrs        { nullptr, nullptr };
     ptr2_t<int> _d_work_ptrs         { nullptr, nullptr };
     int*        _d_queue_counter     { nullptr };
     T*          _host_data           { nullptr };
+    const cu_stinger::eoff_t* _csr_offsets { nullptr };
     size_t      _max_allocated_items;
     int         _num_queue_vertices  { 0 };
     int         _num_queue_edges     { 0 };   // traverse_edges

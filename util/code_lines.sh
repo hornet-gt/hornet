@@ -1,14 +1,23 @@
 #!/bin/bash
-if [ ! -e ./cloc ]; then
+dir=`dirname $0`
+ABS_PATH=`cd "$dir"; pwd`
+
+if [ ! -e "$dir/cloc" ]; then
     echo "./cloc does not exist."
     exit 1
 fi
-if [ ! -x ./cloc ]; then
-    chmod +x ./cloc
+if [ ! -x "$dir/cloc" ]; then
+    chmod +x "$dir/cloc"
 fi
 
-./cloc ../include/ ../src/
+"$dir/cloc" $dir/../include/ $dir/../src/ $dir/../test/
 if [ $? -ne 0 ]; then exit 1; fi
 
-./cloc --by-file ../include/
-./cloc --by-file ../src/
+cd "$ABS_PATH/../include/"
+"$ABS_PATH/cloc" --by-file .
+
+cd "$ABS_PATH/../src/"
+"$ABS_PATH/cloc" --by-file .
+
+cd "$ABS_PATH/../test/"
+"$ABS_PATH/cloc" --by-file .

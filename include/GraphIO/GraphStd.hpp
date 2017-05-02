@@ -189,9 +189,9 @@ public:
     degree_t in_degree (vid_t index)  const noexcept;
 
     const coo_t*    coo_array()         const noexcept;
-    const eoff_t*    out_offsets_array() const noexcept;
+    const eoff_t*    out_offsets() const noexcept;
     const eoff_t*    in_offsets_array()  const noexcept;
-    const vid_t*     out_edges_array()   const noexcept;
+    const vid_t*     out_edges()   const noexcept;
     const vid_t*     in_edges_array()    const noexcept;
     const degree_t* out_degrees_array() const noexcept;
     const degree_t* in_degrees_array()  const noexcept;

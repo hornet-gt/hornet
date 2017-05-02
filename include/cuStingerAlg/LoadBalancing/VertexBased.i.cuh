@@ -42,69 +42,26 @@
 
 namespace load_balacing {
 
-namespace detail {
-
-__global__
-void computeWorkKernel(const cu_stinger::vid_t*    __restrict__ d_input,
-                       const cu_stinger::degree_t* __restrict__ d_degrees,
-                       int num_vertices,
-                       int* __restrict__ d_work) {
-    int     id = blockIdx.x * blockDim.x + threadIdx.x;
-    int stride = blockDim.x * gridDim.x;
-    for (int i = id; i < num_vertices; i += stride)
-        d_work[i] = d_degrees[ d_input[i] ];
-    if (id == 0)
-        d_work[num_vertices] = 0;
-}
-
-} // namespace detail
-//------------------------------------------------------------------------------
-
-inline BinarySearch
-::BinarySearch(const cu_stinger::eoff_t* csr_offsets, size_t num_vertices)
-    noexcept : BinarySearch(csr_offsets, num_vertices, num_vertices * 2) {}
-
-inline BinarySearch
-::BinarySearch(const cu_stinger::eoff_t* csr_offsets, size_t num_vertices,
-               int max_allocated_items) noexcept {
-
-    cuMalloc(_d_work, max_allocated_items);
-    cuMalloc(_d_degrees, num_vertices);
-
-    auto tmp = new cu_stinger::degree_t[num_vertices + 1];
-    std::adjacent_difference(csr_offsets, csr_offsets + num_vertices, tmp);
-    cuMemcpyToDevice(tmp + 1, num_vertices, _d_degrees);
-    delete[] tmp;
-}
-
-inline BinarySearch::~BinarySearch() {
-    cuFree(_d_work, _d_degrees);
-}
-
 template<void (*Operator)(cu_stinger::Vertex, cu_stinger::Edge, void*)>
-inline void BinarySearch::traverse_edges(const cu_stinger::vid_t* d_input,
+inline void VertexBased::traverse_edges(const cu_stinger::vid_t* d_input,
                                          int num_vertices,
                                          void* optional_field) noexcept {
-    using cu_stinger::vid_t;
-    const int ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
-
-    detail::computeWorkKernel
+    detail::VertexBasedKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
-        (d_input, _d_degrees, num_vertices, _d_work);
-        //work[num_vertices] must be zero for prefixsum*/
+        (d_input, num_verticesk, optional_field);
 
     if (CHECK_CUDA_ERROR1)
         CHECK_CUDA_ERROR
+}
 
-    xlib::CubExclusiveSum<int>(_d_work, num_vertices + 1);
+template<typename Operator>
+inline void VertexBased::traverse_edges(const cu_stinger::vid_t* d_input,
+                                        int num_vertices,
+                                        Operator op) noexcept {
+    detail::VertexBasedKernel
+        <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
+        (d_input, num_vertices, op);
 
-    int total_work;
-    cuMemcpyToHost(_d_work + num_vertices, total_work);
-    unsigned grid_size = xlib::ceil_div<ITEMS_PER_BLOCK>(total_work);
-
-    binarySearchKernel<BLOCK_SIZE, ITEMS_PER_BLOCK, Operator>
-        <<< grid_size, BLOCK_SIZE >>>(d_input, _d_work, num_vertices + 1,
-                                      optional_field);
     if (CHECK_CUDA_ERROR1)
         CHECK_CUDA_ERROR
 }

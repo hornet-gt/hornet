@@ -36,39 +36,45 @@
  * @file
  */
 #include "Core/cuStingerTypes.cuh"
-/*#include "cuStingerAlg/cuStingerAlgConfig.cuh"
-#include "cuStingerAlg/DeviceQueue.cuh"
-#include "Support/Device/Definition.cuh"
-#include "Support/Device/PTX.cuh"
-#include "Support/Device/WarpScan.cuh"*/
-#include "Support/Device/BinarySearchLB.cuh"
-//#include "Support/Host/Numeric.hpp"
 
-/**
- * @brief
- */
 namespace load_balacing {
 
 /**
  * @brief
  */
-template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
+template<unsigned BLOCK_SIZE,
          void (*Operator)(cu_stinger::Vertex, cu_stinger::Edge, void*)>
 __global__
-void binarySearchKernel(const cu_stinger::vid_t* __restrict__ d_input,
-                        const int*               __restrict__ d_work,
-                        int work_size,
-                        void* __restrict__ optional_field) {
-    using cu_stinger::degree_t;
-    using cu_stinger::Vertex;
-    __shared__ degree_t smem[ITEMS_PER_BLOCK];
+void VertexBasedKernel(const cu_stinger::vid_t* __restrict__ d_input,
+                       int num_vertices,
+                       void* __restrict__ optional_field) {
+    int     id = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+    int stride = gridDim.x * BLOCK_SIZE;
 
-    auto lambda = [&](int pos, degree_t offset) {
-        Vertex vertex( d_input[pos] );
-        auto edge = vertex.edge(offset);
-        Operator(vertex, edge, optional_field);
-    };
-    xlib::binarySearchLB<BLOCK_SIZE>(d_work, work_size, smem, lambda);
+    for (int i = 0; i < stride; i += stride) {
+        Vertex vertex(d_input[i]);
+        auto degree = vertex.degree();
+        for (int j = 0; j < degree; j++)
+            Operator(vertex, vertex.edge(j), optional_field);
+    }
+}
+
+/**
+ * @brief
+ */
+template<unsigned BLOCK_SIZE, typename Operator>
+__global__
+void VertexBasedKernel(const cu_stinger::vid_t* __restrict__ d_input,
+                       int num_vertices, Operator op) {
+    int     id = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+    int stride = gridDim.x * BLOCK_SIZE;
+
+    for (int i = 0; i < stride; i += stride) {
+        Vertex vertex(d_input[i]);
+        auto degree = vertex.degree();
+        for (int j = 0; j < degree; j++)
+            op(vertex, vertex.edge(j));
+    }
 }
 
 } // namespace load_balacing

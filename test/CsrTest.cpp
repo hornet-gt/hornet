@@ -29,8 +29,8 @@ int main(int argc, char* argv[]) {
     graph.print_raw();
 
     cuStingerInit custinger_init(graph.nV(), graph.nE(),
-                                 graph.out_offsets_array(),
-                                 graph.out_edges_array());
+                                 graph.out_offsets(),
+                                 graph.out_edges());
 
     Csr csr_graph(custinger_init);
     csr_graph.print();

@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
     using namespace cu_stinger;
     using namespace cu_stinger_alg;
     using namespace timer;
-    cudaSetDevice(1);
+    cudaSetDevice(2);
     vid_t bfs_source = 0;
     //--------------------------------------------------------------------------
     //////////////
@@ -24,15 +24,19 @@ int main(int argc, char* argv[]) {
     graph.read(argv[1]);
     graph::BFS<vid_t, eoff_t> bfs(graph);
     bfs.run(bfs_source);
+    /*auto vector = bfs.statistics(bfs_source);
+    for (const auto& it : vector) {
+        auto sum = it[0] + it[1] + it[2] + it[3];
+        std::cout << it[2] << "\t" << sum << std::endl;
+    }*/
 
     auto h_distances = bfs.distances();
     //--------------------------------------------------------------------------
     /////////////////
     // DEVICE INIT //
     /////////////////
-    cuStingerInit custinger_init(graph.nV(), graph.nE(),
-                                 graph.out_offsets_array(),
-                                 graph.out_edges_array());
+    cuStingerInit custinger_init(graph.nV(), graph.nE(), graph.out_offsets(),
+                                 graph.out_edges());
 
     cuStinger custiger_graph(custinger_init);
     dist_t* d_distances;
@@ -45,11 +49,11 @@ int main(int argc, char* argv[]) {
     cuMemcpyToDevice(0, d_distances + bfs_source);
 
     dist_t level = 1;
-    TwoLevelQueue<vid_t> queue(graph.nV() * 2);
+    TwoLevelQueue<vid_t> queue(graph.nV() * 2, graph.out_offsets());
     queue.insert(bfs_source);
 
-    auto extern_lambda = [=] __device__ (Vertex vertex, Edge edge, dist_t level1) {
-                            dist_t dst = edge.dst();
+    auto lambda1 = [=] __device__ (Vertex vertex, Edge edge, dist_t level1) {
+                            auto dst = edge.dst();
                             if (d_distances[dst] == INF) {
                                 d_distances[dst] = level1;
                                 return true;
@@ -64,9 +68,9 @@ int main(int argc, char* argv[]) {
     // BFS ALGORITHM //
     ///////////////////
     while (queue.size() > 0) {
-        auto lambda = [=] __device__ (Vertex vertex, Edge edge)
-                        { return extern_lambda(vertex, edge, level); };
-        queue.traverse_edges(lambda);
+        auto lambda2 = [=] __device__ (Vertex vertex, Edge edge)
+                        { return lambda1(vertex, edge, level); };
+        queue.traverse_edges(lambda2);
         level++;
     }
     //--------------------------------------------------------------------------

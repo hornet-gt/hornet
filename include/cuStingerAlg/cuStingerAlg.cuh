@@ -9,6 +9,7 @@ class StaticAlgorithm {
 public:
     StaticAlgorithm(const cu_stinger::cuStinger& custinger) :
                     _custinger(custinger) {}
+
     virtual ~StaticAlgorithm() = 0;
 
     virtual void run()      = 0;
@@ -24,7 +25,8 @@ protected:
 class Allocate {
 public:
     template<typename T>
-    Allocate(T*& pointer, size_t num_items) noexcept;
+    explicit Allocate(T*& pointer, size_t num_items) noexcept;
+
     ~Allocate() noexcept;
 private:
     void* _pointer;
@@ -32,7 +34,6 @@ private:
 
 template<typename T>
 Allocate::Allocate(T*& pointer, size_t num_items) noexcept {
-    //SAFE_CALL( cudaMallocManaged(&pointer, num_items * sizeof(T)) )
     cuMalloc(pointer, num_items);
     _pointer = pointer;
 }

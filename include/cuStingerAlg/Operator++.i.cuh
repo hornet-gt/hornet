@@ -24,6 +24,7 @@ void forAll(size_t size, Operator op) {
 
 template<typename Operator>
 __global__ void forAllnumVKernel(Operator op) {
+    using cu_stinger::vid_t;
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
     vid_t size = static_cast<vid_t>(d_nV);
@@ -42,8 +43,9 @@ void forAllnumV(Operator op) {
 
 //------------------------------------------------------------------------------
 
-template<void (*Operator)(eoff_t, void*)>
+template<typename Operator>
 __global__ void forAllnumEKernel(Operator op) {
+    using cu_stinger::eoff_t;
     int      id = blockIdx.x * blockDim.x + threadIdx.x;
     int  stride = gridDim.x * blockDim.x;
     eoff_t size = static_cast<eoff_t>(d_nE);
@@ -64,6 +66,7 @@ void forAllnumE(Operator op) {
 
 template<typename Operator>
 __global__ void forAllVerticesKernel(Operator op) {
+    using cu_stinger::vid_t;
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
     vid_t size = static_cast<vid_t>(d_nV);

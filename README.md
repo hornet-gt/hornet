@@ -20,8 +20,8 @@ The syntax and the input parameters of cuSTINGER are explained in details in the
 
 The code documentation is located in the `docs` directory
 (*doxygen* html format).
-The documentation is also accessible online at this
-[**link**.](https://federicounivr.github.io/cuStinger/)
+The documentation is also accessible online
+[**here**.](https://federicounivr.github.io/cuStinger/)
 
 ### Requirements ###
 

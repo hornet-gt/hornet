@@ -38,9 +38,11 @@
 #include "BinarySearchKernel.cuh"
 #include "Support/Device/Definition.cuh"    //xlib::SMemPerBlock
 #include "Support/Device/CubWrapper.cuh"    //xlib::CubExclusiveSum
-#include "cuStingerAlg/Operator.cuh"        //cu_stinger::forAll
+#include "cuStingerAlg/Operator++.cuh"      //cu_stinger::forAll
 
 namespace load_balacing {
+
+namespace detail {
 
 __global__
 void computeWorkKernel(const cu_stinger::vid_t*    __restrict__ d_input,
@@ -55,20 +57,27 @@ void computeWorkKernel(const cu_stinger::vid_t*    __restrict__ d_input,
         d_work[size] = 0;
 }
 
+} // namespace detail
+//------------------------------------------------------------------------------
+
+inline BinarySearch
+::BinarySearch(const cu_stinger::cuStingerInit& custinger_int) noexcept {
+    BinarySearch(custinger_int,custinger_int.nV() * 2);
+}
+
 inline BinarySearch
 ::BinarySearch(const cu_stinger::cuStingerInit& custinger_int,
                int max_allocated_items) noexcept {
-
     cuMalloc(_d_work, max_allocated_items);
     cuMalloc(_d_degrees, custinger_int.nV());
-    build_degrees(custinger_int.csr_offsets(), custinger_int.nV());
+    work_evaluate(custinger_int.csr_offsets(), custinger_int.nV());
 }
 
 inline BinarySearch::~BinarySearch() {
     cuFree(_d_work, _d_degrees);
 }
 
-inline void BinarySearch::build_degrees(const cu_stinger::eoff_t* csr_offsets,
+inline void BinarySearch::work_evaluate(const cu_stinger::eoff_t* csr_offsets,
                                         size_t size) noexcept {
     cu_stinger::eoff_t* tmp_offsets;
     cuMalloc(tmp_offsets, size + 1);
@@ -88,7 +97,7 @@ inline void BinarySearch::traverse_edges(const cu_stinger::vid_t* d_input,
     using cu_stinger::vid_t;
     const int ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
 
-    computeWorkKernel
+    detail::computeWorkKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
         (d_input, _d_degrees, num_vertices, _d_work);
         //work[num_vertices] must be zero*/

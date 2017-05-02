@@ -21,6 +21,8 @@ extending Google/LLVM stype
     - Doxygen comment must be done only in `.hpp` files
     - Take care of code alignment to make the code more readable
     - Use whether possible the `std` library
+    - Do not use `Boost` library
+    - Struct/Class variable members should be ordered by size
 
 
 * **C++ Modernize**
@@ -29,7 +31,7 @@ extending Google/LLVM stype
     - `malloc/free` to `new[]/delete[]`
     - *old style cast* (int) to `reinterpret_cast`, `static_cast` and
       `const_cast`
-    - `#pragma once` instead `#ifdef` as include guard
+    - `#pragma once` instead of `#ifdef` as include guard
 
 
 * **Types**
@@ -47,7 +49,7 @@ extending Google/LLVM stype
     - *Macro*:             upper case, underscore
     - *Private Variables*: lower case, underscore (`_var_name`)
     - *Device variable*: `d_` prefix (`d_var`)
-    - *Host variable*:   `h_` prefix (`h_var`) (to use only to avoid confusion)
+    - *Host variable*:   `h_` prefix (`h_var`) (use only to avoid confusion)
     - *Class name/Complex type*: upper case, camel Style
     - *Simple type*:  lower case, underscore, `_t` postfix (`weight_t`)
     - *Namespace*: lower case, underscore
@@ -55,18 +57,22 @@ extending Google/LLVM stype
     - *variable names*: not too short, not too long
     - *File name*: upper case, camel style
     - *Doxygen comment*: `@`
-
+    - *Curly Bracket*: inline (`for (...) {`)
+    - *Conditional Statement* (`if, for, while`): no bracket for one line body
+    - *Separate words from symbols*: `if (`, `var = x + y;`
+    - *Class/Struct*: first variable members, then methods.
+                      First public members, then protected, then private.
 
 
 * **Safe Code**
-    - `Explicit` keyword costructors
+    - `explicit` keyword costructors
     - `noexcept` keyword for all methods that do not perform file IO
     - method declaration `const` whenever possible
     - use `struct` only for passive structure, `class` otherwise.
     - All class members must be `private`, except `static` constants
     - Initialize *all* class members in class declaration `{ 0 }` if they do not
       depends on costructor, in costructor initializer list otherwise
-    - Global namespaces `using namespace std;` are forbidden in *all* project
+    - Global namespaces `using namespace std` are forbidden in *all* project
       files. They are allowed *only* in test programs.
     - Function parameters:
         - Inputs, then outputs

@@ -76,7 +76,7 @@ public:
      * @param[in] vertex_data list of vertex data array
      * @remark the types of the input arrays must be equal to the type List
      *         for vertices specified in the *config.inc* file
-     * @details **Example**
+     * @detail **Example**
      *         @code{.cpp}
      *             int* array1 = ...;
      *             float* array2 = ...;
@@ -161,7 +161,7 @@ public:
     /**
      * @brief Check the consistency of the device data structure with the host
      *        data structure provided in the input
-     * @details revert the initilization process to rebuild the device data
+     * @detail revert the initilization process to rebuild the device data
      *          structure on the host
      */
     void check_consistency(const cuStingerInit& custinger_init) const noexcept;

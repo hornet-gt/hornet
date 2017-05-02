@@ -6,7 +6,7 @@
  * @version v1.3
  *
  * @brief Improved CUDA APIs
- * @details Advatages:                                                      <br>
+ * @detail Advatages:                                                      <br>
  *   - **clear semantic**: input, then output (google style)
  *   - **type checking**:
  *      - input and output must have the same type T
@@ -124,15 +124,15 @@ inline void cuMallocAux(const char* file, int line, const char* func_name,
 }
 
 template<typename T>
-inline void cuFreeAux(const char* file, int line, const char* func_name,
-                      T* ptr) {
-    xlib::__cudaErrorHandler(cudaFree(ptr), "cudaFree", file, line, func_name);
-}
-template<typename... TArgs, typename T>
+inline void cuFreeAux(const char* file, int line, const char* func_name) {}
+
+template<typename T, typename... TArgs>
 inline void cuFreeAux(const char* file, int line, const char* func_name,
                       T* ptr, TArgs... args) {
-    xlib::__cudaErrorHandler(cudaFree(ptr), "cudaFree", file, line, func_name);
-    cuFreeAux(file, line, func_name, args...);
+    using R = typename std::remove_cv<T>::type;
+    auto ptr1 = const_cast<R*>(ptr);
+    xlib::__cudaErrorHandler(cudaFree(ptr1), "cudaFree", file, line, func_name);
+    cuFreeAux<T>(file, line, func_name, args...);
 }
 //------------------------------------------------------------------------------
 

@@ -113,7 +113,7 @@ class MemoryManagement {
 public:
     /**
      * @brief Default Costrustor
-     * @details It creates an empty *BlockArray* container for each valid
+     * @detail It creates an empty *BlockArray* container for each valid
      *          *block* size
      */
     MemoryManagement() noexcept;
@@ -126,7 +126,7 @@ public:
     /**
      * @brief Insert a new *block* of size
      *        \f$2^{\lceil \log_2(degree + 1) \rceil}\f$
-     * @details If the actual *BlockArrays* of the correct size is full, it
+     * @detail If the actual *BlockArrays* of the correct size is full, it
      *          automatically allocates a new one.
      * @param[in] degree degree of the vertex to insert
      * @return Pair < `host_block_ptr`, `device_block_ptr` > of the
@@ -151,7 +151,7 @@ public:
 
     /**
      * @brief Various statistics about the space efficency
-     * @details It provides the number of *BlockArrays*, the total number of
+     * @detail It provides the number of *BlockArrays*, the total number of
      *          allocated edges, the total number of used edges, the space
      *          efficiency (used/allocated), and the number of *blocks* for each
      *          level

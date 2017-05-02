@@ -40,6 +40,7 @@
 
 #include "Support/Device/VectorUtil.cuh"
 #include <cuda_runtime.h>
+#include <array>
 #include <limits>
 #include <string>
 
@@ -93,6 +94,18 @@ class deviceProperty {
         static int NUM_OF_STREAMING_MULTIPROCESSOR;
 };
 
+template<int SIZE>
+struct CuFreeAtExit {
+    template<typename... TArgs>
+    explicit CuFreeAtExit(TArgs... args) noexcept;
+
+    ~CuFreeAtExit() noexcept;
+private:
+    const std::array<void*, SIZE> _tmp;
+};
+
 void deviceInfo();
 
 } // namespace xlib
+
+#include "impl/CudaUtil.i.cuh"

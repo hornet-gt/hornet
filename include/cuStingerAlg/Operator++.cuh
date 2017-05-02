@@ -27,7 +27,10 @@ template<typename Operator>
 void forAllVertices(Operator op);
 
 template<typename Operator>
-void forAllEdges(Operator op);
+void forAllOutEdges(Operator op);
+
+template<typename Operator>
+void forAllInEdges(Operator op);
 
 //------------------------------------------------------------------------------
 

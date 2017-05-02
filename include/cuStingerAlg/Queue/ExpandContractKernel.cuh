@@ -35,52 +35,38 @@
  *
  * @file
  */
-#include "Core/cuStingerTypes.cuh"
-#include "cuStingerAlg/cuStingerAlgConfig.cuh"
-#include "cuStingerAlg/DeviceQueue.cuh"
-#include "Support/Device/Definition.cuh"
-#include "Support/Device/PTX.cuh"
-#include "Support/Device/WarpScan.cuh"
-#include "Support/Device/MergePath.cuh"
-#include "Support/Host/Numeric.hpp"
+#include <Core/cuStingerTypes.cuh>            //Vertex, Edge
+#include <Support/Device/Definition.cuh>      //xlib::WARP_SIZE
+#include <Support/Device/PTX.cuh>             //xlib::lane_id
+#include <Support/Device/WarpScan.cuh>        //xlib::WarpScan
+#include <Support/Device/BinarySearchLB.cuh>  //xlib::binarySearchLBAllPosNoDup
 
 /**
  * @brief
  */
-namespace load_balacing {
+namespace cu_stinger_alg {
 
-using cu_stinger::Vertex;
+
+__device__ int2 d_queue2_counter;
 
 /**
  * @brief
  */
-template<unsigned ITEMS_PER_BLOCK, typename Operator,
-         typename... TArgs>
-__global__ void binarySearchKernel(int work_size, TArgs... args) {
-    using namespace cu_stinger_alg;
+template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK, typename Operator>
+__global__ void ExpandContractLBKernel(ptr2_t<cu_stinger::vid_t> d_queue,
+                                       ptr2_t<int> d_work,
+                                       int num_vertices, Operator op) {
     using namespace cu_stinger;
-    using cu_stinger::vid_t;
-    //using namespace csr;
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
 
-    DeviceQueue<cu_stinger::vid_t> queue;
-    auto queue_ptrs = reinterpret_cast<ptr2_t<vid_t>&>(d_queue_ptrs);
-    auto  work_ptrs = d_work;
-    auto   d_queue1 = queue_ptrs.first;
-    auto   d_queue2 = queue_ptrs.second;
-    auto    d_work1 = work_ptrs.first;
-    auto    d_work2 = work_ptrs.second;
-
     auto lambda = [&](int pos, degree_t offset) {
-        vid_t     dst_id;
+        vid_t    dst_id;
         degree_t degree;
         if (pos != -1) {
-            auto src_id = d_queue1[pos];
+            auto src_id = d_queue.first[pos];
             Vertex src(src_id);
             Edge dst_edge = src.edge(offset);
-            Operator::apply(src, dst_edge, queue, args...);
-            auto pred = queue.size();
-            queue.clear();
+            bool pred = op(src, dst_edge);
 
             dst_id = dst_edge.dst();
             Vertex dst_vertex(dst_id);
@@ -99,7 +85,7 @@ __global__ void binarySearchKernel(int work_size, TArgs... args) {
             int2      info = xlib::make2(num_active_nodes, total_sum);
             auto  to_write = reinterpret_cast<long long unsigned&>(info);
             auto       old = atomicAdd(reinterpret_cast<long long unsigned*>
-                                       (&d_counters), to_write);
+                                       (&d_queue2_counter), to_write);
             auto      old2 = reinterpret_cast<int2&>(old);
             queue_offset   = old2.x;
             prefix_sum_old = old2.y;
@@ -109,11 +95,12 @@ __global__ void binarySearchKernel(int work_size, TArgs... args) {
 
         if (degree) {
             queue_offset += __popc(ballot & xlib::LaneMaskLT());
-            d_work2[queue_offset]  = prefix_sum;
-            d_queue2[queue_offset] = dst_id;
+            d_work.second[queue_offset]  = prefix_sum;
+            d_queue.second[queue_offset] = dst_id;
         }
     };
-    xlib::binarySearchLBWarp<BLOCK_SIZE>(d_work1, work_size, smem, lambda);
+    xlib::binarySearchLBAllPosNoDup<BLOCK_SIZE>(d_work.first, num_vertices,
+                                                 smem, lambda);
 }
 
-} // namespace load_balacing
+} // namespace cu_stinger_alg

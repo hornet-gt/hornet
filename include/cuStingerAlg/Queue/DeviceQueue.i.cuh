@@ -41,10 +41,6 @@ namespace cu_stinger_alg {
 
 template<typename T, int SIZE>
 __device__ __forceinline__
-DeviceQueue<T, SIZE>::DeviceQueue() {}
-
-template<typename T, int SIZE>
-__device__ __forceinline__
 DeviceQueue<T, SIZE>::DeviceQueue(T*   __restrict__ queue_ptr,
                                   int* __restrict__ size_ptr) :
                                        _queue_ptr(queue_ptr),
@@ -69,8 +65,9 @@ int DeviceQueue<T, SIZE>::size() const {
 
 template<typename T, int SIZE>
 __device__ __forceinline__
-void DeviceQueue<T, SIZE>::clear() {
-    _size = 0;
+void DeviceQueue<T, SIZE>::store() {
+    if (SIZE == 1) store_ballot();
+    else  store_localqueue();
 }
 
 template<typename T, int SIZE>

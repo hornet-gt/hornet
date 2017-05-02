@@ -37,53 +37,36 @@
  */
 #pragma once
 
-#include "cuStingerAlg/TwoLevelQueue.cuh"
-#include "Support/Device/VectorUtil.cuh"
-#include <vector>
-
 namespace cu_stinger_alg {
 
-/**
- * @warning known limitations: only one instance if allowed
- */
-template<typename T>
-class MultiLevelQueue {
+template<typename T, int SIZE = 16>
+class DeviceQueue {
 public:
-    explicit MultiLevelQueue(size_t max_allocated_items) noexcept;
-    ~MultiLevelQueue() noexcept;
+    __device__ __forceinline__
+    DeviceQueue(T*   __restrict__ queue_ptr, int* __restrict__ size_ptr);
 
-    __host__ __device__ void insert(const T& item) noexcept;
+    __device__ __forceinline__
+    void insert(T item);
 
-    __host__ void insert(const T* items_array, int num_items) noexcept;
+    __device__ __forceinline__
+    int size() const;
 
-    __host__ void next() noexcept;
-
-
-    __host__ int size() const noexcept;
-
-    __host__ int size(int level) const noexcept;
-
-    __host__ const T* device_ptr() const noexcept;
-
-    __host__ const T* device_ptr(int level) const noexcept;
-
-    __host__ const T* host_data() noexcept;
-
-    __host__ const T* host_data(int level) noexcept;
-
-    __host__ void print() const noexcept;
-
-    __host__ void print(int level) const noexcept;
+    __device__ __forceinline__
+    void store();
 
 private:
-    std::vector<int> _level_sizes;
-    ptr2_t<T>        _d_queue_ptrs  { nullptr, nullptr };
-    T*               _d_multiqueue  { nullptr };
-    T*               _host_data     { nullptr };
-    size_t           _max_allocated_items;
-    int              _current_level { 0 };
+    T*   _queue_ptr;
+    int* _size_ptr;
+    T    _queue[SIZE];
+    int  _size { 0 };
+
+    __device__ __forceinline__
+    void store_localqueue();
+
+    __device__ __forceinline__
+    void store_ballot();
 };
 
 } // namespace cu_stinger_alg
 
-#include "MultiLevelQueue.i.cuh"
+#include "DeviceQueue.i.cuh"

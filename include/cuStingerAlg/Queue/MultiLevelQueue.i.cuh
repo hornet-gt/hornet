@@ -33,8 +33,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Support/Device/PrintExt.cuh"      //cu::printArray
-#include "Support/Device/SafeCudaAPI.cuh"   //cuMemcpyToDeviceAsync
+#include <Support/Device/PrintExt.cuh>      //cu::printArray
+#include <Support/Device/SafeCudaAPI.cuh>   //cuMemcpyToDeviceAsync
 
 namespace cu_stinger_alg {
 

@@ -45,7 +45,7 @@ namespace cu_stinger {
 
 /**
  * @brief **Vectorized Bit Tree**
- * @details Internal representation                                         <br>
+ * @detail Internal representation                                         <br>
  * [1011]                                   // root       --> internal      <br>
  * [0001] [0000] [1001] [0110]              //            --> internal      <br>
  * [....] [....] [....] [....] [....] ...   // last_level --> external      <br>
@@ -66,7 +66,7 @@ class BitTree {
 public:
     /**
      * @brief Default Costrustor
-     * @details Build a empty *BitTree* with `BLOCKARRAY_ITEMS` bits.
+     * @detail Build a empty *BitTree* with `BLOCKARRAY_ITEMS` bits.
      *         It allocates a *BlockArray* for the HOST and other one for the
      *         DEVICE
      */
@@ -74,7 +74,7 @@ public:
 
     /**
      * @brief Decostructor
-     * @details Deallocate HOST and DEVICE *BlockArrays*
+     * @detail Deallocate HOST and DEVICE *BlockArrays*
      */
     ~BitTree() noexcept;
 
@@ -84,14 +84,14 @@ public:
     void free_host_ptr() noexcept;
     /**
      * @brief Insert a new *block*
-     * @details Find the first empty *block* within the *BlockArray*
+     * @detail Find the first empty *block* within the *BlockArray*
      * @return pair < host_block_ptr, device_block_ptr >
      */
     std::pair<T*, T*> insert() noexcept;
 
     /**
      * @brief Remove a *block*
-     * @details Remove the *block* pointed by `to_delete` pointer
+     * @detail Remove the *block* pointed by `to_delete` pointer
      * @param[in] to_delete pointer to the *block* to delete
      */
     void remove(T* to_delete) noexcept;

@@ -1,9 +1,10 @@
 /**
+ * @internal
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
  * @date April, 2017
- * @version v2
+ * @version v1.3
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
  *
@@ -35,40 +36,16 @@
  *
  * @file
  */
-#pragma once
+namespace xlib {
 
-namespace cu_stinger_alg {
+template<int SIZE>
+template<typename... TArgs>
+CuFreeAtExit<SIZE>::CuFreeAtExit(TArgs... args) noexcept : _tmp {{ args... }} {}
 
-template<typename T, int SIZE = 1>
-class DeviceQueue {
-public:
-    __device__ __forceinline__
-    DeviceQueue();
+template<int SIZE>
+CuFreeAtExit<SIZE>::~CuFreeAtExit() noexcept {
+    for (const auto& it : _tmp)
+        SAFE_CALL( cudaFree(it) )
+}
 
-    __device__ __forceinline__
-    DeviceQueue(T*   __restrict__ queue_ptr, int* __restrict__ size_ptr);
-
-    __device__ __forceinline__
-    void insert(T item);
-
-    __device__ __forceinline__
-    int size() const;
-
-    __device__ __forceinline__
-    void clear();
-
-    __device__ __forceinline__
-    void store_localqueue();
-
-    __device__ __forceinline__
-    void store_ballot();
-private:
-    T*   _queue_ptr;
-    int* _size_ptr;
-    T    _queue[SIZE];
-    int  _size { 0 };
-};
-
-} // namespace cu_stinger_alg
-
-#include "DeviceQueue.i.cuh"
+} // namespace xlib

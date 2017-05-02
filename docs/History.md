@@ -55,6 +55,7 @@
     - Support Incoming Edges
     - GPU Graph Transpose
     - GPU Graph Generation
+    - CPU Support
 * Others
     - Regression test (ctest)
     - Add class diagram to doxygen
@@ -67,11 +68,13 @@
 
 * Pass function vs. struct as Operator (or Lambda):
     - Function must have fixed types. It requires explicit type casting
+    - void* optional_data requires an additional global memory access
     - Operator header must knows Vertex, Edge, vid_t, eoff_t types
-    - Function may be slower since __forceinline__ may be lost in template
+    - All libraries (std, thrust, cub, moderngpu, etc.) use Struct operator
+    (Function may be slower since __forceinline__ may be lost in template)
 
 * Extended Lambda expression limitations:
     - Cannot be used in class inline costructur
     - It captures "this" by default, also with [=] capture list
-    - May be slower than struct static function since __forceinline__ and
-     __restrict__ may be lost in template
+    (May be slower than struct static function since __forceinline__ and
+     __restrict__ may be lost in template)

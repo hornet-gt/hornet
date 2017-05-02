@@ -46,6 +46,8 @@ namespace load_balacing {
 
 class BinarySearch {
 public:
+    explicit BinarySearch(const cu_stinger::cuStingerInit& custinger_int)
+                          noexcept;
     explicit BinarySearch(const cu_stinger::cuStingerInit& custinger_int,
                           int max_allocated_items) noexcept;
     ~BinarySearch() noexcept;
@@ -54,7 +56,11 @@ public:
     void traverse_edges(const cu_stinger::vid_t* d_input, int num_vertices,
                         void* optional_field) noexcept;
 
-    void build_degrees(const cu_stinger::eoff_t* csr_offsets, size_t size)
+    template<typename Operator>
+    void traverse_edges(const cu_stinger::vid_t* d_input, int num_vertices,
+                        Operator op) noexcept;
+
+    void work_evaluate(const cu_stinger::eoff_t* csr_offsets, size_t size)
                        noexcept;
 
 private:

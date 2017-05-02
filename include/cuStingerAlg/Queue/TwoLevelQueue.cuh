@@ -35,41 +35,70 @@
  *
  * @file
  */
-#include "Core/cuStingerTypes.cuh"
-/*#include "cuStingerAlg/cuStingerAlgConfig.cuh"
-#include "cuStingerAlg/DeviceQueue.cuh"
-#include "Support/Device/Definition.cuh"
-#include "Support/Device/PTX.cuh"
-#include "Support/Device/WarpScan.cuh"*/
-#include "Support/Device/BinarySearchLB.cuh"
-//#include "Support/Host/Numeric.hpp"
+#pragma once
+
+#include <Core/cuStinger.hpp>
+#include <Support/Device/VectorUtil.cuh>
+
+namespace cu_stinger_alg {
+
+template<typename T>
+struct ptr2_t {
+    const T* first;
+    T*       second;
+    void swap() noexcept;
+};
+
+__device__ int d_queue_counter;
 
 /**
- * @brief
+ * @warning known limitations: only one instance is allowed
  */
-namespace load_balacing {
+template<typename T>
+class TwoLevelQueue {
+static const bool is_vid = std::is_same<T, cu_stinger::vid_t>::value;
+using     EnableTraverse = typename std::enable_if< is_vid >::type;
+public:
+    explicit TwoLevelQueue(size_t max_allocated_items) noexcept;
+    ~TwoLevelQueue() noexcept;
 
-using cu_stinger::Vertex;
+    __host__ __device__ void insert(const T& item) noexcept;
 
-/**
- * @brief
- */
-template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
-         void (*Operator)(cu_stinger::Vertex, cu_stinger::Edge, void*)>
-__global__
-void binarySearchKernel(const cu_stinger::vid_t* __restrict__ d_input,
-                        const int*               __restrict__ d_work,
-                        int work_size,
-                        void* __restrict__ optional_field) {
-    using cu_stinger::degree_t;
-    __shared__ degree_t smem[ITEMS_PER_BLOCK];
+    __host__ void insert(const T* items_array, int num_items) noexcept;
 
-    auto lambda = [&](int pos, degree_t offset) {
-        Vertex vertex( d_input[pos] );
-        auto edge = vertex.edge(offset);
-        Operator(vertex, edge, optional_field);
-    };
-    xlib::binarySearchLB<BLOCK_SIZE>(d_work, work_size, smem, lambda);
-}
+    __host__ void swap() noexcept;
 
-} // namespace load_balacing
+    __host__ int size() const noexcept;
+
+    __host__ const T* device_ptr_q1() const noexcept;
+
+    __host__ const T* device_ptr_q2() const noexcept;
+
+    __host__ const T* host_data() noexcept;
+
+    __host__ void print() const noexcept;
+
+    template<typename Operator>
+    __host__ EnableTraverse
+    traverse_edges(Operator op) noexcept;
+
+private:
+    static const bool     CHECK_CUDA_ERROR1 = true;
+    static const bool PRINT_VERTEX_FRONTIER = true;
+    static const unsigned        BLOCK_SIZE = 256;
+
+    ptr2_t<T>   _d_queue_ptrs        { nullptr, nullptr };
+    ptr2_t<int> _d_work_ptrs         { nullptr, nullptr };
+    int*        _d_queue_counter     { nullptr };
+    T*          _host_data           { nullptr };
+    size_t      _max_allocated_items;
+    int         _num_queue_vertices  { 0 };
+    int         _num_queue_edges     { 0 };   // traverse_edges
+    bool        _enable_traverse     { false };
+
+    __host__ void work_evaluate(const T* items_array, int num_items) noexcept;
+};
+
+} // namespace cu_stinger_alg
+
+#include "TwoLevelQueue.i.cuh"

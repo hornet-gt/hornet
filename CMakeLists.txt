@@ -15,14 +15,13 @@ file(GLOB_RECURSE CPP_SRCS ${PROJECT_SOURCE_DIR}/src/*.cpp)
 file(GLOB_RECURSE CU_SRCS  ${PROJECT_SOURCE_DIR}/src/*.cu)
 
 cuda_add_library(cuStinger ${CPP_SRCS} ${CU_SRCS})
+#-------------------------------------------------------------------------------
 
 cuda_add_executable(cuStingerTest test/cuStingerTest.cpp)
-cuda_add_executable(bfs test/BFS.cu ${CU_SRCS})
-#cuda_add_executable(csrTest test/CsrTest.cpp ${CU_SRCS})
+cuda_add_executable(bfs++ test/BFS++.cu ${CU_SRCS})
 
 target_link_libraries(cuStingerTest cuStinger ${CUDA_LIBRARIES})
-target_link_libraries(bfs           cuStinger ${CUDA_LIBRARIES})
-#target_link_libraries(csrTest       cuStinger ${CUDA_LIBRARIES})
+target_link_libraries(bfs++         cuStinger ${CUDA_LIBRARIES})
 
 #cuda_add_executable(mem_test test/MemoryManagement.cu)
 #TARGET_LINK_LIBRARIES(mem_test cuStinger)

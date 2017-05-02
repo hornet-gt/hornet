@@ -1,7 +1,7 @@
 
 
 
-#include "cuStingerAlg/DeviceQueue.cuh"
+//#include "cuStingerAlg/DeviceQueue.cuh"
 #include "cuStingerAlg/Operator.cuh"    //Operator
 
 

@@ -35,7 +35,7 @@
  */
 #include "Core/RawTypes.hpp"
 
-namespace cu_stinger {
+namespace custinger {
 
 const VTypeSize VTYPE_SIZE;
 const ETypeSize ETYPE_SIZE;
@@ -46,4 +46,4 @@ const ExtraETypeSize EXTRA_ETYPE_SIZE;
 const VTypeSizePS    VTYPE_SIZE_PS;
 const ETypeSizePS    ETYPE_SIZE_PS;
 
-} // namespace cu_stinger
+} // namespace custinger

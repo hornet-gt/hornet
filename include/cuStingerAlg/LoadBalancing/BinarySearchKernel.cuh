@@ -53,14 +53,14 @@ namespace load_balacing {
  * @brief
  */
 template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
-         void (*Operator)(cu_stinger::Vertex, cu_stinger::Edge, void*)>
+         void (*Operator)(custinger::Vertex, custinger::Edge, void*)>
 __global__
-void binarySearchKernel(const cu_stinger::vid_t* __restrict__ d_input,
+void binarySearchKernel(const custinger::vid_t* __restrict__ d_input,
                         const int*               __restrict__ d_work,
                         int work_size,
                         void* __restrict__ optional_field) {
-    using cu_stinger::degree_t;
-    using cu_stinger::Vertex;
+    using custinger::degree_t;
+    using custinger::Vertex;
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
 
     auto lambda = [&](int pos, degree_t offset) {

@@ -38,7 +38,7 @@
  */
 #pragma once
 
-namespace cu_stinger {
+namespace custinger {
 
 struct Param {
     /*BatchProperty    batch_prop;
@@ -50,4 +50,4 @@ struct Param {
     Param(int argc, char* argv[]);
 };
 
-} // namespace cu_stinger
+} // namespace custinger

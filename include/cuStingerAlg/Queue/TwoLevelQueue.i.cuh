@@ -57,7 +57,7 @@ TwoLevelQueue<T>::TwoLevelQueue(size_t max_allocated_items) noexcept :
 
 template<typename T>
 TwoLevelQueue<T>::TwoLevelQueue(size_t max_allocated_items,
-                                const cu_stinger::eoff_t* csr_offsets) noexcept:
+                                const custinger::eoff_t* csr_offsets) noexcept:
                                      _max_allocated_items(max_allocated_items),
                                      _csr_offsets(csr_offsets) {
     cuMalloc(_d_queue_ptrs.first,  max_allocated_items);
@@ -149,9 +149,9 @@ __host__ void
 TwoLevelQueue<T>::work_evaluate(const T* items_array, int num_items) noexcept {}
 
 template<>
-__host__ void TwoLevelQueue<cu_stinger::vid_t>
-::work_evaluate(const cu_stinger::vid_t* items_array, int num_items) noexcept{
-    using cu_stinger::vid_t;
+__host__ void TwoLevelQueue<custinger::vid_t>
+::work_evaluate(const custinger::vid_t* items_array, int num_items) noexcept{
+    using custinger::vid_t;
 
     auto work = new int[num_items + 1];
     work[0] = _num_queue_edges;
@@ -170,7 +170,7 @@ template<typename T>
 template<typename Operator>
 __host__ typename TwoLevelQueue<T>::EnableTraverse
 TwoLevelQueue<T>::traverse_edges(Operator op) noexcept {
-    using cu_stinger::vid_t;
+    using custinger::vid_t;
     const int ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
     if (!_enable_traverse)
         ERROR("traverse_edges() not enabled: wrong costructor");

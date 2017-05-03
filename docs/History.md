@@ -1,4 +1,4 @@
-*April, 2017: Version v2 - Federico Busato*
+*Version v2 - Federico Busato*
 
 * GraphIO
     - Read 7 different formats:
@@ -26,6 +26,8 @@
 * Added a three small graph examples (.mtx, .gr)
 * Added online documentation
 
+*April, 2017: Version v2 - Federico Busato*
+
 ## Tasks done ##
 
 * print function for small graph
@@ -39,12 +41,19 @@
 * Parsing of weighted graphs
 * Two-level and Multi-level Parallel Queues
 
+*May, 2017: Version v2 - Federico Busato*
+
+## Tasks done ##
+
+* Graph Transpose almost completed
+* cuStinger ID
+
 ## Tasks to do ##
 * Code Related:
     - Consistent APIs
     - Working algorithms
     - Compression
-    - Insert new vertices
+    - Insert/delete new vertices
     - Batch equal operators
     - Slightly improve load balancing: upper_bound early exit, variable host partitioning
     - Kernel Range-loop iterators

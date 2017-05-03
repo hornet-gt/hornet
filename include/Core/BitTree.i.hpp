@@ -38,7 +38,7 @@
 #include "Support/Host/Numeric.hpp"
 #include "Support/Device/SafeCudaAPI.cuh"
 
-namespace cu_stinger {
+namespace custinger {
 
 template<typename T, unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
 BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>::BitTree() noexcept :
@@ -238,4 +238,4 @@ void BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>::statistics() const noexcept {
               << "\n       NUM_WORDS: " << NUM_WORDS << "\n\n";
 }
 
-} // namespace cu_stinger
+} // namespace custinger

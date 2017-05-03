@@ -1,3 +1,5 @@
+# Code Check #
+
 cuda-memcheck --leak-check full --report-api-errors all
 
 cuda-memcheck --tool synccheck

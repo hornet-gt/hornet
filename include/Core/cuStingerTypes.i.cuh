@@ -35,7 +35,7 @@
  */
 #include "GlobalSpace.cuh"
 
-namespace cu_stinger {
+namespace custinger {
 
 __device__ __forceinline__
 Vertex::Vertex(vid_t index) : _id(index) {
@@ -168,4 +168,4 @@ Edge::field() const  {
     return *reinterpret_cast<T*>(_ptrs[INDEX]);
 }
 
-} // namespace cu_stinger
+} // namespace custinger

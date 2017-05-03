@@ -53,10 +53,10 @@ __device__ int2 d_queue2_counter;
  * @brief
  */
 template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK, typename Operator>
-__global__ void ExpandContractLBKernel(ptr2_t<cu_stinger::vid_t> d_queue,
+__global__ void ExpandContractLBKernel(ptr2_t<custinger::vid_t> d_queue,
                                        ptr2_t<int> d_work,
                                        int num_vertices, Operator op) {
-    using namespace cu_stinger;
+    using namespace custinger;
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
 
     auto lambda = [&](int pos, degree_t offset) {

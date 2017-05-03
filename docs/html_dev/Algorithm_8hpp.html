@@ -102,18 +102,14 @@ Functions</h2></td></tr>
 template&lt;class FUN_T , typename... T&gt; </td></tr>
 <tr class="memitem:aaaf579bf7dc11a74de5d977102eb788c"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>xlib::Funtion_TO_multiThreads</b> (bool MultiCore, FUN_T FUN, T... Args)</td></tr>
 <tr class="separator:aaaf579bf7dc11a74de5d977102eb788c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad987db391a1fcf26840f38be88ca17ab"><td class="memTemplParams" colspan="2"><a id="ad987db391a1fcf26840f38be88ca17ab"></a>
-template&lt;bool FAULT = true, class iteratorA_t , class iteratorB_t &gt; </td></tr>
-<tr class="memitem:ad987db391a1fcf26840f38be88ca17ab"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>xlib::equal</b> (iteratorA_t start_A, iteratorA_t end_A, iteratorB_t start_B)</td></tr>
-<tr class="separator:ad987db391a1fcf26840f38be88ca17ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac521fbda4c28e8962efe3508ececa1c1"><td class="memTemplParams" colspan="2"><a id="ac521fbda4c28e8962efe3508ececa1c1"></a>
-template&lt;bool FAULT = true, class iteratorA_t , class iteratorB_t &gt; </td></tr>
-<tr class="memitem:ac521fbda4c28e8962efe3508ececa1c1"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>xlib::equal</b> (iteratorA_t start_A, iteratorA_t end_A, iteratorB_t start_B, bool(*equalFunction)(typename std::iterator_traits&lt; iteratorA_t &gt;::value_type, typename std::iterator_traits&lt; iteratorB_t &gt;::value_type))</td></tr>
-<tr class="separator:ac521fbda4c28e8962efe3508ececa1c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5234adeb3d8ad53b758324d0d1102d7d"><td class="memTemplParams" colspan="2"><a id="a5234adeb3d8ad53b758324d0d1102d7d"></a>
-template&lt;bool FAULT = true, class iteratorA_t , class iteratorB_t &gt; </td></tr>
-<tr class="memitem:a5234adeb3d8ad53b758324d0d1102d7d"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>xlib::equalSorted</b> (iteratorA_t start_A, iteratorA_t end_A, iteratorB_t start_B)</td></tr>
-<tr class="separator:a5234adeb3d8ad53b758324d0d1102d7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa943d1d2fcaf6b99c6b909651372cd4f"><td class="memTemplParams" colspan="2"><a id="aa943d1d2fcaf6b99c6b909651372cd4f"></a>
+template&lt;class Iterator1 , class Iterator2 &gt; </td></tr>
+<tr class="memitem:aa943d1d2fcaf6b99c6b909651372cd4f"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>xlib::equal_sorted</b> (Iterator1 start1, Iterator1 end1, Iterator2 start2) noexcept</td></tr>
+<tr class="separator:aa943d1d2fcaf6b99c6b909651372cd4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a329a14ba1fbe74de36d65ab26ad5e688"><td class="memTemplParams" colspan="2"><a id="a329a14ba1fbe74de36d65ab26ad5e688"></a>
+template&lt;class Iterator1 , class Iterator2 &gt; </td></tr>
+<tr class="memitem:a329a14ba1fbe74de36d65ab26ad5e688"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>xlib::equal_sorted</b> (Iterator1 start1, Iterator1 end1, Iterator2 start2, Iterator2 end2) noexcept</td></tr>
+<tr class="separator:a329a14ba1fbe74de36d65ab26ad5e688"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad77c85a7defa8765128edad823c1a498"><td class="memTemplParams" colspan="2">template&lt;typename T , typename... RArgs&gt; </td></tr>
 <tr class="memitem:ad77c85a7defa8765128edad823c1a498"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacexlib.html#ad77c85a7defa8765128edad823c1a498">xlib::sort_by_key</a> (T *start, T *end, RArgs... data_packed)</td></tr>
 <tr class="separator:ad77c85a7defa8765128edad823c1a498"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -169,7 +165,7 @@ template&lt;typename T , typename S &gt; </td></tr>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 21 2017 21:47:34 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed May 3 2017 14:56:19 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

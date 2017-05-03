@@ -38,7 +38,7 @@
 #pragma once
 
 #include "Core/RawTypes.hpp"
-#include "Core/MemoryManagement.hpp"
+#include "Core/MemoryManager.hpp"
 #include <cstddef>                      //size_t
 
 namespace csr {
@@ -48,7 +48,7 @@ namespace csr {
 /**
  * @brief
  */
-namespace cu_stinger {
+namespace custinger {
 
 class cuStinger;
 
@@ -76,7 +76,7 @@ public:
      * @param[in] vertex_data list of vertex data array
      * @remark the types of the input arrays must be equal to the type List
      *         for vertices specified in the *config.inc* file
-     * @detail **Example**
+     * @details **Example**
      *         @code{.cpp}
      *             int* array1 = ...;
      *             float* array2 = ...;
@@ -129,12 +129,17 @@ private:
      * @brief Array of pointers of the *all* edge data
      */
     const byte_t* _edge_data_ptrs[ NUM_ETYPES ] = {};
-
     size_t       _nV;
     size_t       _nE;
 };
 
 //==============================================================================
+
+class cuStingerDevData {
+    vid_t   nV;
+    eoff_t  nE;
+    byte_t* d_vertices;
+};
 
 /**
  * @brief Main cuStinger class
@@ -145,7 +150,8 @@ public:
      * @brief default costructor
      * @param[in] custinger_init cuStinger initilialization data structure
      */
-    explicit cuStinger(const cuStingerInit& custinger_init) noexcept;
+    explicit cuStinger(const cuStingerInit& custinger_init,
+                       bool traspose = false) noexcept;
 
     /**
      * @brief decostructor
@@ -161,25 +167,39 @@ public:
     /**
      * @brief Check the consistency of the device data structure with the host
      *        data structure provided in the input
-     * @detail revert the initilization process to rebuild the device data
+     * @details revert the initilization process to rebuild the device data
      *          structure on the host
      */
     void check_consistency(const cuStingerInit& custinger_init) const noexcept;
 
     void store_snapshot(const std::string& filename) const noexcept;
 
+    int id() const noexcept;
+
+    cuStingerDevData device_data() const noexcept;
+
 private:
-    MemoryManagement mem_management;
+    static int global_id;
+
+    MemoryManager mem_manager;
 
     /**
      * @internal
      * @brief device pointer for *all* vertex data
      *        (degree and edge pointer included)
      */
-    byte_t* _d_vertices { nullptr };
-    size_t  _nV;
-    size_t  _nE;
+    const cuStingerInit& _custinger_init;
+    const eoff_t* _csr_offsets;
+    const vid_t*  _csr_edges;
+    byte_t*       _d_vertices { nullptr };
+    size_t        _nV;
+    size_t        _nE;
+    const int     _id;
+    bool          _internal_csr_data { false };
 
+    void initialize() noexcept;
+
+    void transpose() noexcept;
     /**
      * @internal
      * @brief copy the vertex data pointers to the __constant__ memory
@@ -240,6 +260,6 @@ private:
     size_t  _batch_size;
 };
 
-} // namespace cu_stinger
+} // namespace custinger
 
 #include "cuStinger.i.hpp"

@@ -39,11 +39,11 @@
 #include <random>
 #include <utility>
 
-void generateInsertBatch(cu_stinger::vid_t* batch_src,
-                         cu_stinger::vid_t* batch_dest,
+void generateInsertBatch(custinger::vid_t* batch_src,
+                         custinger::vid_t* batch_dest,
                          int batch_size, const graph::GraphStd<>& graph,
                          BatchProperty prop) {
-    using cu_stinger::vid_t;
+    using custinger::vid_t;
     if (!prop.weighted) {
         auto seed = std::chrono::system_clock::now().time_since_epoch().count();
         std::mt19937_64 gen(seed);

@@ -38,15 +38,15 @@
 #include "BinarySearchKernel.cuh"
 #include "Support/Device/Definition.cuh"    //xlib::SMemPerBlock
 #include "Support/Device/CubWrapper.cuh"    //xlib::CubExclusiveSum
-#include "cuStingerAlg/Operator++.cuh"      //cu_stinger::forAll
+#include "cuStingerAlg/Operator++.cuh"      //custinger::forAll
 
 namespace load_balacing {
 
 namespace detail {
 
 __global__
-void computeWorkKernel(const cu_stinger::vid_t*    __restrict__ d_input,
-                       const cu_stinger::degree_t* __restrict__ d_degrees,
+void computeWorkKernel(const custinger::vid_t*    __restrict__ d_input,
+                       const custinger::degree_t* __restrict__ d_degrees,
                        int num_vertices,
                        int* __restrict__ d_work) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -61,17 +61,17 @@ void computeWorkKernel(const cu_stinger::vid_t*    __restrict__ d_input,
 //------------------------------------------------------------------------------
 
 inline BinarySearch
-::BinarySearch(const cu_stinger::eoff_t* csr_offsets, size_t num_vertices)
+::BinarySearch(const custinger::eoff_t* csr_offsets, size_t num_vertices)
     noexcept : BinarySearch(csr_offsets, num_vertices, num_vertices * 2) {}
 
 inline BinarySearch
-::BinarySearch(const cu_stinger::eoff_t* csr_offsets, size_t num_vertices,
+::BinarySearch(const custinger::eoff_t* csr_offsets, size_t num_vertices,
                int max_allocated_items) noexcept {
 
     cuMalloc(_d_work, max_allocated_items);
     cuMalloc(_d_degrees, num_vertices);
 
-    auto tmp = new cu_stinger::degree_t[num_vertices + 1];
+    auto tmp = new custinger::degree_t[num_vertices + 1];
     std::adjacent_difference(csr_offsets, csr_offsets + num_vertices, tmp);
     cuMemcpyToDevice(tmp + 1, num_vertices, _d_degrees);
     delete[] tmp;
@@ -81,11 +81,11 @@ inline BinarySearch::~BinarySearch() {
     cuFree(_d_work, _d_degrees);
 }
 
-template<void (*Operator)(cu_stinger::Vertex, cu_stinger::Edge, void*)>
-inline void BinarySearch::traverse_edges(const cu_stinger::vid_t* d_input,
+template<void (*Operator)(custinger::Vertex, custinger::Edge, void*)>
+inline void BinarySearch::traverse_edges(const custinger::vid_t* d_input,
                                          int num_vertices,
                                          void* optional_field) noexcept {
-    using cu_stinger::vid_t;
+    using custinger::vid_t;
     const int ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
 
     detail::computeWorkKernel

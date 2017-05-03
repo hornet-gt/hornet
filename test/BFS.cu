@@ -12,7 +12,7 @@
 using namespace cu_stinger_alg;
 using namespace timer;
 using namespace load_balacing;
-using namespace cu_stinger;
+using namespace custinger;
 
 using dist_t = int;
 const dist_t INF = std::numeric_limits<dist_t>::max();
@@ -49,7 +49,7 @@ static void BFSOperatorNoAtomic(Vertex src, Edge edge, void* optional_field) {
 //==============================================================================
 
 int main(int argc, char* argv[]) {
-    using namespace cu_stinger;
+    using namespace custinger;
     cudaSetDevice(1);
     vid_t bfs_source = 0;
     //--------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['degree',['degree',['../classcu__stinger_1_1Vertex.html#a4aa5c481c9347dc23f5726820bab2d2c',1,'cu_stinger::Vertex']]],
-  ['dst',['dst',['../classcu__stinger_1_1Edge.html#afaa44bf9372a7ecbae303891b2ca41f0',1,'cu_stinger::Edge']]]
+  ['degree',['degree',['../classcustinger_1_1Vertex.html#a376a3281205baf5776609a390a706531',1,'custinger::Vertex']]],
+  ['dst',['dst',['../classcustinger_1_1Edge.html#a4ed17016eb067968bf27ab1a0845a9d6',1,'custinger::Edge']]]
 ];

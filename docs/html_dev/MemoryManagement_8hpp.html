@@ -73,39 +73,43 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Data Structures</a> &#124;
-<a href="#namespaces">Namespaces</a> &#124;
-<a href="#typedef-members">Typedefs</a>  </div>
+<a href="#typedef-members">Typedefs</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
 <div class="title">MemoryManagement.hpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="BitTree_8hpp_source.html">Core/BitTree.hpp</a>&quot;</code><br />
 <code>#include &lt;vector&gt;</code><br />
-<code>#include &quot;MemoryManagement.i.hpp&quot;</code><br />
+<code>#include &quot;MemoryManager.i.hpp&quot;</code><br />
 </div>
 <p><a href="MemoryManagement_8hpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Data Structures</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcu__stinger_1_1MemoryManagement.html">cu_stinger::MemoryManagement</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <code><a class="el" href="classcu__stinger_1_1MemoryManagement.html" title="The MemoryManagement class provides the infrastructure to organize the set of BlockArrays ...">MemoryManagement</a></code> class provides the infrastructure to organize the set of <em>BlockArrays</em>  <a href="classcu__stinger_1_1MemoryManagement.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
-Namespaces</h2></td></tr>
-<tr class="memitem:namespacecu__stinger"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecu__stinger.html">cu_stinger</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger_1_1MemoryManager.html">custinger::MemoryManager</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <code><a class="el" href="classcustinger_1_1MemoryManager.html" title="The MemoryManager class provides the infrastructure to organize the set of BlockArrays ...">MemoryManager</a></code> class provides the infrastructure to organize the set of <em>BlockArrays</em>  <a href="classcustinger_1_1MemoryManager.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:ab3c821ab36f94ce33b30c8078dd35671"><td class="memTemplParams" colspan="2"><a id="ab3c821ab36f94ce33b30c8078dd35671"></a>
+<tr class="memitem:a86f00bbd876c9824f86e12faef6cdc15"><td class="memTemplParams" colspan="2"><a id="a86f00bbd876c9824f86e12faef6cdc15"></a>
 template&lt;typename T &gt; </td></tr>
-<tr class="memitem:ab3c821ab36f94ce33b30c8078dd35671"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>cu_stinger::Container</b> = std::vector&lt; T &gt;</td></tr>
-<tr class="separator:ab3c821ab36f94ce33b30c8078dd35671"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a678895bea2eb78342607f6a6c7be96ac"><td class="memTemplParams" colspan="2"><a id="a678895bea2eb78342607f6a6c7be96ac"></a>
+<tr class="memitem:a86f00bbd876c9824f86e12faef6cdc15"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>custinger::Container</b> = std::vector&lt; T &gt;</td></tr>
+<tr class="separator:a86f00bbd876c9824f86e12faef6cdc15"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa33df436566af1b19943d3b0e61877ee"><td class="memTemplParams" colspan="2"><a id="aa33df436566af1b19943d3b0e61877ee"></a>
 template&lt;degree_t BLOCK_ITEMS, degree_t BLOCKARRAY_ITEMS&gt; </td></tr>
-<tr class="memitem:a678895bea2eb78342607f6a6c7be96ac"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>cu_stinger::BitTreeContainer</b> = Container&lt; BitTree&lt; edge_t, BLOCK_ITEMS, BLOCKARRAY_ITEMS &gt; &gt;</td></tr>
-<tr class="separator:a678895bea2eb78342607f6a6c7be96ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa33df436566af1b19943d3b0e61877ee"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><b>custinger::BitTreeContainer</b> = Container&lt; BitTree&lt; edge_t, BLOCK_ITEMS, BLOCKARRAY_ITEMS &gt; &gt;</td></tr>
+<tr class="separator:aa33df436566af1b19943d3b0e61877ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:ae077624bf0727b0384cb5cc8967a742e"><td class="memItemLeft" align="right" valign="top">const size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="MemoryManagement_8hpp.html#ae077624bf0727b0384cb5cc8967a742e">custinger::MIN_EDGES_PER_BLOCK</a> = 1</td></tr>
+<tr class="memdesc:ae077624bf0727b0384cb5cc8967a742e"><td class="mdescLeft">&#160;</td><td class="mdescRight">minimum number of edges for a <b>block</b>  <a href="MemoryManagement_8hpp.html#ae077624bf0727b0384cb5cc8967a742e">More...</a><br /></td></tr>
+<tr class="separator:ae077624bf0727b0384cb5cc8967a742e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aef4c140e39e99adbdfbd2e76ecf2f60d"><td class="memItemLeft" align="right" valign="top">const size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="MemoryManagement_8hpp.html#aef4c140e39e99adbdfbd2e76ecf2f60d">custinger::EDGES_PER_BLOCKARRAY</a> = 262144</td></tr>
+<tr class="memdesc:aef4c140e39e99adbdfbd2e76ecf2f60d"><td class="mdescLeft">&#160;</td><td class="mdescRight">number of edges for a <b>BlockArray</b>  <a href="MemoryManagement_8hpp.html#aef4c140e39e99adbdfbd2e76ecf2f60d">More...</a><br /></td></tr>
+<tr class="separator:aef4c140e39e99adbdfbd2e76ecf2f60d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><dl class="section author"><dt>Author</dt><dd>Federico Busato <br />
@@ -127,10 +131,45 @@ template&lt;degree_t BLOCK_ITEMS, degree_t BLOCKARRAY_ITEMS&gt; </td></tr>
 </blockquote>
 </dd>
 </dl>
-</div></div><!-- contents -->
+</div><h2 class="groupheader">Variable Documentation</h2>
+<a id="file_ae077624bf0727b0384cb5cc8967a742e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#file_ae077624bf0727b0384cb5cc8967a742e">&#9670;&nbsp;</a></span>MIN_EDGES_PER_BLOCK</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const size_t custinger::MIN_EDGES_PER_BLOCK = 1</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>minimum number of edges for a <b>block</b> </p>
+<dl class="section remark"><dt>Remarks</dt><dd><code>MIN_EDGES_PER_BLOCK</code> must be a power of two </dd></dl>
+
+</div>
+</div>
+<a id="file_aef4c140e39e99adbdfbd2e76ecf2f60d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#file_aef4c140e39e99adbdfbd2e76ecf2f60d">&#9670;&nbsp;</a></span>EDGES_PER_BLOCKARRAY</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const size_t custinger::EDGES_PER_BLOCKARRAY = 262144</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>number of edges for a <b>BlockArray</b> </p>
+<dl class="section remark"><dt>Remarks</dt><dd><code>EDGES_PER_BLOCKARRAY</code> must be a power of two </dd></dl>
+
+</div>
+</div>
+</div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Apr 26 2017 16:18:45 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed May 3 2017 14:56:19 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

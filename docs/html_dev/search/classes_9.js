@@ -1,8 +1,9 @@
 var searchData=
 [
-  ['make2_5fstr',['make2_str',['../structxlib_1_1make2__str.html',1,'xlib']]],
+  ['make2str',['Make2Str',['../structxlib_1_1Make2Str.html',1,'xlib']]],
   ['max',['Max',['../structxlib_1_1Max.html',1,'xlib']]],
-  ['memorymanagement',['MemoryManagement',['../classcu__stinger_1_1MemoryManagement.html',1,'cu_stinger']]],
+  ['memorymanager',['MemoryManager',['../classcustinger_1_1MemoryManager.html',1,'custinger']]],
   ['min',['Min',['../structxlib_1_1Min.html',1,'xlib']]],
+  ['multilevelqueue',['MultiLevelQueue',['../classcu__stinger__alg_1_1MultiLevelQueue.html',1,'cu_stinger_alg']]],
   ['myseps',['myseps',['../structxlib_1_1myseps.html',1,'xlib']]]
 ];

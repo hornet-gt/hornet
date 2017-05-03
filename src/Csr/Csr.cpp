@@ -42,7 +42,7 @@ using namespace timer;
 
 namespace csr {
 
-Csr::Csr(const cu_stinger::cuStingerInit& custinger_init) noexcept :
+Csr::Csr(const custinger::cuStingerInit& custinger_init) noexcept :
                             _nV(custinger_init._nV),
                             _nE(custinger_init._nE) {
 

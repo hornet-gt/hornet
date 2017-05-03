@@ -37,7 +37,7 @@
  */
 #pragma once
 
-#include "Core/cuStinger.hpp"   //cu_stinger::cuStingerInit
+#include "Core/cuStinger.hpp"   //custinger::cuStingerInit
 #include "Csr/RawTypes.hpp"     //
 #include "GlobalSpace.cuh"      //byte_t
 #include <cstddef>              //size_t
@@ -56,7 +56,7 @@ public:
      * @brief default costructor
      * @param[in] custinger_init cuStinger initilialization data structure
      */
-    explicit Csr(const cu_stinger::cuStingerInit& custinger_init) noexcept;
+    explicit Csr(const custinger::cuStingerInit& custinger_init) noexcept;
 
     /**
      * @brief decostructor

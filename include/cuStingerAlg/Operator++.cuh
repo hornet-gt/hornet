@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Core/cuStingerTypes.cuh" //cu_stinger::Vertex
+#include "Core/cuStingerTypes.cuh" //custinger::Vertex
 #include "Csr/CsrTypes.cuh"        //csr::Vertex
 
-using cu_stinger::Vertex;
-using cu_stinger::Edge;
+using custinger::Vertex;
+using custinger::Edge;
 const int BLOCK_SIZE_OP2 = 256;
 
 namespace cu_stinger_alg {

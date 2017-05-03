@@ -49,7 +49,7 @@ struct BatchProperty {
                         sort(_sort), weighted(_weighted), print(_print) {}
 };
 
-void generateInsertBatch(cu_stinger::vid_t* batch_src,
-                         cu_stinger::vid_t* batch_dest,
+void generateInsertBatch(custinger::vid_t* batch_src,
+                         custinger::vid_t* batch_dest,
                          int batch_size, const graph::GraphStd<>& graph,
                          BatchProperty prop = BatchProperty());

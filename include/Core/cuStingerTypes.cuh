@@ -39,7 +39,7 @@
 
 #include "Core/RawTypes.hpp"
 
-namespace cu_stinger {
+namespace custinger {
 
 class Edge;
 class VertexSet;
@@ -80,7 +80,7 @@ public:
      *         (type at the index `INDEX` in the `EdgeTypes` list)
      * @remark the method does not compile if the `VertexTypes` list does not
      *         contain atleast `INDEX` fields
-     * @detail **Example:**
+     * @details **Example:**
      * @code{.cpp}
      *      Vertex vertex = ...
      *      auto vertex_label = vertex.field<0>();
@@ -153,7 +153,7 @@ public:
      * @return weight of the edge (first `EdgeTypes` type)
      * @remark the method is disabled if the `EdgeTypes` list does not contain
      *         atleast one field
-     * @detail **Example:**
+     * @details **Example:**
      * @code{.cpp}
      *      Edge edge = ...
      *      auto edge_weight = edge.weight();
@@ -190,7 +190,7 @@ public:
      *         (type at the index `INDEX` in the `EdgeTypes` list)
      * @remark the method does not compile if the `EdgeTypes` list does not
      *         contain atleast `INDEX` fields
-     * @detail **Example:**
+     * @details **Example:**
      * @code{.cpp}
      * Edge edge = ...
      *      auto edge_label = edge.field<0>();
@@ -235,6 +235,6 @@ class EdgeIt {
 
 };
 
-} // namespace cu_stinger
+} // namespace custinger
 
 #include "cuStingerTypes.i.cuh"

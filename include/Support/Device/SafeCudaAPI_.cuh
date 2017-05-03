@@ -6,7 +6,7 @@
  * @version v1.3
  *
  * @brief Improved CUDA APIs
- * @detail Advatages:                                                      <br>
+ * @details Advatages:                                                      <br>
  *   - **clear semantic**: input, then output (google style)
  *   - **type checking**:
  *      - input and output must have the same type T

@@ -43,9 +43,9 @@ namespace load_balacing {
  * @brief
  */
 template<unsigned BLOCK_SIZE,
-         void (*Operator)(cu_stinger::Vertex, cu_stinger::Edge, void*)>
+         void (*Operator)(custinger::Vertex, custinger::Edge, void*)>
 __global__
-void VertexBasedKernel(const cu_stinger::vid_t* __restrict__ d_input,
+void VertexBasedKernel(const custinger::vid_t* __restrict__ d_input,
                        int num_vertices,
                        void* __restrict__ optional_field) {
     int     id = blockIdx.x * BLOCK_SIZE + threadIdx.x;
@@ -64,7 +64,7 @@ void VertexBasedKernel(const cu_stinger::vid_t* __restrict__ d_input,
  */
 template<unsigned BLOCK_SIZE, typename Operator>
 __global__
-void VertexBasedKernel(const cu_stinger::vid_t* __restrict__ d_input,
+void VertexBasedKernel(const custinger::vid_t* __restrict__ d_input,
                        int num_vertices, Operator op) {
     int     id = blockIdx.x * BLOCK_SIZE + threadIdx.x;
     int stride = gridDim.x * BLOCK_SIZE;

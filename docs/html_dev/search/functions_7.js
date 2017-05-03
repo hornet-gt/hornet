@@ -1,9 +1,9 @@
 var searchData=
 [
-  ['iadd3',['IADD3',['../PTX_8cuh.html#a388eb2aa365d5f93b49ade1504960b31',1,'xlib']]],
-  ['id',['id',['../classcu__stinger_1_1Vertex.html#a45bea783c54772cb3fc1859af374744c',1,'cu_stinger::Vertex']]],
-  ['insert',['insert',['../classcu__stinger_1_1BitTree.html#ab826805c6098d205325d9064bbed8c66',1,'cu_stinger::BitTree::insert()'],['../classcu__stinger_1_1MemoryManagement.html#a0b783ab596aecb4fb0f815ac3686c89a',1,'cu_stinger::MemoryManagement::insert()']]],
-  ['insertedgedata',['insertEdgeData',['../classcu__stinger_1_1cuStingerInit.html#a0c7e20e31f020ad78f8757771f0160d3',1,'cu_stinger::cuStingerInit::insertEdgeData()'],['../classcu__stinger_1_1BatchUpdate.html#ad5f39a6b11d9d92308eaca72c6c302e9',1,'cu_stinger::BatchUpdate::insertEdgeData()']]],
-  ['insertvertexdata',['insertVertexData',['../classcu__stinger_1_1cuStingerInit.html#ac77b6434bfa10d12acdde70abeb27711',1,'cu_stinger::cuStingerInit']]],
-  ['is_5ffull',['is_full',['../classcu__stinger_1_1BitTree.html#a169f276f03124022c8047de24a48dda6',1,'cu_stinger::BitTree']]]
+  ['iadd3',['IADD3',['../namespacexlib.html#a388eb2aa365d5f93b49ade1504960b31',1,'xlib']]],
+  ['id',['id',['../classcustinger_1_1Vertex.html#ae7fc2c0690086cc4e8b38bbf82a07807',1,'custinger::Vertex']]],
+  ['insert',['insert',['../classcustinger_1_1BitTree.html#a8b0bcf2ba3a1ab104ba4454e71995f52',1,'custinger::BitTree::insert()'],['../classcustinger_1_1MemoryManager.html#a701bd038b7b6436b99ec4a51fcac2982',1,'custinger::MemoryManager::insert()']]],
+  ['insertedgedata',['insertEdgeData',['../classcustinger_1_1cuStingerInit.html#a30a30c6b79e0f58a73488a31ca22ab7e',1,'custinger::cuStingerInit::insertEdgeData()'],['../classcustinger_1_1BatchUpdate.html#a05568c960294e3e3794713750ab40d08',1,'custinger::BatchUpdate::insertEdgeData()']]],
+  ['insertvertexdata',['insertVertexData',['../classcustinger_1_1cuStingerInit.html#a6b59eea2e9e463a08dc5e11d0f291c2e',1,'custinger::cuStingerInit']]],
+  ['is_5ffull',['is_full',['../classcustinger_1_1BitTree.html#a4257afb7e9d044ec0918362507679535',1,'custinger::BitTree']]]
 ];

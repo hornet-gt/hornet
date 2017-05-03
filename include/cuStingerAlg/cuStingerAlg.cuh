@@ -1,13 +1,13 @@
 #pragma once
 
-#include "Core/cuStinger.hpp"   //cu_stinger::cuStinger
+#include "Core/cuStinger.hpp"   //custinger::cuStinger
 
 namespace cu_stinger_alg {
 
 //Static Algorithms Abstract class
 class StaticAlgorithm {
 public:
-    StaticAlgorithm(const cu_stinger::cuStinger& custinger) :
+    StaticAlgorithm(const custinger::cuStinger& custinger) :
                     _custinger(custinger) {}
 
     virtual ~StaticAlgorithm() = 0;
@@ -17,7 +17,7 @@ public:
     virtual void release()  = 0;
     virtual bool validate() = 0;
 protected:
-    const cu_stinger::cuStinger& _custinger;
+    const custinger::cuStinger& _custinger;
 };
 
 //==============================================================================

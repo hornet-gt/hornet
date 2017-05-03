@@ -37,7 +37,7 @@
 #include "Support/Host/Basic.hpp"   //ERROR, xlib::is_integer
 #include <fstream>
 
-namespace cu_stinger {
+namespace custinger {
 
 Param::Param(int argc, char* argv[]) : //strategy(Strategy::UNDEF),
                                        /*strategy_prop(),
@@ -149,4 +149,4 @@ L1:     std::ifstream syntax_file("../docs/Syntax.txt");
     }
 }
 
-} // namespace cu_stinger
+} // namespace custinger

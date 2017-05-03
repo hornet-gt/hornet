@@ -1,7 +1,7 @@
 /**
  * @internal
  * @brief Internal cuStinger types
- * @detail Lowest level layer of the cuStinger programming model
+ * @details Lowest level layer of the cuStinger programming model
  *          (hidden for the users)
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
@@ -44,7 +44,7 @@
 #include "Support/Host/Metaprogramming.hpp"  //xlib::TupleToTypeSize
 #include "Support/Host/Numeric.hpp"          //xlib::roundup_pow2
 
-namespace cu_stinger {
+namespace custinger {
 
 template<typename... TArgs>
 using TypeList = std::tuple<TArgs...>;
@@ -83,4 +83,4 @@ HOST_DEVICE degree_t limit(degree_t degree) noexcept {
 
 } //namespace detail
 
-} // namespace cu_stinger
+} // namespace custinger

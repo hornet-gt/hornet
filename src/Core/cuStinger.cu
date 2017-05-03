@@ -34,10 +34,11 @@
  * </blockquote>}
  */
 #include "Core/cuStinger.hpp"
-#include "GlobalSpace.cuh"          //d_nV
-#include "Core/cuStingerTypes.cuh"  //VertexBasicData
+#include "GlobalSpace.cuh"                //d_nV
+#include "Core/cuStingerTypes.cuh"        //VertexBasicData
+#include "Support/Device/CubWrapper.cuh"  //CubSortByValue
 
-namespace cu_stinger {
+namespace custinger {
 
 void cuStinger::initializeVertexGlobal(byte_t* (&vertex_data_ptrs)[NUM_VTYPES])
                                        noexcept {
@@ -86,8 +87,44 @@ void cuStinger::print() noexcept {
         printKernel<<<1, 1>>>();
         CHECK_CUDA_ERROR
     }
-    else
-        WARNING("Graph print is enable only with degree_t/vid_t of size 4 bytes")
+    else {
+        WARNING("Graph print is enabled only with degree_t/vid_t of size"
+                " 4 bytes")
+    }
 }
 
-} // namespace cu_stinger
+void cuStinger::transpose() noexcept {
+    mem_manager.clear();
+
+    eoff_t* d_csr_offsets, *d_counts_out;
+    vid_t*  d_csr_edges, *d_unique_out, *d_csr_edges_sorted;
+    cuMalloc(d_csr_offsets, _nV + 1);
+    cuMalloc(d_csr_edges, _nE);
+    cuMalloc(d_csr_edges_sorted, _nE);
+    cuMalloc(d_counts_out, _nV + 1);
+    cuMalloc(d_unique_out, _nV);
+    cuMemcpyToDeviceAsync(_csr_offsets, _nV + 1, d_csr_offsets);
+    cuMemcpyToDeviceAsync(_csr_edges, _nE, d_csr_edges);
+    cuMemcpyToDeviceAsync(0, d_counts_out + _nV);
+
+    xlib::CubSortByValue<vid_t>(d_csr_edges, _nE, d_csr_edges_sorted, _nV - 1);
+    xlib::CubRunLengthEncode<vid_t, eoff_t>(d_csr_edges_sorted, _nE,
+                                            d_unique_out, d_counts_out);
+    cuMemset0x00(d_unique_out, _nV);
+    xlib::CubExclusiveSum<eoff_t>(d_counts_out, _nV + 1);
+
+    //transpose_edges(d_csr_offsets, d_csr_edges, d_counts_out, d_unique_out
+    //               [](atomicAdd(&, 1));
+    cuFree(d_csr_offsets, d_csr_edges, d_csr_edges_sorted, d_counts_out,
+           d_unique_out);
+
+    _csr_offsets = new eoff_t[_nV + 1];
+    _csr_edges   = new vid_t[_nV + 1];
+    cuMemcpyToHostAsync(d_csr_offsets, _nV + 1,
+                        const_cast<eoff_t*>(_csr_offsets));
+    cuMemcpyToHostAsync(d_csr_edges, _nE, const_cast<vid_t*>(_csr_edges));
+    _internal_csr_data = true;
+    initialize();
+}
+
+} // namespace custinger

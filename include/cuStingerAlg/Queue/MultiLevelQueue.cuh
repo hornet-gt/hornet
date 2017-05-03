@@ -47,7 +47,7 @@ namespace cu_stinger_alg {
  */
 template<typename T>
 class MultiLevelQueue {
-static const bool is_vid = std::is_same<T, cu_stinger::vid_t>::value;
+static const bool is_vid = std::is_same<T, custinger::vid_t>::value;
 using     EnableTraverse = typename std::enable_if< is_vid >::type;
 public:
     explicit MultiLevelQueue(size_t max_allocated_items) noexcept;
@@ -78,7 +78,7 @@ public:
 
     template<typename Operator>
     __host__ EnableTraverse
-    work_evaluate(const cu_stinger::eoff_t* csr_offsets) noexcept;
+    work_evaluate(const custinger::eoff_t* csr_offsets) noexcept;
 
     template<typename Operator>
     __host__ EnableTraverse

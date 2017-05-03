@@ -48,12 +48,12 @@ class VertexBased {
 public:
     explicit VertexBased() noexcept = default;
 
-    template<void (*Operator)(cu_stinger::Vertex, cu_stinger::Edge, void*)>
-    void traverse_edges(const cu_stinger::vid_t* d_input, int num_vertices,
+    template<void (*Operator)(custinger::Vertex, custinger::Edge, void*)>
+    void traverse_edges(const custinger::vid_t* d_input, int num_vertices,
                         void* optional_field) noexcept;
 
     template<typename Operator>
-    void traverse_edges(const cu_stinger::vid_t* d_input, int num_vertices,
+    void traverse_edges(const custinger::vid_t* d_input, int num_vertices,
                         Operator op) noexcept;
 
 private:

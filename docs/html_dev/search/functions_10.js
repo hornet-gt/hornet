@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['vertex',['Vertex',['../classcu__stinger_1_1Vertex.html#a44bd5cc9c61685532d6d82c868fcfccc',1,'cu_stinger::Vertex']]]
+  ['vertex',['Vertex',['../classcustinger_1_1Vertex.html#aa1a8596cb5bbf017d5f4296b1bfb16a4',1,'custinger::Vertex::Vertex()'],['../classcsr_1_1Vertex.html#a077f62f0482d27c8c70a50a4bc87fce5',1,'csr::Vertex::Vertex()']]]
 ];

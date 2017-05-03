@@ -24,9 +24,9 @@ void forAll(int num_items, void* optional_data) {
 //------------------------------------------------------------------------------
 namespace detail {
 
-template<void (*Operator)(cu_stinger::vid_t, void*)>
+template<void (*Operator)(custinger::vid_t, void*)>
 __global__ void forAllnumVKernel(void* optional_data) {
-    using cu_stinger::vid_t;
+    using custinger::vid_t;
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
     vid_t size = static_cast<vid_t>(d_nV);
@@ -37,7 +37,7 @@ __global__ void forAllnumVKernel(void* optional_data) {
 
 } // namespace detail
 
-template<void (*Operator)(cu_stinger::vid_t, void*)>
+template<void (*Operator)(custinger::vid_t, void*)>
 void forAllnumV(void* optional_data) {
     size_t num_items;
     cuMemcpyFromSymbol(d_nV, num_items);
@@ -49,9 +49,9 @@ void forAllnumV(void* optional_data) {
 //------------------------------------------------------------------------------
 namespace detail {
 
-template<void (*Operator)(cu_stinger::eoff_t, void*)>
+template<void (*Operator)(custinger::eoff_t, void*)>
 __global__ void forAllnumEKernel(void* optional_data) {
-    using cu_stinger::eoff_t;
+    using custinger::eoff_t;
     int      id = blockIdx.x * blockDim.x + threadIdx.x;
     int  stride = gridDim.x * blockDim.x;
     eoff_t size = static_cast<eoff_t>(d_nE);
@@ -62,7 +62,7 @@ __global__ void forAllnumEKernel(void* optional_data) {
 
 } // namespace detail
 
-template<void (*Operator)(cu_stinger::eoff_t, void*)>
+template<void (*Operator)(custinger::eoff_t, void*)>
 void forAllnumE(void* optional_data) {
     size_t num_items;
     cuMemcpyFromSymbol(d_nE, num_items);
@@ -76,7 +76,7 @@ namespace detail {
 
 template<void (*Operator)(Vertex, void*)>
 __global__ void forAllVerticesKernel(void* optional_data) {
-    using cu_stinger::vid_t;
+    using custinger::vid_t;
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
     vid_t size = static_cast<vid_t>(d_nV);
@@ -104,9 +104,9 @@ __global__ void forAllOutEdgesKernel(void* optional_data) {
 
 }
 
-inline void partition(const cu_stinger::eoff_t* csr_offsets,
+inline void partition(const custinger::eoff_t* csr_offsets,
                       int*& partition, int&num_partitions) {
-    using cu_stinger::eoff_t;
+    using custinger::eoff_t;
     const unsigned SMEM_SIZE = xlib::SMemPerBlock<BLOCK_SIZE_OP1,eoff_t>::value;
     const unsigned PARTITION_SIZE = BLOCK_SIZE_OP1 * SMEM_SIZE;
 
@@ -124,7 +124,7 @@ inline void partition(const cu_stinger::eoff_t* csr_offsets,
 } // namespace detail
 
 template<void (*Operator)(Vertex, Edge, void*)>
-void forAllOutEdges(const cu_stinger::eoff_t* out_offsets, void* optional_data){
+void forAllOutEdges(const custinger::eoff_t* out_offsets, void* optional_data){
     static int*  d_partitions = nullptr;
     static int num_partitions = 0;
     if (num_partitions == 0)
@@ -135,7 +135,7 @@ void forAllOutEdges(const cu_stinger::eoff_t* out_offsets, void* optional_data){
 }
 
 template<void (*Operator)(Vertex, Edge, void*)>
-void forAllInEdges(const cu_stinger::eoff_t* in_offsets, void* optional_data) {
+void forAllInEdges(const custinger::eoff_t* in_offsets, void* optional_data) {
     static int*  d_partitions = nullptr;
     static int num_partitions = 0;
     if (num_partitions == 0)
@@ -161,7 +161,7 @@ __global__ void forAllBatchEdgesKernel(EdgeBatch edge_batch,
 
 } // namespace detail
 
-template<void (*Operator)(cu_stinger::Vertex, cu_stinger::Edge, void*)>
+template<void (*Operator)(custinger::Vertex, custinger::Edge, void*)>
 void forAllBatchEdges(const EdgeBatch& edge_batch, void* optional_data) {
 
 }*/

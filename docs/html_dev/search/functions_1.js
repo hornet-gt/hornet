@@ -1,8 +1,9 @@
 var searchData=
 [
-  ['base_5faddress',['base_address',['../classcu__stinger_1_1BitTree.html#a93583462a165a9f183b65a52722bd0b7',1,'cu_stinger::BitTree']]],
-  ['batchproperty',['BatchProperty',['../classcu__stinger_1_1BatchProperty.html#ad75702a4f926c361be69063800dcd7b0',1,'cu_stinger::BatchProperty']]],
-  ['batchupdate',['BatchUpdate',['../classcu__stinger_1_1BatchUpdate.html#aaf793aafaa1151c32fa6d6f447b2d09c',1,'cu_stinger::BatchUpdate']]],
-  ['belong_5fto',['belong_to',['../classcu__stinger_1_1BitTree.html#ab4c93353aa03bd11b10f98b3ee7cd344',1,'cu_stinger::BitTree']]],
-  ['bittree',['BitTree',['../classcu__stinger_1_1BitTree.html#a035e893a4c89565378fcb6c39d2974ee',1,'cu_stinger::BitTree::BitTree() noexcept'],['../classcu__stinger_1_1BitTree.html#a719c823a9b9debd90a2b12cea2612ca7',1,'cu_stinger::BitTree::BitTree(BitTree &amp;&amp;obj) noexcept']]]
+  ['base_5faddress',['base_address',['../classcustinger_1_1BitTree.html#a1127291f6ca2a0a1d6871ef3ea655752',1,'custinger::BitTree']]],
+  ['batchproperty',['BatchProperty',['../classcustinger_1_1BatchProperty.html#aab541ea4830e8f86152adfa6bc296bdb',1,'custinger::BatchProperty']]],
+  ['batchupdate',['BatchUpdate',['../classcustinger_1_1BatchUpdate.html#a215465bc5fef93813a842178c0642cc1',1,'custinger::BatchUpdate']]],
+  ['belong_5fto',['belong_to',['../classcustinger_1_1BitTree.html#ab6cf05a755ff3755f8951485bcd1242d',1,'custinger::BitTree']]],
+  ['bittree',['BitTree',['../classcustinger_1_1BitTree.html#a8b69918cf2b5560908d2395f561072a8',1,'custinger::BitTree::BitTree() noexcept'],['../classcustinger_1_1BitTree.html#ab18af2a81162019b2a374ef6d253aa7c',1,'custinger::BitTree::BitTree(BitTree &amp;&amp;obj) noexcept']]],
+  ['blockpartition',['blockPartition',['../namespacexlib.html#a396a34e7c421cddea23fbeaef960c922',1,'xlib']]]
 ];

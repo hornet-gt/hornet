@@ -119,7 +119,7 @@ void threadPartitionAuxLoop(const T* __restrict__ ptr,
 
 /**
  * @brief
- * @detail
+ * @details
  * @verbatim
  *    d_prefixsum input: 0, 3, 7, 10, 13
  *     ITEMS_PER_THREAD: 5

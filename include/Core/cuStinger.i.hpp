@@ -33,7 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-namespace cu_stinger {
+namespace custinger {
 
 template<unsigned INDEX = 0, unsigned SIZE, typename T, typename... TArgs>
 void bind(byte_t* (&data_ptrs)[SIZE], const T* data, TArgs... args) noexcept;
@@ -163,4 +163,4 @@ void cuStinger::insertEdgeBatch() {
     cuFree(d_batch_ptr);
 }*/
 
-} // namespace cu_stinger
+} // namespace custinger

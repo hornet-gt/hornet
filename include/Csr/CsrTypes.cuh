@@ -46,7 +46,7 @@ class Edge;
 
 //==============================================================================
 
-class Vertex : public cu_stinger::Vertex {
+class Vertex : public custinger::Vertex {
     friend __global__ void printKernel();
 public:
     /**
@@ -69,7 +69,7 @@ private:
 
 //==============================================================================
 
-class Edge : public cu_stinger::Edge {
+class Edge : public custinger::Edge {
     friend class csr::Vertex;
 private:
     __device__ __forceinline__

@@ -84,6 +84,18 @@ template&lt;typename HostIterator , typename DeviceIterator &gt; </td></tr>
 template&lt;typename HostIterator , typename DeviceIterator &gt; </td></tr>
 <tr class="memitem:affbe286914eae6ed4c80088aae69d1b2"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>equal_sorted</b> (HostIterator host_start, HostIterator host_end, DeviceIterator device_start) noexcept</td></tr>
 <tr class="separator:affbe286914eae6ed4c80088aae69d1b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa41f11d8e577e20918eaba6989ea33f5"><td class="memTemplParams" colspan="2"><a id="aa41f11d8e577e20918eaba6989ea33f5"></a>
+template&lt;class T &gt; </td></tr>
+<tr class="memitem:aa41f11d8e577e20918eaba6989ea33f5"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>printArray</b> (const T *d_array, size_t size, const std::string &amp;str=&quot;&quot;, char sep=' ') noexcept</td></tr>
+<tr class="separator:aa41f11d8e577e20918eaba6989ea33f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a31427d02d1f2fd32d2ca3f7d9a85c6b7"><td class="memTemplParams" colspan="2"><a id="a31427d02d1f2fd32d2ca3f7d9a85c6b7"></a>
+template&lt;class T , int SIZE&gt; </td></tr>
+<tr class="memitem:a31427d02d1f2fd32d2ca3f7d9a85c6b7"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>printArray</b> (const T(&amp;d_array)[SIZE], const std::string &amp;str=&quot;&quot;, char sep=' ') noexcept</td></tr>
+<tr class="separator:a31427d02d1f2fd32d2ca3f7d9a85c6b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8eb24fd9c911fcf061049f51cfd57c8"><td class="memTemplParams" colspan="2"><a id="af8eb24fd9c911fcf061049f51cfd57c8"></a>
+template&lt;class T &gt; </td></tr>
+<tr class="memitem:af8eb24fd9c911fcf061049f51cfd57c8"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>printSymbol</b> (const T &amp;d_symbol, const std::string &amp;str=&quot;&quot;) noexcept</td></tr>
+<tr class="separator:af8eb24fd9c911fcf061049f51cfd57c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><dl class="section author"><dt>Author</dt><dd>Federico Busato <br />
@@ -108,7 +120,7 @@ template&lt;typename HostIterator , typename DeviceIterator &gt; </td></tr>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Apr 26 2017 16:18:45 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed May 3 2017 14:56:19 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

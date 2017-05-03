@@ -38,12 +38,12 @@
 #include "BinarySearchKernel.cuh"
 #include "Support/Device/Definition.cuh"    //xlib::SMemPerBlock
 #include "Support/Device/CubWrapper.cuh"    //xlib::CubExclusiveSum
-#include "cuStingerAlg/Operator++.cuh"      //cu_stinger::forAll
+#include "cuStingerAlg/Operator++.cuh"      //custinger::forAll
 
 namespace load_balacing {
 
-template<void (*Operator)(cu_stinger::Vertex, cu_stinger::Edge, void*)>
-inline void VertexBased::traverse_edges(const cu_stinger::vid_t* d_input,
+template<void (*Operator)(custinger::Vertex, custinger::Edge, void*)>
+inline void VertexBased::traverse_edges(const custinger::vid_t* d_input,
                                          int num_vertices,
                                          void* optional_field) noexcept {
     detail::VertexBasedKernel
@@ -55,7 +55,7 @@ inline void VertexBased::traverse_edges(const cu_stinger::vid_t* d_input,
 }
 
 template<typename Operator>
-inline void VertexBased::traverse_edges(const cu_stinger::vid_t* d_input,
+inline void VertexBased::traverse_edges(const custinger::vid_t* d_input,
                                         int num_vertices,
                                         Operator op) noexcept {
     detail::VertexBasedKernel

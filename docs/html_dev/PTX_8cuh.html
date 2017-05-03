@@ -85,18 +85,20 @@ $(function() {
 Namespaces</h2></td></tr>
 <tr class="memitem:namespacePTX"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacePTX.html">PTX</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:namespacexlib"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacexlib.html">xlib</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a3ddd4fadb2296ef4ccc4b501bef3a4be"><td class="memItemLeft" align="right" valign="top">__device__ __forceinline__ unsigned&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="PTX_8cuh.html#a3ddd4fadb2296ef4ccc4b501bef3a4be">xlib::lane_id</a> ()</td></tr>
-<tr class="memdesc:a3ddd4fadb2296ef4ccc4b501bef3a4be"><td class="mdescLeft">&#160;</td><td class="mdescRight">return the lane ID within the current warp  <a href="PTX_8cuh.html#a3ddd4fadb2296ef4ccc4b501bef3a4be">More...</a><br /></td></tr>
+<tr class="memitem:a3ddd4fadb2296ef4ccc4b501bef3a4be"><td class="memItemLeft" align="right" valign="top">__device__ __forceinline__ unsigned&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacexlib.html#a3ddd4fadb2296ef4ccc4b501bef3a4be">xlib::lane_id</a> ()</td></tr>
+<tr class="memdesc:a3ddd4fadb2296ef4ccc4b501bef3a4be"><td class="mdescLeft">&#160;</td><td class="mdescRight">return the lane ID within the current warp  <a href="namespacexlib.html#a3ddd4fadb2296ef4ccc4b501bef3a4be">More...</a><br /></td></tr>
 <tr class="separator:a3ddd4fadb2296ef4ccc4b501bef3a4be"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a48a6eb4b79e2ec25ab2ba69cd47e4037"><td class="memItemLeft" align="right" valign="top"><a id="a48a6eb4b79e2ec25ab2ba69cd47e4037"></a>
-__device__ __forceinline__ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="PTX_8cuh.html#a48a6eb4b79e2ec25ab2ba69cd47e4037">xlib::thread_exit</a> ()</td></tr>
+__device__ __forceinline__ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacexlib.html#a48a6eb4b79e2ec25ab2ba69cd47e4037">xlib::thread_exit</a> ()</td></tr>
 <tr class="memdesc:a48a6eb4b79e2ec25ab2ba69cd47e4037"><td class="mdescLeft">&#160;</td><td class="mdescRight">terminate the current thread <br /></td></tr>
 <tr class="separator:a48a6eb4b79e2ec25ab2ba69cd47e4037"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a388eb2aa365d5f93b49ade1504960b31"><td class="memItemLeft" align="right" valign="top">__device__ __forceinline__ unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="PTX_8cuh.html#a388eb2aa365d5f93b49ade1504960b31">xlib::IADD3</a> (unsigned int x, unsigned int y, unsigned int z)</td></tr>
-<tr class="memdesc:a388eb2aa365d5f93b49ade1504960b31"><td class="mdescLeft">&#160;</td><td class="mdescRight">sum three operands with one instruction  <a href="PTX_8cuh.html#a388eb2aa365d5f93b49ade1504960b31">More...</a><br /></td></tr>
+<tr class="memitem:a388eb2aa365d5f93b49ade1504960b31"><td class="memItemLeft" align="right" valign="top">__device__ __forceinline__ unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacexlib.html#a388eb2aa365d5f93b49ade1504960b31">xlib::IADD3</a> (unsigned int x, unsigned int y, unsigned int z)</td></tr>
+<tr class="memdesc:a388eb2aa365d5f93b49ade1504960b31"><td class="mdescLeft">&#160;</td><td class="mdescRight">sum three operands with one instruction  <a href="namespacexlib.html#a388eb2aa365d5f93b49ade1504960b31">More...</a><br /></td></tr>
 <tr class="separator:a388eb2aa365d5f93b49ade1504960b31"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afda210aa103b11ba290ce1d01177fb80"><td class="memTemplParams" colspan="2"><a id="afda210aa103b11ba290ce1d01177fb80"></a>
 template&lt;typename T &gt; </td></tr>
@@ -127,68 +129,10 @@ template&lt;typename T &gt; </td></tr>
 </blockquote>
 </dd>
 </dl>
-</div><h2 class="groupheader">Function Documentation</h2>
-<a id="file_a3ddd4fadb2296ef4ccc4b501bef3a4be"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#file_a3ddd4fadb2296ef4ccc4b501bef3a4be">&#9670;&nbsp;</a></span>lane_id()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">__device__ __forceinline__ unsigned xlib::lane_id </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>return the lane ID within the current warp </p>
-<p>Provide the thread ID within the current warp (called lane). </p><dl class="section return"><dt>Returns</dt><dd>identification ID in the range 0 &le; ID &le; 31 </dd></dl>
-
-</div>
-</div>
-<a id="file_a388eb2aa365d5f93b49ade1504960b31"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#file_a388eb2aa365d5f93b49ade1504960b31">&#9670;&nbsp;</a></span>IADD3()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">__device__ __forceinline__ unsigned int xlib::IADD3 </td>
-          <td>(</td>
-          <td class="paramtype">unsigned int&#160;</td>
-          <td class="paramname"><em>x</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">unsigned int&#160;</td>
-          <td class="paramname"><em>y</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">unsigned int&#160;</td>
-          <td class="paramname"><em>z</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>sum three operands with one instruction </p>
-<p>Sum three operand with one instruction. Only in Maxwell architecture IADD3 is implemented in hardware, otherwise involves multiple instructions. </p><dl class="section return"><dt>Returns</dt><dd>x + y + z </dd></dl>
-
-</div>
-</div>
-</div><!-- contents -->
+</div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Apr 26 2017 16:18:45 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed May 3 2017 14:56:19 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

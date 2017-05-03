@@ -33,24 +33,24 @@ namespace xlib {
 
 class CubWrapper {
 protected:
-    CubWrapper(size_t num_items) noexcept;
+    explicit CubWrapper(size_t num_items) noexcept;
     ~CubWrapper() noexcept;
 
-    void*        _d_temp_storage;
-    size_t       _temp_storage_bytes;
+    void*        _d_temp_storage     { nullptr };
+    size_t       _temp_storage_bytes { 0 };
     const size_t _num_items;
 };
 
 template<typename T>
 class CubSortByValue : public CubWrapper {
 public:
-    CubSortByValue(const T* d_in, size_t size, T*& d_sorted,
-                 T d_in_max = std::numeric_limits<T>::max());
-    ~CubSortByValue() noexcept;
+    explicit CubSortByValue(const T* d_in, size_t size, T* d_sorted,
+                            T d_in_max = std::numeric_limits<T>::max())
+                            noexcept;
     void run() noexcept;
 private:
     const T* _d_in;
-    T*&      _d_sorted;
+    T*       _d_sorted;
     T        _d_in_max;
 };
 
@@ -97,20 +97,18 @@ private:
     int*     _d_unique_egdes;
 };
 
-template<typename T>
+template<typename T, typename R = T>
 class CubRunLengthEncode : public CubWrapper {
 public:
-    CubRunLengthEncode(const T* d_in, size_t size,
-                       T*& d_unique_out, int*& d_counts_out,
-                       bool custom_count_ptr = false);
+    explicit CubRunLengthEncode(const T* d_in, size_t size,
+                                T* d_unique_out, R* d_counts_out) noexcept;
     ~CubRunLengthEncode() noexcept;
     int run() noexcept;
 private:
     const T* _d_in;
-    T*&      _d_unique_out;
-    int*&    _d_counts_out;
-    int*     _d_num_runs_out;
-    bool     _custom_count_ptr;
+    T*       _d_unique_out;
+    R*       _d_counts_out;
+    R*       _d_num_runs_out  { nullptr };
 };
 
 template<typename T>

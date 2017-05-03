@@ -9,7 +9,7 @@
 #include "Core/MemoryManagement.hpp"
 #include <iostream>
 
-using namespace cu_stinger;
+using namespace custinger;
 
 int main() {
     BitTree<int, 16, 512> bit_tree;

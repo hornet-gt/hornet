@@ -1,7 +1,7 @@
 /**
  * @internal
  * @brief Internal cuStinger types
- * @detail Lowest level layer of the cuStinger programming model
+ * @details Lowest level layer of the cuStinger programming model
  *          (hidden for the users)
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>

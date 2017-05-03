@@ -56,12 +56,12 @@ __device__ int d_queue_counter;
  */
 template<typename T>
 class TwoLevelQueue {
-static const bool is_vid = std::is_same<T, cu_stinger::vid_t>::value;
+static const bool is_vid = std::is_same<T, custinger::vid_t>::value;
 using     EnableTraverse = typename std::enable_if< is_vid >::type;
 public:
     explicit TwoLevelQueue(size_t max_allocated_items) noexcept;
     explicit TwoLevelQueue(size_t max_allocated_items,
-                           const cu_stinger::eoff_t* csr_offset) noexcept;
+                           const custinger::eoff_t* csr_offset) noexcept;
 
     ~TwoLevelQueue() noexcept;
 
@@ -94,7 +94,7 @@ private:
     ptr2_t<int> _d_work_ptrs         { nullptr, nullptr };
     int*        _d_queue_counter     { nullptr };
     T*          _host_data           { nullptr };
-    const cu_stinger::eoff_t* _csr_offsets { nullptr };
+    const custinger::eoff_t* _csr_offsets { nullptr };
     size_t      _max_allocated_items;
     int         _num_queue_vertices  { 0 };
     int         _num_queue_edges     { 0 };   // traverse_edges

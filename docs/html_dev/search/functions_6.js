@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['get_5fblock_5farray_5fptr',['get_block_array_ptr',['../classcu__stinger_1_1MemoryManagement.html#ae12e5f434729c487f1be24e20b9d2919',1,'cu_stinger::MemoryManagement']]]
+  ['get_5fblock_5farray_5fptr',['get_block_array_ptr',['../classcustinger_1_1MemoryManager.html#a8b3393959275ca0cb0cc862f74027daa',1,'custinger::MemoryManager']]]
 ];

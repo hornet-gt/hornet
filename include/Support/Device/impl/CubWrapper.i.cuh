@@ -26,26 +26,21 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * federico.busato@univr.it
  */
 #include "Support/Device/SafeCudaAPI.cuh"
+#include "Support/Host/Numeric.hpp"
 #include <cub.cuh>
 
 namespace xlib {
 
 template<typename T>
-CubSortByValue<T>::CubSortByValue(const T* d_in, size_t num_items, T*& d_sorted,
-                                  T d_in_max) :
+CubSortByValue<T>::CubSortByValue(const T* d_in, size_t num_items,
+                                  T* d_sorted, T d_in_max) noexcept :
                                         CubWrapper(num_items),
                                         _d_in(d_in), _d_sorted(d_sorted),
                                         _d_in_max(d_in_max) {
-    cuMalloc(_d_sorted, _num_items);
     cub::DeviceRadixSort::SortKeys(_d_temp_storage, _temp_storage_bytes,
                                    _d_in, _d_sorted,
                                    _num_items, 0, xlib::ceil_log2(_d_in_max));
     SAFE_CALL( cudaMalloc(&_d_temp_storage, _temp_storage_bytes) )
-}
-
-template<typename T>
-CubSortByValue<T>::~CubSortByValue() noexcept {
-    cuFree(_d_sorted);
 }
 
 template<typename T>
@@ -158,36 +153,29 @@ int CubUnique<T>::run() noexcept {
 }
 */
 //------------------------------------------------------------------------------
-/*
-template<typename T>
-CubRunLengthEncode<T>::CubRunLengthEncode(const T* d_in, size_t num_items,
-                                         T*& d_unique_out, int*& d_counts_out,
-                                         bool custom_count_ptr) :
+
+template<typename T, typename R>
+CubRunLengthEncode<T, R>::CubRunLengthEncode(const T* d_in, size_t num_items,
+                                             T* d_unique_out, R* d_counts_out)
+                                             noexcept :
                            CubWrapper(num_items),
                            _d_in(d_in), _d_unique_out(d_unique_out),
-                           _d_counts_out(d_counts_out),
-                           _custom_count_ptr(custom_count_ptr) {
+                           _d_counts_out(d_counts_out) {
 
-    cuMalloc(_d_unique_out, _num_items);
-    if (!_custom_count_ptr)
-        cuMalloc(_d_counts_out, _num_items);
-    cuMalloc(_d_num_runs_out);
+    cuMalloc(_d_num_runs_out, 1);
     cub::DeviceRunLengthEncode::Encode(_d_temp_storage, _temp_storage_bytes,
                                        _d_in, _d_unique_out, _d_counts_out,
                                        _d_num_runs_out, _num_items);
-
     SAFE_CALL( cudaMalloc(&_d_temp_storage, _temp_storage_bytes) )
 }
 
-template<typename T>
-CubRunLengthEncode<T>::~CubRunLengthEncode() noexcept {
-    cuFree(_d_unique_out, _d_num_runs_out);
-    if (!_custom_count_ptr)
-        cuFree(_d_counts_out);
+template<typename T, typename R>
+CubRunLengthEncode<T, R>::~CubRunLengthEncode() noexcept {
+    cuFree(_d_num_runs_out);
 }
 
-template<typename T>
-int CubRunLengthEncode<T>::run() noexcept {
+template<typename T, typename R>
+int CubRunLengthEncode<T, R>::run() noexcept {
     cub::DeviceRunLengthEncode::Encode(_d_temp_storage, _temp_storage_bytes,
                                        _d_in, _d_unique_out, _d_counts_out,
                                        _d_num_runs_out, _num_items);
@@ -195,7 +183,7 @@ int CubRunLengthEncode<T>::run() noexcept {
     cuMemcpyToHost(_d_num_runs_out, h_num_runs_out);
     return h_num_runs_out;
 }
-*/
+
 //------------------------------------------------------------------------------
 
 template<typename T>
@@ -211,7 +199,7 @@ CubExclusiveSum<T>::CubExclusiveSum(const T* d_in, size_t num_items, T* d_out)
 
 template<typename T>
 CubExclusiveSum<T>::CubExclusiveSum(T* d_in_out, size_t num_items) noexcept :
-                             CubExclusiveSum(d_in_out, num_items, num_items) {}
+                             CubExclusiveSum(d_in_out, num_items, d_in_out) {}
 
 template<typename T>
 void CubExclusiveSum<T>::run() noexcept {

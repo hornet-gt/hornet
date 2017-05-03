@@ -41,11 +41,11 @@
 #include "Support/Host/Metaprogramming.hpp"
 #include <utility>  //std::pair
 
-namespace cu_stinger {
+namespace custinger {
 
 /**
  * @brief **Vectorized Bit Tree**
- * @detail Internal representation                                         <br>
+ * @details Internal representation                                         <br>
  * [1011]                                   // root       --> internal      <br>
  * [0001] [0000] [1001] [0110]              //            --> internal      <br>
  * [....] [....] [....] [....] [....] ...   // last_level --> external      <br>
@@ -66,7 +66,7 @@ class BitTree {
 public:
     /**
      * @brief Default Costrustor
-     * @detail Build a empty *BitTree* with `BLOCKARRAY_ITEMS` bits.
+     * @details Build a empty *BitTree* with `BLOCKARRAY_ITEMS` bits.
      *         It allocates a *BlockArray* for the HOST and other one for the
      *         DEVICE
      */
@@ -74,7 +74,7 @@ public:
 
     /**
      * @brief Decostructor
-     * @detail Deallocate HOST and DEVICE *BlockArrays*
+     * @details Deallocate HOST and DEVICE *BlockArrays*
      */
     ~BitTree() noexcept;
 
@@ -84,14 +84,14 @@ public:
     void free_host_ptr() noexcept;
     /**
      * @brief Insert a new *block*
-     * @detail Find the first empty *block* within the *BlockArray*
+     * @details Find the first empty *block* within the *BlockArray*
      * @return pair < host_block_ptr, device_block_ptr >
      */
     std::pair<T*, T*> insert() noexcept;
 
     /**
      * @brief Remove a *block*
-     * @detail Remove the *block* pointed by `to_delete` pointer
+     * @details Remove the *block* pointed by `to_delete` pointer
      * @param[in] to_delete pointer to the *block* to delete
      */
     void remove(T* to_delete) noexcept;
@@ -169,6 +169,6 @@ private:
     void parent_traverse(int index, const Lambda& lambda) noexcept;
 };
 
-} // namespace cu_stinger
+} // namespace custinger
 
 #include "BitTree.i.hpp"

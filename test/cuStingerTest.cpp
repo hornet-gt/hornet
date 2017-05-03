@@ -10,7 +10,7 @@
 #include <chrono>                      //std::chrono
 #include <random>                      //std::mt19937_64
 
-using namespace cu_stinger;
+using namespace custinger;
 using namespace timer;
 
 /**
@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
     xlib::deviceInfo();
     Param param(argc, argv);
 
-    graph::GraphStd<cu_stinger::vid_t, cu_stinger::eoff_t> graph;
+    graph::GraphStd<custinger::vid_t, custinger::eoff_t> graph;
     graph.read(argv[1]);
     graph.print_raw();
 

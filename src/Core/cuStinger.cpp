@@ -41,7 +41,7 @@
 
 using namespace timer;
 
-namespace cu_stinger {
+namespace custinger {
 
 cuStingerInit::cuStingerInit(size_t num_vertices, size_t num_edges,
                              const eoff_t* csr_offsets, const vid_t* csr_edges)
@@ -49,7 +49,7 @@ cuStingerInit::cuStingerInit(size_t num_vertices, size_t num_edges,
                                _nV(num_vertices),
                                _nE(num_edges) {
     _vertex_data_ptrs[0] = reinterpret_cast<const byte_t*>(csr_offsets);
-   _edge_data_ptrs[0]    = reinterpret_cast<const byte_t*>(csr_edges);
+    _edge_data_ptrs[0]   = reinterpret_cast<const byte_t*>(csr_edges);
 }
 
 size_t cuStingerInit::nV() const noexcept {
@@ -70,13 +70,33 @@ const vid_t* cuStingerInit::csr_edges() const noexcept {
 
 //==============================================================================
 
-cuStinger::cuStinger(const cuStingerInit& custinger_init) noexcept :
-                            _nV(custinger_init._nV),
-                            _nE(custinger_init._nE) {
+int cuStinger::global_id = 0;
 
-    auto    csr_offsets = custinger_init.csr_offsets();
-    auto edge_data_ptrs = custinger_init._edge_data_ptrs;
-    auto    vertex_data = custinger_init._vertex_data_ptrs;
+cuStinger::cuStinger(const cuStingerInit& custinger_init,
+                     bool traspose) noexcept :
+                            _custinger_init(custinger_init),
+                            _csr_offsets(_custinger_init.csr_offsets()),
+                            _csr_edges(_custinger_init.csr_edges()),
+                            _nV(custinger_init._nV),
+                            _nE(custinger_init._nE),
+                            _id(global_id++) {
+    if (traspose)
+        transpose();
+    else
+        initialize();
+}
+
+cuStinger::~cuStinger() noexcept {
+    cuFree(_d_vertices);
+    if (_internal_csr_data) {
+        delete[] _csr_offsets;
+        delete[] _csr_edges;
+    }
+}
+
+void cuStinger::initialize() noexcept {
+    auto edge_data_ptrs = _custinger_init._edge_data_ptrs;
+    auto    vertex_data = _custinger_init._vertex_data_ptrs;
     const byte_t* h_vertex_data_ptrs[NUM_VTYPES];
     std::copy(vertex_data, vertex_data + NUM_VTYPES, h_vertex_data_ptrs);
 
@@ -99,16 +119,16 @@ cuStinger::cuStinger(const cuStingerInit& custinger_init) noexcept :
     auto h_vertex_basic_data = new pair_t[_nV];
 
     for (vid_t i = 0; i < _nV; i++) {
-        auto degree = csr_offsets[i + 1] - csr_offsets[i];
+        auto degree = _csr_offsets[i + 1] - _csr_offsets[i];
         if (degree == 0) {
             h_vertex_basic_data[i] = pair_t(nullptr, 0);
             continue;
         }
-        const auto&   mem_ptrs = mem_management.insert(degree);
+        const auto&   mem_ptrs = mem_manager.insert(degree);
         h_vertex_basic_data[i] = pair_t(mem_ptrs.second, degree);
 
         byte_t*   h_blockarray = reinterpret_cast<byte_t*>(mem_ptrs.first);
-        size_t          offset = csr_offsets[i];
+        size_t          offset = _csr_offsets[i];
 
         #pragma unroll
         for (int j = 0; j < NUM_ETYPES; j++) {
@@ -119,9 +139,9 @@ cuStinger::cuStinger(const cuStingerInit& custinger_init) noexcept :
         }
     }
     //copy BlockArrays to the device
-    int num_blockarrays = mem_management.num_blockarrays();
+    int num_blockarrays = mem_manager.num_blockarrays();
     for (int i = 0; i < num_blockarrays; i++) {
-        const auto& mem_ptrs = mem_management.get_block_array_ptr(i);
+        const auto& mem_ptrs = mem_manager.get_block_array_ptr(i);
         cuMemcpyToDeviceAsync(mem_ptrs.first, EDGES_PER_BLOCKARRAY,
                               mem_ptrs.second);
     }
@@ -145,11 +165,7 @@ cuStinger::cuStinger(const cuStingerInit& custinger_init) noexcept :
 
     TM.stop();
     TM.print("Initilization Time:");
-    //mem_management.free_host_ptr();
-}
-
-cuStinger::~cuStinger() noexcept {
-    cuFree(_d_vertices);
+    //mem_manager.free_host_ptr();
 }
 
 void cuStinger::convert_to_csr(eoff_t* csr_offsets, vid_t* csr_edges)
@@ -218,9 +234,8 @@ void cuStinger::store_snapshot(const std::string& filename) const noexcept {
     memory_mapped.write(class_id.c_str(), class_id.size(),              //NOLINT
                         &_nV, 1, &_nE, 1,                               //NOLINT
                         csr_offsets, _nV + 1, csr_edges, _nE);          //NOLINT
-
     delete[] csr_offsets;
     delete[] csr_edges;
 }
 
-} // namespace cu_stinger
+} // namespace custinger

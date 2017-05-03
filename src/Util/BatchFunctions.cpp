@@ -55,7 +55,7 @@ void generateInsertBatch(custinger::vid_t* batch_src,
     }
     else {
         xlib::WeightedRandomGenerator<vid_t>
-            weighted_gen(graph.out_degrees_array(), graph.nV());
+            weighted_gen(graph.out_degrees(), graph.nV());
         for (int i = 0; i < batch_size; i++) {
             batch_src[i]  = weighted_gen.get();
             batch_dest[i] = weighted_gen.get();

@@ -188,13 +188,18 @@ public:
     degree_t out_degree(vid_t index)  const noexcept;
     degree_t in_degree (vid_t index)  const noexcept;
 
-    const coo_t*    coo_array()         const noexcept;
-    const eoff_t*    out_offsets() const noexcept;
-    const eoff_t*    in_offsets_array()  const noexcept;
-    const vid_t*     out_edges()   const noexcept;
-    const vid_t*     in_edges_array()    const noexcept;
-    const degree_t* out_degrees_array() const noexcept;
-    const degree_t* in_degrees_array()  const noexcept;
+    const coo_t*    coo_array()   const noexcept;
+    const eoff_t*   out_offsets() const noexcept;
+    const eoff_t*   in_offsets()  const noexcept;
+    const vid_t*    out_edges()   const noexcept;
+    const vid_t*    in_edges()    const noexcept;
+    const degree_t* out_degrees() const noexcept;
+    const degree_t* in_degrees()  const noexcept;
+
+    degree_t  max_out_degree()     const noexcept;
+    degree_t  max_in_degree()      const noexcept;
+    vid_t     max_out_degree_src() const noexcept;
+    vid_t     max_in_degree_src()  const noexcept;
 
     void print()     const noexcept override;
     void print_raw() const noexcept override;

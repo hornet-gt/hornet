@@ -14,8 +14,8 @@ int main(int argc, char* argv[]) {
     using namespace custinger;
     using namespace cu_stinger_alg;
     using namespace timer;
-    cudaSetDevice(2);
-    vid_t bfs_source = 0;
+    cudaSetDevice(0);
+    
     //--------------------------------------------------------------------------
     //////////////
     // HOST BFS //
@@ -23,6 +23,9 @@ int main(int argc, char* argv[]) {
     graph::GraphStd<vid_t, eoff_t> graph;
     graph.read(argv[1]);
     graph::BFS<vid_t, eoff_t> bfs(graph);
+
+    vid_t bfs_source = graph.max_out_degree_src();
+
     bfs.run(bfs_source);
     /*auto vector = bfs.statistics(bfs_source);
     for (const auto& it : vector) {

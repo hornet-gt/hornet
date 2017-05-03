@@ -33,6 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
+#include <algorithm>
 #include <cassert>
 
 namespace graph {
@@ -199,7 +200,7 @@ inline const eoff_t* GraphStd<vid_t, eoff_t>::out_offsets() const noexcept {
 }
 
 template<typename vid_t, typename eoff_t>
-inline const eoff_t* GraphStd<vid_t, eoff_t>::in_offsets_array() const noexcept {
+inline const eoff_t* GraphStd<vid_t, eoff_t>::in_offsets() const noexcept {
     return _in_offsets;
 }
 
@@ -209,19 +210,19 @@ inline const vid_t* GraphStd<vid_t, eoff_t>::out_edges() const noexcept {
 }
 
 template<typename vid_t, typename eoff_t>
-inline const vid_t* GraphStd<vid_t, eoff_t>::in_edges_array() const noexcept {
+inline const vid_t* GraphStd<vid_t, eoff_t>::in_edges() const noexcept {
     return _in_edges;
 }
 
 template<typename vid_t, typename eoff_t>
 inline const typename GraphStd<vid_t, eoff_t>::degree_t*
-GraphStd<vid_t, eoff_t>::out_degrees_array() const noexcept {
+GraphStd<vid_t, eoff_t>::out_degrees() const noexcept {
     return _out_degrees;
 }
 
 template<typename vid_t, typename eoff_t>
 inline const typename GraphStd<vid_t, eoff_t>::degree_t*
-GraphStd<vid_t, eoff_t>::in_degrees_array() const noexcept {
+GraphStd<vid_t, eoff_t>::in_degrees() const noexcept {
     return _in_degrees;
 }
 
@@ -231,6 +232,31 @@ GraphStd<vid_t, eoff_t>::out_degree(vid_t index) const noexcept {
     assert(index >= 0 && index < _nV);
     return _out_degrees[index];
 }
+
+template<typename vid_t, typename eoff_t>
+inline typename GraphStd<vid_t, eoff_t>::degree_t
+GraphStd<vid_t, eoff_t>::max_out_degree() const noexcept {
+    return *std::max_element(_out_degrees, _out_degrees + _nV);
+}
+
+template<typename vid_t, typename eoff_t>
+inline typename GraphStd<vid_t, eoff_t>::degree_t
+GraphStd<vid_t, eoff_t>::max_in_degree() const noexcept {
+    return *std::max_element(_in_degrees, _in_degrees + _nV);
+}
+
+template<typename vid_t, typename eoff_t>
+inline vid_t GraphStd<vid_t, eoff_t>::max_out_degree_src() const noexcept {
+    return std::distance(_out_degrees,
+                         std::max_element(_out_degrees, _out_degrees + _nV));
+}
+
+template<typename vid_t, typename eoff_t>
+inline vid_t GraphStd<vid_t, eoff_t>::max_in_degree_src() const noexcept {
+    return std::distance(_in_degrees,
+                         std::max_element(_in_degrees, _in_degrees + _nV));
+}
+
 
 template<typename vid_t, typename eoff_t>
 inline typename GraphStd<vid_t, eoff_t>::degree_t

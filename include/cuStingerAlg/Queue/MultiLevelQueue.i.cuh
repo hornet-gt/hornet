@@ -36,7 +36,7 @@
 #include <Support/Device/PrintExt.cuh>      //cu::printArray
 #include <Support/Device/SafeCudaAPI.cuh>   //cuMemcpyToDeviceAsync
 
-namespace cu_stinger_alg {
+namespace custinger_alg {
 
 template<typename T>
 MultiLevelQueue<T>::MultiLevelQueue(size_t max_allocated_items) noexcept :
@@ -139,4 +139,4 @@ __host__ void MultiLevelQueue<T>::print(int level) const noexcept {
     cu::printArray(_d_multiqueue + _level_sizes[level], size(level));
 }
 
-} // namespace cu_stinger_alg
+} // namespace custinger_alg

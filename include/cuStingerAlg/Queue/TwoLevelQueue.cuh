@@ -40,7 +40,7 @@
 #include <Core/cuStinger.hpp>
 #include <Support/Device/VectorUtil.cuh>
 
-namespace cu_stinger_alg {
+namespace custinger_alg {
 
 template<typename T>
 struct ptr2_t {
@@ -103,6 +103,6 @@ private:
     __host__ void work_evaluate(const T* items_array, int num_items) noexcept;
 };
 
-} // namespace cu_stinger_alg
+} // namespace custinger_alg
 
 #include "TwoLevelQueue.i.cuh"

@@ -1,7 +1,7 @@
 #include "GlobalSpace.cuh"                  //d_nV, d_nE
 #include "Support/Device/SafeCudaAPI.cuh"   //cuMemcpyFromSymbol
 
-namespace cu_stinger_alg {
+namespace custinger_alg {
 namespace detail {
 
 template<void (*Operator)(int, void*)>
@@ -38,10 +38,10 @@ __global__ void forAllnumVKernel(void* optional_data) {
 } // namespace detail
 
 template<void (*Operator)(custinger::vid_t, void*)>
-void forAllnumV(void* optional_data) {
+void forAllnumV(const custinger::cuStinger& custinger, void* optional_data) {
     size_t num_items;
     cuMemcpyFromSymbol(d_nV, num_items);
-    forAllnumVKernel
+    detail::forAllnumVKernel
         <<< xlib::ceil_div<BLOCK_SIZE_OP1>(num_items), BLOCK_SIZE_OP1 >>>
         (optional_data);
 }
@@ -63,7 +63,7 @@ __global__ void forAllnumEKernel(void* optional_data) {
 } // namespace detail
 
 template<void (*Operator)(custinger::eoff_t, void*)>
-void forAllnumE(void* optional_data) {
+void forAllnumE(const custinger::cuStinger& custinger, void* optional_data) {
     size_t num_items;
     cuMemcpyFromSymbol(d_nE, num_items);
     detail::forAllnumEKernel
@@ -88,7 +88,7 @@ __global__ void forAllVerticesKernel(void* optional_data) {
 } // namespace detail
 
 template<void (*Operator)(Vertex, void*)>
-void forAllVertices(void* optional_data) {
+void forAllVertices(const custinger::cuStinger& custinger, void* optional_data){
     size_t num_items;
     cuMemcpyFromSymbol(d_nV, num_items);
     detail::forAllVerticesKernel<Operator>
@@ -104,9 +104,9 @@ __global__ void forAllOutEdgesKernel(void* optional_data) {
 
 }
 
-inline void partition(const custinger::eoff_t* csr_offsets,
-                      int*& partition, int&num_partitions) {
-    using custinger::eoff_t;
+inline void partition(const custinger::eoff_t* d_offsets,
+                      int*& d_partitions, int&num_partitions) {
+    /*using custinger::eoff_t;
     const unsigned SMEM_SIZE = xlib::SMemPerBlock<BLOCK_SIZE_OP1,eoff_t>::value;
     const unsigned PARTITION_SIZE = BLOCK_SIZE_OP1 * SMEM_SIZE;
 
@@ -115,34 +115,24 @@ inline void partition(const custinger::eoff_t* csr_offsets,
     num_partitions = xlib::ceil_div<PARTITION_SIZE>(nV);
     cuMalloc(d_partitions, num_partitions + 1);
     cuMalloc(d_offsets, nV);
-    cuMemcpyToDevice(csr_offsets, nV, d_offsets);
+    cuMemcpyToDevice(d_offsets, nV, d_offsets);
     static CuFreeAtExit<1>(d_offsets, d_partitions);
 
-    xlib::blockPartition(csr_offsets, nV, d_partitions, num_partitions);
+    xlib::blockPartition(d_offsets, nV, d_partitions, num_partitions);*/
 }
 
 } // namespace detail
 
 template<void (*Operator)(Vertex, Edge, void*)>
-void forAllOutEdges(const custinger::eoff_t* out_offsets, void* optional_data){
+void forAllEdges(const custinger::cuStinger& custinger,
+                 const custinger::eoff_t* d_offsets, void* optional_data) {
     static int*  d_partitions = nullptr;
     static int num_partitions = 0;
     if (num_partitions == 0)
-        detail::partition(out_offsets, d_partitions, num_partitions);
+        detail::partition(d_offsets, d_partitions, num_partitions);
 
     detail::forAllOutEdgesKernel<Operator>
         <<< num_partitions, BLOCK_SIZE_OP1 >>> (d_partitions, optional_data);
-}
-
-template<void (*Operator)(Vertex, Edge, void*)>
-void forAllInEdges(const custinger::eoff_t* in_offsets, void* optional_data) {
-    static int*  d_partitions = nullptr;
-    static int num_partitions = 0;
-    if (num_partitions == 0)
-        detail::partition(in_offsets, d_partitions, num_partitions);
-
-    //forAllInEdgesKernel<Operator>
-    //    <<< num_partitions, BLOCK_SIZE_OP1 >>> (d_partitions, optional_data);
 }
 
 //==============================================================================
@@ -166,4 +156,4 @@ void forAllBatchEdges(const EdgeBatch& edge_batch, void* optional_data) {
 
 }*/
 
-} // namespace cu_stinger_alg
+} // namespace custinger_alg

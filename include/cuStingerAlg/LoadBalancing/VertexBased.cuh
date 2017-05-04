@@ -46,7 +46,7 @@ namespace load_balacing {
 
 class VertexBased {
 public:
-    explicit VertexBased() noexcept = default;
+    //explicit VertexBased() noexcept = default;
 
     template<void (*Operator)(custinger::Vertex, custinger::Edge, void*)>
     void traverse_edges(const custinger::vid_t* d_input, int num_vertices,

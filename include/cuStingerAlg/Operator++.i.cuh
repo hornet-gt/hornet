@@ -1,7 +1,7 @@
 #include "GlobalSpace.cuh"                  //d_nV, d_nE
 #include "Support/Device/SafeCudaAPI.cuh"   //cuMemcpyFromSymbol
 
-namespace cu_stinger_alg {
+namespace custinger_alg {
 /////////////////
 /// C++11 API ///
 /////////////////
@@ -90,4 +90,4 @@ void forAllEdges(Operator op) {
 
 }
 
-} // namespace cu_stinger_alg
+} // namespace custinger_alg

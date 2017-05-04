@@ -2,7 +2,7 @@
 
 #include "Core/cuStinger.hpp"   //custinger::cuStinger
 
-namespace cu_stinger_alg {
+namespace custinger_alg {
 
 //Static Algorithms Abstract class
 class StaticAlgorithm {
@@ -42,4 +42,4 @@ inline Allocate::~Allocate() noexcept {
     cuFree(_pointer);
 }
 
-} // namespace cu_stinger_alg
+} // namespace custinger_alg

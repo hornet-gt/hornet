@@ -2,14 +2,14 @@
 #include "cuStingerAlg/LoadBalancing/BinarySearch.cuh"
 #include "cuStingerAlg/LoadBalancing/VertexBased.cuh"
 #include "cuStingerAlg/Operator.cuh"        //Operator
-#include "cuStingerAlg/TwoLevelQueue.cuh"   //Queue
+#include "cuStingerAlg/Queue/TwoLevelQueue.cuh"   //Queue
 
 #include <GraphIO/BFS.hpp>              //BFS
 #include <GraphIO/GraphStd.hpp>         //GraphStd
 #include <Support/Device/Algorithm.cuh> //cu::equal
 #include <Support/Host/Timer.hpp>       //Timer
 
-using namespace cu_stinger_alg;
+using namespace custinger_alg;
 using namespace timer;
 using namespace load_balacing;
 using namespace custinger;
@@ -18,17 +18,21 @@ using dist_t = int;
 const dist_t INF = std::numeric_limits<dist_t>::max();
 
 struct BFSData {
-    BFSData() {}
+    BFSData(size_t allocation) : queue(allocation)  {}
+
+    TwoLevelQueue<vid_t> queue;
+    dist_t*              d_distances;
+    dist_t               level = 1;
 };
 
 __device__ __forceinline__
-static void VertexInit(int index, void* optional_field) {
+void VertexInit(vid_t index, void* optional_field) {
     auto bfs_data = *reinterpret_cast<BFSData*>(optional_field);
     bfs_data.d_distances[index] = INF;
 }
 
 __device__ __forceinline__
-static void BFSOperatorAtomic(Vertex src, Edge edge, void* optional_field) {
+void BFSOperatorAtomic(Vertex src, Edge edge, void* optional_field) {
     auto bfs_data = *reinterpret_cast<BFSData*>(optional_field);
     auto dst = edge.dst();
     auto old = atomicCAS(bfs_data.d_distances + dst, INF, bfs_data.level);
@@ -37,7 +41,7 @@ static void BFSOperatorAtomic(Vertex src, Edge edge, void* optional_field) {
 }
 
 __device__ __forceinline__
-static void BFSOperatorNoAtomic(Vertex src, Edge edge, void* optional_field) {
+void BFSOperatorNoAtomic(Vertex src, Edge edge, void* optional_field) {
     auto bfs_data = *reinterpret_cast<BFSData*>(optional_field);
     auto dst = edge.dst();
     if (bfs_data.d_distances[dst] == INF) {
@@ -77,15 +81,16 @@ int main(int argc, char* argv[]) {
     //////////////
     // BFS INIT //
     //////////////
-    forAllnumV<VertexInit>(d_distances);
+    forAllnumV<VertexInit>(custiger_graph, d_distances);
     cuMemcpyToDevice(0, d_distances + bfs_source);
-
-    dist_t level = 1;
-    TwoLevelQueue<vid_t> queue(graph.nV() * 2);
-    queue.insert(bfs_source);
+    //TwoLevelQueue<vid_t> queue(graph.nV() * 2);
+    //queue.insert(bfs_source);
 
     load_balacing::BinarySearch lb(graph.out_offsets(), graph.nV());
     //load_balacing::VertexBased lb;
+
+    BFSData bfs_data(graph.nV() * 2);
+    bfs_data.queue.insert(bfs_source);
 
     Timer<DEVICE> TM;
     TM.start();
@@ -93,10 +98,10 @@ int main(int argc, char* argv[]) {
     ///////////////////
     // BFS ALGORITHM //
     ///////////////////
-    while (queue.size() > 0) {
+    while (bfs_data.queue.size() > 0) {
         lb.traverse_edges<BFSOperatorNoAtomic>(bfs_data);
-        queue.swap();
-        level++;
+        bfs_data.queue.swap();
+        bfs_data.level++;
     }
     //--------------------------------------------------------------------------
     ////////////////////

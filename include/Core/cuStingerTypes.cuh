@@ -51,7 +51,7 @@ class EdgeIt;
 class Vertex {
     friend class VertexSet;
     friend __global__ void printKernel();
-    //template<typename> friend __global__ cu_stinger_alg::LoadBalancingContract;
+    //template<typename> friend __global__ custinger_alg::LoadBalancingContract;
 public:
     /**
      * @brief Default costructor

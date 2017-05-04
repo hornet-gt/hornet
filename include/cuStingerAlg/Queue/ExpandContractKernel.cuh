@@ -44,7 +44,7 @@
 /**
  * @brief
  */
-namespace cu_stinger_alg {
+namespace custinger_alg {
 
 
 __device__ int2 d_queue2_counter;
@@ -103,4 +103,4 @@ __global__ void ExpandContractLBKernel(ptr2_t<custinger::vid_t> d_queue,
                                                  smem, lambda);
 }
 
-} // namespace cu_stinger_alg
+} // namespace custinger_alg

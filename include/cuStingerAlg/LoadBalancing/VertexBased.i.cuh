@@ -35,7 +35,7 @@
  *
  * @file
  */
-#include "BinarySearchKernel.cuh"
+#include "VertexBasedKernel.cuh"
 #include "Support/Device/Definition.cuh"    //xlib::SMemPerBlock
 #include "Support/Device/CubWrapper.cuh"    //xlib::CubExclusiveSum
 #include "cuStingerAlg/Operator++.cuh"      //custinger::forAll

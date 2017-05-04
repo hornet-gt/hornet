@@ -38,7 +38,7 @@
 #include <Support/Device/PrintExt.cuh>      //cu::printArray
 #include <Support/Device/SafeCudaAPI.cuh>   //cuMemcpyToDeviceAsync
 
-namespace cu_stinger_alg {
+namespace custinger_alg {
 
 template<typename T>
 inline void ptr2_t<T>::swap() noexcept {
@@ -197,4 +197,4 @@ TwoLevelQueue<T>::traverse_edges(Operator op) noexcept {
     _d_work_ptrs.swap();
 }
 
-} // namespace cu_stinger_alg
+} // namespace custinger_alg

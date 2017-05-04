@@ -32,8 +32,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
- *
- * @file
  */
 #include "BinarySearchKernel.cuh"
 #include "Support/Device/Definition.cuh"    //xlib::SMemPerBlock

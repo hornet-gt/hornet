@@ -37,7 +37,7 @@
  */
 #pragma once
 
-namespace cu_stinger_alg {
+namespace custinger_alg {
 
 template<typename T, int SIZE = 16>
 class DeviceQueue {
@@ -67,6 +67,6 @@ private:
     void store_ballot();
 };
 
-} // namespace cu_stinger_alg
+} // namespace custinger_alg
 
 #include "DeviceQueue.i.cuh"

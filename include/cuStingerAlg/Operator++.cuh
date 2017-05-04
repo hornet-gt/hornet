@@ -7,7 +7,7 @@ using custinger::Vertex;
 using custinger::Edge;
 const int BLOCK_SIZE_OP2 = 256;
 
-namespace cu_stinger_alg {
+namespace custinger_alg {
 ///////////////
 // C++11 API //
 ///////////////
@@ -37,6 +37,6 @@ void forAllInEdges(Operator op);
 template<typename Operator>
 void forAllBatchEdges(Operator op);
 
-} // namespace cu_stinger_alg
+} // namespace custinger_alg
 
 #include "Operator++.i.cuh"

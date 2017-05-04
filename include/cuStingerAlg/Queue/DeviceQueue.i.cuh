@@ -37,7 +37,7 @@
 #include "Support/Device/WarpScan.cuh"
 #include <cassert>
 
-namespace cu_stinger_alg {
+namespace custinger_alg {
 
 template<typename T, int SIZE>
 __device__ __forceinline__
@@ -101,4 +101,4 @@ void DeviceQueue<T, SIZE>::store_ballot() {
     }
 }
 
-} // namespace cu_stinger_alg
+} // namespace custinger_alg

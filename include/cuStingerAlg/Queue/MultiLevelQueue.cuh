@@ -40,7 +40,7 @@
 #include "cuStingerAlg/TwoLevelQueue.cuh"
 #include <vector>
 
-namespace cu_stinger_alg {
+namespace custinger_alg {
 
 /**
  * @warning known limitations: only one instance if allowed
@@ -93,6 +93,6 @@ private:
     int              _current_level { 0 };
 };
 
-} // namespace cu_stinger_alg
+} // namespace custinger_alg
 
 #include "MultiLevelQueue.i.cuh"

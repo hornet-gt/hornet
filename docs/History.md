@@ -61,6 +61,7 @@
     - SpMV
     - Faster Initialization (device allocation)
     - Support 2^64 edges
+    - B+Tree in MemoryManager
     - Support Incoming Edges
     - GPU Graph Transpose
     - GPU Graph Generation

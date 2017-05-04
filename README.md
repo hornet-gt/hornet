@@ -4,8 +4,8 @@
 
 The document is organized as follows:
 
-* [Requirements](#Requirements)
-* [Quick start](#Quick-start)
+* [Requirements](#requirements)
+* [Quick start](#quick-start)
 * [Supported graph formats](#Supported-graph-formats)
 * [Notes](#Notes)
 * [Additional Utilities]()

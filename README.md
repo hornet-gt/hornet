@@ -4,8 +4,8 @@
 
 The document is organized as follows:
 
-* [Requirements](#user-content-Requirements)
-* [Quick start](#user-content-Quick-start)
+* [Requirements](cuStinger#Requirements)
+* [Quick start](cuStinger#Quick-start)
 * [Supported graph formats](#user-content-Supported-graph-formats)
 * [Notes](#user-content-Notes)
 * [Additional Utilities]()

@@ -12,10 +12,10 @@ const dist_t INF = std::numeric_limits<dist_t>::max();
 
 int main(int argc, char* argv[]) {
     using namespace custinger;
-    using namespace cu_stinger_alg;
+    using namespace custinger_alg;
     using namespace timer;
     cudaSetDevice(0);
-    
+
     //--------------------------------------------------------------------------
     //////////////
     // HOST BFS //

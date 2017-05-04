@@ -178,6 +178,26 @@ public:
 
     cuStingerDevData device_data() const noexcept;
 
+    /**
+     *
+     */
+    size_t nV() const noexcept;
+
+    /**
+     *
+     */
+    size_t nE() const noexcept;
+
+    /**
+     *
+     */
+    const eoff_t* csr_offsets() const noexcept;
+
+    /**
+     *
+     */
+    const vid_t* csr_edges() const noexcept;
+
 private:
     static int global_id;
 

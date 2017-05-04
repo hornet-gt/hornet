@@ -1,4 +1,5 @@
-*Version v2 - Federico Busato*
+## Version v2 ##
+<sup> @Federico Busato </sup>
 
 * GraphIO
     - Read 7 different formats:
@@ -26,27 +27,25 @@
 * Added a three small graph examples (.mtx, .gr)
 * Added online documentation
 
-*April, 2017: Version v2 - Federico Busato*
+## April, 2017 - Tasks done ##
+<sup> @Federico Busato </sup>
 
-## Tasks done ##
-
-* print function for small graph
-* batch generation: uniform/weighted sorted/unsorted
-* minimal external configuration "config.inc"
-* improved load balancing: Single pass and 3-steps
-* new memory management
-* graph consistency checking
-* store cuStinger graph snapshot to disk
+* Print function for small graph
+* Batch generation: uniform/weighted sorted/unsorted
+* Minimal external configuration "config.inc"
+* Improved load balancing: Single pass and 3-steps
+* New memory management
+* Graph consistency checking
+* Store cuStinger graph snapshot to disk
 * CSR representation in addition to cuStinger
 * Parsing of weighted graphs
 * Two-level and Multi-level Parallel Queues
 
-*May, 2017: Version v2 - Federico Busato*
-
-## Tasks done ##
+## May, 2017 - Tasks done ##
+<sup> @Federico Busato </sup>
 
 * Graph Transpose almost completed
-* cuStinger ID
+* cuStinger graph ID
 
 ## Tasks to do ##
 * Code Related:
@@ -62,10 +61,9 @@
     - Faster Initialization (device allocation)
     - Support 2^64 edges
     - B+Tree in MemoryManager
-    - Support Incoming Edges
-    - GPU Graph Transpose
     - GPU Graph Generation
     - CPU Support
+    - CSR switch
 * Others
     - Regression test (ctest)
     - Add class diagram to doxygen
@@ -88,3 +86,8 @@
     - It captures "this" by default, also with [=] capture list
     (May be slower than struct static function since __forceinline__ and
      __restrict__ may be lost in template)
+
+* Comparison with Gunrock
+    - Simple programming model (few lines of code to write an algorithm)
+    - Dynamic/Streaming algorithm Support
+    - Different devices support (CPU/GPU)

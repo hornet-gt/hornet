@@ -238,4 +238,22 @@ void cuStinger::store_snapshot(const std::string& filename) const noexcept {
     delete[] csr_edges;
 }
 
+//------------------------------------------------------------------------------
+
+size_t cuStinger::nV() const noexcept {
+    return _custinger_init.nV();
+}
+
+size_t cuStinger::nE() const noexcept {
+    return _custinger_init.nE();
+}
+
+const eoff_t* cuStinger::csr_offsets() const noexcept {
+    return _custinger_init.csr_offsets();
+}
+
+const vid_t* cuStinger::csr_edges() const noexcept {
+    return _custinger_init.csr_edges();
+}
+
 } // namespace custinger

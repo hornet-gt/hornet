@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
     // BFS ALGORITHM //
     ///////////////////
     while (bfs_data.queue.size() > 0) {
-        lb.traverse_edges<BFSOperatorNoAtomic>(bfs_data);
+        lb.traverse_edges<BFSOperatorNoAtomic>((void*) bfs_data);
         bfs_data.queue.swap();
         bfs_data.level++;
     }

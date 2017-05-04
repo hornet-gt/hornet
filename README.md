@@ -4,10 +4,10 @@
 
 The document is organized as follows:
 
-* [Requirements](cuStinger#Requirements)
-* [Quick start](cuStinger#Quick-start)
-* [Supported graph formats](#user-content-Supported-graph-formats)
-* [Notes](#user-content-Notes)
+* [Requirements](#Requirements)
+* [Quick start](#Quick-start)
+* [Supported graph formats](#Supported-graph-formats)
+* [Notes](#Notes)
 * [Additional Utilities]()
 * [Reporting bugs and contributing]()
 * [Publications]()

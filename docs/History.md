@@ -49,7 +49,6 @@
 
 ## Tasks to do ##
 * Code Related:
-    - Consistent APIs
     - Working algorithms
     - Compression
     - Insert/delete new vertices
@@ -62,7 +61,7 @@
     - Support 2^64 edges
     - B+Tree in MemoryManager
     - GPU Graph Generation
-    - CPU Support
+    - CPU/GPU Support
     - CSR switch
 * Others
     - Regression test (ctest)

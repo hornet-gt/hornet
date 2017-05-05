@@ -101,6 +101,8 @@ protected:
     eoff_t       _nE { 0 };
     Structure   _structure;
 
+    explicit GraphBase(vid_t nV, eoff_t nE, Structure::Enum structure)
+                       noexcept;
     explicit GraphBase(Structure structure = Structure(Structure::REVERSE))
                        noexcept;
     virtual ~GraphBase() noexcept = default;

@@ -57,7 +57,7 @@ public:
      * @brief Default costructor
      */
     __device__ __forceinline__
-    Vertex(vid_t index);
+    Vertex(cuStingerDevData data, vid_t index);
 
     /**
      * @brief
@@ -100,6 +100,9 @@ public:
     __device__ __forceinline__
     Edge edge(eoff_t index) const;
 
+    __device__ __forceinline__
+    degree_t limit() const;
+
 protected:
     vid_t     _id;
     degree_t _degree;
@@ -112,9 +115,6 @@ private:
     VertexBasicData* _vertex_ptr;
     byte_t*  _edge_ptr;
     degree_t _limit;
-
-    __device__ __forceinline__
-    degree_t limit() const;
 
     __device__ __forceinline__
     degree_t* degree_ptr();

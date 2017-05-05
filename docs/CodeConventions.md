@@ -2,11 +2,6 @@
 
 extending Google/LLVM stype
 
-* **Formatting**
-    - Tab '\t' is forbidden, use instead 4 spaces
-    - 80 columns max (terminal size)
-
-
 * **Includes**
     - *First*: class header
     - *Second*: project includes (in alphabetical order) (`"name"` syntax)
@@ -19,7 +14,7 @@ extending Google/LLVM stype
 
 * **General**
     - Always separate declaration `.hpp` from definition `.i.hpp/cpp`
-    - Doxygen comment must be done only in `.hpp` files
+    - Doxygen comment must be done only in `.hpp/.cuh` files
     - Take care of code alignment to make the code more readable
     - Use whether possible the `std` library
     - Do not use `Boost` library
@@ -41,7 +36,10 @@ extending Google/LLVM stype
     - `size_t` to indicate sizes
 
 
-* **Style**
+* **Style and Formatting**
+    - Tab '\t' is forbidden, use instead 4 spaces
+    - Only linux new lines '\n' are allowed
+    - 80 columns max for code and comments (terminal size)
     - *Functions*:
         - *Expensive functions*: Lower case start, camel style
             (ex. `expensiveFunction`)
@@ -51,7 +49,7 @@ extending Google/LLVM stype
     - *Private Variables*: lower case, underscore (`_var_name`)
     - *Device variable*: `d_` prefix (`d_var`)
     - *Host variable*:   `h_` prefix (`h_var`) (use only to avoid confusion)
-    - *Class name/Complex type*: upper case, camel Style
+    - *Class name/Complex type*: upper case, camel style
     - *Simple type*:  lower case, underscore, `_t` postfix (`weight_t`)
     - *Namespace*: lower case, underscore (`my_namespace`)
     - *Namespace end*: close with `// namespace <name>`
@@ -61,8 +59,6 @@ extending Google/LLVM stype
     - *Curly Bracket*: inline (`for (...) {`)
     - *Conditional Statement* (`if, for, while`): no bracket for one line body
     - *Separate words from symbols*: `if (`, `var = x + y;`
-    - *Class/Struct*: first variable members, then methods.
-                      First public members, then protected, then private.
 
 
 * **Safe Code**
@@ -79,3 +75,5 @@ extending Google/LLVM stype
         - Inputs, then outputs
         - Prefer whether possible reference instead pointer
         - Do not use `const` for parameters passed by value
+    - *Class/Struct*: first variable members, then methods.
+                      First public members, then protected, then private.

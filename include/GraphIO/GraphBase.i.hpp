@@ -95,6 +95,11 @@ inline void Structure::operator|=(int value) noexcept {
 //------------------------------------------------------------------------------
 
 template<typename vid_t, typename eoff_t>
+inline GraphBase<vid_t, eoff_t>::
+GraphBase(vid_t nV, eoff_t nE, Structure::Enum structure) noexcept :
+        _nV(nV), _nE(nE), _structure(structure) {}
+
+template<typename vid_t, typename eoff_t>
 inline GraphBase<vid_t, eoff_t>::GraphBase(Structure structure) noexcept :
                                                     _structure(structure) {}
 

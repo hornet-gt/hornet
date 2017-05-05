@@ -135,10 +135,9 @@ private:
 
 //==============================================================================
 
-class cuStingerDevData {
+struct cuStingerDevData {
+    byte_t* d_vertex_ptrs[NUM_VTYPES];
     vid_t   nV;
-    eoff_t  nE;
-    byte_t* d_vertices;
 };
 
 /**
@@ -176,8 +175,6 @@ public:
 
     int id() const noexcept;
 
-    cuStingerDevData device_data() const noexcept;
-
     /**
      *
      */
@@ -198,10 +195,19 @@ public:
      */
     const vid_t* csr_edges() const noexcept;
 
+    /**
+     *
+     */
+    const eoff_t* device_csr_offsets() noexcept;
+
+    cuStingerDevData device_data() const noexcept;
+    
 private:
     static int global_id;
 
     MemoryManager mem_manager;
+
+    byte_t* _d_vertex_ptrs[NUM_VTYPES];
 
     /**
      * @internal
@@ -211,7 +217,8 @@ private:
     const cuStingerInit& _custinger_init;
     const eoff_t* _csr_offsets;
     const vid_t*  _csr_edges;
-    byte_t*       _d_vertices { nullptr };
+    byte_t*       _d_vertices        { nullptr };
+    eoff_t*       _d_csr_offsets     { nullptr };
     size_t        _nV;
     size_t        _nE;
     const int     _id;
@@ -220,12 +227,6 @@ private:
     void initialize() noexcept;
 
     void transpose() noexcept;
-    /**
-     * @internal
-     * @brief copy the vertex data pointers to the __constant__ memory
-     */
-    void initializeVertexGlobal(byte_t* (&vertex_data_ptrs)[NUM_VTYPES])
-                                noexcept;
 
     void convert_to_csr(eoff_t* csr_offsets, vid_t* csr_edges) const noexcept;
 };

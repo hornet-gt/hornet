@@ -32,67 +32,49 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
- *
- * @file
  */
-#pragma once
+#include "Csr/Csr.hpp"
+#include "Csr/CsrTypes.cuh"
 
-#include "cuStingerAlg/TwoLevelQueue.cuh"
-#include <vector>
+namespace csr {
 
-namespace custinger_alg {
+void Csr::initializeGlobal(byte_t* (&vertex_data_ptrs)[NUM_VTYPES],
+                           byte_t* (&edge_data_ptrs)[NUM_ETYPES]) noexcept {
+    cuMemcpyToSymbol(_nV, d_nV);
+    cuMemcpyToSymbol(vertex_data_ptrs, NUM_VTYPES, d_vertex_data_ptrs);
+    cuMemcpyToSymbol(edge_data_ptrs, NUM_VTYPES, d_edge_data_ptrs);
+}
 
-/**
- * @warning known limitations: only one instance if allowed
- */
-template<typename T>
-class MultiLevelQueue {
-static const bool is_vid = std::is_same<T, custinger::vid_t>::value;
-using     EnableTraverse = typename std::enable_if< is_vid >::type;
-public:
-    explicit MultiLevelQueue(size_t max_allocated_items) noexcept;
-    ~MultiLevelQueue() noexcept;
+//==============================================================================
 
-    __host__ __device__ void insert(const T& item) noexcept;
+__global__ void printKernel() {
+    for (vid_t i = 0; i < d_nV; i++) {
+        auto vertex = Vertex(i);
+        auto degree = vertex.degree();
+        //auto field0 = vertex.field<0>();
+        printf("%d [%d]:    ", i, vertex.degree());
 
-    __host__ void insert(const T* items_array, int num_items) noexcept;
+        for (degree_t j = 0; j < vertex.degree(); j++) {
+            auto   edge = vertex.edge(j);
+            /*auto weight = edge.weight();
+            auto  time1 = edge.time_stamp1();
+            auto field0 = edge.field<0>();
+            auto field1 = edge.field<1>();*/
 
-    __host__ void next() noexcept;
+            printf("%d    ", edge.dst());
+        //    d_array[j] = edge.dst();
+        }
+        printf("\n");
+    }
+}
 
+void Csr::print() noexcept {
+    if (sizeof(degree_t) == 4 && sizeof(vid_t) == 4) {
+        printKernel<<<1, 1>>>();
+        CHECK_CUDA_ERROR
+    }
+    else
+        WARNING("Graph print is enable only with degree_t/vid_t of size 4 bytes")
+}
 
-    __host__ int size() const noexcept;
-
-    __host__ int size(int level) const noexcept;
-
-    __host__ const T* device_ptr() const noexcept;
-
-    __host__ const T* device_ptr(int level) const noexcept;
-
-    __host__ const T* host_data() noexcept;
-
-    __host__ const T* host_data(int level) noexcept;
-
-    __host__ void print() const noexcept;
-
-    __host__ void print(int level) const noexcept;
-
-    template<typename Operator>
-    __host__ EnableTraverse
-    work_evaluate(const custinger::eoff_t* csr_offsets) noexcept;
-
-    template<typename Operator>
-    __host__ EnableTraverse
-    traverse_edges(Operator op) noexcept;
-
-private:
-    std::vector<int> _level_sizes;
-    ptr2_t<T>        _d_queue_ptrs  { nullptr, nullptr };
-    T*               _d_multiqueue  { nullptr };
-    T*               _host_data     { nullptr };
-    size_t           _max_allocated_items;
-    int              _current_level { 0 };
-};
-
-} // namespace custinger_alg
-
-#include "MultiLevelQueue.i.cuh"
+} // namespace csr

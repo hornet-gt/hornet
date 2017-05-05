@@ -177,10 +177,14 @@ public:
     EdgesContainer    E { *this };
 
     explicit GraphStd()                                    noexcept = default;
+
     explicit GraphStd(Structure Structure)                 noexcept;
+
     explicit GraphStd(const char* filename, Property prop) noexcept;
+
     explicit GraphStd(Structure Structure, const char* filename,
                       Property property) noexcept;
+
     explicit GraphStd(const eoff_t* csr_offsets, vid_t nV,
                       const vid_t* csr_edges, eoff_t nE) noexcept;
 

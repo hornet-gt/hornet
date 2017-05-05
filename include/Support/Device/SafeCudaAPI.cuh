@@ -123,7 +123,6 @@ inline void cuMallocAux(const char* file, int line, const char* func_name,
                              "cudaMalloc", file, line, func_name);
 }
 
-template<typename T>
 inline void cuFreeAux(const char* file, int line, const char* func_name) {}
 
 template<typename T, typename... TArgs>
@@ -132,7 +131,7 @@ inline void cuFreeAux(const char* file, int line, const char* func_name,
     using R = typename std::remove_cv<T>::type;
     auto ptr1 = const_cast<R*>(ptr);
     xlib::__cudaErrorHandler(cudaFree(ptr1), "cudaFree", file, line, func_name);
-    cuFreeAux<T>(file, line, func_name, args...);
+    cuFreeAux(file, line, func_name, args...);
 }
 //------------------------------------------------------------------------------
 

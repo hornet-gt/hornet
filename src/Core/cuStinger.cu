@@ -34,25 +34,16 @@
  * </blockquote>}
  */
 #include "Core/cuStinger.hpp"
-#include "GlobalSpace.cuh"                //d_nV
 #include "Core/cuStingerTypes.cuh"        //VertexBasicData
 #include "Support/Device/CubWrapper.cuh"  //CubSortByValue
 
 namespace custinger {
 
-void cuStinger::initializeVertexGlobal(byte_t* (&vertex_data_ptrs)[NUM_VTYPES])
-                                       noexcept {
-    cuMemcpyToSymbol(_nV, d_nV);
-    cuMemcpyToSymbol(vertex_data_ptrs, NUM_VTYPES, d_vertex_data_ptrs);
-}
-
-//==============================================================================
-
 __device__ int d_array[10];
 
-__global__ void printKernel() {
-    for (vid_t i = 0; i < d_nV; i++) {
-        auto vertex = Vertex(i);
+__global__ void printKernel(cuStingerDevData data) {
+    for (vid_t i = 0; i < data.nV; i++) {
+        auto vertex = Vertex(data, i);
         auto degree = vertex.degree();
         //auto field0 = vertex.field<0>();
         printf("%d [%d, %d]:    ", i, vertex.degree(), vertex.limit());
@@ -84,7 +75,7 @@ __global__ void printKernel() {
 
 void cuStinger::print() noexcept {
     if (sizeof(degree_t) == 4 && sizeof(vid_t) == 4) {
-        printKernel<<<1, 1>>>();
+        printKernel<<<1, 1>>>(device_data());
         CHECK_CUDA_ERROR
     }
     else {

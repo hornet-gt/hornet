@@ -33,15 +33,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "GlobalSpace.cuh"
-
 namespace custinger {
 
 __device__ __forceinline__
-Vertex::Vertex(vid_t index) : _id(index) {
-    assert(index < d_nV);
+Vertex::Vertex(cuStingerDevData data, vid_t index) : _id(index) {
+    assert(index < data.nV);
     xlib::SeqDev<VTypeSize> VTYPE_SIZE_D;
-    _vertex_ptr = reinterpret_cast<VertexBasicData*>(d_vertex_data_ptrs[0]) +
+    _vertex_ptr = reinterpret_cast<VertexBasicData*>(data.d_vertex_ptrs[0]) +
                    index;
     auto basic_data = *_vertex_ptr;
 
@@ -50,7 +48,7 @@ Vertex::Vertex(vid_t index) : _id(index) {
     _edge_ptr = basic_data.edge_ptr;
     #pragma unroll
     for (int i = 0; i < NUM_EXTRA_VTYPES; i++)
-        _ptrs[i] = d_vertex_data_ptrs[i] + index * VTYPE_SIZE_D[i + 1];
+        _ptrs[i] = data.d_vertex_ptrs[i] + index * VTYPE_SIZE_D[i + 1];
 }
 /*
 __device__ __forceinline__
@@ -66,11 +64,20 @@ degree_t Vertex::degree() const {
     return _degree;
 }
 
+template<int INDEX>
+__device__ __forceinline__
+typename std::tuple_element<INDEX, VertexTypes>::type
+Vertex::field() const {
+    using T = typename std::tuple_element<INDEX, VertexTypes>::type;
+    return *reinterpret_cast<T*>(_ptrs[INDEX]);
+}
+
 __device__ __forceinline__
 Edge Vertex::edge(degree_t index) const {
     return Edge(_edge_ptr, index, _limit);
 }
 
+//------------------------------------------------------------------------------
 __device__ __forceinline__
 degree_t Vertex::limit() const {
     return _limit;
@@ -81,16 +88,7 @@ degree_t* Vertex::degree_ptr() {
     return reinterpret_cast<degree_t*>(_vertex_ptr + sizeof(byte_t*));
 }
 
-template<int INDEX>
-__device__ __forceinline__
-typename std::tuple_element<INDEX, VertexTypes>::type
-Vertex::field() const {
-    using T = typename std::tuple_element<INDEX, VertexTypes>::type;
-    return *reinterpret_cast<T*>(_ptrs[INDEX]);
-}
-
 //------------------------------------------------------------------------------
-
 namespace detail {
 
 template<int INDEX = 0>
@@ -101,6 +99,7 @@ void store_edge(byte_t* const (&load_ptrs)[NUM_EXTRA_ETYPES],
     *reinterpret_cast<T*>(store_ptrs) = *reinterpret_cast<const T*>(load_ptrs);
     store_edge<INDEX + 1>(load_ptrs, store_ptrs);
 }
+
 template<>
 __device__ __forceinline__
 void store_edge<NUM_EXTRA_ETYPES>(byte_t* const (&)[NUM_EXTRA_ETYPES],

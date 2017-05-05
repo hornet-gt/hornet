@@ -64,6 +64,60 @@ void cuStingerInit::insertEdgeData(TArgs... edge_data) noexcept {
 
     bind<1>(_edge_data_ptrs, edge_data...);
 }
+
+inline size_t cuStingerInit::nV() const noexcept {
+    return _nV;
+}
+
+inline size_t cuStingerInit::nE() const noexcept {
+    return _nE;
+}
+
+inline const eoff_t* cuStingerInit::csr_offsets() const noexcept {
+    return reinterpret_cast<const eoff_t*>(_vertex_data_ptrs[0]);
+}
+
+inline const vid_t* cuStingerInit::csr_edges() const noexcept {
+    return reinterpret_cast<const vid_t*>(_edge_data_ptrs[0]);
+}
+
+//==============================================================================
+///////////////
+// cuStinger //
+///////////////
+
+inline size_t cuStinger::nV() const noexcept {
+    return _custinger_init.nV();
+}
+
+inline size_t cuStinger::nE() const noexcept {
+    return _custinger_init.nE();
+}
+
+inline const eoff_t* cuStinger::csr_offsets() const noexcept {
+    return _custinger_init.csr_offsets();
+}
+
+inline const vid_t* cuStinger::csr_edges() const noexcept {
+    return _custinger_init.csr_edges();
+}
+
+inline const eoff_t* cuStinger::device_csr_offsets() noexcept {
+    if (_d_csr_offsets != nullptr) {
+        cuMalloc(_d_csr_offsets, _nV + 1);
+        cuMemcpyToDevice(csr_offsets(), _nV + 1, _d_csr_offsets);
+    }
+    return _d_csr_offsets;
+}
+
+inline cuStingerDevData cuStinger::device_data() const noexcept {
+    cuStingerDevData data;
+    data.nV = _nV;
+    std::copy(_d_vertex_ptrs, _d_vertex_ptrs + _nV,
+              data.d_vertex_ptrs);
+    return data;
+}
+
 //==============================================================================
 /////////////////
 // BatchUpdate //

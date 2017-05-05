@@ -6,6 +6,7 @@ FIND_PACKAGE(CUDA REQUIRED)
 
 #set(WARNING_FLAGS ON)
 set(CUDA_SEPARABLE_COMPILATION ON)
+set(BUILD_TARGET ON)
 include(util/CMakeLists.txt)
 include_directories(include)
 include_directories(externals/cub)
@@ -18,12 +19,12 @@ cuda_add_library(cuStinger ${CPP_SRCS} ${CU_SRCS})
 #-------------------------------------------------------------------------------
 
 cuda_add_executable(cuStingerTest test/cuStingerTest.cpp)
-cuda_add_executable(bfs++ test/BFS++.cu ${CU_SRCS})
-cuda_add_executable(bfs test/BFS.cu ${CU_SRCS})
+#cuda_add_executable(bfs++ test/BFS++.cu ${CU_SRCS})
+#cuda_add_executable(bfs test/BFS.cu ${CU_SRCS})
 
 target_link_libraries(cuStingerTest cuStinger ${CUDA_LIBRARIES})
-target_link_libraries(bfs++         cuStinger ${CUDA_LIBRARIES})
-target_link_libraries(bfs           cuStinger ${CUDA_LIBRARIES})
+#target_link_libraries(bfs++         cuStinger ${CUDA_LIBRARIES})
+#target_link_libraries(bfs           cuStinger ${CUDA_LIBRARIES})
 
 
 #cuda_add_executable(mem_test test/MemoryManagement.cu)

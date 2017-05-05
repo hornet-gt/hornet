@@ -52,22 +52,6 @@ cuStingerInit::cuStingerInit(size_t num_vertices, size_t num_edges,
     _edge_data_ptrs[0]   = reinterpret_cast<const byte_t*>(csr_edges);
 }
 
-size_t cuStingerInit::nV() const noexcept {
-    return _nV;
-}
-
-size_t cuStingerInit::nE() const noexcept {
-    return _nE;
-}
-
-const eoff_t* cuStingerInit::csr_offsets() const noexcept {
-    return reinterpret_cast<const eoff_t*>(_vertex_data_ptrs[0]);
-}
-
-const vid_t* cuStingerInit::csr_edges() const noexcept {
-    return reinterpret_cast<const vid_t*>(_edge_data_ptrs[0]);
-}
-
 //==============================================================================
 
 int cuStinger::global_id = 0;
@@ -87,7 +71,7 @@ cuStinger::cuStinger(const cuStingerInit& custinger_init,
 }
 
 cuStinger::~cuStinger() noexcept {
-    cuFree(_d_vertices);
+    cuFree(_d_vertices, _d_csr_offsets);
     if (_internal_csr_data) {
         delete[] _csr_offsets;
         delete[] _csr_edges;
@@ -97,12 +81,12 @@ cuStinger::~cuStinger() noexcept {
 void cuStinger::initialize() noexcept {
     auto edge_data_ptrs = _custinger_init._edge_data_ptrs;
     auto    vertex_data = _custinger_init._vertex_data_ptrs;
-    const byte_t* h_vertex_data_ptrs[NUM_VTYPES];
-    std::copy(vertex_data, vertex_data + NUM_VTYPES, h_vertex_data_ptrs);
+    const byte_t* h_vertex_ptrs[NUM_VTYPES];
+    std::copy(vertex_data, vertex_data + NUM_VTYPES, h_vertex_ptrs);
 
     const auto lamba = [](const byte_t* ptr) { return ptr != nullptr; };
-    bool vertex_init_data = std::all_of(h_vertex_data_ptrs,
-                                        h_vertex_data_ptrs + NUM_VTYPES, lamba);
+    bool vertex_init_data = std::all_of(h_vertex_ptrs,
+                                        h_vertex_ptrs + NUM_VTYPES, lamba);
     bool   edge_init_data = std::all_of(edge_data_ptrs,
                                         edge_data_ptrs + NUM_ETYPES, lamba);
     if (!vertex_init_data)
@@ -152,15 +136,13 @@ void cuStinger::initialize() noexcept {
     vid_t round_nV = xlib::roundup_pow2(_nV);
     cuMalloc(_d_vertices, round_nV * sizeof(vertex_t));
 
-    byte_t* d_vertex_data_ptrs[NUM_VTYPES];
-    h_vertex_data_ptrs[0] = reinterpret_cast<byte_t*>(h_vertex_basic_data);
-    d_vertex_data_ptrs[0] = reinterpret_cast<byte_t*>(_d_vertices);
+    h_vertex_ptrs[0]  = reinterpret_cast<byte_t*>(h_vertex_basic_data);
+    _d_vertex_ptrs[0] = reinterpret_cast<byte_t*>(_d_vertices);
     for (int i = 0; i < NUM_VTYPES; i++) {
-        d_vertex_data_ptrs[i] = _d_vertices + round_nV * VTYPE_SIZE_PS[i];
-        cuMemcpyToDeviceAsync(h_vertex_data_ptrs[i], _nV * VTYPE_SIZE[i],
-                              d_vertex_data_ptrs[i]);
+        _d_vertex_ptrs[i] = _d_vertices + round_nV * VTYPE_SIZE_PS[i];
+        cuMemcpyToDeviceAsync(h_vertex_ptrs[i], _nV * VTYPE_SIZE[i],
+                              _d_vertex_ptrs[i]);
     }
-    initializeVertexGlobal(d_vertex_data_ptrs);
     delete[] h_vertex_basic_data;
 
     TM.stop();
@@ -236,24 +218,6 @@ void cuStinger::store_snapshot(const std::string& filename) const noexcept {
                         csr_offsets, _nV + 1, csr_edges, _nE);          //NOLINT
     delete[] csr_offsets;
     delete[] csr_edges;
-}
-
-//------------------------------------------------------------------------------
-
-size_t cuStinger::nV() const noexcept {
-    return _custinger_init.nV();
-}
-
-size_t cuStinger::nE() const noexcept {
-    return _custinger_init.nE();
-}
-
-const eoff_t* cuStinger::csr_offsets() const noexcept {
-    return _custinger_init.csr_offsets();
-}
-
-const vid_t* cuStinger::csr_edges() const noexcept {
-    return _custinger_init.csr_edges();
 }
 
 } // namespace custinger

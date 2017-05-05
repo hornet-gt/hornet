@@ -20,7 +20,7 @@ The document is organized as follows:
 
 ### Requirements ###
 
-* [NVIDIA Modern GPU](https://developer.nvidia.com/cuda-gpus) (compute capability > 3.0): Kerpler, Maxwell, Pascal architectures.
+* [NVIDIA Modern GPU](https://developer.nvidia.com/cuda-gpus) (compute capability >= 3.0): Kerpler, Maxwell, Pascal architectures.
 * [CUDA toolkit](https://developer.nvidia.com/cuda-toolkit) v7.5 or greater. (CUDA toolkit v8.0 recommended, CUDA toolkit v7.0 supported but not tested)
 * GCC or [Clang](https://clang.llvm.org) host compiler with support for C++11<sup>*</sup>.
 * [CMake](https://cmake.org) v3.5 or greater.
@@ -66,14 +66,14 @@ The documentation is also accessible online [**here**.](https://federicounivr.gi
 
 ### Notes ###
 
-* The changelog can be found here: [history](cuStinger#docs/History.md)
+* The changelog can be found here: [history](docs/History.md)
 * cuStinger has been written by adopting (when possible) the following coding styles:
     * [LLVM Coding Standards](http://llvm.org/docs/CodingStandards.html)
     * [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html)
 * cuStinger has been checked with the following tools to ensure the code quality:
     * [clang++ v4.0: warnings](https://clang.llvm.org/docs/DiagnosticsReference.html)
     * [clang-tidy](http://clang.llvm.org/extra/clang-tidy/): warnings and code styles
-* cuStinger has been tested with the following tools: (see [`CodeCheck`](cuStinger#docs/CodeCheck.md)
+* cuStinger has been tested with the following tools: (see [`CodeCheck`](docs/CodeCheck.md)
     * [cuda-memcheck](http://docs.nvidia.com/cuda/cuda-memcheck/)
     * [valgrind v3.12](http://valgrind.org/)
     * [clang static analyzer v279](https://clang-analyzer.llvm.org/)
@@ -109,7 +109,7 @@ IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September, 2016
 
 * `Oded Green`, Researcher, Georgia Institute of Technology
 * `Federico Busato`, Ph.D. Student, University of Verona (Italy)
-* `James Fox`, Ph.D. Student, Georgia Institute of Technology :
+* `James Fox`, Ph.D. Student, Georgia Institute of Technology : *Temporal Motif Finding*
 * `Devavret Makkar`, Ph.D. Student, Georgia Institute of Technology : *Triangle Counting*
 * `Elisabetta Bergamini`, Ph.D. Student, Karlsruhe Institute of Technology (Germany) : *Katz Centrality*
 * ...

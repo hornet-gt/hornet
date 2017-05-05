@@ -323,6 +323,7 @@ endif()
 #################
 # CUSTOM TARGET #
 #################
+set_property(GLOBAL PROPERTY ALLOW_DUPLICATE_CUSTOM_TARGETS 1)
 
 add_custom_target(rm rm -rf * COMMENT "Clear build directory")
 

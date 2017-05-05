@@ -47,8 +47,7 @@ namespace graph {
 template<typename vid_t, typename eoff_t>
 GraphStd<vid_t, eoff_t>::GraphStd(const eoff_t* csr_offsets, vid_t nV,
                                   const vid_t* csr_edges, eoff_t nE) noexcept :
-                                      _nV(nV), _nE(nE),
-                                      _structure(Structure::DIRECTED) {
+                       GraphBase<vid_t, eoff_t>(nV, nE, Structure::UNDIRECTED) {
     allocate();
     std::copy(csr_offsets, csr_offsets + nV, _out_offsets);
     std::copy(csr_edges, csr_edges + nE, _out_edges);

@@ -36,13 +36,7 @@
  * @file
  */
 #include "Core/cuStingerTypes.cuh"
-/*#include "cuStingerAlg/cuStingerAlgConfig.cuh"
-#include "cuStingerAlg/DeviceQueue.cuh"
-#include "Support/Device/Definition.cuh"
-#include "Support/Device/PTX.cuh"
-#include "Support/Device/WarpScan.cuh"*/
 #include "Support/Device/BinarySearchLB.cuh"
-//#include "Support/Host/Numeric.hpp"
 
 /**
  * @brief
@@ -53,18 +47,19 @@ namespace load_balacing {
  * @brief
  */
 template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
-         void (*Operator)(custinger::Vertex, custinger::Edge, void*)>
+      void (*Operator)(const custinger::Vertex&, const custinger::Edge&, void*)>
 __global__
-void binarySearchKernel(const custinger::vid_t* __restrict__ d_input,
-                        const int*               __restrict__ d_work,
-                        int work_size,
-                        void* __restrict__ optional_field) {
+void binarySearchKernel(custinger::cuStingerDevData          data,
+                        const custinger::vid_t* __restrict__ d_input,
+                        const int*              __restrict__ d_work,
+                        int                                  work_size,
+                        void*                   __restrict__ optional_field) {
     using custinger::degree_t;
     using custinger::Vertex;
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
 
     auto lambda = [&](int pos, degree_t offset) {
-        Vertex vertex( d_input[pos] );
+        Vertex vertex(data, d_input[pos]);
         auto edge = vertex.edge(offset);
         Operator(vertex, edge, optional_field);
     };

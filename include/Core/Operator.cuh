@@ -21,11 +21,12 @@ void forAllnumE(const custinger::cuStinger& custinger, void* optional_data)
 
 //------------------------------------------------------------------------------
 
-template<void (*Operator)(custinger::Vertex, void*)>
+template<void (*Operator)(const custinger::Vertex&, void*)>
 void forAllVertices(const custinger::cuStinger& custinger, void* optional_data)
                     noexcept;
 
-template<void (*Operator)(custinger::Vertex, custinger::Edge, void*)>
+template<void (*Operator)(const custinger::Vertex&, const custinger::Edge&,
+                          void*)>
 void forAllEdges(const custinger::cuStinger& custinger,
                  const custinger::eoff_t* out_offsets, void* optional_data)
                  noexcept;

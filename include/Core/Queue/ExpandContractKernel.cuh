@@ -53,9 +53,11 @@ __device__ int2 d_queue2_counter;
  * @brief
  */
 template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK, typename Operator>
-__global__ void ExpandContractLBKernel(ptr2_t<custinger::vid_t> d_queue,
-                                       ptr2_t<int> d_work,
-                                       int num_vertices, Operator op) {
+__global__ void ExpandContractLBKernel(custinger::cuStingerDevData data,
+                                       ptr2_t<custinger::vid_t>    d_queue,
+                                       ptr2_t<int>                 d_work,
+                                       int                         num_vertices,
+                                       Operator                    op) {
     using namespace custinger;
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
 
@@ -64,12 +66,12 @@ __global__ void ExpandContractLBKernel(ptr2_t<custinger::vid_t> d_queue,
         degree_t degree;
         if (pos != -1) {
             auto src_id = d_queue.first[pos];
-            Vertex src(src_id);
+            Vertex src(data, src_id);
             Edge dst_edge = src.edge(offset);
             bool     pred = op(src, dst_edge);
 
             dst_id = dst_edge.dst();
-            Vertex dst_vertex(dst_id);
+            Vertex dst_vertex(data, dst_id);
             degree = pred ? dst_vertex.degree() : 0;
         } else
             degree = 0;

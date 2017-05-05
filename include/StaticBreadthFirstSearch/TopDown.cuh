@@ -10,6 +10,8 @@ using custinger::vid_t;
 using custinger::eoff_t;
 
 struct BfsData {
+    BfsData() : queue(10) {}
+
 	TwoLevelQueue<vid_t> queue;
     dist_t* distances;
 	dist_t  current_level;

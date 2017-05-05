@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/cuStinger.hpp"                    //custinger::cuStinger
+#include <Core/cuStinger.hpp>                    //custinger::cuStinger
 #include "Core/LoadBalancing/BinarySearch.cuh"   //load_balacing::BinarySearch
 
 namespace custinger_alg {
@@ -8,9 +8,7 @@ namespace custinger_alg {
 //Static Algorithms Abstract class
 class StaticAlgorithm {
 public:
-    StaticAlgorithm(const custinger::cuStinger& custinger_) noexcept :
-                    custinger(custinger_),
-                    load_balacing(custinger_.csr_offsets(), custinger_.nV()) {}
+    explicit StaticAlgorithm(const custinger::cuStinger& custinger_) noexcept;
 
     virtual ~StaticAlgorithm() noexcept = 0;
 
@@ -20,7 +18,7 @@ public:
     virtual bool validate() = 0;
 
     template<typename T>
-    void register_data(const T& data) noexcept;
+    T* register_data(const T& data) noexcept;
 
     virtual void syncDeviceWithHost() noexcept final;
     virtual void syncHostWithDevice() noexcept final;
@@ -49,3 +47,5 @@ private:
 };
 
 } // namespace custinger_alg
+
+#include "cuStingerAlg.i.cuh"

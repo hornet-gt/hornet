@@ -1,17 +1,17 @@
 
 namespace custinger_alg {
 
-StaticAlgorithm::StaticAlgorithm(const custinger::cuStinger& custinger)
+StaticAlgorithm::StaticAlgorithm(const custinger::cuStinger& custinger_)
                                  noexcept :
-                                _custinger(custinger),
-                                lb(custinger.csr_offsets(), custinger.nV()) {}
+                                    custinger(custinger_),
+                                    load_balacing(custinger_) {}
 
 StaticAlgorithm::~StaticAlgorithm() noexcept {
     cuFree(_d_ptr);
 }
 
 template<typename T>
-StaticAlgorithm::register_data(const T& data) {
+T* StaticAlgorithm::register_data(const T& data) noexcept {
     if (_is_registered)
         ERROR("register_data() must be called only one times")
     _is_registered = true;
@@ -21,13 +21,13 @@ StaticAlgorithm::register_data(const T& data) {
     return reinterpret_cast<T*>(_d_ptr);
 }
 
-StaticAlgorithm::syncHostWithDevice() noexcept {
+void StaticAlgorithm::syncHostWithDevice() noexcept {
     if (!_is_registered)
         ERROR("register_data() must be called before syncHostWithDevice()")
     SAFE_CALL( cudaMemcpy(_h_ptr, _d_ptr, _data_size, cudaMemcpyDeviceToHost) )
 }
 
-StaticAlgorithm::syncDeviceWithHost() noexcept {
+void StaticAlgorithm::syncDeviceWithHost() noexcept {
     if (!_is_registered)
         ERROR("register_data() must be called before syncDeviceWithHost()")
     SAFE_CALL( cudaMemcpy(_d_ptr, _h_ptr, _data_size, cudaMemcpyHostToDevice) )

@@ -37,7 +37,6 @@
  */
 #pragma once
 
-#include "Core/Queue/TwoLevelQueue.cuh"
 #include <vector>
 
 namespace custinger_alg {
@@ -86,11 +85,12 @@ public:
 
 private:
     std::vector<int> _level_sizes;
-    ptr2_t<T>        _d_queue_ptrs  { nullptr, nullptr };
-    T*               _d_multiqueue  { nullptr };
-    T*               _host_data     { nullptr };
+    ptr2_t<T>        _d_queue_ptrs    { nullptr, nullptr };
+    int*             _d_queue_counter { nullptr };
+    T*               _d_multiqueue    { nullptr };
+    T*               _host_data       { nullptr };
     size_t           _max_allocated_items;
-    int              _current_level { 0 };
+    int              _current_level   { 0 };
 };
 
 } // namespace custinger_alg

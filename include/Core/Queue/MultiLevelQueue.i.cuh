@@ -45,14 +45,15 @@ MultiLevelQueue<T>::MultiLevelQueue(size_t max_allocated_items) noexcept :
     cuMalloc(_d_multiqueue, max_allocated_items);
     _d_queue_ptrs.first  = _d_multiqueue;
     _d_queue_ptrs.second = _d_multiqueue;
-    cuMemcpyToSymbolAsync(0, d_queue_counter);
+    cuMalloc(_d_queue_counter, 1);
+    cuMemcpyToDeviceAsync(0, _d_queue_counter);
     _level_sizes.push_back(0);
     _level_sizes.push_back(0);
 }
 
 template<typename T>
 inline MultiLevelQueue<T>::~MultiLevelQueue() noexcept {
-    cuFree(_d_multiqueue);
+    cuFree(_d_multiqueue, _d_queue_counter);
     delete[] _host_data;
 }
 
@@ -63,7 +64,7 @@ __host__ void MultiLevelQueue<T>::insert(const T& item) noexcept {
     unsigned elected_lane = xlib::__msb(ballot);
     int warp_offset;
     if (xlib::lane_id() == elected_lane)
-        warp_offset = atomicAdd(&d_queue_counter, __popc(ballot));
+        warp_offset = atomicAdd(_d_queue_counter, __popc(ballot));
     int offset = __popc(ballot & xlib::LaneMaskLT()) +
                  __shfl(warp_offset, elected_lane);
     _d_queue_ptrs.second[offset] = item;
@@ -85,10 +86,10 @@ __host__ inline void MultiLevelQueue<T>
 template<typename T>
 __host__ void MultiLevelQueue<T>::next() noexcept {
     int h_queue_counter;
-    cuMemcpyFromSymbolAsync(d_queue_counter, h_queue_counter);
+    cuMemcpyToHostAsync(_d_queue_counter, h_queue_counter);
     _d_queue_ptrs.first   = _d_queue_ptrs.second;
     _d_queue_ptrs.second += h_queue_counter;
-    cuMemcpyToSymbolAsync(0, d_queue_counter);
+    cuMemcpyToDeviceAsync(0, _d_queue_counter);
 
     _level_sizes.push_back(_level_sizes[_current_level + 1] + h_queue_counter);
     _current_level++;

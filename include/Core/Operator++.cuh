@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core/cuStingerTypes.cuh" //custinger::Vertex
-#include "Csr/CsrTypes.cuh"        //csr::Vertex
+//#include "Csr/CsrTypes.cuh"        //csr::Vertex
 
 namespace custinger_alg {
 ///////////////

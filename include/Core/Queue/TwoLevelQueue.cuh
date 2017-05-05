@@ -48,7 +48,7 @@ struct ptr2_t {
     void swap() noexcept;
 };
 
-__device__ int d_queue_counter;
+//__device__ int d_queue_counter;
 
 /**
  * @warning known limitations: only one instance is allowed
@@ -70,7 +70,7 @@ public:
 
     __host__ void swap() noexcept;
 
-    __host__ void clear() const noexcept;
+    __host__ void clear() noexcept;
 
     __host__ int size() const noexcept;
 
@@ -91,11 +91,12 @@ private:
     static const bool PRINT_VERTEX_FRONTIER = 0;
     static const unsigned        BLOCK_SIZE = 256;
 
+    const custinger::eoff_t* _csr_offsets { nullptr };
+
     ptr2_t<T>   _d_queue_ptrs        { nullptr, nullptr };
     ptr2_t<int> _d_work_ptrs         { nullptr, nullptr };
     int*        _d_queue_counter     { nullptr };
     T*          _host_data           { nullptr };
-    const custinger::eoff_t* _csr_offsets { nullptr };
     size_t      _max_allocated_items;
     int         _num_queue_vertices  { 0 };
     int         _num_queue_edges     { 0 };   // traverse_edges

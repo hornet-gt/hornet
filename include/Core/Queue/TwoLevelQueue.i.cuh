@@ -33,7 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "cuStingerAlg/Queue/ExpandContractKernel.cuh"   //cuMemcpyToDeviceAsync
+#include "Core/Queue/ExpandContractKernel.cuh"   //cuMemcpyToDeviceAsync
 #include <Support/Device/Definition.cuh>    //xlib::SMemPerBlock
 #include <Support/Device/PrintExt.cuh>      //cu::printArray
 #include <Support/Device/SafeCudaAPI.cuh>   //cuMemcpyToDeviceAsync
@@ -52,7 +52,8 @@ TwoLevelQueue<T>::TwoLevelQueue(size_t max_allocated_items) noexcept :
                                      _max_allocated_items(max_allocated_items) {
     cuMalloc(_d_queue_ptrs.first, max_allocated_items);
     cuMalloc(_d_queue_ptrs.second, max_allocated_items);
-    cuMemcpyToSymbol(0, d_queue_counter);
+    cuMalloc(_d_queue_counter, 1);
+    cuMemcpyToDevice(0, _d_queue_counter);
 }
 
 template<typename T>
@@ -64,7 +65,8 @@ TwoLevelQueue<T>::TwoLevelQueue(size_t max_allocated_items,
     cuMalloc(_d_queue_ptrs.second, max_allocated_items);
     cuMalloc(_d_work_ptrs.first,  max_allocated_items);
     cuMalloc(_d_work_ptrs.second, max_allocated_items);
-    cuMemcpyToSymbol(0, d_queue_counter);
+    cuMalloc(_d_queue_counter, 1);
+    cuMemcpyToDevice(0, _d_queue_counter);
     cuMemcpyToDevice(0, const_cast<int*>(_d_work_ptrs.first));
     cuMemcpyToSymbol(make_int2(0, 0), d_queue2_counter);
     _enable_traverse = true;
@@ -73,7 +75,7 @@ TwoLevelQueue<T>::TwoLevelQueue(size_t max_allocated_items,
 template<typename T>
 inline TwoLevelQueue<T>::~TwoLevelQueue() noexcept {
     cuFree(_d_queue_ptrs.first, _d_queue_ptrs.second,
-           _d_work_ptrs.first, _d_work_ptrs.second);
+           _d_work_ptrs.first, _d_work_ptrs.second, _d_queue_counter);
     delete[] _host_data;
 }
 
@@ -84,7 +86,7 @@ __host__ void TwoLevelQueue<T>::insert(const T& item) noexcept {
     unsigned elected_lane = xlib::__msb(ballot);
     int warp_offset;
     if (xlib::lane_id() == elected_lane)
-        warp_offset = atomicAdd(&d_queue_counter, __popc(ballot));
+        warp_offset = atomicAdd(_d_queue_counter, __popc(ballot));
     int offset = __popc(ballot & xlib::LaneMaskLT()) +
                  __shfl(warp_offset, elected_lane);
     _d_queue_ptrs.second[offset] = item;
@@ -110,8 +112,15 @@ __host__ inline void TwoLevelQueue<T>
 template<typename T>
 __host__ void TwoLevelQueue<T>::swap() noexcept {
     _d_queue_ptrs.swap();
-    cuMemcpyFromSymbolAsync(d_queue_counter, _num_queue_vertices);
-    cuMemcpyToSymbolAsync(0, d_queue_counter);
+    cuMemcpyToHostAsync(_d_queue_counter, _num_queue_vertices);
+    cuMemcpyToDeviceAsync(0, _d_queue_counter);
+}
+
+template<typename T>
+__host__ void TwoLevelQueue<T>::clear() noexcept {
+    cuMemcpyToDevice(0, _d_queue_counter);
+    cuMemcpyToDevice(0, const_cast<int*>(_d_work_ptrs.first));
+    cuMemcpyToSymbol(make_int2(0, 0), d_queue2_counter);
 }
 
 template<typename T>
@@ -179,7 +188,7 @@ TwoLevelQueue<T>::traverse_edges(Operator op) noexcept {
     if (PRINT_VERTEX_FRONTIER)
         cu::printArray(_d_queue_ptrs.first, _num_queue_vertices);
 
-    ExpandContractLBKernel<BLOCK_SIZE, ITEMS_PER_BLOCK, Operator>
+    ExpandContractLBKernel<BLOCK_SIZE, ITEMS_PER_BLOCK>
         <<< grid_size, BLOCK_SIZE >>> (_d_queue_ptrs,  _d_work_ptrs,
                                        _num_queue_vertices + 1, op);
     if (CHECK_CUDA_ERROR1)

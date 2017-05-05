@@ -9,12 +9,26 @@ For additional information please refer to [**cuStinger repository**]( https://g
 
 The document is organized as follows:
 
+* [Requirements](#requirements)
 * [Quick start](#quick-start)
 * [cuStinger Algorithms](#custinger-algorithms)
 * [Performance](#performance)
-* [cuStinger Algorithms Code Statistics](#custinger-algorithms-code-statistics)
+* [cuStinger Algorithms Lines of Code](#custinger-algorithms-lines-of-code)
+* [Reporting bugs and contributing](#reporting-bugs-and-contributing)
+* [Publications](#publications)
+* [cuStinger Developers](#custinger-developers)
 * [Acknowledgements](#acknowledgements)
 * [License](#licence)
+
+### Requirements ###
+
+* [NVIDIA Modern GPU](https://developer.nvidia.com/cuda-gpus) (compute capability > 3.0): Kerpler, Maxwell, Pascal architectures.
+* [CUDA toolkit](https://developer.nvidia.com/cuda-toolkit) v7.5 or greater. (CUDA toolkit v8.0 recommended, CUDA toolkit v7.0 supported but not tested)
+* GCC or [Clang](https://clang.llvm.org) host compiler with support for C++11<sup>*</sup>.
+* [CMake](https://cmake.org) v3.5 or greater.
+* 64-bit Operating System (Ubuntu tested).
+
+<sup>*The next release will support C++14 (CUDA Toolkit v8.5). </sup>
 
 ### Quick Start ###
 
@@ -33,15 +47,18 @@ make -j
 | (BFS) Breadth-first Search          |     yes       | on-going |
 | (SSSP) Single-Source Shortest Path  |     yes       | on-going |
 | (CC) Connected Components           |     yes       | on-going |
+| (SCC) Strongly Connected Components |    to-do      |  to-do   |
 | (MST) Minimum Spanning Tree         |    to-do      |  to-do   |
 | (BC) Betweenness Centrality         |     yes       | on-going |
 | (PG) Page Rank                      |     yes       | on-going |
-| (TC) Triangle Counting              |     yes       |    yes   |
-| (KC) Katz Centrality                |     yes       |    yes   |
-| (KC) james                          |  on-going     |    to-do |
+| (TC) Triangle Counting              |     yes       |   yes    |
+| (KC) Katz Centrality                |     yes       |   yes    |
+| Temporal Motif Finding              |  on-going     |  to-do   |
 
 
 ## Performance ##
+
+##### CPU vs. GPU #####
 
 |           Algorithm                 | CPU<sup>1</sup> | GPU <sup>2</sup> |  Speedup |
 | :-----------------------------------|:---------------:|:----------------:|:--------:|
@@ -57,6 +74,7 @@ make -j
 <sup>1</sup> Intel ...   <br>
 <sup>2</sup> NVidia Tesla P100 ..
 
+
 |           Algorithm                 | CPU<sup>3</sup> | GPU <sup>4</sup> |  Speedup |
 | :-----------------------------------|:---------------:|:----------------:|:--------:|
 | (BFS) Breadth-first Search          |                 |                  |          |
@@ -71,6 +89,9 @@ make -j
 <sup>3</sup> Intel ...   <br>
 <sup>4</sup> NVidia Tesla K80 ..
 
+
+##### Static vs. Dynamic #####
+
 |           Algorithm                 |     Static      |      Dynamic     |  Speedup |
 | :-----------------------------------|:---------------:|:----------------:|:--------:|
 | (BFS) Breadth-first Search          |                 |                  |          |
@@ -83,30 +104,52 @@ make -j
 | (KC) Katz Centrality                |                 |                  |          |
 
 
-### cuStinger Algorithms Code Statistics ###
+### cuStinger Algorithms Lines of Code ###
 
-|      Static Algorithm               | lines of code |
-| :-----------------------------------|:-------------:|
-| (BFS) Breadth-first Search          |     0       |
-| (SSSP) Single-Source Shortest Path  |     0       |
-| (CC) Connected Components           |     0       |
-| (MST) Minimum Spanning Tree         |     0       |
-| (BC) Betweenness Centrality         |     0       |
-| (PG) Page Rank                      |     0       |
-| (TC) Triangle Counting              |     0       |
-| (KC) Katz Centrality                |     0       |
+|         Algorithm                   | Static<sup>*</sup> | Dynamic<sup>*</sup> |
+| :-----------------------------------|:------------------:|:-------------------:|
+| (BFS) Breadth-first Search          |                    |                     |
+| (SSSP) Single-Source Shortest Path  |                    |                     |
+| (CC) Connected Components           |                    |                     |
+| (MST) Minimum Spanning Tree         |                    |                     |
+| (BC) Betweenness Centrality         |                    |                     |
+| (PG) Page Rank                      |                    |                     |
+| (TC) Triangle Counting              |                    |                     |
+| (KC) Katz Centrality                |                    |                     |
 
-|      Dynamic Algorithm              | lines of code |
-| :-----------------------------------|:-------------:|
-| (BFS) Breadth-first Search          |     0       |
-| (SSSP) Single-Source Shortest Path  |     0       |
-| (CC) Connected Components           |     0       |
-| (MST) Minimum Spanning Tree         |     0       |
-| (BC) Betweenness Centrality         |     0       |
-| (PG) Page Rank                      |     0       |
-| (TC) Triangle Counting              |     0       |
-| (KC) Katz Centrality                |     0       |
+<sup>*</sup> lines of code required for the algorithm
 
+### Reporting bugs and contributing ###
+
+If you find any bugs please report them by using the repository (github **issues** panel).
+We are also ready to engage in improving and extending the framework if you request some new features.
+
+
+## Publications ##
+
+* Oded Green, David A. Bader, [*"cuStinger: Supporting dynamic graph algorithms for GPUs"*](https://www.researchgate.net/publication/308174457_cuSTINGER_Supporting_dynamic_graph_algorithms_for_GPUs),
+IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September, 2016, Waltham, MA, USA, pp. 1-6.
+
+
+---
+### <center>If you find this software useful in academic work, please acknowledge cuStinger. </center> ###
+***
+
+## cuStinger Developers ##
+
+##### Data Structure ######
+
+* `Oded Green`, Researcher, Georgia Institute of Technology
+* `Federico Busato`, Ph.D. Student, University of Verona (Italy)
+
+##### Algorithms ######
+
+* `Oded Green`, Researcher, Georgia Institute of Technology
+* `Federico Busato`, Ph.D. Student, University of Verona (Italy)
+* `James Fox`, Ph.D. Student, Georgia Institute of Technology : *Temporal Motif Finding*
+* `Devavret Makkar`, Ph.D. Student, Georgia Institute of Technology : *Triangle Counting*
+* `Elisabetta Bergamini`, Ph.D. Student, Karlsruhe Institute of Technology (Germany) : *Katz Centrality*
+* ...
 
 ## Acknowledgements ##
 

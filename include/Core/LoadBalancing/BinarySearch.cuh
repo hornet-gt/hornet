@@ -38,6 +38,7 @@
 #pragma once
 
 #include "Core/cuStingerTypes.cuh"
+#include "Core/Queue/TwoLevelQueue.cuh"
 
 /**
  * @brief
@@ -46,16 +47,28 @@ namespace load_balacing {
 
 class BinarySearch {
 public:
-    explicit BinarySearch(const custinger::eoff_t* csr_offsets,
-                          size_t num_vertices) noexcept;
-    explicit BinarySearch(const custinger::eoff_t* csr_offsets,
-                          size_t num_vertices, int max_allocated_items)
-                          noexcept;
+    explicit BinarySearch(const custinger::cuStinger& custinger) noexcept;
+
+    explicit BinarySearch(const custinger::cuStinger& custinger,
+                          int max_allocated_items) noexcept;
+
     ~BinarySearch() noexcept;
 
-    template<void (*Operator)(custinger::Vertex, custinger::Edge, void*)>
+    template<void (*Operator)(const custinger::Vertex&, const custinger::Edge&,
+                              void*)>
+    void traverse_edges(const
+                        custinger_alg::TwoLevelQueue<custinger::vid_t>& queue,
+                        void* optional_field) noexcept;
+
+    template<void (*Operator)(const custinger::Vertex&, const custinger::Edge&,
+                              void*)>
     void traverse_edges(const custinger::vid_t* d_input, int num_vertices,
                         void* optional_field) noexcept;
+
+    template<typename Operator>
+    void traverse_edges(const
+                        custinger_alg::TwoLevelQueue<custinger::vid_t>& queue,
+                        Operator op) noexcept;
 
     template<typename Operator>
     void traverse_edges(const custinger::vid_t* d_input, int num_vertices,
@@ -64,10 +77,11 @@ public:
 private:
     static const int         BLOCK_SIZE = 256;
     static const bool CHECK_CUDA_ERROR1 = 1;
+    const custinger::cuStinger& _custinger;
     int* _d_work    { nullptr };
     int* _d_degrees { nullptr };
 };
 
 } // namespace load_balacing
 
-#include "cuStingerAlg/LoadBalancing/BinarySearch.i.cuh"
+#include "Core/LoadBalancing/BinarySearch.i.cuh"

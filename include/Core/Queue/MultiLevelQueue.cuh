@@ -37,7 +37,7 @@
  */
 #pragma once
 
-#include "cuStingerAlg/TwoLevelQueue.cuh"
+#include "Core/Queue/TwoLevelQueue.cuh"
 #include <vector>
 
 namespace custinger_alg {

@@ -38,7 +38,6 @@
 #pragma once
 
 #include <Core/cuStinger.hpp>
-#include <Support/Device/VectorUtil.cuh>
 
 namespace custinger_alg {
 
@@ -70,6 +69,8 @@ public:
     __host__ void insert(const T* items_array, int num_items) noexcept;
 
     __host__ void swap() noexcept;
+
+    __host__ void clear() const noexcept;
 
     __host__ int size() const noexcept;
 

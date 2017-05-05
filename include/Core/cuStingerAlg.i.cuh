@@ -2,7 +2,9 @@
 namespace custinger_alg {
 
 StaticAlgorithm::StaticAlgorithm(const custinger::cuStinger& custinger)
-                                 noexcept : _custinger(custinger);
+                                 noexcept :
+                                _custinger(custinger),
+                                lb(custinger.csr_offsets(), custinger.nV()) {}
 
 StaticAlgorithm::~StaticAlgorithm() noexcept {
     cuFree(_d_ptr);

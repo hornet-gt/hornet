@@ -1,4 +1,3 @@
-#include "GlobalSpace.cuh"                  //d_nV, d_nE
 #include "Support/Device/SafeCudaAPI.cuh"   //cuMemcpyFromSymbol
 
 namespace custinger_alg {

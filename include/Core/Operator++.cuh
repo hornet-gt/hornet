@@ -3,14 +3,13 @@
 #include "Core/cuStingerTypes.cuh" //custinger::Vertex
 #include "Csr/CsrTypes.cuh"        //csr::Vertex
 
-using custinger::Vertex;
-using custinger::Edge;
-const int BLOCK_SIZE_OP2 = 256;
-
 namespace custinger_alg {
 ///////////////
 // C++11 API //
 ///////////////
+using custinger::Vertex;
+using custinger::Edge;
+const int BLOCK_SIZE_OP2 = 256;
 
 template<typename Operator>
 void forAll(int num_items, Operator op);

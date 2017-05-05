@@ -8,6 +8,7 @@ FIND_PACKAGE(CUDA REQUIRED)
 set(CUDA_SEPARABLE_COMPILATION ON)
 include(externals/cuStinger/util/CMakeLists.txt)
 include_directories(include)
+include_directories(externals/cuStinger/externals/cub)
 include_directories(externals/cuStinger/include)
 include_directories(${CUDA_INCLUDE_DIRS})
 #-------------------------------------------------------------------------------

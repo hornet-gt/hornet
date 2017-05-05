@@ -185,13 +185,13 @@ set(GPU_ARCH "" CACHE STRING "compute capability")
 set(SM "" CACHE STRING "streaming multiprocessor number")
 
 if(GPU_ARCH STREQUAL "")
-    if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/../build/getDeviceInfo)
+    if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/getDeviceInfo)
         execute_process(COMMAND ${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc
                     -Wno-deprecated-gpu-targets
                     ${CMAKE_CURRENT_LIST_DIR}/getDeviceInfo.cu
-                -o ${CMAKE_CURRENT_LIST_DIR}/../build/getDeviceInfo)
+                -o ${CMAKE_CURRENT_LIST_DIR}/getDeviceInfo)
     endif()
-    execute_process(COMMAND ${CMAKE_CURRENT_LIST_DIR}/../build/getDeviceInfo
+    execute_process(COMMAND ${CMAKE_CURRENT_LIST_DIR}/getDeviceInfo
                     OUTPUT_VARIABLE OUT_VARIABLE)
 
     list(GET OUT_VARIABLE 0 GPU_ARCH)

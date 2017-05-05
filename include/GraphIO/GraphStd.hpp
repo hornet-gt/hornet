@@ -181,6 +181,9 @@ public:
     explicit GraphStd(const char* filename, Property prop) noexcept;
     explicit GraphStd(Structure Structure, const char* filename,
                       Property property) noexcept;
+    explicit GraphStd(const eoff_t* csr_offsets, vid_t nV,
+                      const vid_t* csr_edges, eoff_t nE) noexcept;
+
     virtual ~GraphStd() noexcept final;                                 //NOLINT
 
     Vertex   get_vertex(vid_t index)  const noexcept;

@@ -45,6 +45,18 @@
 namespace graph {
 
 template<typename vid_t, typename eoff_t>
+GraphStd<vid_t, eoff_t>::GraphStd(const eoff_t* csr_offsets, vid_t nV,
+                                  const vid_t* csr_edges, eoff_t nE) noexcept :
+                                      _nV(nV), _nE(nE),
+                                      _structure(Structure::DIRECTED) {
+    allocate();
+    std::copy(csr_offsets, csr_offsets + nV, _out_offsets);
+    std::copy(csr_edges, csr_edges + nE, _out_edges);
+    for (vid_t i = 0; i < nV; i++)
+        _out_degrees[i] = csr_offsets[i + 1] - csr_offsets[i];
+}
+
+template<typename vid_t, typename eoff_t>
 void GraphStd<vid_t, eoff_t>::allocate() noexcept {
     assert(_nV > 0 && _nE > 0 && _structure.is_direction_set());
     try {

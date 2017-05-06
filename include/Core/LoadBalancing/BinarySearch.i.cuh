@@ -34,14 +34,13 @@
  * </blockquote>}
  */
 #include "BinarySearchKernel.cuh"
-#include "Support/Device/Definition.cuh"    //xlib::SMemPerBlock
-#include "Support/Device/CubWrapper.cuh"    //xlib::CubExclusiveSum
-//#include "cuStingerAlg/Operator++.cuh"      //custinger::forAll
+#include <Support/Device/CubWrapper.cuh>    //xlib::CubExclusiveSum
+#include <Support/Device/Definition.cuh>    //xlib::SMemPerBlock
 
 namespace load_balacing {
-
 namespace detail {
 
+template<bool = true>
 __global__
 void computeWorkKernel(const custinger::vid_t*    __restrict__ d_input,
                        const custinger::degree_t* __restrict__ d_degrees,
@@ -88,6 +87,8 @@ inline void BinarySearch::traverse_edges(const custinger::vid_t* d_input,
     using custinger::vid_t;
     const int ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
 
+    std::cout << "computeWorkKernel" << std::endl;
+
     detail::computeWorkKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
         (d_input, _d_degrees, num_vertices, _d_work);
@@ -96,17 +97,24 @@ inline void BinarySearch::traverse_edges(const custinger::vid_t* d_input,
     if (CHECK_CUDA_ERROR1)
         CHECK_CUDA_ERROR
 
+    std::cout << "prefixsum" << std::endl;
+
     xlib::CubExclusiveSum<int>(_d_work, num_vertices + 1);
 
     int total_work;
     cuMemcpyToHost(_d_work + num_vertices, total_work);
     unsigned grid_size = xlib::ceil_div<ITEMS_PER_BLOCK>(total_work);
 
+    std::cout << "binarySearchKernel" << std::endl;
+    auto ptr = _custinger.device_data();
+    std::cout << "devdata" << std::endl;
+
     binarySearchKernel<BLOCK_SIZE, ITEMS_PER_BLOCK, Operator>
-        <<< grid_size, BLOCK_SIZE >>>(_custinger.device_data(), d_input,
+        <<< grid_size, BLOCK_SIZE >>>(ptr, d_input,
                                      _d_work, num_vertices + 1, optional_field);
-    if (CHECK_CUDA_ERROR1)
+    //if (CHECK_CUDA_ERROR1)
         CHECK_CUDA_ERROR
+    std::cout << "traverse_edges end" << std::endl;
 }
 
 template<void (*Operator)(const custinger::Vertex&, const custinger::Edge&,

@@ -48,11 +48,6 @@ struct ptr2_t {
     void swap() noexcept;
 };
 
-//__device__ int d_queue_counter;
-
-/**
- * @warning known limitations: only one instance is allowed
- */
 template<typename T>
 class TwoLevelQueue {
 static const bool is_vid = std::is_same<T, custinger::vid_t>::value;

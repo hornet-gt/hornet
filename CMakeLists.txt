@@ -13,8 +13,8 @@ include(externals/cuStinger/util/CMakeLists.txt)
 #-------------------------------------------------------------------------------
 file(GLOB_RECURSE CU_SRCS  ${PROJECT_SOURCE_DIR}/src/*.cu)
 
-cuda_add_executable(bfs++ test/BFStest++.cu ${CU_SRCS})
+#cuda_add_executable(bfs++ test/BFStest++.cu ${CU_SRCS})
 cuda_add_executable(bfs   test/BFStest.cu ${CU_SRCS})
 
-target_link_libraries(bfs++ cuStinger ${CUDA_LIBRARIES})
+#target_link_libraries(bfs++ cuStinger ${CUDA_LIBRARIES})
 target_link_libraries(bfs   cuStinger ${CUDA_LIBRARIES})

@@ -3,10 +3,12 @@
 namespace custinger_alg {
 
 const dist_t INF = std::numeric_limits<dist_t>::max();
-using custinger::Vertex;
-using custinger::Edge;
 
 //------------------------------------------------------------------------------
+///////////////
+// OPERATORS //
+///////////////
+
 __device__ __forceinline__
 void VertexInit(vid_t index, void* optional_field) {
     auto bfs_data = reinterpret_cast<BfsData*>(optional_field);
@@ -36,36 +38,49 @@ void BFSOperatorNoAtomic(const Vertex& src, const Edge& edge,
 //------------------------------------------------------------------------------
 
 BfsTopDown::BfsTopDown(const custinger::cuStinger& custinger) :
-                       StaticAlgorithm(custinger) {
+                       StaticAlgorithm(custinger), host_bfs_data(custinger) {
 
-    cuMalloc(bfs_data.distances, custinger.nV());
+    cuMalloc(host_bfs_data.distances, custinger.nV());
+    device_bfs_data = register_data(host_bfs_data);
     reset();
 }
 
 BfsTopDown::~BfsTopDown() {
-    cuFree(bfs_data.distances);
+    cuFree(host_bfs_data.distances);
 }
 
 void BfsTopDown::reset() {
-    bfs_data.queue.clear();
-    forAllnumV<VertexInit>(custinger, bfs_data.distances);
-    cuMemcpyToDevice(0, bfs_data.distances + bfs_source);
+    host_bfs_data.current_level = 0;
+    host_bfs_data.queue.clear();
+    syncDeviceWithHost();
+
+    forAllnumV<VertexInit>(custinger, device_bfs_data);
+    cuMemcpyToDevice(0, host_bfs_data.distances + bfs_source);
+}
+
+void BfsTopDown::set_parameters(vid_t source) {
+    bfs_source = source;
+    host_bfs_data.queue.insert(bfs_source);
+    cuMemcpyToDevice(0, host_bfs_data.distances + bfs_source);
 }
 
 void BfsTopDown::run() {
-    while (bfs_data.queue.size() > 0) {
-        load_balacing.traverse_edges<BFSOperatorNoAtomic>(bfs_data.queue,
-                                                          (void*) &bfs_data);
-        syncDeviceWithHost();
-        bfs_data.queue.swap();
-        bfs_data.current_level++;
+    while (host_bfs_data.queue.size() > 0) {
+        std::cout << " traverse " << std::endl;
+        load_balacing.traverse_edges<BFSOperatorNoAtomic>(host_bfs_data.queue,
+                                                          device_bfs_data);
         syncHostWithDevice();
+        std::cout << " swap " << std::endl;
+        host_bfs_data.queue.swap();
+        host_bfs_data.current_level++;
+        std::cout << " level " << std::endl;
+        syncDeviceWithHost();
     }
 }
 
 void BfsTopDown::release() {
-    cuFree(bfs_data.distances);
-    bfs_data.distances = nullptr;
+    cuFree(host_bfs_data.distances);
+    host_bfs_data.distances = nullptr;
 }
 
 bool BfsTopDown::validate() {
@@ -76,10 +91,8 @@ bool BfsTopDown::validate() {
     bfs.run(bfs_source);
 
     auto h_distances = bfs.distances();
-    //auto  is_correct = cu::equal(h_distances, h_distances + graph.nV(),
-    //                             bfs_data.distances);
-    //std::cout << (is_correct ? "\nCorrect <>\n\n" : "\n! Not Correct\n\n");
-    return cu::equal(h_distances, h_distances + graph.nV(), bfs_data.distances);
+    return cu::equal(h_distances, h_distances + graph.nV(),
+                     host_bfs_data.distances);
 }
 
 } // namespace custinger_alg

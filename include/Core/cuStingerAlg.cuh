@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Core/cuStinger.hpp>                    //custinger::cuStinger
 #include "Core/LoadBalancing/BinarySearch.cuh"   //load_balacing::BinarySearch
+#include <Core/cuStinger.hpp>                    //custinger::cuStinger
 
 namespace custinger_alg {
 
@@ -18,7 +18,7 @@ public:
     virtual bool validate() = 0;
 
     template<typename T>
-    T* register_data(const T& data) noexcept;
+    T* register_data(T& data) noexcept;
 
     virtual void syncDeviceWithHost() noexcept final;
     virtual void syncHostWithDevice() noexcept final;

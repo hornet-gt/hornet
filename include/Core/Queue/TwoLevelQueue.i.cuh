@@ -119,8 +119,10 @@ __host__ void TwoLevelQueue<T>::swap() noexcept {
 template<typename T>
 __host__ void TwoLevelQueue<T>::clear() noexcept {
     cuMemcpyToDevice(0, _d_queue_counter);
-    cuMemcpyToDevice(0, const_cast<int*>(_d_work_ptrs.first));
-    cuMemcpyToSymbol(make_int2(0, 0), d_queue2_counter);
+    if (_enable_traverse) {
+        cuMemcpyToDevice(0, const_cast<int*>(_d_work_ptrs.first));
+        cuMemcpyToSymbol(make_int2(0, 0), d_queue2_counter);
+    }
 }
 
 template<typename T>
@@ -158,7 +160,7 @@ __host__ void
 TwoLevelQueue<T>::work_evaluate(const T* items_array, int num_items) noexcept {}
 
 template<>
-__host__ void TwoLevelQueue<custinger::vid_t>
+__host__ inline void TwoLevelQueue<custinger::vid_t>
 ::work_evaluate(const custinger::vid_t* items_array, int num_items) noexcept{
     using custinger::vid_t;
 

@@ -22,7 +22,7 @@ The document is organized as follows:
 
 ### Requirements ###
 
-* [NVIDIA Modern GPU](https://developer.nvidia.com/cuda-gpus) (compute capability > 3.0): Kerpler, Maxwell, Pascal architectures.
+* [Nvidia Modern GPU](https://developer.nvidia.com/cuda-gpus) (compute capability >= 3.0): Kerpler, Maxwell, Pascal architectures.
 * [CUDA toolkit](https://developer.nvidia.com/cuda-toolkit) v7.5 or greater. (CUDA toolkit v8.0 recommended, CUDA toolkit v7.0 supported but not tested)
 * GCC or [Clang](https://clang.llvm.org) host compiler with support for C++11<sup>*</sup>.
 * [CMake](https://cmake.org) v3.5 or greater.
@@ -74,22 +74,6 @@ make -j
 <sup>1</sup> Intel ...   <br>
 <sup>2</sup> NVidia Tesla P100 ..
 
-
-|           Algorithm                 | CPU<sup>3</sup> | GPU <sup>4</sup> |  Speedup |
-| :-----------------------------------|:---------------:|:----------------:|:--------:|
-| (BFS) Breadth-first Search          |                 |                  |          |
-| (SSSP) Single-Source Shortest Path  |                 |                  |          |
-| (CC) Connected Components           |                 |                  |          |
-| (MST) Minimum Spanning Tree         |                 |                  |          |
-| (BC) Betweenness Centrality         |                 |                  |          |
-| (PG) Page Rank                      |                 |                  |          |
-| (TC) Triangle Counting              |                 |                  |          |
-| (KC) Katz Centrality                |                 |                  |          |
-
-<sup>3</sup> Intel ...   <br>
-<sup>4</sup> NVidia Tesla K80 ..
-
-
 ##### Static vs. Dynamic #####
 
 |           Algorithm                 |     Static      |      Dynamic     |  Speedup |
@@ -117,7 +101,7 @@ make -j
 | (TC) Triangle Counting              |                    |                     |
 | (KC) Katz Centrality                |                    |                     |
 
-<sup>*</sup> lines of code required for the algorithm
+<sup>* lines of code required for the algorithm </sup>
 
 ### Reporting bugs and contributing ###
 

@@ -1,16 +1,13 @@
 #pragma once
 
 #include "cuStingerAlg.hpp"
-#include <cuStinger.hpp>
 
 namespace custinger_alg {
 
 using dist_t = int;
-using custinger::vid_t;
-using custinger::eoff_t;
 
 struct BfsData {
-    BfsData() : queue(10) {}
+    BfsData(const cuStinger& custinger) : queue(custinger.nV() * 2) {}
 
 	TwoLevelQueue<vid_t> queue;
     dist_t* distances;
@@ -19,17 +16,18 @@ struct BfsData {
 
 class BfsTopDown final : public StaticAlgorithm {
 public:
-    explicit BfsTopDown(const custinger::cuStinger& custinger);
+    explicit BfsTopDown(const cuStinger& custinger);
     ~BfsTopDown();
 
-    void set_parameters(vid_t bfs_source);
+    void set_parameters(vid_t source);
 	void reset()    override;
 	void run()      override;
 	void release()  override;
     bool validate() override;
 private:
-    vid_t   bfs_source;
-	BfsData bfs_data;
+	BfsData  host_bfs_data;
+	BfsData* device_bfs_data { nullptr };
+    vid_t    bfs_source      { 0 };
 };
 
 } // namespace custinger_alg

@@ -46,6 +46,9 @@
 
 * Graph Transpose almost completed
 * cuStinger graph ID
+* Separated data structure and algorithms
+* New StaticAlgorithm abstract class
+* Operator parameters are references and not values
 
 ## Tasks to do ##
 * Code Related:
@@ -88,5 +91,7 @@
 
 * Comparison with Gunrock
     - Simple programming model (few lines of code to write an algorithm)
-    - Dynamic/Streaming algorithm Support
+    - Dynamic/Streaming algorithms Support
     - Different devices support (CPU/GPU)
+    - Near the same performance
+    - Separation between the data structure and the algorithms

@@ -37,6 +37,7 @@
  */
 #pragma once
 
+#include "Core/cuStinger.hpp"
 #include "Core/RawTypes.hpp"
 
 namespace custinger {

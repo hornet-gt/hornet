@@ -113,8 +113,7 @@ inline const eoff_t* cuStinger::device_csr_offsets() noexcept {
 inline cuStingerDevData cuStinger::device_data() const noexcept {
     cuStingerDevData data;
     data.nV = _nV;
-    std::copy(_d_vertex_ptrs, _d_vertex_ptrs + _nV,
-              data.d_vertex_ptrs);
+    std::copy(_d_vertex_ptrs, _d_vertex_ptrs + NUM_VTYPES, data.d_vertex_ptrs);
     return data;
 }
 

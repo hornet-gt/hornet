@@ -70,7 +70,7 @@ inline BinarySearch
 
     const auto& csr_offsets = custinger.csr_offsets();
     auto tmp = new custinger::degree_t[custinger.nV() + 1];
-    std::adjacent_difference(csr_offsets, csr_offsets + custinger.nV() + 1, tmp);
+    std::adjacent_difference(csr_offsets, csr_offsets + custinger.nV() + 1,tmp);
     cuMemcpyToDevice(tmp + 1, custinger.nV(), _d_degrees);
     delete[] tmp;
 }
@@ -86,8 +86,6 @@ void BinarySearch::traverse_edges(const custinger::vid_t* d_input,
                                   void* optional_field) noexcept {
     using custinger::vid_t;
     const int ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
-
-    std::cout << num_vertices;
 
     detail::computeWorkKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>

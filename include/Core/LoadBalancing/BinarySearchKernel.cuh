@@ -59,10 +59,10 @@ void binarySearchKernel(custinger::cuStingerDevData          data,
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
 
     auto lambda = [&](int pos, degree_t offset) {
-        Vertex vertex(data, d_input[pos]);
-        auto edge = vertex.edge(offset);
-        Operator(vertex, edge, optional_field);
-    };
+                        Vertex vertex(data, d_input[pos]);
+                        auto edge = vertex.edge(offset);
+                        Operator(vertex, edge, optional_field);
+                    };
     xlib::binarySearchLB<BLOCK_SIZE>(d_work, work_size, smem, lambda);
 }
 

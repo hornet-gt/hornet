@@ -91,7 +91,7 @@ make -j
 ## cuStinger Algorithms Lines of Code ##
 
 |         Algorithm                   | Static (A) | Static (B) | Dynamic (A) |
-| :-----------------------------------|:----------:|-----------:|:-----------:|
+| :-----------------------------------|:----------:|:----------:|:-----------:|
 | (BFS) Breadth-first Search          |     4      |     6      |             |
 | (SSSP) Single-Source Shortest Path  |            |            |             |
 | (CC) Connected Components           |            |            |             |
@@ -101,7 +101,7 @@ make -j
 | (TC) Triangle Counting              |            |            |             |
 | (KC) Katz Centrality                |            |            |             |
 
-<sup>(A) lines of code required for the algorithm </sup>
+<sup>(A) lines of code required for the algorithm </sup><br>
 <sup>(B) lines of code required for the operators </sup>
 
 ### Reporting bugs and contributing ###

@@ -69,7 +69,7 @@ void BfsTopDown::set_parameters(vid_t source) {
 
 void BfsTopDown::run() {
     while (host_bfs_data.queue.size() > 0) {
-        load_balacing.traverse_edges<BFSOperatorNoAtomic>(host_bfs_data.queue,
+        load_balacing.traverse_edges<BFSOperatorAtomic>(host_bfs_data.queue,
                                                           device_bfs_data);
         syncHostWithDevice();
         host_bfs_data.queue.swap();

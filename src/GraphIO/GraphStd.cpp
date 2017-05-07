@@ -49,7 +49,7 @@ GraphStd<vid_t, eoff_t>::GraphStd(const eoff_t* csr_offsets, vid_t nV,
                                   const vid_t* csr_edges, eoff_t nE) noexcept :
                        GraphBase<vid_t, eoff_t>(nV, nE, Structure::UNDIRECTED) {
     allocate();
-    std::copy(csr_offsets, csr_offsets + nV, _out_offsets);
+    std::copy(csr_offsets, csr_offsets + nV + 1, _out_offsets);
     std::copy(csr_edges, csr_edges + nE, _out_edges);
     for (vid_t i = 0; i < nV; i++)
         _out_degrees[i] = csr_offsets[i + 1] - csr_offsets[i];

@@ -138,10 +138,10 @@ BFS<vid_t, eoff_t>::statistics(vid_t source) noexcept {
             counter.fill(0);
         }
 
-        for (eoff_t i = _graph._out_offsets[current];
-            i < _graph._out_offsets[current + 1]; i++) {
-
+        const auto& offset = _graph._out_offsets;
+        for (eoff_t i = offset[current]; i < offset[current + 1]; i++) {
             vid_t dest = _graph._out_edges[i];
+
             if (_distances[dest] < level)
                 counter[PARENT]++;
             else if (_distances[dest] == level)

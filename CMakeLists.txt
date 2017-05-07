@@ -19,13 +19,7 @@ cuda_add_library(cuStinger ${CPP_SRCS} ${CU_SRCS})
 #-------------------------------------------------------------------------------
 
 cuda_add_executable(cuStingerTest test/cuStingerTest.cpp)
-#cuda_add_executable(bfs++ test/BFS++.cu ${CU_SRCS})
-#cuda_add_executable(bfs test/BFS.cu ${CU_SRCS})
-
 target_link_libraries(cuStingerTest cuStinger ${CUDA_LIBRARIES})
-#target_link_libraries(bfs++         cuStinger ${CUDA_LIBRARIES})
-#target_link_libraries(bfs           cuStinger ${CUDA_LIBRARIES})
-
 
 #cuda_add_executable(mem_test test/MemoryManagement.cu)
 #TARGET_LINK_LIBRARIES(mem_test cuStinger)

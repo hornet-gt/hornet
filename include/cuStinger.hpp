@@ -4,3 +4,4 @@
 #include "GraphIO/GraphStd.hpp"
 #include "GraphIO/BFS.hpp"
 #include "Support/Device/Algorithm.cuh"
+#include "Support/Host/Timer.hpp"

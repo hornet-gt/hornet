@@ -22,7 +22,7 @@ void BFSOperatorAtomic(const Vertex& src, const Edge& edge,
     auto dst = edge.dst();
     auto old = atomicCAS(bfs_data->distances + dst, INF, bfs_data->current_level);
     if (old == INF)
-        bfs_data->queue.insert(src.id());     // the vertex dst is active*/
+        bfs_data->queue.insert(dst);         // the vertex dst is active
 }
 
 __device__ __forceinline__
@@ -32,12 +32,15 @@ void BFSOperatorNoAtomic(const Vertex& src, const Edge& edge,
     auto dst = edge.dst();
     if (bfs_data->distances[dst] == INF) {
         bfs_data->distances[dst] = bfs_data->current_level;
-        bfs_data->queue.insert(src.id());    // the vertex dst is active
+        bfs_data->queue.insert(dst);         // the vertex dst is active
     }
 }
 //------------------------------------------------------------------------------
+////////////////
+// BfsTopDown //
+////////////////
 
-BfsTopDown::BfsTopDown(const custinger::cuStinger& custinger) :
+BfsTopDown::BfsTopDown(custinger::cuStinger& custinger) :
                        StaticAlgorithm(custinger), host_bfs_data(custinger) {
 
     cuMalloc(host_bfs_data.distances, custinger.nV());
@@ -50,7 +53,7 @@ BfsTopDown::~BfsTopDown() {
 }
 
 void BfsTopDown::reset() {
-    host_bfs_data.current_level = 0;
+    host_bfs_data.current_level = 1;
     host_bfs_data.queue.clear();
     syncDeviceWithHost();
 
@@ -66,14 +69,11 @@ void BfsTopDown::set_parameters(vid_t source) {
 
 void BfsTopDown::run() {
     while (host_bfs_data.queue.size() > 0) {
-        std::cout << " traverse " << std::endl;
         load_balacing.traverse_edges<BFSOperatorNoAtomic>(host_bfs_data.queue,
                                                           device_bfs_data);
         syncHostWithDevice();
-        std::cout << " swap " << std::endl;
         host_bfs_data.queue.swap();
         host_bfs_data.current_level++;
-        std::cout << " level " << std::endl;
         syncDeviceWithHost();
     }
 }
@@ -89,6 +89,11 @@ bool BfsTopDown::validate() {
                                   custinger.csr_edges(), custinger.nE());
     BFS<vid_t, eoff_t> bfs(graph);
     bfs.run(bfs_source);
+    /*auto vector = bfs.statistics(bfs_source);
+    for (const auto& it : vector) {
+        auto sum = it[0] + it[1] + it[2] + it[3];
+        std::cout << it[2] << "\t" << sum << std::endl;
+    }*/
 
     auto h_distances = bfs.distances();
     return cu::equal(h_distances, h_distances + graph.nV(),

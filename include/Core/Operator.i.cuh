@@ -1,4 +1,3 @@
-
 namespace custinger_alg {
 namespace detail {
 

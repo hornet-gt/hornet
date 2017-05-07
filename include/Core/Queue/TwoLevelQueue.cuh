@@ -53,9 +53,9 @@ class TwoLevelQueue {
 static const bool is_vid = std::is_same<T, custinger::vid_t>::value;
 using     EnableTraverse = typename std::enable_if< is_vid >::type;
 public:
-    explicit TwoLevelQueue(size_t max_allocated_items) noexcept;
-    explicit TwoLevelQueue(size_t max_allocated_items,
-                           const custinger::eoff_t* csr_offset) noexcept;
+    explicit TwoLevelQueue(custinger::cuStinger& custinger,
+                           bool   enable_traverse     = false,
+                           size_t max_allocated_items = 0) noexcept;
 
     ~TwoLevelQueue() noexcept;
 
@@ -86,16 +86,18 @@ private:
     static const bool PRINT_VERTEX_FRONTIER = 0;
     static const unsigned        BLOCK_SIZE = 256;
 
+    custinger::cuStinger& _custinger;
     const custinger::eoff_t* _csr_offsets { nullptr };
 
-    ptr2_t<T>   _d_queue_ptrs        { nullptr, nullptr };
-    ptr2_t<int> _d_work_ptrs         { nullptr, nullptr };
-    int*        _d_queue_counter     { nullptr };
-    T*          _host_data           { nullptr };
-    size_t      _max_allocated_items;
-    int         _num_queue_vertices  { 0 };
-    int         _num_queue_edges     { 0 };   // traverse_edges
-    bool        _enable_traverse     { false };
+    ptr2_t<T>    _d_queue_ptrs        { nullptr, nullptr };
+    ptr2_t<int>  _d_work_ptrs         { nullptr, nullptr };
+    int*         _d_queue_counter     { nullptr };
+    T*           _host_data           { nullptr };
+    const size_t _max_allocated_items;
+    int2*        _d_queue2_counter    { nullptr };
+    int          _num_queue_vertices  { 0 };
+    int          _num_queue_edges     { 0 };   // traverse_edges
+    bool         _enable_traverse     { false };
 
     __host__ void work_evaluate(const T* items_array, int num_items) noexcept;
 };

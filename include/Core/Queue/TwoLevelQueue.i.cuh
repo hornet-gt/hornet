@@ -48,28 +48,25 @@ inline void ptr2_t<T>::swap() noexcept {
 //------------------------------------------------------------------------------
 
 template<typename T>
-TwoLevelQueue<T>::TwoLevelQueue(size_t max_allocated_items) noexcept :
-                                     _max_allocated_items(max_allocated_items) {
-    cuMalloc(_d_queue_ptrs.first, max_allocated_items);
-    cuMalloc(_d_queue_ptrs.second, max_allocated_items);
-    cuMalloc(_d_queue_counter, 1);
-    cuMemcpyToDevice(0, _d_queue_counter);
-}
+TwoLevelQueue<T>::TwoLevelQueue(custinger::cuStinger& custinger,
+                                bool enable_traverse,
+                                size_t max_allocated_items) noexcept :
+             _custinger(custinger),
+             _enable_traverse(enable_traverse),
+             _max_allocated_items(max_allocated_items == 0 ?
+                                  custinger.nV() * 2 : max_allocated_items) {
 
-template<typename T>
-TwoLevelQueue<T>::TwoLevelQueue(size_t max_allocated_items,
-                                const custinger::eoff_t* csr_offsets) noexcept:
-                                     _max_allocated_items(max_allocated_items),
-                                     _csr_offsets(csr_offsets) {
-    cuMalloc(_d_queue_ptrs.first,  max_allocated_items);
-    cuMalloc(_d_queue_ptrs.second, max_allocated_items);
-    cuMalloc(_d_work_ptrs.first,  max_allocated_items);
-    cuMalloc(_d_work_ptrs.second, max_allocated_items);
+    cuMalloc(_d_queue_ptrs.first, _max_allocated_items);
+    cuMalloc(_d_queue_ptrs.second, _max_allocated_items);
     cuMalloc(_d_queue_counter, 1);
     cuMemcpyToDevice(0, _d_queue_counter);
-    cuMemcpyToDevice(0, const_cast<int*>(_d_work_ptrs.first));
-    cuMemcpyToSymbol(make_int2(0, 0), d_queue2_counter);
-    _enable_traverse = true;
+    if (enable_traverse) {
+        cuMalloc(_d_work_ptrs.first,  _max_allocated_items);
+        cuMalloc(_d_work_ptrs.second, _max_allocated_items);
+        cuMalloc(_d_queue2_counter, 1);
+        cuMemcpyToDevice(0, const_cast<int*>(_d_work_ptrs.first));
+        cuMemcpyToDevice(make_int2(0, 0), _d_queue2_counter);
+    }
 }
 
 template<typename T>
@@ -121,7 +118,7 @@ __host__ void TwoLevelQueue<T>::clear() noexcept {
     cuMemcpyToDevice(0, _d_queue_counter);
     if (_enable_traverse) {
         cuMemcpyToDevice(0, const_cast<int*>(_d_work_ptrs.first));
-        cuMemcpyToSymbol(make_int2(0, 0), d_queue2_counter);
+        cuMemcpyToDevice(make_int2(0, 0), _d_queue2_counter);
     }
 }
 
@@ -168,7 +165,8 @@ __host__ inline void TwoLevelQueue<custinger::vid_t>
     work[0] = _num_queue_edges;
     for (int i = 0; i < num_items; i++) {
         vid_t index = items_array[i];
-        work[i + 1] = _csr_offsets[index + 1] - _csr_offsets[index];
+        work[i + 1] = _custinger.csr_offsets()[index + 1] -
+                      _custinger.csr_offsets()[index];
     }
     std::partial_sum(work, work + num_items + 1, work);
     auto ptr = const_cast<int*>(_d_work_ptrs.first) + _num_queue_vertices;
@@ -191,16 +189,18 @@ TwoLevelQueue<T>::traverse_edges(Operator op) noexcept {
         cu::printArray(_d_queue_ptrs.first, _num_queue_vertices);
 
     ExpandContractLBKernel<BLOCK_SIZE, ITEMS_PER_BLOCK>
-        <<< grid_size, BLOCK_SIZE >>> (_d_queue_ptrs,  _d_work_ptrs,
+        <<< grid_size, BLOCK_SIZE >>> (_custinger.device_data(),
+                                       _d_queue_ptrs,  _d_work_ptrs,
+                                       _d_queue2_counter,
                                        _num_queue_vertices + 1, op);
     if (CHECK_CUDA_ERROR1)
         CHECK_CUDA_ERROR
 
     int2 frontier_info;
-    cuMemcpyFromSymbolAsync(d_queue2_counter, frontier_info);
+    cuMemcpyToHostAsync(_d_queue2_counter, frontier_info);
     _num_queue_vertices = frontier_info.x;
     _num_queue_edges    = frontier_info.y;
-    cuMemcpyToSymbolAsync(make_int2(0, 0), d_queue2_counter);
+    cuMemcpyToDeviceAsync(make_int2(0, 0), _d_queue2_counter);
 
     cuMemcpyToDeviceAsync(_num_queue_edges, _d_work_ptrs.second +
                                             _num_queue_vertices);

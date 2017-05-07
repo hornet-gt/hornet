@@ -7,7 +7,7 @@ namespace custinger_alg {
 using dist_t = int;
 
 struct BfsData {
-    BfsData(const cuStinger& custinger) : queue(custinger.nV() * 2) {}
+    BfsData(cuStinger& custinger) : queue(custinger) {}
 
 	TwoLevelQueue<vid_t> queue;
     dist_t* distances;
@@ -16,7 +16,7 @@ struct BfsData {
 
 class BfsTopDown final : public StaticAlgorithm {
 public:
-    explicit BfsTopDown(const cuStinger& custinger);
+    explicit BfsTopDown(cuStinger& custinger);
     ~BfsTopDown();
 
     void set_parameters(vid_t source);

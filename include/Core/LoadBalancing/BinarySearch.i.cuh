@@ -51,7 +51,7 @@ void computeWorkKernel(const custinger::vid_t*    __restrict__ d_input,
     for (int i = id; i < num_vertices; i += stride)
         d_work[i] = d_degrees[ d_input[i] ];
     if (id == 0)
-        d_work[num_vertices] = 0;
+        d_work[num_vertices] = 0;//must be zero for prefixsum
 }
 
 } // namespace detail
@@ -70,7 +70,7 @@ inline BinarySearch
 
     const auto& csr_offsets = custinger.csr_offsets();
     auto tmp = new custinger::degree_t[custinger.nV() + 1];
-    std::adjacent_difference(csr_offsets, csr_offsets + custinger.nV(), tmp);
+    std::adjacent_difference(csr_offsets, csr_offsets + custinger.nV() + 1, tmp);
     cuMemcpyToDevice(tmp + 1, custinger.nV(), _d_degrees);
     delete[] tmp;
 }
@@ -81,40 +81,33 @@ inline BinarySearch::~BinarySearch() noexcept {
 
 template<void (*Operator)(const custinger::Vertex&, const custinger::Edge&,
                           void*)>
-inline void BinarySearch::traverse_edges(const custinger::vid_t* d_input,
-                                         int num_vertices,
-                                         void* optional_field) noexcept {
+void BinarySearch::traverse_edges(const custinger::vid_t* d_input,
+                                  int num_vertices,
+                                  void* optional_field) noexcept {
     using custinger::vid_t;
     const int ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
 
-    std::cout << "computeWorkKernel" << std::endl;
+    std::cout << num_vertices;
 
     detail::computeWorkKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
         (d_input, _d_degrees, num_vertices, _d_work);
-        //work[num_vertices] must be zero for prefixsum*/
 
     if (CHECK_CUDA_ERROR1)
         CHECK_CUDA_ERROR
 
-    std::cout << "prefixsum" << std::endl;
-
-    xlib::CubExclusiveSum<int>(_d_work, num_vertices + 1);
+    xlib::CubExclusiveSum<int> prefixsum(_d_work, num_vertices + 1);
+    prefixsum.run();
 
     int total_work;
     cuMemcpyToHost(_d_work + num_vertices, total_work);
     unsigned grid_size = xlib::ceil_div<ITEMS_PER_BLOCK>(total_work);
 
-    std::cout << "binarySearchKernel" << std::endl;
-    auto ptr = _custinger.device_data();
-    std::cout << "devdata" << std::endl;
-
     binarySearchKernel<BLOCK_SIZE, ITEMS_PER_BLOCK, Operator>
-        <<< grid_size, BLOCK_SIZE >>>(ptr, d_input,
+        <<< grid_size, BLOCK_SIZE >>>(_custinger.device_data(), d_input,
                                      _d_work, num_vertices + 1, optional_field);
-    //if (CHECK_CUDA_ERROR1)
+    if (CHECK_CUDA_ERROR1)
         CHECK_CUDA_ERROR
-    std::cout << "traverse_edges end" << std::endl;
 }
 
 template<void (*Operator)(const custinger::Vertex&, const custinger::Edge&,

@@ -41,23 +41,19 @@
 #include <Support/Device/WarpScan.cuh>        //xlib::WarpScan
 #include <Support/Device/BinarySearchLB.cuh>  //xlib::binarySearchLBAllPosNoDup
 
-/**
- * @brief
- */
 namespace custinger_alg {
-
-
-__device__ int2 d_queue2_counter;
 
 /**
  * @brief
  */
 template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK, typename Operator>
-__global__ void ExpandContractLBKernel(custinger::cuStingerDevData data,
-                                       ptr2_t<custinger::vid_t>    d_queue,
-                                       ptr2_t<int>                 d_work,
-                                       int                         num_vertices,
-                                       Operator                    op) {
+__global__
+void ExpandContractLBKernel(custinger::cuStingerDevData data,
+                            ptr2_t<custinger::vid_t>    d_queue,
+                            ptr2_t<int>                 d_work,
+                            int2*                       d_queue2_counter,
+                            int                         num_vertices,
+                            Operator                    op) {
     using namespace custinger;
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
 
@@ -87,7 +83,7 @@ __global__ void ExpandContractLBKernel(custinger::cuStingerDevData data,
             int2      info = make_int2(num_active_nodes, total_sum);
             auto  to_write = reinterpret_cast<long long unsigned&>(info);
             auto       old = atomicAdd(reinterpret_cast<long long unsigned*>
-                                       (&d_queue2_counter), to_write);
+                                       (d_queue2_counter), to_write);
             auto      old2 = reinterpret_cast<int2&>(old);
             queue_offset   = old2.x;
             prefix_sum_old = old2.y;

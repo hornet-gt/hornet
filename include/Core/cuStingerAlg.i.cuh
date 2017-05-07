@@ -1,7 +1,7 @@
 
 namespace custinger_alg {
 
-inline StaticAlgorithm::StaticAlgorithm(const custinger::cuStinger& custinger_)
+inline StaticAlgorithm::StaticAlgorithm(custinger::cuStinger& custinger_)
                                         noexcept :
                                     custinger(custinger_),
                                     load_balacing(custinger_) {}
@@ -24,15 +24,12 @@ inline T* StaticAlgorithm::register_data(T& data) noexcept {
 inline void StaticAlgorithm::syncHostWithDevice() noexcept {
     if (!_is_registered)
         ERROR("register_data() must be called before syncHostWithDevice()")
-        std::cout << "syncHostWithDevice" << std::endl;
-
     SAFE_CALL( cudaMemcpy(_h_ptr, _d_ptr, _data_size, cudaMemcpyDeviceToHost) )
 }
 
 inline void StaticAlgorithm::syncDeviceWithHost() noexcept {
     if (!_is_registered)
         ERROR("register_data() must be called before syncDeviceWithHost()")
-        std::cout << "syncDeviceWithHost" << std::endl;
     SAFE_CALL( cudaMemcpy(_d_ptr, _h_ptr, _data_size, cudaMemcpyHostToDevice) )
 }
 

@@ -8,7 +8,7 @@ namespace custinger_alg {
 //Static Algorithms Abstract class
 class StaticAlgorithm {
 public:
-    explicit StaticAlgorithm(const custinger::cuStinger& custinger_) noexcept;
+    explicit StaticAlgorithm(custinger::cuStinger& custinger_) noexcept;
 
     virtual ~StaticAlgorithm() noexcept = 0;
 
@@ -25,7 +25,7 @@ public:
 
 protected:
     load_balacing::BinarySearch load_balacing;
-    const custinger::cuStinger& custinger;
+    custinger::cuStinger&       custinger;
 
 private:
     size_t _data_size     { 0 };

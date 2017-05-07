@@ -20,7 +20,7 @@ The document is organized as follows:
 * [Acknowledgements](#acknowledgements)
 * [License](#licence)
 
-### Requirements ###
+## Requirements ##
 
 * [Nvidia Modern GPU](https://developer.nvidia.com/cuda-gpus) (compute capability >= 3.0): Kerpler, Maxwell, Pascal architectures.
 * [CUDA toolkit](https://developer.nvidia.com/cuda-toolkit) v7.5 or greater. (CUDA toolkit v8.0 recommended, CUDA toolkit v7.0 supported but not tested)
@@ -30,7 +30,7 @@ The document is organized as follows:
 
 <sup>*The next release will support C++14 (CUDA Toolkit v8.5). </sup>
 
-### Quick Start ###
+## Quick Start ##
 
 The following basic steps are required to build and execute the cuStinger algorithms:
 ```bash
@@ -40,7 +40,7 @@ cmake ..
 make -j
 ```
 
-### cuStinger Algorithms ###
+## cuStinger Algorithms ##
 
 |           Algorithm                 |    Static     | Dynamic  |
 | :-----------------------------------|:-------------:|:--------:|
@@ -54,6 +54,7 @@ make -j
 | (TC) Triangle Counting              |     yes       |   yes    |
 | (KC) Katz Centrality                |     yes       |   yes    |
 | Temporal Motif Finding              |  on-going     |  to-do   |
+| Sparse Vector-Matrix Multiplication |     yes       |    ?     |
 
 
 ## Performance ##
@@ -87,21 +88,21 @@ make -j
 | (TC) Triangle Counting              |                 |                  |          |
 | (KC) Katz Centrality                |                 |                  |          |
 
+## cuStinger Algorithms Lines of Code ##
 
-### cuStinger Algorithms Lines of Code ###
+|         Algorithm                   | Static (A) | Static (B) | Dynamic (A) |
+| :-----------------------------------|:----------:|-----------:|:-----------:|
+| (BFS) Breadth-first Search          |     4      |     6      |             |
+| (SSSP) Single-Source Shortest Path  |            |            |             |
+| (CC) Connected Components           |            |            |             |
+| (MST) Minimum Spanning Tree         |            |            |             |
+| (BC) Betweenness Centrality         |            |            |             |
+| (PG) Page Rank                      |            |            |             |
+| (TC) Triangle Counting              |            |            |             |
+| (KC) Katz Centrality                |            |            |             |
 
-|         Algorithm                   | Static<sup>*</sup> | Dynamic<sup>*</sup> |
-| :-----------------------------------|:------------------:|:-------------------:|
-| (BFS) Breadth-first Search          |                    |                     |
-| (SSSP) Single-Source Shortest Path  |                    |                     |
-| (CC) Connected Components           |                    |                     |
-| (MST) Minimum Spanning Tree         |                    |                     |
-| (BC) Betweenness Centrality         |                    |                     |
-| (PG) Page Rank                      |                    |                     |
-| (TC) Triangle Counting              |                    |                     |
-| (KC) Katz Centrality                |                    |                     |
-
-<sup>* lines of code required for the algorithm </sup>
+<sup>(A) lines of code required for the algorithm </sup>
+<sup>(B) lines of code required for the operators </sup>
 
 ### Reporting bugs and contributing ###
 

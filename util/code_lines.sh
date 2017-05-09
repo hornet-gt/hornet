@@ -1,6 +1,6 @@
 #!/bin/bash
-dir=`dirname $0`
-ABS_PATH=`cd "$dir"; pwd`
+rel_dir=`dirname $0`
+dir=`cd "$rel_dir"; pwd`
 
 if [ ! -e "$dir/cloc" ]; then
     echo "./cloc does not exist."
@@ -10,14 +10,23 @@ if [ ! -x "$dir/cloc" ]; then
     chmod +x "$dir/cloc"
 fi
 
-"$dir/cloc" $dir/../include/ $dir/../src/ $dir/../test/
+"$dir/cloc" "$dir/../include" "$dir/../src" "$dir/../test"                     \
+            "$dir/../externals/cuStinger/include"                              \
+            "$dir/../externals/cuStinger/src"
+
 if [ $? -ne 0 ]; then exit 1; fi
 
-cd "$ABS_PATH/../include/"
-"$ABS_PATH/cloc" --by-file .
+cd "$dir/../include/"
+"$dir/cloc" --by-file .
 
-cd "$ABS_PATH/../src/"
-"$ABS_PATH/cloc" --by-file .
+cd "$dir/../src/"
+"$dir/cloc" --by-file .
 
-cd "$ABS_PATH/../test/"
-"$ABS_PATH/cloc" --by-file .
+cd "$dir/../test/"
+"$dir/cloc" --by-file .
+
+cd "$dir/../externals/cuStinger/include/"
+"$dir/cloc" --by-file .
+
+cd "$dir/../externals/cuStinger/src/"
+"$dir/cloc" --by-file .

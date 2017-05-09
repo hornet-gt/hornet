@@ -63,6 +63,9 @@ static_assert(xlib::IsPower2<MIN_EDGES_PER_BLOCK>::value  &&
               "Memory Management Constrains");
 
 //------------------------------------------------------------------------------
+/**
+ * @brief Container for a set of *BlockArrays* of the same sime
+ */
 template<typename T>
 using Container = std::vector<T>;
 
@@ -168,6 +171,9 @@ public:
      */
     std::pair<edge_t*, edge_t*> get_block_array_ptr(int block_index) noexcept;
 
+    /**
+     * @brief Deallocate all host and device *BlockArrays*
+     */
     void clear() noexcept;
 
 private:

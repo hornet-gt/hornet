@@ -1,5 +1,6 @@
 /**
  * @internal
+ * @brief Vec-Tree interface
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
@@ -61,7 +62,7 @@ namespace custinger {
  */
 template<typename T, unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
 class BitTree {
-    using word_t = char;//unsigned;
+    using word_t = unsigned;
     static_assert(BLOCK_ITEMS <= BLOCKARRAY_ITEMS, "BitTree Constrains");
 public:
     /**
@@ -118,7 +119,7 @@ public:
      * @brief Check if a particular *block* address belong to the actual
      *        *BlockArray*
      * @param[in] ptr pointer to check
-     * @return `true` if ptr belong to *BitTree*  the actual *BlockArray*,
+     * @return `true` if `ptr` belong to *BitTree*  the actual *BlockArray*,
      *         `false` otherwise
      */
     bool belong_to(T* ptr) const noexcept;

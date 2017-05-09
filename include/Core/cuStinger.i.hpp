@@ -87,17 +87,19 @@ inline const vid_t* cuStingerInit::csr_edges() const noexcept {
 ///////////////
 
 inline size_t cuStinger::nV() const noexcept {
-    return _custinger_init.nV();
+    return _nV;
 }
 
 inline size_t cuStinger::nE() const noexcept {
-    return _custinger_init.nE();
+    return _nE;
 }
 
+// TO CHECK !!!!
 inline const eoff_t* cuStinger::csr_offsets() const noexcept {
     return _custinger_init.csr_offsets();
 }
 
+// TO CHECK !!!!
 inline const vid_t* cuStinger::csr_edges() const noexcept {
     return _custinger_init.csr_edges();
 }

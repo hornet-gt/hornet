@@ -56,7 +56,7 @@ void BFS<vid_t, eoff_t>::run(vid_t source) noexcept {
     if (!_reset)
         ERROR("BFS must be reset before the next run")
     _queue.insert(source);
-    _bitmask[source]  = true;
+    _bitmask[source]   = true;
     _distances[source] = 0;
 
     while (!_queue.is_empty()) {
@@ -65,7 +65,7 @@ void BFS<vid_t, eoff_t>::run(vid_t source) noexcept {
                 j < _graph._out_offsets[current + 1]; j++) {
             auto dest = _graph._out_edges[j];
             if (!_bitmask[dest]) {
-                _bitmask[dest] = true;
+                _bitmask[dest]   = true;
                 _distances[dest] = _distances[current] + 1;
                 _queue.insert(dest);
             }

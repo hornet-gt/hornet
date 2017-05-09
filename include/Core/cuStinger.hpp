@@ -1,4 +1,5 @@
 /**
+ * @brief cuStinger, cuStingerInit, BatchUpdatem and BatchProperty classes
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
@@ -41,12 +42,9 @@
 #include "Core/MemoryManager.hpp"
 #include <cstddef>                      //size_t
 
-namespace csr {
-    class Csr;
-}
-
 /**
- * @brief
+ * @brief The namespace contanins all classes and methods related to the
+ *        cuStinger data structure
  */
 namespace custinger {
 
@@ -58,10 +56,9 @@ class cuStinger;
  */
 class cuStingerInit {
     friend cuStinger;
-    friend csr::Csr;
 public:
     /**
-     * @brief default costructor
+     * @brief Default costructor
      * @param[in] num_vertices number of vertices
      * @param[in] num_edges number of edges
      * @param[in] csr_offsets csr offsets array
@@ -98,22 +95,26 @@ public:
     void insertEdgeData(TArgs... edge_data) noexcept;
 
     /**
-     *
+     * @brief number of vertices in the graph passed to the costructor
+     * @return number of vertices in the graph
      */
     size_t nV() const noexcept;
 
     /**
-     *
+     * @brief number of edges in the graph passed to the costructor
+     * @return number of edges in the graph
      */
     size_t nE() const noexcept;
 
     /**
-     *
+     * @brief CSR offsets of the graph passed to the costructor
+     * @return constant pointer to the csr offsets
      */
     const eoff_t* csr_offsets() const noexcept;
 
     /**
-     *
+     * @brief CSR edges of the graph passed to the costructor
+     * @return constant pointer to the csr edges
      */
     const vid_t* csr_edges() const noexcept;
 
@@ -129,14 +130,25 @@ private:
      * @brief Array of pointers of the *all* edge data
      */
     const byte_t* _edge_data_ptrs[ NUM_ETYPES ] = {};
-    size_t       _nV;
-    size_t       _nE;
+    size_t        _nV;
+    size_t        _nE;
 };
 
 //==============================================================================
 
+/**
+ * @internal
+ * @brief The structure contanins all information to use the cuStinger data
+ *        structure in the device
+ */
 struct cuStingerDevData {
+    /**
+     * @brief array of pointers to vertex data
+     * @detail the first element points to the structure that contanins the
+     *         edge pointer and the degree of the vertex
+     */
     byte_t* d_vertex_ptrs[NUM_VTYPES];
+    ///@brief number of vertices in the graph
     vid_t   nV;
 };
 
@@ -148,12 +160,14 @@ public:
     /**
      * @brief default costructor
      * @param[in] custinger_init cuStinger initilialization data structure
+     * @param[in] traspose if `true` traspose the input graph, keep the initial
+     *            representation otherwise
      */
     explicit cuStinger(const cuStingerInit& custinger_init,
                        bool traspose = false) noexcept;
 
     /**
-     * @brief decostructor
+     * @brief Decostructor
      */
     ~cuStinger() noexcept;
 
@@ -167,53 +181,71 @@ public:
      * @brief Check the consistency of the device data structure with the host
      *        data structure provided in the input
      * @details revert the initilization process to rebuild the device data
-     *          structure on the host
+     *          structure on the host and then perform the comparison
      */
     void check_consistency(const cuStingerInit& custinger_init) const noexcept;
 
+    /**
+     * @brief store the actual custinger representation to disk for future use
+     * @param[in] filename name of the file where the graph
+     */
     void store_snapshot(const std::string& filename) const noexcept;
 
+    /**
+     * @brief unique identifier of the cuStinger instance among all created
+     *        instances
+     * @return unique identifier
+     */
     int id() const noexcept;
 
     /**
-     *
+     * @brief **actual** number of vertices in the graph
+     * @return actual number of vertices
      */
     size_t nV() const noexcept;
 
     /**
-     *
+     * @brief **actual** number of edges in the graph
+     * @return actual number of edges
      */
     size_t nE() const noexcept;
 
     /**
-     *
+     * @brief **actual** csr offsets of the graph
+     * @return pointer to csr offsets
      */
     const eoff_t* csr_offsets() const noexcept;
 
     /**
-     *
+     * @brief **actual** csr edges of the graph
+     * @return pointer to csr edges
      */
     const vid_t* csr_edges() const noexcept;
 
     /**
-     *
+     * @brief **actual** device csr offsets of the graph
+     * @return device pointer to csr offsets
      */
     const eoff_t* device_csr_offsets() noexcept;
 
+    /**
+     * @brief device data to used the cuStinger data structure on the device
+     * @return device data associeted to the cuStinger instance
+     */
     cuStingerDevData device_data() const noexcept;
-    
+
 private:
     static int global_id;
 
     MemoryManager mem_manager;
-
-    byte_t* _d_vertex_ptrs[NUM_VTYPES];
 
     /**
      * @internal
      * @brief device pointer for *all* vertex data
      *        (degree and edge pointer included)
      */
+    byte_t* _d_vertex_ptrs[NUM_VTYPES];
+
     const cuStingerInit& _custinger_init;
     const eoff_t* _csr_offsets;
     const vid_t*  _csr_edges;
@@ -226,8 +258,18 @@ private:
 
     void initialize() noexcept;
 
+    /**
+     * @internal
+     * @brief traspose the cuStinger graph directly on the device
+     */
     void transpose() noexcept;
 
+    /**
+     * @internal
+     * @brief convert the actual cuStinger graph into csr offsets and csr edges
+     * @param[out] csr_offsets csr offsets to build
+     * @param[out] csr_offsets csr edges to build
+     */
     void convert_to_csr(eoff_t* csr_offsets, vid_t* csr_edges) const noexcept;
 };
 

@@ -1,4 +1,5 @@
 /**
+ * @brief High-level API to access to cuStinger data (Vertex, Edge)
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
@@ -51,25 +52,25 @@ class EdgeIt;
 
 class Vertex {
     friend class VertexSet;
-    friend __global__ void printKernel();
-    //template<typename> friend __global__ custinger_alg::LoadBalancingContract;
 public:
     /**
+     * @internal
      * @brief Default costructor
+     * @param[in] data cuStinger device data
      */
     __device__ __forceinline__
     Vertex(cuStingerDevData data, vid_t index);
 
     /**
-     * @brief
-     * @return
+     * @brief id of the vertex
+     * @return id of the vertex
      */
     __device__ __forceinline__
     degree_t id() const;
 
     /**
-     * @brief Out-degree of the vertex
-     * @return out-degree of the vertex
+     * @brief degree of the vertex
+     * @return degree of the vertex
      */
     __device__ __forceinline__
     degree_t degree() const;
@@ -83,7 +84,6 @@ public:
      *         contain atleast `INDEX` fields
      * @details **Example:**
      * @code{.cpp}
-     *      Vertex vertex = ...
      *      auto vertex_label = vertex.field<0>();
      * @endcode
      */
@@ -93,35 +93,49 @@ public:
     field() const;
 
     /**
-     * @brief Edge of the vertex
-     * @return edge at the index `index`
+     * @brief Get an edge associeted to the vertex
+     * @param[in] index index of the edge
+     * @return edge at index `index`
      * @warning `index` must be in the range \f$0 \le index < degree\f$.
      * The behavior is undefined otherwise.
      */
     __device__ __forceinline__
     Edge edge(eoff_t index) const;
 
+    /**
+     * @internal
+     * @brief return the limit (upper approximation) of the degree of the vertex
+     * @return number of edges in the actual *block*
+     */
     __device__ __forceinline__
     degree_t limit() const;
 
-protected:
-    vid_t     _id;
-    degree_t _degree;
-    byte_t*  _ptrs[NUM_EXTRA_VTYPES];
-
-    __device__ __forceinline__
-    Vertex() {}
-
-private:
-    VertexBasicData* _vertex_ptr;
-    byte_t*  _edge_ptr;
-    degree_t _limit;
-
+    /**
+     * @internal
+     * @brief pointer to the device degree location
+     * @return pointer to the device degree location
+     */
     __device__ __forceinline__
     degree_t* degree_ptr();
 
+    /**
+     * @internal
+     * @brief store an edge at a specific index in the adjacency array
+     * @param[in] edge edge to store
+     * @param[in] index where substite the edge
+     */
     __device__ __forceinline__
     void store(const Edge& edge, degree_t index);
+
+protected:
+    vid_t    _id;
+    degree_t _degree;
+    byte_t*  _ptrs[NUM_EXTRA_VTYPES];
+
+private:
+    VertexBasicData* _vertex_ptr;
+    byte_t*          _edge_ptr;
+    degree_t         _limit;
 };
 
 //==============================================================================
@@ -156,7 +170,6 @@ public:
      *         atleast one field
      * @details **Example:**
      * @code{.cpp}
-     *      Edge edge = ...
      *      auto edge_weight = edge.weight();
      * @endcode
      */
@@ -206,9 +219,14 @@ protected:
     vid_t    _dst;
     byte_t* _ptrs[NUM_EXTRA_ETYPES];
 
-    __device__ __forceinline__
-    Edge() {}
 private:
+    /**
+     * @internal
+     * @brief Default Costrustor
+     * @param[in] block_ptr pointer in the *block* to the edge
+     * @param[in] index index of the edge in the adjacency array
+     * @param[in] size of the *block*
+     */
     __device__ __forceinline__
     Edge(byte_t* block_ptr, degree_t index, degree_t limit);
 };

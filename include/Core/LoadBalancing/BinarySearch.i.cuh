@@ -57,15 +57,10 @@ void computeWorkKernel(const custinger::vid_t*    __restrict__ d_input,
 } // namespace detail
 //------------------------------------------------------------------------------
 
-inline BinarySearch
-::BinarySearch(const custinger::cuStinger& custinger)
-    noexcept : BinarySearch(custinger, custinger.nV() * 2) {}
-
-inline BinarySearch
-::BinarySearch(const custinger::cuStinger& custinger,
-               int max_allocated_items) noexcept : _custinger(custinger) {
-
-    cuMalloc(_d_work, max_allocated_items);
+inline BinarySearch::BinarySearch(const custinger::cuStinger& custinger)
+                                  noexcept :
+                                    _custinger(custinger){
+    cuMalloc(_d_work, custinger.nV() + 1);
     cuMalloc(_d_degrees, custinger.nV());
 
     const auto& csr_offsets = custinger.csr_offsets();
@@ -86,6 +81,8 @@ void BinarySearch::traverse_edges(const custinger::vid_t* d_input,
                                   void* optional_field) noexcept {
     using custinger::vid_t;
     const int ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
+
+    cu::printArray(d_input, num_vertices);
 
     detail::computeWorkKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>

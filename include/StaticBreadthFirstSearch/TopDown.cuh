@@ -1,4 +1,5 @@
 /**
+ * @brief Top-Down implementation of Breadth-first Search by using C-Style APIs
  * @author Oded Green, Federico Busato                                      <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it

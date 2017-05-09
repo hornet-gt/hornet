@@ -1,3 +1,7 @@
+/**
+ * @brief Breadth-first Search Top-Down test program (C++11 Style APIs)
+ * @file
+ */
 #include "StaticBreadthFirstSearch/TopDown++.cuh"
 
 int main(int argc, char* argv[]) {

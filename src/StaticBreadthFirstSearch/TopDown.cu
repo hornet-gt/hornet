@@ -20,7 +20,8 @@ void BFSOperatorAtomic(const Vertex& src, const Edge& edge,
                        void* optional_field) {
     auto bfs_data = reinterpret_cast<BfsData*>(optional_field);
     auto dst = edge.dst();
-    auto old = atomicCAS(bfs_data->distances + dst, INF, bfs_data->current_level);
+    auto old = atomicCAS(bfs_data->distances + dst, INF,
+                         bfs_data->current_level);
     if (old == INF)
         bfs_data->queue.insert(dst);         // the vertex dst is active
 }

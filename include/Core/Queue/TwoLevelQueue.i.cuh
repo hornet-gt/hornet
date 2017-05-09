@@ -33,10 +33,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Core/Queue/ExpandContractKernel.cuh"   //cuMemcpyToDeviceAsync
-#include <Support/Device/Definition.cuh>    //xlib::SMemPerBlock
-#include <Support/Device/PrintExt.cuh>      //cu::printArray
-#include <Support/Device/SafeCudaAPI.cuh>   //cuMemcpyToDeviceAsync
+#include "Core/Queue/ExpandContractKernel.cuh"  //cuMemcpyToDeviceAsync
+#include <Support/Device/Definition.cuh>        //xlib::SMemPerBlock
+#include <Support/Device/PrintExt.cuh>          //cu::printArray
+#include <Support/Device/SafeCudaAPI.cuh>       //cuMemcpyToDeviceAsync
 
 namespace custinger_alg {
 
@@ -48,7 +48,7 @@ inline void ptr2_t<T>::swap() noexcept {
 //------------------------------------------------------------------------------
 
 template<typename T>
-TwoLevelQueue<T>::TwoLevelQueue(custinger::cuStinger& custinger,
+TwoLevelQueue<T>::TwoLevelQueue(const custinger::cuStinger& custinger,
                                 bool enable_traverse,
                                 size_t max_allocated_items) noexcept :
              _custinger(custinger),
@@ -153,11 +153,7 @@ __host__ void TwoLevelQueue<T>::print() const noexcept {
 //------------------------------------------------------------------------------
 
 template<typename T>
-__host__ void
-TwoLevelQueue<T>::work_evaluate(const T* items_array, int num_items) noexcept {}
-
-template<>
-__host__ inline void TwoLevelQueue<custinger::vid_t>
+__host__ typename TwoLevelQueue<T>::EnableTraverse
 ::work_evaluate(const custinger::vid_t* items_array, int num_items) noexcept{
     using custinger::vid_t;
 

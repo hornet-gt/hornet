@@ -58,7 +58,7 @@ struct BFSOperatorNoAtomic {
             d_distances[dst] = current_level;
             return true;             // the vertex dst is active
         }
-        return false;
+        return false;                // the vertex dst is not active
     }
 
 };

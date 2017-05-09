@@ -39,18 +39,54 @@
 
 namespace custinger_alg {
 
+/**
+ * @brief The class implements a general type *device* queue
+ * @tparam T type of objects stored in the queue
+ * @tparam SIZE number of thread registers used to temporaly store the queue
+ *         objects. If `SIZE == 1` the store operation in global memory is
+ *         immediately executed by using an optimized binary prefix-sum to
+ *         ensure memory coalecing. If `SIZE > 1` the object are temporaly
+ *         stored in the registers and then stored in global memory by using an
+ *         optimized warp-shuffle prefix-sum when the capacity is equal to
+ *         `SIZE`
+ * @remark the number of global atomic operations is equal to
+ *         \f$\lceil \frac{total\_enqueue_items}{SIZE} \rceil$\f
+ * @remark only `SIZE == 1` ensures full-coalescing. It is progressibely lost
+ *         for `SIZE > 1`
+ * @remark more big is `SIZE` more the register pressure increase
+ */
 template<typename T, int SIZE = 16>
 class DeviceQueue {
 public:
+    /**
+     * @brief Default costructor
+     * @param[in] queue_ptr **initial** pointer to the global memory queue
+     * @param[in] size_ptr pointer to global counter of the number of queue
+     *            items
+     * @pre `size_ptr` must be zero before used the class
+     */
     __device__ __forceinline__
-    DeviceQueue(T*   __restrict__ queue_ptr, int* __restrict__ size_ptr);
+    DeviceQueue(T* __restrict__ queue_ptr, int* __restrict__ size_ptr);
 
+    /**
+     * @brief insert an item in the queue
+     * @param item item to insert
+     * @remark after this method call the item is **not** stored in global
+     *         memory
+     */
     __device__ __forceinline__
     void insert(T item);
 
+    /**
+     * @brief actual number of items temporary stored in local queue (register)
+     * @return number of items in the local queue
+     */
     __device__ __forceinline__
     int size() const;
 
+    /**
+     * @brief store the actual items of the queue in global memory
+     */
     __device__ __forceinline__
     void store();
 

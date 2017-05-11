@@ -34,8 +34,10 @@
  * </blockquote>}
  */
 #include "Core/cuStinger.hpp"
-#include "Core/cuStingerTypes.cuh"        //VertexBasicData
-#include "Support/Device/CubWrapper.cuh"  //CubSortByValue
+#include "Core/cuStingerTypes.cuh"              //VertexBasicData
+#include "Support/Device/CubWrapper.cuh"        //CubSortByValue
+#include "Support/Device/Definition.cuh"        //xlib::SMemPerBlock
+#include "Support/Device/BinarySearchLB.cuh"    //xlib::binarySearchLB
 
 namespace custinger {
 
@@ -84,38 +86,64 @@ void cuStinger::print() noexcept {
     }
 }
 
+template<unsigned BLOCK_SIZE>
+__global__ void CSRtoCOOKernel(const eoff_t* __restrict__ csr_offsets,
+                               vid_t nV,
+                               vid_t* __restrict__ coo_src) {
+    __shared__ int smem[xlib::SMemPerBlock<BLOCK_SIZE, int>::value];
+
+    const auto lambda = [&](int pos, eoff_t offset) {
+                            eoff_t index = csr_offsets[pos] + offset;
+                            coo_src[index] = pos;
+                        };
+    xlib::binarySearchLB<BLOCK_SIZE>(csr_offsets, nV, smem, lambda);
+}
+
+/*
+ * !!!!! 4E + 2V
+ */
 void cuStinger::transpose() noexcept {
+    const unsigned BLOCK_SIZE = 256;
     mem_manager.clear();
 
     eoff_t* d_csr_offsets, *d_counts_out;
-    vid_t*  d_csr_edges, *d_unique_out, *d_csr_edges_sorted;
+    vid_t*  d_coo_src, *d_coo_dst, *d_coo_src_out, *d_coo_dst_out,*d_unique_out;
     cuMalloc(d_csr_offsets, _nV + 1);
-    cuMalloc(d_csr_edges, _nE);
-    cuMalloc(d_csr_edges_sorted, _nE);
+    cuMalloc(d_coo_src, _nE);
+    cuMalloc(d_coo_dst, _nE);
+    cuMalloc(d_coo_src_out, _nE);
+    cuMalloc(d_coo_dst_out, _nE);
     cuMalloc(d_counts_out, _nV + 1);
     cuMalloc(d_unique_out, _nV);
     cuMemcpyToDeviceAsync(_csr_offsets, _nV + 1, d_csr_offsets);
-    cuMemcpyToDeviceAsync(_csr_edges, _nE, d_csr_edges);
+    cuMemcpyToDeviceAsync(_csr_edges, _nE, d_coo_dst);
     cuMemcpyToDeviceAsync(0, d_counts_out + _nV);
 
-    xlib::CubSortByValue<vid_t>(d_csr_edges, _nE, d_csr_edges_sorted, _nV - 1);
-    xlib::CubRunLengthEncode<vid_t, eoff_t>(d_csr_edges_sorted, _nE,
-                                            d_unique_out, d_counts_out);
-    cuMemset0x00(d_unique_out, _nV);
-    xlib::CubExclusiveSum<eoff_t>(d_counts_out, _nV + 1);
+    CSRtoCOOKernel<BLOCK_SIZE>
+        <<< xlib::ceil_div<BLOCK_SIZE>(_nV), BLOCK_SIZE >>>
+        (d_csr_offsets, _nV, d_coo_dst);
 
-    //transpose_edges(d_csr_offsets, d_csr_edges, d_counts_out, d_unique_out
-    //               [](atomicAdd(&, 1));
-    cuFree(d_csr_offsets, d_csr_edges, d_csr_edges_sorted, d_counts_out,
-           d_unique_out);
+    xlib::CubSortByKey<vid_t, vid_t>(d_coo_dst, d_coo_src, _nE,
+                                     d_coo_dst_out, d_coo_src_out, _nV - 1);
+    xlib::CubRunLengthEncode<vid_t, eoff_t>(d_coo_dst_out, _nE,
+                                            d_unique_out, d_counts_out);
+    xlib::CubExclusiveSum<eoff_t>(d_counts_out, _nV + 1);
 
     _csr_offsets = new eoff_t[_nV + 1];
     _csr_edges   = new vid_t[_nV + 1];
-    cuMemcpyToHostAsync(d_csr_offsets, _nV + 1,
+    cuMemcpyToHostAsync(d_counts_out, _nV + 1,
                         const_cast<eoff_t*>(_csr_offsets));
-    cuMemcpyToHostAsync(d_csr_edges, _nE, const_cast<vid_t*>(_csr_edges));
+    cuMemcpyToHostAsync(d_coo_src_out, _nE, const_cast<vid_t*>(_csr_edges));
     _internal_csr_data = true;
+    cuFree(d_coo_dst, d_coo_src, d_counts_out, d_unique_out,
+           d_coo_src_out, d_counts_out);
     initialize();
 }
+/*s
+vid_t cuStinger::max_degree_vertex() const noexcept {
+    auto ptr = reinterpret_cast<VertexBasicData*>(_d_vertex_ptrs[0]);
+    xlib::CubArgMax<VertexBasicData> arg_max(ptr, _nV);
+    return arg_max.run().second;
+}*/
 
 } // namespace custinger

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['num_5fblockarrays',['num_blockarrays',['../classcustinger_1_1MemoryManager.html#a922dbd59f0a738ff52082d2d501480b6',1,'custinger::MemoryManager']]]
+  ['operator_3d',['operator=',['../classcustinger_1_1BitTree.html#ad4f1cd43aeffa48dc6d0819f59a10fa0',1,'custinger::BitTree']]]
 ];

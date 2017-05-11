@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['vertex',['Vertex',['../classcustinger_1_1Vertex.html#aa1a8596cb5bbf017d5f4296b1bfb16a4',1,'custinger::Vertex::Vertex()'],['../classcsr_1_1Vertex.html#a077f62f0482d27c8c70a50a4bc87fce5',1,'csr::Vertex::Vertex()']]]
+  ['warp_5fbase',['warp_base',['../namespacexlib.html#a7e4c7cb9d1699f8ebcf8dc1182980917',1,'xlib']]],
+  ['warp_5fid',['warp_id',['../namespacexlib.html#ababac4d60ba29f7438d5a472e877279e',1,'xlib']]],
+  ['weight',['weight',['../classcustinger_1_1Edge.html#a4dbfee48f481ee5cf6f246758dffd2bc',1,'custinger::Edge']]]
 ];

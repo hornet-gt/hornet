@@ -27,6 +27,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #pragma once
 
+#include <cub.cuh>
 #include <limits>
 
 namespace xlib {
@@ -181,6 +182,17 @@ private:
     T*    _d_vector_y;
     T*    _d_values;
     int   _num_rows, _num_cols, _num_nonzeros;
+};
+
+
+template<typename T>
+class CubArgMax : public CubWrapper {
+public:
+    explicit CubArgMax(const T* d_in, size_t size) noexcept;
+    typename std::pair<int, T> run() noexcept;
+private:
+    const T*                   _d_in;
+    cub::KeyValuePair<int, T>* _d_out;
 };
 
 } // namespace xlib

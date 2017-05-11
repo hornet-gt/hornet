@@ -1,12 +1,9 @@
 var searchData=
 [
-  ['queue',['Queue',['../classxlib_1_1Queue.html',1,'xlib']]],
-  ['queue_3c_20t_2c_20queuepolicy_3a_3afifo_20_3e',['Queue&lt; T, QueuePolicy::FIFO &gt;',['../classxlib_1_1Queue_3_01T_00_01QueuePolicy_1_1FIFO_01_4.html',1,'xlib']]],
-  ['queue_3c_20t_2c_20queuepolicy_3a_3alifo_20_3e',['Queue&lt; T, QueuePolicy::LIFO &gt;',['../classxlib_1_1Queue_3_01T_00_01QueuePolicy_1_1LIFO_01_4.html',1,'xlib']]],
-  ['queue_3c_20vid_5ft_20_3e',['Queue&lt; vid_t &gt;',['../classxlib_1_1Queue.html',1,'xlib']]],
-  ['queuebase',['QueueBase',['../classxlib_1_1detail_1_1QueueBase.html',1,'xlib::detail']]],
-  ['queuestack',['QueueStack',['../classxlib_1_1QueueStack.html',1,'xlib']]],
-  ['queuestack_3c_20t_2c_20size_2c_20queuepolicy_3a_3afifo_20_3e',['QueueStack&lt; T, SIZE, QueuePolicy::FIFO &gt;',['../classxlib_1_1QueueStack_3_01T_00_01SIZE_00_01QueuePolicy_1_1FIFO_01_4.html',1,'xlib']]],
-  ['queuestack_3c_20t_2c_20size_2c_20queuepolicy_3a_3alifo_20_3e',['QueueStack&lt; T, SIZE, QueuePolicy::LIFO &gt;',['../classxlib_1_1QueueStack_3_01T_00_01SIZE_00_01QueuePolicy_1_1LIFO_01_4.html',1,'xlib']]],
-  ['queuestackbase',['QueueStackBase',['../classxlib_1_1detail_1_1QueueStackBase.html',1,'xlib::detail']]]
+  ['rounddiv',['RoundDiv',['../structxlib_1_1RoundDiv.html',1,'xlib']]],
+  ['rounddownpow2',['RoundDownPow2',['../structxlib_1_1RoundDownPow2.html',1,'xlib']]],
+  ['rounddownpow2ull',['RoundDownPow2Ull',['../structxlib_1_1RoundDownPow2Ull.html',1,'xlib']]],
+  ['rounduppow2',['RoundUpPow2',['../structxlib_1_1RoundUpPow2.html',1,'xlib']]],
+  ['rounduppow2ull',['RoundUpPow2Ull',['../structxlib_1_1RoundUpPow2Ull.html',1,'xlib']]],
+  ['row',['Row',['../classxlib_1_1Row.html',1,'xlib']]]
 ];

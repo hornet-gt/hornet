@@ -234,6 +234,8 @@ public:
      */
     cuStingerDevData device_data() const noexcept;
 
+    vid_t max_degree_vertex() const noexcept;
+
 private:
     static int global_id;
 

@@ -27,7 +27,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #include "Support/Device/SafeCudaAPI.cuh"
 #include "Support/Host/Numeric.hpp"
-#include <cub.cuh>
 
 namespace xlib {
 
@@ -348,5 +347,26 @@ void CubSpMV<T>::run() noexcept {
                            _num_rows, _num_cols, _num_nonzeros);
 }
 
+//------------------------------------------------------------------------------
+
+
+template<typename T>
+CubArgMax<T>::CubArgMax(const T* d_in, size_t num_items) noexcept :
+                                    _d_in(d_in), CubWrapper(num_items) {
+    cuMalloc(_d_out, 1);
+    cub::DeviceReduce::ArgMax(_d_temp_storage, _temp_storage_bytes, _d_in,
+                              _d_out, _num_items);
+    SAFE_CALL( cudaMalloc(&_d_temp_storage, _temp_storage_bytes) )
+}
+
+template<typename T>
+typename std::pair<int, T>
+CubArgMax<T>::run() noexcept {
+    cub::DeviceReduce::ArgMax(_d_temp_storage, _temp_storage_bytes, _d_in,
+                              _d_out, _num_items);
+    cub::KeyValuePair<int, T> h_out;
+    cuMemcpyToHost(_d_out, h_out);
+    return std::pair<int, T>(h_out.value, h_out.key);
+}
 
 } // namespace xlib

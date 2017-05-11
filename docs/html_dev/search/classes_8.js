@@ -1,7 +1,8 @@
 var searchData=
 [
-  ['log2',['Log2',['../structxlib_1_1Log2.html',1,'xlib']]],
-  ['log2ull',['Log2Ull',['../structxlib_1_1Log2Ull.html',1,'xlib']]],
-  ['lowerapprox',['LowerApprox',['../structxlib_1_1LowerApprox.html',1,'xlib']]],
-  ['lowerapproxull',['LowerApproxUll',['../structxlib_1_1LowerApproxUll.html',1,'xlib']]]
+  ['make2str',['Make2Str',['../structxlib_1_1Make2Str.html',1,'xlib']]],
+  ['max',['Max',['../structxlib_1_1Max.html',1,'xlib']]],
+  ['memorymanager',['MemoryManager',['../classcustinger_1_1MemoryManager.html',1,'custinger']]],
+  ['min',['Min',['../structxlib_1_1Min.html',1,'xlib']]],
+  ['myseps',['myseps',['../structxlib_1_1myseps.html',1,'xlib']]]
 ];

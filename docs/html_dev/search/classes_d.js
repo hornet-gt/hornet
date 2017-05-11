@@ -1,9 +1,6 @@
 var searchData=
 [
-  ['rounddiv',['RoundDiv',['../structxlib_1_1RoundDiv.html',1,'xlib']]],
-  ['rounddownpow2',['RoundDownPow2',['../structxlib_1_1RoundDownPow2.html',1,'xlib']]],
-  ['rounddownpow2ull',['RoundDownPow2Ull',['../structxlib_1_1RoundDownPow2Ull.html',1,'xlib']]],
-  ['rounduppow2',['RoundUpPow2',['../structxlib_1_1RoundUpPow2.html',1,'xlib']]],
-  ['rounduppow2ull',['RoundUpPow2Ull',['../structxlib_1_1RoundUpPow2Ull.html',1,'xlib']]],
-  ['row',['Row',['../classxlib_1_1Row.html',1,'xlib']]]
+  ['seq',['Seq',['../structxlib_1_1Seq.html',1,'xlib']]],
+  ['seqdev',['SeqDev',['../structxlib_1_1SeqDev.html',1,'xlib']]],
+  ['structure',['Structure',['../classgraph_1_1Structure.html',1,'graph']]]
 ];

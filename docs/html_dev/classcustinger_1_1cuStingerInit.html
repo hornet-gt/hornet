@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>cuSTINGER: custinger::cuStingerInit Class Reference</title>
+<title>cuStinger: custinger::cuStingerInit Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -28,10 +28,10 @@
  <tr style="height: 56px;">
   <td id="projectlogo"><img alt="Logo" src="logo.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">cuSTINGER
+   <div id="projectname">cuStinger
    &#160;<span id="projectnumber">v2</span>
    </div>
-   <div id="projectbrief">High-Performance Streaming Graph on GPUs</div>
+   <div id="projectbrief">High-Performance Streaming Graph Analytics on GPUs</div>
   </td>
  </tr>
  </tbody>
@@ -67,7 +67,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><b>custinger</b></li><li class="navelem"><a class="el" href="classcustinger_1_1cuStingerInit.html">cuStingerInit</a></li>  </ul>
+<li class="navelem"><a class="el" href="namespacecustinger.html">custinger</a></li><li class="navelem"><a class="el" href="classcustinger_1_1cuStingerInit.html">cuStingerInit</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -85,8 +85,8 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a699576150d4e643a76ba3d4daf57fb5b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger_1_1cuStingerInit.html#a699576150d4e643a76ba3d4daf57fb5b">cuStingerInit</a> (size_t num_vertices, size_t num_edges, const <a class="el" href="config_8inc.html#adaddaaa82ec6ddecc658d41589bc5f46">eoff_t</a> *csr_offsets, const <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">vid_t</a> *csr_edges) noexcept</td></tr>
-<tr class="memdesc:a699576150d4e643a76ba3d4daf57fb5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">default costructor  <a href="#a699576150d4e643a76ba3d4daf57fb5b">More...</a><br /></td></tr>
+<tr class="memitem:a699576150d4e643a76ba3d4daf57fb5b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger_1_1cuStingerInit.html#a699576150d4e643a76ba3d4daf57fb5b">cuStingerInit</a> (size_t num_vertices, size_t num_edges, const <a class="el" href="config_8inc.html#adaddaaa82ec6ddecc658d41589bc5f46">eoff_t</a> *<a class="el" href="classcustinger_1_1cuStingerInit.html#a38f446db8202bef12d0f42c1ea84aa4f">csr_offsets</a>, const <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">vid_t</a> *<a class="el" href="classcustinger_1_1cuStingerInit.html#a68486d4cc9aaed0ec2a02075c95e69d7">csr_edges</a>) noexcept</td></tr>
+<tr class="memdesc:a699576150d4e643a76ba3d4daf57fb5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default costructor.  <a href="#a699576150d4e643a76ba3d4daf57fb5b">More...</a><br /></td></tr>
 <tr class="separator:a699576150d4e643a76ba3d4daf57fb5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6b59eea2e9e463a08dc5e11d0f291c2e"><td class="memTemplParams" colspan="2">template&lt;typename... TArgs&gt; </td></tr>
 <tr class="memitem:a6b59eea2e9e463a08dc5e11d0f291c2e"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcustinger_1_1cuStingerInit.html#a6b59eea2e9e463a08dc5e11d0f291c2e">insertVertexData</a> (TArgs... vertex_data) noexcept</td></tr>
@@ -96,17 +96,17 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a30a30c6b79e0f58a73488a31ca22ab7e"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcustinger_1_1cuStingerInit.html#a30a30c6b79e0f58a73488a31ca22ab7e">insertEdgeData</a> (TArgs... edge_data) noexcept</td></tr>
 <tr class="memdesc:a30a30c6b79e0f58a73488a31ca22ab7e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Insert additional edge data.  <a href="#a30a30c6b79e0f58a73488a31ca22ab7e">More...</a><br /></td></tr>
 <tr class="separator:a30a30c6b79e0f58a73488a31ca22ab7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8b19a1607402ed0885e95a4ddbf6534d"><td class="memItemLeft" align="right" valign="top"><a id="a8b19a1607402ed0885e95a4ddbf6534d"></a>
-size_t&#160;</td><td class="memItemRight" valign="bottom"><b>nV</b> () const noexcept</td></tr>
+<tr class="memitem:a8b19a1607402ed0885e95a4ddbf6534d"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger_1_1cuStingerInit.html#a8b19a1607402ed0885e95a4ddbf6534d">nV</a> () const noexcept</td></tr>
+<tr class="memdesc:a8b19a1607402ed0885e95a4ddbf6534d"><td class="mdescLeft">&#160;</td><td class="mdescRight">number of vertices in the graph passed to the costructor  <a href="#a8b19a1607402ed0885e95a4ddbf6534d">More...</a><br /></td></tr>
 <tr class="separator:a8b19a1607402ed0885e95a4ddbf6534d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5067c517e03b27df95a1140277959715"><td class="memItemLeft" align="right" valign="top"><a id="a5067c517e03b27df95a1140277959715"></a>
-size_t&#160;</td><td class="memItemRight" valign="bottom"><b>nE</b> () const noexcept</td></tr>
+<tr class="memitem:a5067c517e03b27df95a1140277959715"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger_1_1cuStingerInit.html#a5067c517e03b27df95a1140277959715">nE</a> () const noexcept</td></tr>
+<tr class="memdesc:a5067c517e03b27df95a1140277959715"><td class="mdescLeft">&#160;</td><td class="mdescRight">number of edges in the graph passed to the costructor  <a href="#a5067c517e03b27df95a1140277959715">More...</a><br /></td></tr>
 <tr class="separator:a5067c517e03b27df95a1140277959715"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a38f446db8202bef12d0f42c1ea84aa4f"><td class="memItemLeft" align="right" valign="top"><a id="a38f446db8202bef12d0f42c1ea84aa4f"></a>
-const <a class="el" href="config_8inc.html#adaddaaa82ec6ddecc658d41589bc5f46">eoff_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>csr_offsets</b> () const noexcept</td></tr>
+<tr class="memitem:a38f446db8202bef12d0f42c1ea84aa4f"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="config_8inc.html#adaddaaa82ec6ddecc658d41589bc5f46">eoff_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger_1_1cuStingerInit.html#a38f446db8202bef12d0f42c1ea84aa4f">csr_offsets</a> () const noexcept</td></tr>
+<tr class="memdesc:a38f446db8202bef12d0f42c1ea84aa4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">CSR offsets of the graph passed to the costructor.  <a href="#a38f446db8202bef12d0f42c1ea84aa4f">More...</a><br /></td></tr>
 <tr class="separator:a38f446db8202bef12d0f42c1ea84aa4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a68486d4cc9aaed0ec2a02075c95e69d7"><td class="memItemLeft" align="right" valign="top"><a id="a68486d4cc9aaed0ec2a02075c95e69d7"></a>
-const <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">vid_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>csr_edges</b> () const noexcept</td></tr>
+<tr class="memitem:a68486d4cc9aaed0ec2a02075c95e69d7"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">vid_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger_1_1cuStingerInit.html#a68486d4cc9aaed0ec2a02075c95e69d7">csr_edges</a> () const noexcept</td></tr>
+<tr class="memdesc:a68486d4cc9aaed0ec2a02075c95e69d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">CSR edges of the graph passed to the costructor.  <a href="#a68486d4cc9aaed0ec2a02075c95e69d7">More...</a><br /></td></tr>
 <tr class="separator:a68486d4cc9aaed0ec2a02075c95e69d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -158,7 +158,7 @@ const <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">vi
 </table>
 </div><div class="memdoc">
 
-<p>default costructor </p>
+<p>Default costructor. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">num_vertices</td><td>number of vertices </td></tr>
@@ -247,13 +247,125 @@ template&lt;typename... TArgs&gt; </div>
 
 </div>
 </div>
+<a id="a8b19a1607402ed0885e95a4ddbf6534d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b19a1607402ed0885e95a4ddbf6534d">&#9670;&nbsp;</a></span>nV()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t custinger::cuStingerInit::nV </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>number of vertices in the graph passed to the costructor </p>
+<dl class="section return"><dt>Returns</dt><dd>number of vertices in the graph </dd></dl>
+
+</div>
+</div>
+<a id="a5067c517e03b27df95a1140277959715"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5067c517e03b27df95a1140277959715">&#9670;&nbsp;</a></span>nE()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t custinger::cuStingerInit::nE </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>number of edges in the graph passed to the costructor </p>
+<dl class="section return"><dt>Returns</dt><dd>number of edges in the graph </dd></dl>
+
+</div>
+</div>
+<a id="a38f446db8202bef12d0f42c1ea84aa4f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a38f446db8202bef12d0f42c1ea84aa4f">&#9670;&nbsp;</a></span>csr_offsets()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="config_8inc.html#adaddaaa82ec6ddecc658d41589bc5f46">eoff_t</a>* custinger::cuStingerInit::csr_offsets </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>CSR offsets of the graph passed to the costructor. </p>
+<dl class="section return"><dt>Returns</dt><dd>constant pointer to the csr offsets </dd></dl>
+
+</div>
+</div>
+<a id="a68486d4cc9aaed0ec2a02075c95e69d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a68486d4cc9aaed0ec2a02075c95e69d7">&#9670;&nbsp;</a></span>csr_edges()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">vid_t</a>* custinger::cuStingerInit::csr_edges </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>CSR edges of the graph passed to the costructor. </p>
+<dl class="section return"><dt>Returns</dt><dd>constant pointer to the csr edges </dd></dl>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>include/Core/<a class="el" href="Core_2cuStinger_8hpp_source.html">cuStinger.hpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed May 3 2017 14:56:19 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu May 11 2017 17:53:14 for cuStinger by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

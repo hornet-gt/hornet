@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>cuSTINGER: Code Convention</title>
+<title>cuStinger: Code Convention</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -28,10 +28,10 @@
  <tr style="height: 56px;">
   <td id="projectlogo"><img alt="Logo" src="logo.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">cuSTINGER
+   <div id="projectname">cuStinger
    &#160;<span id="projectnumber">v2</span>
    </div>
-   <div id="projectbrief">High-Performance Streaming Graph on GPUs</div>
+   <div id="projectbrief">High-Performance Streaming Graph Analytics on GPUs</div>
   </td>
  </tr>
  </tbody>
@@ -73,11 +73,6 @@ $(function() {
 <div class="contents">
 <div class="textblock"><p>extending Google/LLVM stype</p>
 <ul>
-<li><b>Formatting</b><ul>
-<li>Tab '' is forbidden, use instead 4 spaces</li>
-<li>80 columns max (terminal size)</li>
-</ul>
-</li>
 <li><b>Includes</b><ul>
 <li><em>First</em>: class header</li>
 <li><em>Second</em>: project includes (in alphabetical order) (<code>"name"</code> syntax)</li>
@@ -92,7 +87,7 @@ $(function() {
 </li>
 <li><b>General</b><ul>
 <li>Always separate declaration <code>.hpp</code> from definition <code>.i.hpp/cpp</code></li>
-<li>Doxygen comment must be done only in <code>.hpp</code> files</li>
+<li>Doxygen comment must be done only in <code>.hpp/.cuh</code> files</li>
 <li>Take care of code alignment to make the code more readable</li>
 <li>Use whether possible the <code>std</code> library</li>
 <li>Do not use <code>Boost</code> library</li>
@@ -113,7 +108,11 @@ $(function() {
 <li><code>size_t</code> to indicate sizes</li>
 </ul>
 </li>
-<li><b>Style</b><ul>
+<li><b>Style and Formatting</b><ul>
+<li>Tab '' is forbidden, use instead 4 spaces</li>
+<li>Only linux new lines '<br />
+' are allowed</li>
+<li>80 columns max for code and comments (terminal size)</li>
 <li><em>Functions</em>:<ul>
 <li><em>Expensive functions</em>: Lower case start, camel style (ex. <code>expensiveFunction</code>)</li>
 <li><em>Cheap functions:</em>: lower case, underscore (<code>cheap_function</code>)</li>
@@ -124,7 +123,7 @@ $(function() {
 <li><em>Private Variables</em>: lower case, underscore (<code>_var_name</code>)</li>
 <li><em>Device variable</em>: <code>d_</code> prefix (<code>d_var</code>)</li>
 <li><em>Host variable</em>: <code>h_</code> prefix (<code>h_var</code>) (use only to avoid confusion)</li>
-<li><em>Class name/Complex type</em>: upper case, camel Style</li>
+<li><em>Class name/Complex type</em>: upper case, camel style</li>
 <li><em>Simple type</em>: lower case, underscore, <code>_t</code> postfix (<code>weight_t</code>)</li>
 <li><em>Namespace</em>: lower case, underscore (<code>my_namespace</code>)</li>
 <li><em>Namespace end</em>: close with <code>// namespace &lt;name&gt;</code></li>
@@ -134,7 +133,6 @@ $(function() {
 <li><em>Curly Bracket</em>: inline (<code>for (...) {</code>)</li>
 <li><em>Conditional Statement</em> (<code>if, for, while</code>): no bracket for one line body</li>
 <li><em>Separate words from symbols</em>: <code>if (</code>, <code>var = x + y;</code></li>
-<li><em>Class/Struct</em>: first variable members, then methods. First public members, then protected, then private.</li>
 </ul>
 </li>
 <li><b>Safe Code</b><ul>
@@ -148,16 +146,17 @@ $(function() {
 <li><em>Function parameters</em>:<ul>
 <li>Inputs, then outputs</li>
 <li>Prefer whether possible reference instead pointer</li>
-<li>Do not use <code>const</code> for parameters passed by value </li>
+<li>Do not use <code>const</code> for parameters passed by value</li>
 </ul>
 </li>
+<li><em>Class/Struct</em>: first variable members, then methods. First public members, then protected, then private. </li>
 </ul>
 </li>
 </ul>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed May 3 2017 14:56:19 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu May 11 2017 17:53:14 for cuStinger by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

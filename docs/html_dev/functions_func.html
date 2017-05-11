@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>cuSTINGER: Data Fields - Functions</title>
+<title>cuStinger: Data Fields - Functions</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -28,10 +28,10 @@
  <tr style="height: 56px;">
   <td id="projectlogo"><img alt="Logo" src="logo.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">cuSTINGER
+   <div id="projectname">cuStinger
    &#160;<span id="projectnumber">v2</span>
    </div>
-   <div id="projectbrief">High-Performance Streaming Graph on GPUs</div>
+   <div id="projectbrief">High-Performance Streaming Graph Analytics on GPUs</div>
   </td>
  </tr>
  </tbody>
@@ -102,11 +102,22 @@ $(function() {
 <li>check_consistency()
 : <a class="el" href="classcustinger_1_1cuStinger.html#adc78355249db2698753191df0c4dc844">custinger::cuStinger</a>
 </li>
+<li>clear()
+: <a class="el" href="classcustinger_1_1MemoryManager.html#a02e07d199ba5bdf9907ca1577d70628d">custinger::MemoryManager</a>
+</li>
 <li>Csr()
 : <a class="el" href="classcsr_1_1Csr.html#a0b0aadea09aff0de5a702efb313e3d31">csr::Csr</a>
 </li>
+<li>csr_edges()
+: <a class="el" href="classcustinger_1_1cuStinger.html#a8e46116cea09a04390eb1b282636693d">custinger::cuStinger</a>
+, <a class="el" href="classcustinger_1_1cuStingerInit.html#a68486d4cc9aaed0ec2a02075c95e69d7">custinger::cuStingerInit</a>
+</li>
+<li>csr_offsets()
+: <a class="el" href="classcustinger_1_1cuStinger.html#a52360cc180b6ce08f946a5a9635658df">custinger::cuStinger</a>
+, <a class="el" href="classcustinger_1_1cuStingerInit.html#a38f446db8202bef12d0f42c1ea84aa4f">custinger::cuStingerInit</a>
+</li>
 <li>cuStinger()
-: <a class="el" href="classcustinger_1_1cuStinger.html#a0481199357f5656799245a10160ff403">custinger::cuStinger</a>
+: <a class="el" href="classcustinger_1_1cuStinger.html#aa1ea9e806edc7cc2725ab965a70c313b">custinger::cuStinger</a>
 </li>
 <li>cuStingerInit()
 : <a class="el" href="classcustinger_1_1cuStingerInit.html#a699576150d4e643a76ba3d4daf57fb5b">custinger::cuStingerInit</a>
@@ -117,6 +128,15 @@ $(function() {
 <h3><a id="index_d"></a>- d -</h3><ul>
 <li>degree()
 : <a class="el" href="classcustinger_1_1Vertex.html#a376a3281205baf5776609a390a706531">custinger::Vertex</a>
+</li>
+<li>degree_ptr()
+: <a class="el" href="classcustinger_1_1Vertex.html#a22bbf564de5c7736ced168c04d63224c">custinger::Vertex</a>
+</li>
+<li>device_csr_offsets()
+: <a class="el" href="classcustinger_1_1cuStinger.html#affb1142296b0e460331d6c39307ca567">custinger::cuStinger</a>
+</li>
+<li>device_data()
+: <a class="el" href="classcustinger_1_1cuStinger.html#a9505dd698c3662c57f63c3f02c0fb5b1">custinger::cuStinger</a>
 </li>
 <li>dst()
 : <a class="el" href="classcustinger_1_1Edge.html#a4ed17016eb067968bf27ab1a0845a9d6">custinger::Edge</a>
@@ -153,7 +173,8 @@ $(function() {
 
 <h3><a id="index_i"></a>- i -</h3><ul>
 <li>id()
-: <a class="el" href="classcustinger_1_1Vertex.html#ae7fc2c0690086cc4e8b38bbf82a07807">custinger::Vertex</a>
+: <a class="el" href="classcustinger_1_1cuStinger.html#a4656ac1559a79c3f24bd5f141b6a060e">custinger::cuStinger</a>
+, <a class="el" href="classcustinger_1_1Vertex.html#ae7fc2c0690086cc4e8b38bbf82a07807">custinger::Vertex</a>
 </li>
 <li>insert()
 : <a class="el" href="classcustinger_1_1BitTree.html#a8b0bcf2ba3a1ab104ba4454e71995f52">custinger::BitTree&lt; T, BLOCK_ITEMS, BLOCKARRAY_ITEMS &gt;</a>
@@ -172,16 +193,24 @@ $(function() {
 </ul>
 
 
-<h3><a id="index_m"></a>- m -</h3><ul>
-<li>MemoryManager()
-: <a class="el" href="classcustinger_1_1MemoryManager.html#af8c3a5fe5cacf81d5b4e41afe60157a0">custinger::MemoryManager</a>
+<h3><a id="index_l"></a>- l -</h3><ul>
+<li>limit()
+: <a class="el" href="classcustinger_1_1Vertex.html#a2b7b4fe6769f6087914fe4662118870c">custinger::Vertex</a>
 </li>
 </ul>
 
 
 <h3><a id="index_n"></a>- n -</h3><ul>
+<li>nE()
+: <a class="el" href="classcustinger_1_1cuStinger.html#a0d531c8bb1d887942d32221436be7de1">custinger::cuStinger</a>
+, <a class="el" href="classcustinger_1_1cuStingerInit.html#a5067c517e03b27df95a1140277959715">custinger::cuStingerInit</a>
+</li>
 <li>num_blockarrays()
 : <a class="el" href="classcustinger_1_1MemoryManager.html#a922dbd59f0a738ff52082d2d501480b6">custinger::MemoryManager</a>
+</li>
+<li>nV()
+: <a class="el" href="classcustinger_1_1cuStinger.html#ab18e9d590c6fcec3219f74ac91a4603b">custinger::cuStinger</a>
+, <a class="el" href="classcustinger_1_1cuStingerInit.html#a8b19a1607402ed0885e95a4ddbf6534d">custinger::cuStingerInit</a>
 </li>
 </ul>
 
@@ -228,6 +257,12 @@ $(function() {
 , <a class="el" href="classtimer_1_1Timer_3_01DEVICE_00_01ChronoPrecision_01_4.html#a2f19d3ad0fadbf255d73fd60713a0634">timer::Timer&lt; DEVICE, ChronoPrecision &gt;</a>
 , <a class="el" href="classtimer_1_1Timer_3_01HOST_00_01ChronoPrecision_01_4.html#aae76ec045e3369c7349d4042043ac2ef">timer::Timer&lt; HOST, ChronoPrecision &gt;</a>
 </li>
+<li>store()
+: <a class="el" href="classcustinger_1_1Vertex.html#a27dd2f96c03a881337fb507320d87120">custinger::Vertex</a>
+</li>
+<li>store_snapshot()
+: <a class="el" href="classcustinger_1_1cuStinger.html#a66d441e2b01ed268455079ef3681756d">custinger::cuStinger</a>
+</li>
 </ul>
 
 
@@ -244,7 +279,7 @@ $(function() {
 <h3><a id="index_v"></a>- v -</h3><ul>
 <li>Vertex()
 : <a class="el" href="classcsr_1_1Vertex.html#a077f62f0482d27c8c70a50a4bc87fce5">csr::Vertex</a>
-, <a class="el" href="classcustinger_1_1Vertex.html#aa1a8596cb5bbf017d5f4296b1bfb16a4">custinger::Vertex</a>
+, <a class="el" href="classcustinger_1_1Vertex.html#a6e80b98e7bac68cd77229f7ffe251c2f">custinger::Vertex</a>
 </li>
 </ul>
 
@@ -270,7 +305,7 @@ $(function() {
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed May 3 2017 14:56:20 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu May 11 2017 17:53:15 for cuStinger by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

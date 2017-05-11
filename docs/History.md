@@ -44,14 +44,18 @@
 ## May, 2017 - Tasks done ##
 <sup> @Federico Busato </sup>
 
-* Graph Transpose almost completed
+* Graph Transpose
 * cuStinger graph ID
 * Separated data structure and algorithms
 * New StaticAlgorithm abstract class
 * Operator parameters are references and not values
+* BFS algorithm: 3 top-down variants
+* Connected Components: 2 variants
+* Max-degree vertex of the streaming graph
 
 ## Tasks to do ##
 * Code Related:
+    ::: AoS VS SoA ::: ???
     - Working algorithms
     - Compression
     - Insert/delete new vertices
@@ -66,6 +70,12 @@
     - GPU Graph Generation
     - CPU/GPU Support
     - CSR switch
+    - GPU randomize label
+    - GPU sort adj lists
+    - Infomap relabeling + recursive relabeling --> GPU
+    - No-source vertex traverse
+    - Hybrid-BFS deep analysis --> max degree vs random
+    - BFS Separate lookup and filtering
 * Others
     - Regression test (ctest)
     - Add class diagram to doxygen

@@ -1,7 +1,4 @@
 var searchData=
 [
-  ['thread_5fexit',['thread_exit',['../namespacexlib.html#a48a6eb4b79e2ec25ab2ba69cd47e4037',1,'xlib']]],
-  ['threadtowarpindexing',['threadToWarpIndexing',['../namespacexlib.html#a988f6b4a3513c07475e6218889fe8d9f',1,'xlib']]],
-  ['time_5fstamp1',['time_stamp1',['../classcustinger_1_1Edge.html#a9eff69d3c796ec36dde4582c19ba18e0',1,'custinger::Edge']]],
-  ['time_5fstamp2',['time_stamp2',['../classcustinger_1_1Edge.html#acdd89892d6f19bb47ad7d4006705edee',1,'custinger::Edge']]]
+  ['vertex',['Vertex',['../classcustinger_1_1Vertex.html#a6e80b98e7bac68cd77229f7ffe251c2f',1,'custinger::Vertex::Vertex()'],['../classcsr_1_1Vertex.html#a077f62f0482d27c8c70a50a4bc87fce5',1,'csr::Vertex::Vertex()']]]
 ];

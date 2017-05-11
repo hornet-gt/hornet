@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['safecudaapi_5f_2ecuh',['SafeCudaAPI_.cuh',['../SafeCudaAPI___8cuh.html',1,'']]]
+  ['timer_2ehpp',['Timer.hpp',['../Timer_8hpp.html',1,'']]]
 ];

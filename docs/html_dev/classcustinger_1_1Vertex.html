@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>cuSTINGER: custinger::Vertex Class Reference</title>
+<title>cuStinger: custinger::Vertex Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -28,10 +28,10 @@
  <tr style="height: 56px;">
   <td id="projectlogo"><img alt="Logo" src="logo.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">cuSTINGER
+   <div id="projectname">cuStinger
    &#160;<span id="projectnumber">v2</span>
    </div>
-   <div id="projectbrief">High-Performance Streaming Graph on GPUs</div>
+   <div id="projectbrief">High-Performance Streaming Graph Analytics on GPUs</div>
   </td>
  </tr>
  </tbody>
@@ -67,13 +67,12 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><b>custinger</b></li><li class="navelem"><a class="el" href="classcustinger_1_1Vertex.html">Vertex</a></li>  </ul>
+<li class="navelem"><a class="el" href="namespacecustinger.html">custinger</a></li><li class="navelem"><a class="el" href="classcustinger_1_1Vertex.html">Vertex</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#friends">Friends</a>  </div>
+<a href="#pub-methods">Public Member Functions</a>  </div>
   <div class="headertitle">
 <div class="title">custinger::Vertex Class Reference</div>  </div>
 </div><!--header-->
@@ -90,29 +89,69 @@ Inheritance diagram for custinger::Vertex:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aa1a8596cb5bbf017d5f4296b1bfb16a4"><td class="memItemLeft" align="right" valign="top"><a id="aa1a8596cb5bbf017d5f4296b1bfb16a4"></a>
-__device__ __forceinline__&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger_1_1Vertex.html#aa1a8596cb5bbf017d5f4296b1bfb16a4">Vertex</a> (<a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">vid_t</a> index)</td></tr>
-<tr class="memdesc:aa1a8596cb5bbf017d5f4296b1bfb16a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default costructor. <br /></td></tr>
-<tr class="separator:aa1a8596cb5bbf017d5f4296b1bfb16a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6e80b98e7bac68cd77229f7ffe251c2f"><td class="memItemLeft" align="right" valign="top">__device__ __forceinline__&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger_1_1Vertex.html#a6e80b98e7bac68cd77229f7ffe251c2f">Vertex</a> (<a class="el" href="structcustinger_1_1cuStingerDevData.html">cuStingerDevData</a> data, <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">vid_t</a> index)</td></tr>
+<tr class="memdesc:a6e80b98e7bac68cd77229f7ffe251c2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default costructor.  <a href="#a6e80b98e7bac68cd77229f7ffe251c2f">More...</a><br /></td></tr>
+<tr class="separator:a6e80b98e7bac68cd77229f7ffe251c2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae7fc2c0690086cc4e8b38bbf82a07807"><td class="memItemLeft" align="right" valign="top">__device__ __forceinline__ degree_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger_1_1Vertex.html#ae7fc2c0690086cc4e8b38bbf82a07807">id</a> () const</td></tr>
+<tr class="memdesc:ae7fc2c0690086cc4e8b38bbf82a07807"><td class="mdescLeft">&#160;</td><td class="mdescRight">id of the vertex  <a href="#ae7fc2c0690086cc4e8b38bbf82a07807">More...</a><br /></td></tr>
 <tr class="separator:ae7fc2c0690086cc4e8b38bbf82a07807"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a376a3281205baf5776609a390a706531"><td class="memItemLeft" align="right" valign="top">__device__ __forceinline__ degree_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger_1_1Vertex.html#a376a3281205baf5776609a390a706531">degree</a> () const</td></tr>
-<tr class="memdesc:a376a3281205baf5776609a390a706531"><td class="mdescLeft">&#160;</td><td class="mdescRight">Out-degree of the vertex.  <a href="#a376a3281205baf5776609a390a706531">More...</a><br /></td></tr>
+<tr class="memdesc:a376a3281205baf5776609a390a706531"><td class="mdescLeft">&#160;</td><td class="mdescRight">degree of the vertex  <a href="#a376a3281205baf5776609a390a706531">More...</a><br /></td></tr>
 <tr class="separator:a376a3281205baf5776609a390a706531"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aea12eed3247d9f0520f9c4593ce2b17b"><td class="memTemplParams" colspan="2">template&lt;int INDEX&gt; </td></tr>
 <tr class="memitem:aea12eed3247d9f0520f9c4593ce2b17b"><td class="memTemplItemLeft" align="right" valign="top">__device__ __forceinline__ std::tuple_element&lt; INDEX, <a class="el" href="config_8inc.html#af36923b1c56541757d5b77f915212f4a">VertexTypes</a> &gt;::type&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcustinger_1_1Vertex.html#aea12eed3247d9f0520f9c4593ce2b17b">field</a> () const</td></tr>
 <tr class="memdesc:aea12eed3247d9f0520f9c4593ce2b17b"><td class="mdescLeft">&#160;</td><td class="mdescRight">value of a user-defined vertex field  <a href="#aea12eed3247d9f0520f9c4593ce2b17b">More...</a><br /></td></tr>
 <tr class="separator:aea12eed3247d9f0520f9c4593ce2b17b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8c34c2eb904aaeb5e2c962e48a99e2a8"><td class="memItemLeft" align="right" valign="top">__device__ __forceinline__ <a class="el" href="classcustinger_1_1Edge.html">Edge</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger_1_1Vertex.html#a8c34c2eb904aaeb5e2c962e48a99e2a8">edge</a> (<a class="el" href="config_8inc.html#adaddaaa82ec6ddecc658d41589bc5f46">eoff_t</a> index) const</td></tr>
-<tr class="memdesc:a8c34c2eb904aaeb5e2c962e48a99e2a8"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classcustinger_1_1Edge.html">Edge</a> of the vertex.  <a href="#a8c34c2eb904aaeb5e2c962e48a99e2a8">More...</a><br /></td></tr>
+<tr class="memdesc:a8c34c2eb904aaeb5e2c962e48a99e2a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get an edge associeted to the vertex.  <a href="#a8c34c2eb904aaeb5e2c962e48a99e2a8">More...</a><br /></td></tr>
 <tr class="separator:a8c34c2eb904aaeb5e2c962e48a99e2a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
-Friends</h2></td></tr>
-<tr class="memitem:a67ebf6e3f169e354788c816e70efa7ed"><td class="memItemLeft" align="right" valign="top"><a id="a67ebf6e3f169e354788c816e70efa7ed"></a>
-__global__ void&#160;</td><td class="memItemRight" valign="bottom"><b>printKernel</b> ()</td></tr>
-<tr class="separator:a67ebf6e3f169e354788c816e70efa7ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b7b4fe6769f6087914fe4662118870c"><td class="memItemLeft" align="right" valign="top">__device__ __forceinline__ degree_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger_1_1Vertex.html#a2b7b4fe6769f6087914fe4662118870c">limit</a> () const</td></tr>
+<tr class="memdesc:a2b7b4fe6769f6087914fe4662118870c"><td class="mdescLeft">&#160;</td><td class="mdescRight">return the limit (upper approximation) of the degree of the vertex  <a href="#a2b7b4fe6769f6087914fe4662118870c">More...</a><br /></td></tr>
+<tr class="separator:a2b7b4fe6769f6087914fe4662118870c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a22bbf564de5c7736ced168c04d63224c"><td class="memItemLeft" align="right" valign="top">__device__ __forceinline__ degree_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger_1_1Vertex.html#a22bbf564de5c7736ced168c04d63224c">degree_ptr</a> ()</td></tr>
+<tr class="memdesc:a22bbf564de5c7736ced168c04d63224c"><td class="mdescLeft">&#160;</td><td class="mdescRight">pointer to the device degree location  <a href="#a22bbf564de5c7736ced168c04d63224c">More...</a><br /></td></tr>
+<tr class="separator:a22bbf564de5c7736ced168c04d63224c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a27dd2f96c03a881337fb507320d87120"><td class="memItemLeft" align="right" valign="top">__device__ __forceinline__ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger_1_1Vertex.html#a27dd2f96c03a881337fb507320d87120">store</a> (const <a class="el" href="classcustinger_1_1Edge.html">Edge</a> &amp;<a class="el" href="classcustinger_1_1Vertex.html#a8c34c2eb904aaeb5e2c962e48a99e2a8">edge</a>, degree_t index)</td></tr>
+<tr class="memdesc:a27dd2f96c03a881337fb507320d87120"><td class="mdescLeft">&#160;</td><td class="mdescRight">store an edge at a specific index in the adjacency array  <a href="#a27dd2f96c03a881337fb507320d87120">More...</a><br /></td></tr>
+<tr class="separator:a27dd2f96c03a881337fb507320d87120"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a6e80b98e7bac68cd77229f7ffe251c2f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6e80b98e7bac68cd77229f7ffe251c2f">&#9670;&nbsp;</a></span>Vertex()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">__device__ __forceinline__ custinger::Vertex::Vertex </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structcustinger_1_1cuStingerDevData.html">cuStingerDevData</a>&#160;</td>
+          <td class="paramname"><em>data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">vid_t</a>&#160;</td>
+          <td class="paramname"><em>index</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Default costructor. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">data</td><td><a class="el" href="classcustinger_1_1cuStinger.html" title="Main cuStinger class. ">cuStinger</a> device data </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <h2 class="groupheader">Member Function Documentation</h2>
 <a id="ae7fc2c0690086cc4e8b38bbf82a07807"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae7fc2c0690086cc4e8b38bbf82a07807">&#9670;&nbsp;</a></span>id()</h2>
@@ -128,7 +167,9 @@ __global__ void&#160;</td><td class="memItemRight" valign="bottom"><b>printKerne
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="section return"><dt>Returns</dt><dd></dd></dl>
+
+<p>id of the vertex </p>
+<dl class="section return"><dt>Returns</dt><dd>id of the vertex </dd></dl>
 
 </div>
 </div>
@@ -147,8 +188,8 @@ __global__ void&#160;</td><td class="memItemRight" valign="bottom"><b>printKerne
       </table>
 </div><div class="memdoc">
 
-<p>Out-degree of the vertex. </p>
-<dl class="section return"><dt>Returns</dt><dd>out-degree of the vertex </dd></dl>
+<p>degree of the vertex </p>
+<dl class="section return"><dt>Returns</dt><dd>degree of the vertex </dd></dl>
 
 </div>
 </div>
@@ -178,7 +219,7 @@ template&lt;int INDEX&gt; </div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>value of the user-defined vertex field at the index <code>INDEX</code> (type at the index <code>INDEX</code> in the <code>EdgeTypes</code> list) </dd></dl>
 <dl class="section remark"><dt>Remarks</dt><dd>the method does not compile if the <code>VertexTypes</code> list does not contain atleast <code>INDEX</code> fields</dd></dl>
-<p><b>Example:</b> </p><div class="fragment"><div class="line"><a class="code" href="classcustinger_1_1Vertex.html#aa1a8596cb5bbf017d5f4296b1bfb16a4">Vertex</a> vertex = ...</div><div class="line">auto vertex_label = vertex.field&lt;0&gt;();</div></div><!-- fragment --> 
+<p><b>Example:</b> </p><div class="fragment"><div class="line"><span class="keyword">auto</span> vertex_label = vertex.field&lt;0&gt;();</div></div><!-- fragment --> 
 </div>
 </div>
 <a id="a8c34c2eb904aaeb5e2c962e48a99e2a8"></a>
@@ -197,9 +238,92 @@ template&lt;int INDEX&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p><a class="el" href="classcustinger_1_1Edge.html">Edge</a> of the vertex. </p>
-<dl class="section return"><dt>Returns</dt><dd>edge at the index <code>index</code> </dd></dl>
+<p>Get an edge associeted to the vertex. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">index</td><td>index of the edge </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>edge at index <code>index</code> </dd></dl>
 <dl class="section warning"><dt>Warning</dt><dd><code>index</code> must be in the range \(0 \le index &lt; degree\). The behavior is undefined otherwise. </dd></dl>
+
+</div>
+</div>
+<a id="a2b7b4fe6769f6087914fe4662118870c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2b7b4fe6769f6087914fe4662118870c">&#9670;&nbsp;</a></span>limit()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">__device__ __forceinline__ degree_t custinger::Vertex::limit </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>return the limit (upper approximation) of the degree of the vertex </p>
+<dl class="section return"><dt>Returns</dt><dd>number of edges in the actual <em>block</em> </dd></dl>
+
+</div>
+</div>
+<a id="a22bbf564de5c7736ced168c04d63224c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a22bbf564de5c7736ced168c04d63224c">&#9670;&nbsp;</a></span>degree_ptr()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">__device__ __forceinline__ degree_t* custinger::Vertex::degree_ptr </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>pointer to the device degree location </p>
+<dl class="section return"><dt>Returns</dt><dd>pointer to the device degree location </dd></dl>
+
+</div>
+</div>
+<a id="a27dd2f96c03a881337fb507320d87120"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a27dd2f96c03a881337fb507320d87120">&#9670;&nbsp;</a></span>store()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">__device__ __forceinline__ void custinger::Vertex::store </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classcustinger_1_1Edge.html">Edge</a> &amp;&#160;</td>
+          <td class="paramname"><em>edge</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">degree_t&#160;</td>
+          <td class="paramname"><em>index</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>store an edge at a specific index in the adjacency array </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">edge</td><td>edge to store </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">index</td><td>where substite the edge </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -209,7 +333,7 @@ template&lt;int INDEX&gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed May 3 2017 14:56:19 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu May 11 2017 17:53:14 for cuStinger by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

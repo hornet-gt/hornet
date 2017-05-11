@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>cuSTINGER: History</title>
+<title>cuStinger: Version v2</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -28,10 +28,10 @@
  <tr style="height: 56px;">
   <td id="projectlogo"><img alt="Logo" src="logo.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">cuSTINGER
+   <div id="projectname">cuStinger
    &#160;<span id="projectnumber">v2</span>
    </div>
-   <div id="projectbrief">High-Performance Streaming Graph on GPUs</div>
+   <div id="projectbrief">High-Performance Streaming Graph Analytics on GPUs</div>
   </td>
  </tr>
  </tbody>
@@ -68,10 +68,10 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="headertitle">
-<div class="title">History </div>  </div>
+<div class="title">Version v2 </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><em>April, 2017: Version v2 - Federico Busato</em></p>
+<div class="textblock"><p><sup>  Busato </sup></p>
 <ul>
 <li>GraphIO<ul>
 <li>Read 7 different formats:<ul>
@@ -107,23 +107,35 @@ $(function() {
 <li>Added a three small graph examples (.mtx, .gr)</li>
 <li>Added online documentation</li>
 </ul>
-<h2>Tasks done</h2>
+<h2>April, 2017 - Tasks done</h2>
+<p><sup>  Busato </sup></p>
 <ul>
-<li>print function for small graph</li>
-<li>batch generation: uniform/weighted sorted/unsorted</li>
-<li>minimal external configuration "config.inc"</li>
-<li>improved load balancing: Single pass and 3-steps</li>
-<li>new memory management</li>
-<li>graph consistency checking</li>
-<li>store cuStinger graph snapshot to disk</li>
+<li>Print function for small graph</li>
+<li>Batch generation: uniform/weighted sorted/unsorted</li>
+<li>Minimal external configuration "config.inc"</li>
+<li>Improved load balancing: Single pass and 3-steps</li>
+<li>New memory management</li>
+<li>Graph consistency checking</li>
+<li>Store cuStinger graph snapshot to disk</li>
 <li>CSR representation in addition to cuStinger</li>
 <li>Parsing of weighted graphs</li>
 <li>Two-level and Multi-level Parallel Queues</li>
 </ul>
+<h2>May, 2017 - Tasks done</h2>
+<p><sup>  Busato </sup></p>
+<ul>
+<li>Graph Transpose</li>
+<li>cuStinger graph ID</li>
+<li>Separated data structure and algorithms</li>
+<li>New StaticAlgorithm abstract class</li>
+<li>Operator parameters are references and not values</li>
+<li>BFS algorithm: 3 top-down variants</li>
+<li>Connected Components: 2 variants</li>
+<li>Max-degree vertex of the streaming graph</li>
+</ul>
 <h2>Tasks to do</h2>
 <ul>
-<li>Code Related:<ul>
-<li>Consistent APIs</li>
+<li>Code Related: ::: AoS VS SoA ::: ???<ul>
 <li>Working algorithms</li>
 <li>Compression</li>
 <li>Insert/delete new vertices</li>
@@ -134,10 +146,16 @@ $(function() {
 <li>SpMV</li>
 <li>Faster Initialization (device allocation)</li>
 <li>Support 2^64 edges</li>
-<li>Support Incoming Edges</li>
-<li>GPU Graph Transpose</li>
+<li>B+Tree in MemoryManager</li>
 <li>GPU Graph Generation</li>
-<li>CPU Support</li>
+<li>CPU/GPU Support</li>
+<li>CSR switch</li>
+<li>GPU randomize label</li>
+<li>GPU sort adj lists</li>
+<li>Infomap relabeling + recursive relabeling &ndash;&gt; GPU</li>
+<li>No-source vertex traverse</li>
+<li>Hybrid-BFS deep analysis &ndash;&gt; max degree vs random</li>
+<li>BFS Separate lookup and filtering</li>
 </ul>
 </li>
 <li>Others<ul>
@@ -162,14 +180,22 @@ $(function() {
 </li>
 <li>Extended Lambda expression limitations:<ul>
 <li>Cannot be used in class inline costructur</li>
-<li>It captures "this" by default, also with [=] capture list (May be slower than struct static function since <b>forceinline</b> and <b>restrict</b> may be lost in template) </li>
+<li>It captures "this" by default, also with [=] capture list (May be slower than struct static function since <b>forceinline</b> and <b>restrict</b> may be lost in template)</li>
+</ul>
+</li>
+<li>Comparison with Gunrock<ul>
+<li>Simple programming model (few lines of code to write an algorithm)</li>
+<li>Dynamic/Streaming algorithms Support</li>
+<li>Different devices support (CPU/GPU)</li>
+<li>Near the same performance</li>
+<li>Separation between the data structure and the algorithms </li>
 </ul>
 </li>
 </ul>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed May 3 2017 14:56:19 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu May 11 2017 17:53:14 for cuStinger by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

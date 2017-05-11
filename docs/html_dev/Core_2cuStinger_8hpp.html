@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>cuSTINGER: include/Core/cuStinger.hpp File Reference</title>
+<title>cuStinger: include/Core/cuStinger.hpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -28,10 +28,10 @@
  <tr style="height: 56px;">
   <td id="projectlogo"><img alt="Logo" src="logo.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">cuSTINGER
+   <div id="projectname">cuStinger
    &#160;<span id="projectnumber">v2</span>
    </div>
-   <div id="projectbrief">High-Performance Streaming Graph on GPUs</div>
+   <div id="projectbrief">High-Performance Streaming Graph Analytics on GPUs</div>
   </td>
  </tr>
  </tbody>
@@ -72,13 +72,17 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Data Structures</a>  </div>
+<a href="#nested-classes">Data Structures</a> &#124;
+<a href="#namespaces">Namespaces</a>  </div>
   <div class="headertitle">
 <div class="title">cuStinger.hpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>cuStinger, cuStingerInit, BatchUpdatem and <a class="el" href="structBatchProperty.html">BatchProperty</a> classes  
+<a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="Core_2RawTypes_8hpp_source.html">Core/RawTypes.hpp</a>&quot;</code><br />
-<code>#include &quot;Core/MemoryManager.hpp&quot;</code><br />
+<code>#include &quot;<a class="el" href="MemoryManager_8hpp_source.html">Core/MemoryManager.hpp</a>&quot;</code><br />
 <code>#include &lt;cstddef&gt;</code><br />
 <code>#include &quot;cuStinger.i.hpp&quot;</code><br />
 </div>
@@ -89,6 +93,9 @@ Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger_1_1cuStingerInit.html">custinger::cuStingerInit</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classcustinger_1_1cuStinger.html" title="Main cuStinger class. ">cuStinger</a> initialization class  <a href="classcustinger_1_1cuStingerInit.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcustinger_1_1cuStingerDevData.html">custinger::cuStingerDevData</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The structure contanins all information to use the <a class="el" href="classcustinger_1_1cuStinger.html" title="Main cuStinger class. ">cuStinger</a> data structure in the device.  <a href="structcustinger_1_1cuStingerDevData.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger_1_1cuStinger.html">custinger::cuStinger</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main <a class="el" href="classcustinger_1_1cuStinger.html" title="Main cuStinger class. ">cuStinger</a> class.  <a href="classcustinger_1_1cuStinger.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -98,9 +105,16 @@ Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger_1_1BatchUpdate.html">custinger::BatchUpdate</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Batch update class.  <a href="classcustinger_1_1BatchUpdate.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:namespacecustinger"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacecustinger.html">custinger</a></td></tr>
+<tr class="memdesc:namespacecustinger"><td class="mdescLeft">&#160;</td><td class="mdescRight">The namespace contanins all classes and methods related to the <a class="el" href="classcustinger_1_1cuStinger.html" title="Main cuStinger class. ">cuStinger</a> data structure. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><dl class="section author"><dt>Author</dt><dd>Federico Busato <br />
+<div class="textblock"><p>cuStinger, cuStingerInit, BatchUpdatem and <a class="el" href="structBatchProperty.html">BatchProperty</a> classes </p>
+<dl class="section author"><dt>Author</dt><dd>Federico Busato <br />
  Univerity of Verona, Dept. of Computer Science <br />
  <a href="#" onclick="location.href='mai'+'lto:'+'fed'+'er'+'ico'+'.b'+'usa'+'to'+'@un'+'iv'+'r.i'+'t'; return false;">feder<span style="display: none;">.nosp@m.</span>ico.<span style="display: none;">.nosp@m.</span>busat<span style="display: none;">.nosp@m.</span>o@un<span style="display: none;">.nosp@m.</span>ivr.i<span style="display: none;">.nosp@m.</span>t</a> </dd></dl>
 <dl class="section date"><dt>Date</dt><dd>April, 2017 </dd></dl>
@@ -122,7 +136,7 @@ Data Structures</h2></td></tr>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed May 3 2017 14:56:19 for cuSTINGER by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu May 11 2017 17:53:14 for cuStinger by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

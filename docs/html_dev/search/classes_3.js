@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['deviceproperty',['deviceProperty',['../classxlib_1_1deviceProperty.html',1,'xlib']]],
-  ['devicequeue',['DeviceQueue',['../classcu__stinger__alg_1_1DeviceQueue.html',1,'cu_stinger_alg']]]
+  ['edge',['Edge',['../classcustinger_1_1Edge.html',1,'custinger::Edge'],['../classcsr_1_1Edge.html',1,'csr::Edge'],['../classgraph_1_1GraphStd_1_1Edge.html',1,'graph::GraphStd&lt; vid_t, eoff_t &gt;::Edge']]],
+  ['edgeit',['EdgeIt',['../classcustinger_1_1EdgeIt.html',1,'custinger::EdgeIt'],['../classgraph_1_1GraphStd_1_1EdgeIt.html',1,'graph::GraphStd&lt; vid_t, eoff_t &gt;::EdgeIt']]],
+  ['edgescontainer',['EdgesContainer',['../classgraph_1_1GraphStd_1_1EdgesContainer.html',1,'graph::GraphStd']]]
 ];

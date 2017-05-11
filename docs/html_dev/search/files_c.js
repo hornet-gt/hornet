@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['queue_2ehpp',['Queue.hpp',['../Queue_8hpp.html',1,'']]]
+  ['rawtypes_2ehpp',['RawTypes.hpp',['../Core_2RawTypes_8hpp.html',1,'(Global Namespace)'],['../Csr_2RawTypes_8hpp.html',1,'(Global Namespace)']]],
+  ['rawtypesutil_2ehpp',['RawTypesUtil.hpp',['../RawTypesUtil_8hpp.html',1,'']]]
 ];

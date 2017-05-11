@@ -55,7 +55,16 @@ using degree_t = int;
 struct ALIGN(16) VertexBasicData {
     byte_t* __restrict__ edge_ptr;
     degree_t             degree;
+    //__host__ __device__ __forceinline__
+    friend bool operator>(const VertexBasicData& left,
+                          const VertexBasicData& right) noexcept;
 };
+
+//__host__ __device__ __forceinline__
+inline bool operator>(const VertexBasicData& left, const VertexBasicData& right)
+                                            noexcept {
+    return left.degree > right.degree;
+}
 
 //User configuration
 #include "../config.inc"

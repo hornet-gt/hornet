@@ -42,8 +42,8 @@ void BFSOperatorNoAtomic(const Vertex& src, const Edge& edge,
 ////////////////
 
 BfsTopDown::BfsTopDown(custinger::cuStinger& custinger) :
-                       StaticAlgorithm(custinger), host_bfs_data(custinger) {
-
+                                       StaticAlgorithm(custinger),
+                                       host_bfs_data(custinger) {
     cuMalloc(host_bfs_data.distances, custinger.nV());
     device_bfs_data = register_data(host_bfs_data);
     reset();
@@ -59,7 +59,6 @@ void BfsTopDown::reset() {
     syncDeviceWithHost();
 
     forAllnumV<VertexInit>(custinger, device_bfs_data);
-    cuMemcpyToDevice(0, host_bfs_data.distances + bfs_source);
 }
 
 void BfsTopDown::set_parameters(vid_t source) {

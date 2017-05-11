@@ -53,9 +53,12 @@ make -j
 | (PG) Page Rank                      |     yes       | on-going |
 | (TC) Triangle Counting              |     yes       |   yes    |
 | (KC) Katz Centrality                |     yes       |   yes    |
-| Temporal Motif Finding              |  on-going     |  to-do   |
-| Sparse Vector-Matrix Multiplication |     yes       |    ?     |
-
+| (MIS) Maximal Independent Set       |    to-do      |  to-do   |
+| (MF) Maximum Flow                   |    to-do      |  to-do   |
+| Community Detection                 |    to-do      |  to-do   |
+| Temporal Motif Finding              |   on-going    |  to-do   |
+| Sparse Vector-Matrix Multiplication |     yes       |  to-do   |
+| Jaccard indices                     |    to-do      |  to-do   |
 
 ## Performance ##
 

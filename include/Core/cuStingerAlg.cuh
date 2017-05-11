@@ -75,7 +75,7 @@ public:
      * @remark the user must implements the main part of the algorithm in this
      *         method
      */
-    virtual void run()      = 0;
+    virtual void run() = 0;
 
     /**
      * @brief reset all algorithm-dependent variables
@@ -84,7 +84,7 @@ public:
      *         the algorithm instance is ready for the next execution
      * @remark the method should be called in the costructor
      */
-    virtual void reset()    = 0;
+    virtual void reset() = 0;
 
     /**
      * @brief release all the resources associeted with the algorithm instance
@@ -95,7 +95,7 @@ public:
      * @warning all pointers should be set to `nullptr` to allow safe
      *          deallocation of the instance with the decostructor method
      */
-    virtual void release()  = 0;
+    virtual void release() = 0;
 
     /**
      * @brief validation of the (GPU) algorithm results

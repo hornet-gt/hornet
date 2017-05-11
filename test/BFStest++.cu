@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
     cuStinger custiger_graph(custinger_init);
 
     BfsTopDown2 bfs_top_down(custiger_graph);
-    bfs_top_down.set_parameters(0);
+    bfs_top_down.set_parameters(4);
     Timer<DEVICE> TM;
     TM.start();
 

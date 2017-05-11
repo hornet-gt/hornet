@@ -63,13 +63,13 @@ struct BFSOperatorNoAtomic {
 
 };
 //------------------------------------------------------------------------------
-////////////////
+/////////////////
 // BfsTopDown2 //
-////////////////
+/////////////////
 
 BfsTopDown2::BfsTopDown2(custinger::cuStinger& custinger) :
-                         StaticAlgorithm(custinger), queue(custinger, true) {
-
+                                 StaticAlgorithm(custinger),
+                                 queue(custinger, true) {
     cuMalloc(d_distances, custinger.nV());
     reset();
 }
@@ -84,7 +84,6 @@ void BfsTopDown2::reset() {
 
     auto distances = d_distances;
     forAllnumV(custinger, [=] __device__ (int i){ distances[i] = INF; } );
-    cuMemcpyToDevice(0, d_distances + bfs_source);
 }
 
 void BfsTopDown2::set_parameters(vid_t source) {

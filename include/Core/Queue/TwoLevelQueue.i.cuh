@@ -154,7 +154,8 @@ __host__ void TwoLevelQueue<T>::print() const noexcept {
 
 template<typename T>
 __host__ typename TwoLevelQueue<T>::EnableTraverse
-::work_evaluate(const custinger::vid_t* items_array, int num_items) noexcept{
+TwoLevelQueue<T>
+::work_evaluate(const custinger::vid_t* items_array, int num_items) noexcept {
     using custinger::vid_t;
 
     auto work = new int[num_items + 1];

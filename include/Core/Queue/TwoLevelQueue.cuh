@@ -168,7 +168,7 @@ private:
     ///@internal @brief block size for `traverse_edges()` kernels
     static const unsigned        BLOCK_SIZE = 256;
 
-    custinger::cuStinger& _custinger;
+    const custinger::cuStinger& _custinger;
     const custinger::eoff_t* _csr_offsets { nullptr };
 
     ///@internal @brief input and output queue pointers
@@ -195,7 +195,7 @@ private:
      * @remark the method is enabled only if the queue type is `vid_t`
      */
     __host__ EnableTraverse
-    work_evaluate(const vid_t* items_array, int num_items) noexcept;
+    work_evaluate(const custinger::vid_t* items_array, int num_items) noexcept;
 };
 
 } // namespace custinger_alg

@@ -8,7 +8,7 @@ int main(int argc, char* argv[]) {
     using namespace timer;
     using namespace custinger;
     using namespace custinger_alg;
-    cudaSetDevice(1);
+    cudaSetDevice(0);
 
     graph::GraphStd<vid_t, eoff_t> graph;
     graph.read(argv[1]);

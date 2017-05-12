@@ -252,7 +252,7 @@ size_t GraphBase<vid_t, eoff_t>::getSnapHeader(std::ifstream& fin) {
         std::getline(fin, tmp);
         if (tmp.substr(2, 6) == "Nodes:") {
             std::istringstream stream(tmp);
-            stream >> tmp >> tmp >> _nV >> tmp >> num_lines;
+            stream >> tmp >> tmp >> num_vertices >> tmp >> num_lines;
             break;
         }
     }

@@ -246,13 +246,13 @@ GraphStd<vid_t, eoff_t>::max_in_degree() const noexcept {
 }
 
 template<typename vid_t, typename eoff_t>
-inline vid_t GraphStd<vid_t, eoff_t>::max_out_degree_src() const noexcept {
+inline vid_t GraphStd<vid_t, eoff_t>::max_out_degree_vertex() const noexcept {
     return std::distance(_out_degrees,
                          std::max_element(_out_degrees, _out_degrees + _nV));
 }
 
 template<typename vid_t, typename eoff_t>
-inline vid_t GraphStd<vid_t, eoff_t>::max_in_degree_src() const noexcept {
+inline vid_t GraphStd<vid_t, eoff_t>::max_in_degree_vertex() const noexcept {
     return std::distance(_in_degrees,
                          std::max_element(_in_degrees, _in_degrees + _nV));
 }
@@ -269,6 +269,12 @@ template<typename vid_t, typename eoff_t>
 inline typename GraphStd<vid_t, eoff_t>::Vertex
 GraphStd<vid_t, eoff_t>::get_vertex(vid_t index) const noexcept {
     return Vertex(index, *this);
+}
+
+
+template<typename vid_t, typename eoff_t>
+inline bool GraphStd<vid_t, eoff_t>::is_directed() const noexcept {
+    return _structure.is_directed();
 }
 
 } //namespace graph

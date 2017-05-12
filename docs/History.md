@@ -79,6 +79,7 @@
 * Others
     - Regression test (ctest)
     - Add class diagram to doxygen
+    - tutorial like SNAP
 
  ## NOTES ##
 

@@ -40,43 +40,29 @@
 #include "GraphIO/GraphStd.hpp"
 #include "Support/Host/Bitmask.hpp"
 #include "Support/Host/Queue.hpp"
-#include <array>
 #include <vector>
 
 namespace graph {
 
 template<typename vid_t, typename eoff_t>
-class BFS {
+class WCC {
 public:
-    using dist_t = int;
-    enum { PARENT = 0, PEER = 1, VALID = 2, NOT_VALID = 3 };
+    explicit WCC(const GraphStd<vid_t, eoff_t>& graph) noexcept;
 
-    explicit BFS(const GraphStd<vid_t, eoff_t>& graph) noexcept;
-    ~BFS() noexcept;
+    void run() noexcept;
 
-    void run(vid_t source) noexcept;
-    void run(const vid_t* sources, int num_sources) noexcept;
-    void reset() noexcept;
+    const std::vector<vid_t>& vector() const noexcept;
 
-    const dist_t* distances() const noexcept;
+    vid_t size() const noexcept;
 
-    vid_t  visited_nodes() const noexcept;
-    eoff_t visited_edges() const noexcept;
-    dist_t eccentricity()  const noexcept;
+    vid_t largest_size() const noexcept;
 
-    std::vector<std::array<vid_t, 4>> statistics(vid_t source) noexcept;
-    std::vector<vid_t>                weaklyConnectedComponents() noexcept;
-
-    vid_t radius() noexcept;
-    vid_t diameter() noexcept;
+    vid_t num_trivial()  const noexcept;
 private:
-    const dist_t INF = std::numeric_limits<dist_t>::max();
-
     const GraphStd<vid_t, eoff_t>&  _graph;
-    xlib::Bitmask      _bitmask;
-    xlib::Queue<vid_t> _queue;
-    dist_t*            _distances { nullptr };
-    bool               _reset     { true };
+    xlib::Bitmask           _bitmask;
+    xlib::Queue<vid_t>      _queue;
+    std::vector<vid_t> _wcc_vector;
 };
 
 } // namespace graph

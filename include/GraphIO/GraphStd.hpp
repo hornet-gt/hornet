@@ -45,11 +45,15 @@ namespace graph {
 template<typename vid_t, typename eoff_t>
 class BFS;
 
+template<typename vid_t, typename eoff_t>
+class WCC;
+
 template<typename vid_t = int, typename eoff_t = int>
 class GraphStd : public GraphBase<vid_t, eoff_t> {
     using    coo_t = typename std::pair<vid_t, vid_t>;
     using degree_t = int;
     friend class BFS<vid_t, eoff_t>;
+    friend class WCC<vid_t, eoff_t>;
 
 public:
     class VertexIt;
@@ -203,10 +207,12 @@ public:
     const degree_t* out_degrees() const noexcept;
     const degree_t* in_degrees()  const noexcept;
 
-    degree_t  max_out_degree()     const noexcept;
-    degree_t  max_in_degree()      const noexcept;
-    vid_t     max_out_degree_src() const noexcept;
-    vid_t     max_in_degree_src()  const noexcept;
+    degree_t  max_out_degree()        const noexcept;
+    degree_t  max_in_degree()         const noexcept;
+    vid_t     max_out_degree_vertex() const noexcept;
+    vid_t     max_in_degree_vertex()  const noexcept;
+
+    bool      is_directed()           const noexcept;
 
     void print()     const noexcept override;
     void print_raw() const noexcept override;

@@ -258,7 +258,8 @@ size_t GraphBase<vid_t, eoff_t>::getSnapHeader(std::ifstream& fin) {
     }
     xlib::skip_lines(fin);
     xlib::overflowT<vid_t>(_nV);
-    xlib::overflowT<eoff_t>(num_lines * 2);
+    xlib::overflowT<eoff_t>(_structure.is_undirected() ? num_lines * 2 :
+                                                         num_lines);
     _nV = static_cast<vid_t>(num_vertices);
     _nE = _structure.is_undirected() ? static_cast<eoff_t>(num_lines) * 2 :
                                        static_cast<eoff_t>(num_lines);

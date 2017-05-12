@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
     cuStinger custiger_graph(custinger_init);
 
     BfsTopDown bfs_top_down(custiger_graph);
-    bfs_top_down.set_parameters(graph.max_out_degree_src());
+    bfs_top_down.set_parameters(graph.max_out_degree_vertex());
 
     Timer<DEVICE> TM;
     TM.start();

@@ -76,7 +76,7 @@ bool mul_is_safe(T, T) noexcept { return true; }
 #endif
 
 template<typename R, typename T>
-void overflowT(T value) {
+void check_overflow(T value) {
     if (value > std::numeric_limits<R>::max())
         ERROR("value overflow")
 }
@@ -276,7 +276,7 @@ HOST_DEVICE void write_bit(T* array, R pos) noexcept {
 }
 
 template<typename T, typename R>
-HOST_DEVICE void write_bit(T* array, R start, R end) noexcept {
+HOST_DEVICE void write_bits(T* array, R start, R end) noexcept {
     static_assert(std::is_integral<T>::value && std::is_integral<R>::value,
                   "T/R must be integral");
 
@@ -301,7 +301,7 @@ HOST_DEVICE void delete_bit(T* array, R pos) noexcept {
 }
 
 template<typename T, typename R>
-HOST_DEVICE void delete_bit(T* array, R start, R end) noexcept {
+HOST_DEVICE void delete_bits(T* array, R start, R end) noexcept {
     static_assert(std::is_integral<T>::value && std::is_integral<R>::value,
                   "T/R must be integral");
 
@@ -312,7 +312,8 @@ HOST_DEVICE void delete_bit(T* array, R start, R end) noexcept {
     auto       end_word = uend / SIZE;
     array[start_word]  &= (static_cast<T>(1) << (ustart % SIZE)) - 1;
     array[end_word]    &= ~((static_cast<T>(1) << (uend % SIZE)) - 1);
-    std::fill(array + start_word + 1, array + end_word - 1, 0);
+    for (int i = start_word + 1; i < end_word - 1; i++)
+        array[i] = 0;
 }
 
 // ========================== RUN TIME numeric methods =========================

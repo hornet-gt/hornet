@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['d_5fvertex_5fptrs',['d_vertex_ptrs',['../structcustinger_1_1cuStingerDevData.html#a7371f663af4e122be010b24b2eff62c8',1,'custinger::cuStingerDevData']]]
+  ['block_5fsize_5fop1',['BLOCK_SIZE_OP1',['../namespacecustinger__alg.html#a1b5e970bc5b1f2269061850ec2961caa',1,'custinger_alg']]],
+  ['block_5fsize_5fop2',['BLOCK_SIZE_OP2',['../namespacecustinger__alg.html#af5bdda4afc42af78d5485e589707c42b',1,'custinger_alg']]]
 ];

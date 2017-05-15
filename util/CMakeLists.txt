@@ -323,7 +323,7 @@ endif()
 #################
 # CUSTOM TARGET #
 #################
-set_property(GLOBAL PROPERTY ALLOW_DUPLICATE_CUSTOM_TARGETS 1)
+if(DEFINED ENABLE_TARGET)
 
 add_custom_target(rm rm -rf * COMMENT "Clear build directory")
 
@@ -363,4 +363,5 @@ add_custom_target(update_mem rm -rf *
                   COMMAND cmake -DCMAKE_BUILD_TYPE=Mem ..
                   COMMAND make -j ${THREADS}
                   COMMENT "UPDATE MEM")
+endif()
 endif()

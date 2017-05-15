@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['nv',['nV',['../structcustinger_1_1cuStingerDevData.html#ab2e039b272718e72eb99a2ddea4e491e',1,'custinger::cuStingerDevData']]]
+  ['min_5fedges_5fper_5fblock',['MIN_EDGES_PER_BLOCK',['../namespacecustinger.html#ae077624bf0727b0384cb5cc8967a742e',1,'custinger']]]
 ];

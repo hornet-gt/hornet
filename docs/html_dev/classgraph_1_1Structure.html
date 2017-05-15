@@ -81,21 +81,31 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a691fb9bc984d730c4cbbc8564a4022d1"><td class="memItemLeft" align="right" valign="top"><a id="a691fb9bc984d730c4cbbc8564a4022d1"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>Enum</b> { <b>DIRECTED</b> = 1, 
+<tr class="memitem:a691fb9bc984d730c4cbbc8564a4022d1"><td class="memItemLeft" align="right" valign="top"><a id="a691fb9bc984d730c4cbbc8564a4022d1"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>Enum</b> { <br />
+&#160;&#160;<b>DIRECTED</b> = 1, 
 <b>UNDIRECTED</b> = 2, 
 <b>REVERSE</b> = 4, 
-<b>COO</b> = 8
+<b>COO</b> = 8, 
+<br />
+&#160;&#160;<b>UNDEF</b> = 16
+<br />
  }</td></tr>
 <tr class="separator:a691fb9bc984d730c4cbbc8564a4022d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a9e6c9053449b5d6f2a42b04e7b86dc70"><td class="memItemLeft" align="right" valign="top"><a id="a9e6c9053449b5d6f2a42b04e7b86dc70"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Structure</b> (int state=0) noexcept</td></tr>
-<tr class="separator:a9e6c9053449b5d6f2a42b04e7b86dc70"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0e5e7b80912cbdae8771142f958eff46"><td class="memItemLeft" align="right" valign="top"><a id="a0e5e7b80912cbdae8771142f958eff46"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>operator|=</b> (int value) noexcept</td></tr>
-<tr class="separator:a0e5e7b80912cbdae8771142f958eff46"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab52a37fb6ae31162d6927d7f3f7f8cd7"><td class="memItemLeft" align="right" valign="top"><a id="ab52a37fb6ae31162d6927d7f3f7f8cd7"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Structure</b> (Structure::Enum state) noexcept</td></tr>
+<tr class="separator:ab52a37fb6ae31162d6927d7f3f7f8cd7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03e025f0bd735e7c5def25bcc9d74607"><td class="memItemLeft" align="right" valign="top"><a id="a03e025f0bd735e7c5def25bcc9d74607"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (Structure::Enum state) noexcept</td></tr>
+<tr class="separator:a03e025f0bd735e7c5def25bcc9d74607"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a42b29637d93003524e4e4c2dc18d65e9"><td class="memItemLeft" align="right" valign="top"><a id="a42b29637d93003524e4e4c2dc18d65e9"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>operator+=</b> (Structure::Enum state) noexcept</td></tr>
+<tr class="separator:a42b29637d93003524e4e4c2dc18d65e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af0ebe562e0c144a4c36767c0122aa474"><td class="memItemLeft" align="right" valign="top"><a id="af0ebe562e0c144a4c36767c0122aa474"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>operator+=</b> (<a class="el" href="classgraph_1_1Structure.html">Structure</a> structure) noexcept</td></tr>
+<tr class="separator:af0ebe562e0c144a4c36767c0122aa474"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>include/GraphIO/<a class="el" href="GraphBase_8hpp_source.html">GraphBase.hpp</a></li>
@@ -103,7 +113,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>operator|=</b> (int v
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu May 11 2017 17:53:14 for cuStinger by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon May 15 2017 12:34:49 for cuStinger by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

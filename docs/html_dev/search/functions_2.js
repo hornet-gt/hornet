@@ -1,7 +1,7 @@
 var searchData=
 [
   ['check_5fconsistency',['check_consistency',['../classcustinger_1_1cuStinger.html#adc78355249db2698753191df0c4dc844',1,'custinger::cuStinger']]],
-  ['clear',['clear',['../classcustinger_1_1MemoryManager.html#a02e07d199ba5bdf9907ca1577d70628d',1,'custinger::MemoryManager']]],
+  ['clear',['clear',['../classcustinger_1_1MemoryManager.html#a02e07d199ba5bdf9907ca1577d70628d',1,'custinger::MemoryManager::clear()'],['../classcustinger__alg_1_1TwoLevelQueue.html#a3c9c358f864255c2843c6b4602ac5fb1',1,'custinger_alg::TwoLevelQueue::clear()']]],
   ['csr',['Csr',['../classcsr_1_1Csr.html#a0b0aadea09aff0de5a702efb313e3d31',1,'csr::Csr']]],
   ['csr_5fedges',['csr_edges',['../classcustinger_1_1cuStingerInit.html#a68486d4cc9aaed0ec2a02075c95e69d7',1,'custinger::cuStingerInit::csr_edges()'],['../classcustinger_1_1cuStinger.html#a8e46116cea09a04390eb1b282636693d',1,'custinger::cuStinger::csr_edges()']]],
   ['csr_5foffsets',['csr_offsets',['../classcustinger_1_1cuStingerInit.html#a38f446db8202bef12d0f42c1ea84aa4f',1,'custinger::cuStingerInit::csr_offsets()'],['../classcustinger_1_1cuStinger.html#a52360cc180b6ce08f946a5a9635658df',1,'custinger::cuStinger::csr_offsets()']]],

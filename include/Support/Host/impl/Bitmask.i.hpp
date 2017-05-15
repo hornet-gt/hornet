@@ -1,33 +1,41 @@
-/*------------------------------------------------------------------------------
-Copyright © 2016 by Nicola Bombieri
-
-XLib is provided under the terms of The MIT License (MIT):
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-------------------------------------------------------------------------------*/
 /**
- * @author Federico Busato
- * Univerity of Verona, Dept. of Computer Science
- * federico.busato@univr.it
+ * @author Federico Busato                                                  <br>
+ *         Univerity of Verona, Dept. of Computer Science                   <br>
+ *         federico.busato@univr.it
+ * @date April, 2017
+ * @version v1.3
+ *
+ * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ *
+ * @license{<blockquote>
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ * * Neither the name of the copyright holder nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * </blockquote>}
  */
-/**
- * @version 1.3
- */
+#include "Support/Host/Numeric.hpp"     //xlib::delete_bits
+#include <random>
+
 namespace xlib {
 
 inline Bitmask::Bitmask(size_t size) noexcept :
@@ -69,11 +77,24 @@ inline bool Bitmask::operator[](size_t index) const noexcept {
     return static_cast<bool>(_array[index >> 5u] & (1u << (index % 32u)));
 }
 
+inline void Bitmask::randomize() noexcept {
+    auto seed = std::chrono::high_resolution_clock::now().time_since_epoch()
+                .count();
+    auto    generator = std::mt19937_64(seed);
+    auto distribution = std::uniform_int_distribution<unsigned>(
+                            std::numeric_limits<unsigned>::lowest(),
+                            std::numeric_limits<unsigned>::max());
+    const auto lambda = [&]{ return distribution(generator); };
+    std::generate(_array, _array + _num_word, lambda);
+    xlib::delete_bits(_array, _size, _num_word * 32);
+
+}
+
 inline void Bitmask::clear() noexcept {
     std::fill(_array, _array + _num_word, 0);
 }
 
-inline size_t Bitmask::get_count() const noexcept {
+inline size_t Bitmask::size() const noexcept {
     size_t count = 0;
     for (size_t i = 0; i < _num_word; i++)
         count += static_cast<size_t>(__builtin_popcount(_array[i]));

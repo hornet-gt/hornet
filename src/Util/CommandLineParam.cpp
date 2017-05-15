@@ -33,21 +33,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Util/Parameters.hpp"
-#include "Support/Host/Basic.hpp"   //ERROR, xlib::is_integer
-#include <fstream>
+#include "Util/CommandLineParam.hpp"
+#include "Support/Device/SafeCudaAPI.cuh"   //SAFE_CALL
+#include "Support/Host/Basic.hpp"           //ERROR, xlib::is_integer
+#include "Support/Host/FileUtil.hpp"        //xlib::extract_filepath_noextension
+#include <cuda_runtime.h>                   //cudaSetDevice
+#include <fstream>                          //std::ifstream
 
 namespace custinger {
 
-Param::Param(int argc, char* argv[]) : //strategy(Strategy::UNDEF),
-                                       /*strategy_prop(),
-                                       batch_size(0),
-                                       insert(false), remove(false),*/
-                                       print(false),
-                                      // batch_prop(),
-                                       adj_sort(false),
-                                       spmv(false),
-                                       binary(false) {
+template<typename T, typename R>
+CommandLineParam::CommandLineParam(graph::GraphStd<T, R>& graph,
+                                  int argc, char* argv[], bool check_unknown)
+                                  noexcept {
+    graph::Property prop(graph::Property::PRINT);
+    bool write_binary = false;
     if (argc == 1) {
 L1:     std::ifstream syntax_file("../docs/Syntax.txt");
         std::cout << syntax_file.rdbuf() << "\n\n";
@@ -56,6 +56,22 @@ L1:     std::ifstream syntax_file("../docs/Syntax.txt");
     }
     for (int i = 2; i < argc; i++) {
         std::string str(argv[i]);
+        if (str == "--undirected")
+            graph.set_structure(graph::Structure::UNDIRECTED);
+        else if (str == "--directed")
+            graph.set_structure(graph::Structure::DIRECTED);
+        else if (str == "--sort-adj")
+            prop += graph::Property::SORT;
+        else if (str == "--randomize-id")
+            prop += graph::Property::RANDOMIZE;
+        else if (str == "--no-info")
+            prop -= graph::Property::PRINT;
+        else if (str == "--write-binary")
+            write_binary = true;
+        else if (str == "--device-info")
+            xlib::deviceInfo();
+        else if (str == "--device" && xlib::is_integer(argv[i + 1]))
+            SAFE_CALL( cudaSetDevice(std::stoi(argv[++i])) )
         /*if (str == "--insert" && xlib::is_integer(argv[i + 1])) {
             insert     = true;
             batch_size = std::stoi(argv[++i]);
@@ -72,8 +88,6 @@ L1:     std::ifstream syntax_file("../docs/Syntax.txt");
         }
         else if (str == "--spmv")
             spmv = true;*/
-        if (str == "--binary")
-            binary = true;
         /*else if (str == "--weighted")
             batch_prop.weighted = true;
         else if (str == "--strategy=seq")
@@ -142,11 +156,17 @@ L1:     std::ifstream syntax_file("../docs/Syntax.txt");
         }*/
         else if (str == "--help")
             goto L1;
-        else {
-            ERROR("Invalid parameter: ", str, "\n"
-                  " See ", argv[0], " --help for syntax)")
-        }
+        else if (check_unknown)
+            ERROR("Invalid parameter: ", str, "\n")
     }
+    graph.read(argv[1], prop);
+    if (write_binary)
+        graph.writeBinary(xlib::extract_filepath_noextension(argv[1]) + ".bin");
 }
+
+template CommandLineParam::CommandLineParam(graph::GraphStd<int, int>&,
+                                            int, char* argv[], bool);
+template CommandLineParam::CommandLineParam(graph::GraphStd<int64_t, int64_t>&,
+                                            int, char* argv[], bool);
 
 } // namespace custinger

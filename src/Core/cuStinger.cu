@@ -38,6 +38,36 @@
 #include "Support/Device/CubWrapper.cuh"        //CubSortByValue
 #include "Support/Device/Definition.cuh"        //xlib::SMemPerBlock
 #include "Support/Device/BinarySearchLB.cuh"    //xlib::binarySearchLB
+/*
+namespace cub {
+
+template<>
+__host__ __device__ __forceinline__
+struct BaseTraits<NOT_A_NUMBER, false, false, custinger::VertexBasicData, custinger::VertexBasicData> {
+    static __host__ __device__ __forceinline__ int Lowest() {
+        return -1;
+    }
+};
+
+template<>
+struct KeyValuePair<int, custinger::VertexBasicData> {
+    int     key;
+    custinger::degree_t   value;
+
+    typedef int Key;
+    typedef custinger::degree_t Value;
+
+    typedef char Pad[AlignBytes<int>::ALIGN_BYTES - AlignBytes<custinger::degree_t>::ALIGN_BYTES];
+
+    __host__ __device__ __forceinline__
+    KeyValuePair() {}
+
+    __host__ __device__ __forceinline__
+    KeyValuePair(int key_, custinger::degree_t degree) :
+                                        key(key_), value(degree) {}
+};
+
+}*/
 
 namespace custinger {
 
@@ -139,11 +169,12 @@ void cuStinger::transpose() noexcept {
            d_coo_src_out, d_counts_out);
     initialize();
 }
-/*s
+
 vid_t cuStinger::max_degree_vertex() const noexcept {
-    auto ptr = reinterpret_cast<VertexBasicData*>(_d_vertex_ptrs[0]);
-    xlib::CubArgMax<VertexBasicData> arg_max(ptr, _nV);
-    return arg_max.run().second;
-}*/
+    /*auto ptr = reinterpret_cast<long2*>(_d_vertex_ptrs[0]);
+    xlib::CubArgMax<long2> arg_max(ptr, _nV);
+    return arg_max.run().first;*/
+    return _max_degree_vertex;
+}
 
 } // namespace custinger

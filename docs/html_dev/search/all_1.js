@@ -10,6 +10,12 @@ var searchData=
   ['belong_5fto',['belong_to',['../classcustinger_1_1BitTree.html#ab6cf05a755ff3755f8951485bcd1242d',1,'custinger::BitTree']]],
   ['bfs',['BFS',['../classgraph_1_1BFS.html',1,'graph']]],
   ['bfs_2ehpp',['BFS.hpp',['../BFS_8hpp.html',1,'']]],
+  ['bfsdata',['BfsData',['../structcustinger__alg_1_1BfsData.html',1,'custinger_alg']]],
+  ['bfstopdown',['BfsTopDown',['../classcustinger__alg_1_1BfsTopDown.html',1,'custinger_alg']]],
+  ['bfstopdown2',['BfsTopDown2',['../classcustinger__alg_1_1BfsTopDown2.html',1,'custinger_alg']]],
+  ['binarysearch',['BinarySearch',['../classload__balacing_1_1BinarySearch.html',1,'load_balacing::BinarySearch'],['../classload__balacing_1_1BinarySearch.html#a5b42e56fd74efda31f247a730a56267c',1,'load_balacing::BinarySearch::BinarySearch()']]],
+  ['binarysearch_2ecuh',['BinarySearch.cuh',['../BinarySearch_8cuh.html',1,'']]],
+  ['binarysearchkernel_2ecuh',['BinarySearchKernel.cuh',['../BinarySearchKernel_8cuh.html',1,'']]],
   ['binarysearchlb_2ecuh',['BinarySearchLB.cuh',['../BinarySearchLB_8cuh.html',1,'']]],
   ['binomialcoeff',['BinomialCoeff',['../structxlib_1_1BinomialCoeff.html',1,'xlib']]],
   ['bitmask',['Bitmask',['../classxlib_1_1Bitmask.html',1,'xlib']]],
@@ -19,5 +25,7 @@ var searchData=
   ['bitref_2ehpp',['BitRef.hpp',['../BitRef_8hpp.html',1,'']]],
   ['bittree',['BitTree',['../classcustinger_1_1BitTree.html',1,'custinger::BitTree&lt; T, BLOCK_ITEMS, BLOCKARRAY_ITEMS &gt;'],['../classcustinger_1_1BitTree.html#a8b69918cf2b5560908d2395f561072a8',1,'custinger::BitTree::BitTree() noexcept'],['../classcustinger_1_1BitTree.html#ab18af2a81162019b2a374ef6d253aa7c',1,'custinger::BitTree::BitTree(BitTree &amp;&amp;obj) noexcept']]],
   ['bittree_2ehpp',['BitTree.hpp',['../BitTree_8hpp.html',1,'']]],
+  ['block_5fsize_5fop1',['BLOCK_SIZE_OP1',['../namespacecustinger__alg.html#a1b5e970bc5b1f2269061850ec2961caa',1,'custinger_alg']]],
+  ['block_5fsize_5fop2',['BLOCK_SIZE_OP2',['../namespacecustinger__alg.html#af5bdda4afc42af78d5485e589707c42b',1,'custinger_alg']]],
   ['blockpartition',['blockPartition',['../namespacexlib.html#a396a34e7c421cddea23fbeaef960c922',1,'xlib']]]
 ];

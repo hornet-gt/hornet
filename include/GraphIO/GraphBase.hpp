@@ -47,10 +47,13 @@ class Property {
     template<typename, typename> friend class GraphStd;
     template<typename, typename, typename> friend class GraphWeight;
 public:
-    enum Enum { PRINT = 1, RANDOMIZE = 2, SORT = 4 };
-    explicit Property(int state = 0) noexcept;
+    enum Enum { RANDOMIZE = 1, SORT = 2, PRINT = 4 };
+    explicit Property() noexcept = default;
+    explicit Property(Property::Enum state) noexcept;
+    void operator+= (Property::Enum state)  noexcept;
+    void operator-= (Property::Enum state)  noexcept;
 private:
-    int _state;
+    int _state { 0 };
 
     bool is_undefined() const noexcept;
     bool is_sort()      const noexcept;
@@ -63,12 +66,15 @@ class Structure {
     template<typename, typename> friend class GraphStd;
     template<typename, typename, typename> friend class GraphWeight;
 public:
-    enum Enum { DIRECTED = 1, UNDIRECTED = 2, REVERSE = 4, COO = 8 };
-    explicit Structure(int state = 0) noexcept;
-    void operator|=(int value)        noexcept;
+    enum Enum { DIRECTED = 1, UNDIRECTED = 2, REVERSE = 4,
+                COO = 8, UNDEF = 16 };
+    explicit Structure(Structure::Enum state) noexcept;
+    void operator= (Structure::Enum state)    noexcept;
+    void operator+= (Structure::Enum state)   noexcept;
+    void operator+= (Structure structure)     noexcept;
 private:
-    enum WType { NONE, INTEGER, REAL };
-    int   _state;
+    enum WType   { NONE, INTEGER, REAL };
+    int   _state { 0 };
     WType _wtype { NONE };
 
     bool is_undefined()     const noexcept;
@@ -80,6 +86,11 @@ private:
     bool is_weighted()      const noexcept;
 };
 
+struct GInfo {
+    size_t          num_vertices;
+    size_t          num_edges;
+    Structure::Enum direction;
+};
 
 template<typename vid_t, typename eoff_t>
 class GraphBase {
@@ -96,34 +107,40 @@ public:
     GraphBase(const GraphBase&)      = delete;
     void operator=(const GraphBase&) = delete;
 protected:
-    std::string _graph_name { "" };
-    vid_t        _nV { 0 };
-    eoff_t       _nE { 0 };
-    Structure   _structure;
+    std::string _graph_name    { "" };
+    vid_t       _nV            { 0 };
+    eoff_t      _nE            { 0 };
+    Structure   _structure     { Structure::UNDEF };
+    Property    _prop;
+    bool        _store_inverse { false };
 
+    explicit GraphBase()                          noexcept;
+    explicit GraphBase(Structure::Enum structure) noexcept;
     explicit GraphBase(vid_t nV, eoff_t nE, Structure::Enum structure)
                        noexcept;
-    explicit GraphBase(Structure structure = Structure(Structure::REVERSE))
-                       noexcept;
     virtual ~GraphBase() noexcept = default;
-    virtual void   allocate() noexcept = 0;
 
-    virtual void   readMarket   (std::ifstream& fin, Property property)   = 0;
-    virtual void   readDimacs9  (std::ifstream& fin, Property property)   = 0;
-    virtual void   readDimacs10 (std::ifstream& fin, Property property)   = 0;
-    virtual void   readSnap     (std::ifstream& fin, Property property)   = 0;
-    virtual void   readKonect   (std::ifstream& fin, Property property)   = 0;
-    virtual void   readNetRepo  (std::ifstream& fin, Property property)   = 0;
-    virtual void   readBinary   (const char* filename, Property property) = 0;
+    virtual void   set_structure(Structure::Enum structure) noexcept final;
+    virtual void   allocate(GInfo info) noexcept = 0;
 
-    virtual size_t getMarketHeader   (std::ifstream& fin) final;
-    virtual size_t getDimacs9Header  (std::ifstream& fin) final;
-    virtual void   getDimacs10Header (std::ifstream& fin) final;
-    virtual void   getKonectHeader   (std::ifstream& fin) final;
+    virtual void   readMarket   (std::ifstream& fin, bool print)   = 0;
+    virtual void   readDimacs9  (std::ifstream& fin, bool print)   = 0;
+    virtual void   readDimacs10 (std::ifstream& fin, bool print)   = 0;
+    virtual void   readSnap     (std::ifstream& fin, bool print)   = 0;
+    virtual void   readKonect   (std::ifstream& fin, bool print)   = 0;
+    virtual void   readNetRepo  (std::ifstream& fin, bool print)   = 0;
+    virtual void   readBinary   (const char* filename, bool print) = 0;
+
+    virtual GInfo  getMarketHeader   (std::ifstream& fin) final;
+    virtual GInfo  getDimacs9Header  (std::ifstream& fin) final;
+    virtual GInfo  getDimacs10Header (std::ifstream& fin) final;
+    virtual GInfo  getKonectHeader   (std::ifstream& fin) final;
     virtual void   getNetRepoHeader  (std::ifstream& fin) final;
-    virtual size_t getSnapHeader     (std::ifstream& fin) final;
+    virtual GInfo  getSnapHeader     (std::ifstream& fin) final;
 
-    virtual void  print_property() final;
+    virtual void COOtoCSR() noexcept = 0;
+    //virtual void CSRtoCOO() noexcept = 0;
+    //virtual void  print_property() final;
 };
 
 } // namespace graph

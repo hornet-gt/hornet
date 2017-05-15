@@ -6,11 +6,10 @@ FIND_PACKAGE(CUDA REQUIRED)
 
 #set(WARNING_FLAGS ON)
 set(CUDA_SEPARABLE_COMPILATION ON)
-set(BUILD_TARGET ON)
-include(util/CMakeLists.txt)
 include_directories(include)
 include_directories(externals/cub)
 include_directories(${CUDA_INCLUDE_DIRS})
+include(util/CMakeLists.txt)
 #-------------------------------------------------------------------------------
 file(GLOB_RECURSE CPP_SRCS ${PROJECT_SOURCE_DIR}/src/*.cpp)
 file(GLOB_RECURSE CU_SRCS  ${PROJECT_SOURCE_DIR}/src/*.cu)

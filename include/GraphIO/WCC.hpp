@@ -48,6 +48,7 @@ template<typename vid_t, typename eoff_t>
 class WCC {
 public:
     explicit WCC(const GraphStd<vid_t, eoff_t>& graph) noexcept;
+    ~WCC() noexcept;
 
     void run() noexcept;
 
@@ -55,14 +56,24 @@ public:
 
     vid_t size() const noexcept;
 
-    vid_t largest_size() const noexcept;
+    vid_t largest() const noexcept;
 
-    vid_t num_trivial()  const noexcept;
+    vid_t num_trivial() const noexcept;
+
+    const vid_t* result() const noexcept;
+
+    void print() const noexcept;
+
+    void print_histogram() const noexcept;
+
 private:
+    using color_t = vid_t;
+    const color_t NO_COLOR = std::numeric_limits<color_t>::max();
+
     const GraphStd<vid_t, eoff_t>&  _graph;
-    xlib::Bitmask           _bitmask;
-    xlib::Queue<vid_t>      _queue;
+    xlib::Queue<vid_t> _queue;
     std::vector<vid_t> _wcc_vector;
+    color_t*           _color;
 };
 
 } // namespace graph

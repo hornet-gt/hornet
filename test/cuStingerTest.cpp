@@ -2,7 +2,7 @@
 #include "Core/cuStinger.hpp"
 
 #include "GraphIO/GraphStd.hpp"        //GraphStd
-#include "Util/Parameters.hpp"         //Param
+//#include "Util/Parameters.hpp"         //Param
 #include "Support/Host/FileUtil.hpp"   //xlib::extract_filepath_noextension
 #include "Support/Device/CudaUtil.cuh" //xlib::deviceInfo
 #include "Support/Host/Timer.hpp"      //Timer<HOST>
@@ -20,14 +20,14 @@ using namespace timer;
  */
 int main(int argc, char* argv[]) {
     xlib::deviceInfo();
-    Param param(argc, argv);
+    //Param param(argc, argv);
 
     graph::GraphStd<custinger::vid_t, custinger::eoff_t> graph;
     graph.read(argv[1]);
     graph.print_raw();
 
-    if (param.binary)
-        graph.toBinary(xlib::extract_filepath_noextension(argv[1]) + ".bin");
+    //if (param.binary)
+    //    graph.toBinary(xlib::extract_filepath_noextension(argv[1]) + ".bin");
     //--------------------------------------------------------------------------
 
     auto seed = std::chrono::high_resolution_clock::now()

@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['ne',['nE',['../classcustinger_1_1cuStingerInit.html#a5067c517e03b27df95a1140277959715',1,'custinger::cuStingerInit::nE()'],['../classcustinger_1_1cuStinger.html#a0d531c8bb1d887942d32221436be7de1',1,'custinger::cuStinger::nE()']]],
-  ['num_5fblockarrays',['num_blockarrays',['../classcustinger_1_1MemoryManager.html#a922dbd59f0a738ff52082d2d501480b6',1,'custinger::MemoryManager']]],
-  ['nv',['nV',['../classcustinger_1_1cuStingerInit.html#a8b19a1607402ed0885e95a4ddbf6534d',1,'custinger::cuStingerInit::nV()'],['../classcustinger_1_1cuStinger.html#ab18e9d590c6fcec3219f74ac91a4603b',1,'custinger::cuStinger::nV()']]]
+  ['lane_5fid',['lane_id',['../namespacexlib.html#a3ddd4fadb2296ef4ccc4b501bef3a4be',1,'xlib']]],
+  ['limit',['limit',['../classcustinger_1_1Vertex.html#a2b7b4fe6769f6087914fe4662118870c',1,'custinger::Vertex']]],
+  ['log2',['log2',['../namespacexlib.html#ae01ccf345e4e975ac58e2c07679fd930',1,'xlib']]]
 ];

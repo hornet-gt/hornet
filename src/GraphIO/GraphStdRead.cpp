@@ -43,30 +43,33 @@
 namespace graph {
 
 template<typename vid_t, typename eoff_t>
-void GraphStd<vid_t, eoff_t>::readMarket(std::ifstream& fin, Property prop) {
-    _coo_size = GraphBase<vid_t, eoff_t>::getMarketHeader(fin);
-    allocate();
-    xlib::Progress progress(_coo_size);
+void GraphStd<vid_t, eoff_t>::readMarket(std::ifstream& fin, bool print) {
+    auto ginfo = GraphBase<vid_t, eoff_t>::getMarketHeader(fin);
+    allocate(ginfo);
+    xlib::Progress progress(ginfo.num_edges);
+    if (print)
+        std::cout << "Reading...   ";
 
-    for (size_t lines = 0; lines < _coo_size; lines++) {
+    for (size_t lines = 0; lines < ginfo.num_edges; lines++) {
         vid_t index1, index2;
         fin >> index1 >> index2;
-        _coo_edges[lines] = std::make_pair(index1 - 1, index2 - 1);
+        _coo_edges[lines] = { index1 - 1, index2 - 1 };
 
-        if (prop.is_print())
+        if (print)
             progress.next(lines);
         xlib::skip_lines(fin);
     }
-    COOtoCSR(prop);
 }
 
 //------------------------------------------------------------------------------
 
 template<typename vid_t, typename eoff_t>
-void GraphStd<vid_t, eoff_t>::readDimacs9(std::ifstream& fin, Property prop) {
-    _coo_size = GraphBase<vid_t, eoff_t>::getDimacs9Header(fin);
-    allocate();
-    xlib::Progress progress(_coo_size);
+void GraphStd<vid_t, eoff_t>::readDimacs9(std::ifstream& fin, bool print) {
+    auto ginfo = GraphBase<vid_t, eoff_t>::getDimacs9Header(fin);
+    allocate(ginfo);
+    xlib::Progress progress(ginfo.num_edges);
+    if (print)
+        std::cout << "Reading...   ";
 
     int c;
     size_t lines = 0;
@@ -76,51 +79,45 @@ void GraphStd<vid_t, eoff_t>::readDimacs9(std::ifstream& fin, Property prop) {
             xlib::skip_words(fin);
             fin >> index1 >> index2;
 
-            _coo_edges[lines] = std::make_pair(index1 - 1, index2 - 1);
-            if (prop.is_print())
+            _coo_edges[lines] = { index1 - 1, index2 - 1 };
+            if (print)
                 progress.next(lines);
             lines++;
         }
         xlib::skip_lines(fin);
     }
-    COOtoCSR(prop);
 }
 
 //------------------------------------------------------------------------------
 
 template<typename vid_t, typename eoff_t>
-void GraphStd<vid_t, eoff_t>::readKonect(std::ifstream& fin, Property prop) {
-    GraphBase<vid_t, eoff_t>::getKonectHeader(fin);
-    xlib::UniqueMap<vid_t> unique_map;
-    std::vector<coo_t> coo_edges_vect(32768);
+void GraphStd<vid_t, eoff_t>::readKonect(std::ifstream& fin, bool print) {
+    auto ginfo = GraphBase<vid_t, eoff_t>::getKonectHeader(fin);
+    allocate(ginfo);
+    if (print)
+        std::cout << "Reading...   ";
+    xlib::Progress progress(ginfo.num_edges);
 
-    size_t n_of_lines = 0;
-    while (fin.good()) {
+    for (size_t lines = 0; lines < ginfo.num_edges; lines++) {
         vid_t index1, index2;
         fin >> index1 >> index2;
-        unique_map.insertValue(index1);
-        unique_map.insertValue(index2);
-
-        coo_edges_vect.push_back(std::make_pair(index1 - 1, index2 - 1));
-        n_of_lines++;
+        _coo_edges[lines] = { index1 - 1, index2 - 1 };
+        if (print)
+            progress.next(lines);
     }
-    _nV = static_cast<vid_t>(unique_map.size());
-    _nE = static_cast<eoff_t>(n_of_lines);
-    _coo_size = n_of_lines;
-    allocate();
-    std::copy(coo_edges_vect.begin(), coo_edges_vect.end(), _coo_edges);
-    COOtoCSR(prop);
 }
 
 //------------------------------------------------------------------------------
 
 template<typename vid_t, typename eoff_t>
-void GraphStd<vid_t, eoff_t>::readNetRepo(std::ifstream& fin, Property prop) {
+void GraphStd<vid_t, eoff_t>::readNetRepo(std::ifstream& fin, bool print) {
     GraphBase<vid_t, eoff_t>::getNetRepoHeader(fin);
     xlib::UniqueMap<vid_t> unique_map;
     std::vector<coo_t> coo_edges_vect(32768);
+    if (print)
+        std::cout << "Reading...   ";
 
-    size_t n_of_lines = 0;
+    size_t num_lines = 0;
     while (!fin.eof()) {
         vid_t index1, index2;
         fin >> index1;
@@ -129,88 +126,61 @@ void GraphStd<vid_t, eoff_t>::readNetRepo(std::ifstream& fin, Property prop) {
         unique_map.insertValue(index1);
         unique_map.insertValue(index2);
 
-        coo_edges_vect.push_back(std::make_pair(index1 - 1, index2 - 1));
-        n_of_lines++;
+        coo_edges_vect.push_back( { index1 - 1, index2 - 1 } );
+        num_lines++;
     }
-    _nV = static_cast<vid_t>(unique_map.size());
-    _nE = static_cast<eoff_t>(n_of_lines);
-    _coo_size = n_of_lines;
-    allocate();
+    allocate( { unique_map.size(), num_lines, Structure::DIRECTED } );
     std::copy(coo_edges_vect.begin(), coo_edges_vect.end(), _coo_edges);
-    COOtoCSR(prop);
 }
 
 //------------------------------------------------------------------------------
 
 template<typename vid_t, typename eoff_t>
-void GraphStd<vid_t, eoff_t>::readDimacs10(std::ifstream& fin, Property prop){
-    GraphBase<vid_t, eoff_t>::getDimacs10Header(fin);
-    _coo_size = static_cast<size_t>(_nE);
-    allocate();
-    xlib::Progress progress(static_cast<size_t>(_nV));
+void GraphStd<vid_t, eoff_t>::readDimacs10(std::ifstream& fin, bool print){
+    auto ginfo = GraphBase<vid_t, eoff_t>::getDimacs10Header(fin);
+    allocate(ginfo);
+    xlib::Progress progress(static_cast<size_t>(ginfo.num_vertices));
+    if (print)
+        std::cout << "Reading...   ";
 
-    _out_offsets[0] = 0;
     size_t count_edges = 0;
-    for (size_t lines = 0; lines < static_cast<size_t>(_nV); lines++) {
+    for (size_t lines = 0; lines < ginfo.num_vertices; lines++) {
         std::string str;
         std::getline(fin, str);
 
-        degree_t degree = 0;
         char* token = std::strtok(const_cast<char*>(str.c_str()), " ");
         while (token != nullptr) {
-            degree++;
             vid_t dest = std::stoi(token) - 1;
-            _out_edges[count_edges] = dest;
-            _coo_edges[count_edges] = std::make_pair(lines, dest);
-
-            if (_structure.is_directed() && _structure.is_reverse())
-                _in_degrees[dest]++;
-            count_edges++;
+            _coo_edges[count_edges++] = { lines, dest };
             token = std::strtok(nullptr, " ");
         }
-        _out_degrees[lines] = degree;
-        if (prop.is_print())
+        if (print)
             progress.next(lines);
     }
     assert(count_edges == static_cast<size_t>(_nE));
-    _out_offsets[0] = 0;
-    std::partial_sum(_out_degrees, _out_degrees + _nV, _out_offsets + 1);
-
-    if (_structure.is_directed() && _structure.is_reverse()) {
-        _in_offsets[0] = 0;
-        std::partial_sum(_in_degrees, _in_degrees + _nV, _in_offsets + 1);
-
-        auto tmp = new degree_t[_nV]();
-        for (size_t i = 0; i < static_cast<size_t>(_nE); i++) {
-            vid_t  src = _coo_edges[i].first;
-            vid_t dest = _coo_edges[i].second;
-            _in_edges[ _in_offsets[dest] + tmp[dest]++ ] = src;         //NOLINT
-        }
-        delete[] tmp;
-    }
 }
 
 //------------------------------------------------------------------------------
 
 template<typename vid_t, typename eoff_t>
-void GraphStd<vid_t, eoff_t>::readSnap(std::ifstream& fin, Property prop) {
-    _coo_size = GraphBase<vid_t, eoff_t>::getSnapHeader(fin);
-    allocate();
+void GraphStd<vid_t, eoff_t>::readSnap(std::ifstream& fin, bool print) {
+    auto ginfo = GraphBase<vid_t, eoff_t>::getSnapHeader(fin);
+    allocate(ginfo);
+    if (print)
+        std::cout << "Reading...   ";
 
-    xlib::Progress progress(_coo_size);
+    xlib::Progress progress(ginfo.num_edges);
     while (fin.peek() == '#')
         xlib::skip_lines(fin);
 
     xlib::UniqueMap<vid_t, vid_t> map;
-    for (size_t lines = 0; lines < _coo_size; lines++) {
+    for (size_t lines = 0; lines < ginfo.num_edges; lines++) {
         vid_t v1, v2;
         fin >> v1 >> v2;
-        _coo_edges[lines] = std::make_pair(map.insertValue(v1),
-                                           map.insertValue(v2));
-        if (prop.is_print())
+        _coo_edges[lines] = { map.insertValue(v1), map.insertValue(v2) };
+        if (print)
             progress.next(lines);
     }
-    COOtoCSR(prop);
 }
 
 //------------------------------------------------------------------------------
@@ -220,10 +190,10 @@ void GraphStd<vid_t, eoff_t>::readSnap(std::ifstream& fin, Property prop) {
 #pragma clang diagnostic ignored "-Wsign-conversion"
 
 template<typename vid_t, typename eoff_t>
-void GraphStd<vid_t, eoff_t>::readBinary(const char* filename, Property prop){
+void GraphStd<vid_t, eoff_t>::readBinary(const char* filename, bool print){
     size_t file_size = xlib::file_size(filename);
     xlib::MemoryMapped memory_mapped(filename, file_size,
-                                     xlib::MemoryMapped::READ, prop.is_print());
+                                     xlib::MemoryMapped::READ, print);
 
     std::string class_id = xlib::type_name<vid_t>() + xlib::type_name<eoff_t>();
     auto tmp = new char[class_id.size()];
@@ -234,19 +204,23 @@ void GraphStd<vid_t, eoff_t>::readBinary(const char* filename, Property prop){
     delete[] tmp;
 
     memory_mapped.read(&_nV, 1, &_nE, 1, &_structure, 1);
-    allocate();
+    auto direction = _structure.is_directed() ? Structure::DIRECTED
+                                              : Structure::UNDIRECTED;
+    allocate({static_cast<size_t>(_nV), static_cast<size_t>(_nE), direction});
 
     if (_structure.is_directed() && _structure.is_reverse()) {
-        memory_mapped.read(_out_offsets, _nV + 1, _in_offsets, _nV + 1,   //NOLINT
-                           _out_edges, _nE, _in_edges, _nE);              //NOLINT
+        memory_mapped.read(_out_offsets, _nV + 1, _in_offsets, _nV + 1, //NOLINT
+                           _out_edges, _nE, _in_edges, _nE);            //NOLINT
         for (vid_t i = 0; i < _nV; i++)
             _in_degrees[i] = _in_offsets[i + 1] - _in_offsets[i - 1];
     }
-    else {
-        memory_mapped.read(_out_offsets, _nV + 1, _out_edges, _nE);       //NOLINT
-    }
+    else
+        memory_mapped.read(_out_offsets, _nV + 1, _out_edges, _nE);     //NOLINT
+
     for (vid_t i = 0; i < _nV; i++)
         _out_degrees[i] = _out_offsets[i + 1] - _out_offsets[i - 1];
+    //if (_structure.is_coo())
+    //
 }
 
 #pragma clang diagnostic pop

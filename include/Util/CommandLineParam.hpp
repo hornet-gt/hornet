@@ -38,16 +38,14 @@
  */
 #pragma once
 
+#include "GraphIO/GraphStd.hpp"     //graph::GraphStd
+
 namespace custinger {
 
-struct Param {
-    /*BatchProperty    batch_prop;
-    StrategyProperty strategy_prop;
-    int              batch_size;
-    Strategy         strategy;*/
-    bool insert, remove, print, adj_sort, spmv, binary;
-
-    Param(int argc, char* argv[]);
+struct CommandLineParam {
+    template<typename T, typename R>
+    CommandLineParam(graph::GraphStd<T, R>& graph, int argc, char* argv[],
+                     bool check_unknown = true) noexcept;
 };
 
 } // namespace custinger

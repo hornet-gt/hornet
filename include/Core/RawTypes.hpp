@@ -43,6 +43,7 @@
 
 #include "Support/Host/Metaprogramming.hpp"  //xlib::TupleToTypeSize
 #include "Support/Host/Numeric.hpp"          //xlib::roundup_pow2
+#include <limits>
 
 namespace custinger {
 
@@ -55,16 +56,7 @@ using degree_t = int;
 struct ALIGN(16) VertexBasicData {
     byte_t* __restrict__ edge_ptr;
     degree_t             degree;
-    //__host__ __device__ __forceinline__
-    friend bool operator>(const VertexBasicData& left,
-                          const VertexBasicData& right) noexcept;
 };
-
-//__host__ __device__ __forceinline__
-inline bool operator>(const VertexBasicData& left, const VertexBasicData& right)
-                                            noexcept {
-    return left.degree > right.degree;
-}
 
 //User configuration
 #include "../config.inc"
@@ -93,3 +85,10 @@ HOST_DEVICE degree_t limit(degree_t degree) noexcept {
 } //namespace detail
 
 } // namespace custinger
+
+
+
+        /*    static constexpr custinger::degree_t Lowest() {
+                return std::numeric_limits<custinger::degree_t>::lowest();
+            }
+    };*/

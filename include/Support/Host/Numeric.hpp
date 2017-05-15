@@ -67,7 +67,7 @@ HOST_DEVICE CONST_EXPR
 bool mul_is_safe(T a, T b) noexcept;
 
 template<typename R, typename T>
-void overflowT(T value);
+void check_overflow(T value);
 
 template<typename T>
 HOST_DEVICE CONST_EXPR
@@ -122,13 +122,13 @@ template<typename T, typename R>
 HOST_DEVICE void write_bit(T* array, R pos) noexcept;
 
 template<typename T, typename R>
-HOST_DEVICE void write_bit(T* array, R start, R end) noexcept;
+HOST_DEVICE void write_bits(T* array, R start, R end) noexcept;
 
 template<typename T, typename R>
 HOST_DEVICE void delete_bit(T* array, R pos) noexcept;
 
 template<typename T, typename R>
-HOST_DEVICE void delete_bit(T* array, R start, R end) noexcept;
+HOST_DEVICE void delete_bits(T* array, R start, R end) noexcept;
 
 // ========================== RUN TIME numeric methods =========================
 

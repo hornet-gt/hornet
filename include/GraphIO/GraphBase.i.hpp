@@ -35,7 +35,7 @@
  */
 namespace graph {
 
-inline Property::Property(int state) noexcept : _state(state) {}
+inline Property::Property(Property::Enum state) noexcept : _state(state) {}
 
 inline bool Property::is_undefined() const noexcept {
     return _state == 0;
@@ -52,9 +52,17 @@ inline bool Property::is_randomize() const noexcept {
 inline bool Property::is_print() const noexcept {
     return static_cast<bool>(_state & static_cast<int>(Enum::PRINT));
 }
+
+inline void Property::operator+= (Property::Enum state) noexcept {
+    _state |= state;
+}
+
+inline void Property::operator-= (Property::Enum state) noexcept {
+    _state &= ~state;
+}
 //------------------------------------------------------------------------------
 
-inline Structure::Structure(int state) noexcept : _state(state) {}
+inline Structure::Structure(Structure::Enum state) noexcept : _state(state) {}
 
 inline bool Structure::is_undefined() const noexcept {
     return _state == 0;
@@ -85,9 +93,17 @@ inline bool Structure::is_weighted() const noexcept {
     return _wtype != NONE;
 }
 
-inline void Structure::operator|=(int value) noexcept {
+inline void Structure::operator= (Structure::Enum state) noexcept {
+    _state = state;
+}
+
+inline void Structure::operator+= (Structure structure) noexcept {
+    _state |= structure._state;
+}
+
+inline void Structure::operator+= (Structure::Enum state) noexcept {
     _state &= ~3;   //clear DIRECTED/UNDIRECTED
-    _state |= value;
+    _state |= state;
     /*if ((is_directed() && value == static_cast<int>(Enum::UNDIRECTED)) ||
         (is_undirected() && value == static_cast<int>(Enum::DIRECTED)))
         ERROR("Structure DIRECTED and UNDIRECTED not allowed");*/
@@ -100,8 +116,11 @@ GraphBase(vid_t nV, eoff_t nE, Structure::Enum structure) noexcept :
         _nV(nV), _nE(nE), _structure(structure) {}
 
 template<typename vid_t, typename eoff_t>
-inline GraphBase<vid_t, eoff_t>::GraphBase(Structure structure) noexcept :
+inline GraphBase<vid_t, eoff_t>::GraphBase(Structure::Enum structure) noexcept :
                                                     _structure(structure) {}
+
+template<typename vid_t, typename eoff_t>
+inline GraphBase<vid_t, eoff_t>::GraphBase() noexcept {}
 
 template<typename vid_t, typename eoff_t>
 inline vid_t GraphBase<vid_t, eoff_t>::nV() const noexcept {
@@ -116,6 +135,13 @@ inline eoff_t GraphBase<vid_t, eoff_t>::nE() const noexcept {
 template<typename vid_t, typename eoff_t>
 inline const std::string& GraphBase<vid_t, eoff_t>::name() const noexcept {
     return _graph_name;
+}
+
+
+template<typename vid_t, typename eoff_t>
+inline void GraphBase<vid_t, eoff_t>::set_structure(Structure::Enum structure)
+                                                    noexcept {
+    _structure = structure;
 }
 
 } // namespace graph

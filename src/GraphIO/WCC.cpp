@@ -34,16 +34,21 @@
  * </blockquote>}
  */
 #include "GraphIO/WCC.hpp"
+#include <iomanip>
 
 namespace graph {
 
 template<typename vid_t, typename eoff_t>
 WCC<vid_t, eoff_t>::WCC(const GraphStd<vid_t, eoff_t>& graph) noexcept :
                                             _graph(graph),
-                                            _bitmask(_graph.nV()),
                                             _queue(_graph.nV()) {
-    if (_graph.is_directed())
-        ERROR("The graph must be directed")
+    _color = new color_t[_graph.nV()];
+    std::fill(_color, _color + _graph.nV(), NO_COLOR);
+}
+
+template<typename vid_t, typename eoff_t>
+WCC<vid_t, eoff_t>::~WCC() noexcept {
+    delete[] _color;
 }
 
 template<typename vid_t, typename eoff_t>
@@ -53,37 +58,42 @@ void WCC<vid_t, eoff_t>::run() noexcept {
         ERROR("WCC cannot be repeated")
     flag = true;
 
+    vid_t    wcc_count = 0;
     for (vid_t source = 0; source < _graph.nV(); source++) {
-        if (_bitmask[source]) continue;
+        if (_color[source] != NO_COLOR) continue;
 
-        vid_t count = 0;
-        _bitmask[source] = true;
+        vid_t vertex_count = 0;
+        _color[source] = wcc_count;
         _queue.insert(source);
 
         while (!_queue.is_empty()) {
             vid_t current = _queue.extract();
-            count++;
+            vertex_count++;
 
             for (eoff_t i = _graph._out_offsets[current];
                  i < _graph._out_offsets[current + 1]; i++) {
 
                 vid_t dest = _graph._out_edges[i];
-                if (!_bitmask[dest]) {
-                    _bitmask[dest] = true;
+                if (_color[dest] == NO_COLOR) {
+                    _color[dest] = wcc_count;
                     _queue.insert(dest);
                 }
             }
+            if (!_graph.is_directed()) continue;
+
             for (eoff_t i = _graph._in_offsets[current];
                 i < _graph._in_offsets[current + 1]; i++) {
 
                 vid_t incoming = _graph._in_edges[i];
-                if (!_bitmask[incoming]) {
-                    _bitmask[incoming] = true;
+                if (_color[incoming] == NO_COLOR) {
+                    _color[incoming] = true;
                     _queue.insert(incoming);
                 }
             }
         }
-        _wcc_vector.push_back(count);
+        _queue.clear();
+        _wcc_vector.push_back(vertex_count);
+        wcc_count++;
     }
 }
 
@@ -93,13 +103,13 @@ vid_t WCC<vid_t, eoff_t>::size() const noexcept {
 }
 
 template<typename vid_t, typename eoff_t>
-vid_t WCC<vid_t, eoff_t>::largest_size() const noexcept {
-    return _wcc_vector.back();
+vid_t WCC<vid_t, eoff_t>::largest() const noexcept {
+    return *std::max_element(_wcc_vector.begin(), _wcc_vector.end());
 }
 
 template<typename vid_t, typename eoff_t>
 vid_t WCC<vid_t, eoff_t>::num_trivial() const noexcept {
-    const auto lambda = [](const vid_t& item) { return item == 0; };
+    const auto lambda = [](const vid_t& item) { return item == 1; };
     return std::count_if(_wcc_vector.begin(), _wcc_vector.end(), lambda);
 }
 
@@ -108,6 +118,35 @@ const std::vector<vid_t>& WCC<vid_t, eoff_t>::vector() const noexcept {
     return _wcc_vector;
 }
 
+template<typename vid_t, typename eoff_t>
+const vid_t* WCC<vid_t, eoff_t>::result() const noexcept {
+    return _color;
+}
+
+template<typename vid_t, typename eoff_t>
+void WCC<vid_t, eoff_t>::print() const noexcept {
+    std::cout << "WCCs:\n";
+    for (const auto& it : _wcc_vector)
+        std::cout << it << " ";
+    std::cout << "\n";
+}
+
+template<typename vid_t, typename eoff_t>
+void WCC<vid_t, eoff_t>::print_histogram() const noexcept {
+    vid_t frequency[32] = {};
+    for (const auto& it : _wcc_vector)
+        frequency[xlib::log2(it)] += it;
+    auto log_largest = xlib::log2(largest());
+    auto       ratio = xlib::ceil_div<75>(_graph.nV());
+    std::cout << "\nWCC Vertices Distribution:\n\n";
+    for (int i = 0; i <= log_largest; i++) {
+        auto stars = xlib::ceil_div(frequency[i], ratio);
+        std::cout << std::left << std::setw(5)
+                  << (std::string("2^") + std::to_string(i))
+                  << std::string(stars, '*') << "\n";
+    }
+    std::cout << std::endl;
+}
 //------------------------------------------------------------------------------
 
 template class WCC<int, int>;

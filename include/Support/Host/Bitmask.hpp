@@ -40,7 +40,7 @@ namespace xlib {
 
 class Bitmask {
 public:
-    explicit Bitmask()            noexcept;
+    explicit Bitmask()            noexcept = default;
     explicit Bitmask(size_t size) noexcept;
     ~Bitmask() noexcept;
 
@@ -50,8 +50,9 @@ public:
     bool   operator[](size_t index) const noexcept;
     BitRef operator[](size_t index) noexcept;
 
+    void   randomize() noexcept;
     void   clear()     noexcept;
-    size_t get_count() const noexcept;
+    size_t size()      const noexcept;
 
     Bitmask(const Bitmask&)        = delete;
     bool operator=(const Bitmask&) = delete;

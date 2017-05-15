@@ -52,10 +52,11 @@
 * BFS algorithm: 3 top-down variants
 * Connected Components: 2 variants
 * Max-degree vertex of the streaming graph
+* Added general command line options
 
 ## Tasks to do ##
 * Code Related:
-    ::: AoS VS SoA ::: ???
+    - DeviceWide Reduce
     - Working algorithms
     - Compression
     - Insert/delete new vertices
@@ -76,6 +77,8 @@
     - No-source vertex traverse
     - Hybrid-BFS deep analysis --> max degree vs random
     - BFS Separate lookup and filtering
+    - Support for Yahoo webscope dataset
+    - Support Amazon dataset?
 * Others
     - Regression test (ctest)
     - Add class diagram to doxygen

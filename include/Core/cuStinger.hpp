@@ -257,6 +257,7 @@ private:
     size_t        _nE;
     const int     _id;
     bool          _internal_csr_data { false };
+    vid_t         _max_degree_vertex { -1 };
 
     void initialize() noexcept;
 

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['safecudaapi_5f_2ecuh',['SafeCudaAPI_.cuh',['../SafeCudaAPI___8cuh.html',1,'']]]
+  ['queue_2ehpp',['Queue.hpp',['../Queue_8hpp.html',1,'']]]
 ];

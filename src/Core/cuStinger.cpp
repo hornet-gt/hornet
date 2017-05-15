@@ -102,11 +102,16 @@ void cuStinger::initialize() noexcept {
     using pair_t = typename std::pair<edge_t*, degree_t>;
     auto h_vertex_basic_data = new pair_t[_nV];
 
+    degree_t max_degree = -1;
     for (vid_t i = 0; i < _nV; i++) {
         auto degree = _csr_offsets[i + 1] - _csr_offsets[i];
         if (degree == 0) {
             h_vertex_basic_data[i] = pair_t(nullptr, 0);
             continue;
+        }
+        if (degree > max_degree) {
+            _max_degree_vertex = i;
+            max_degree = degree;
         }
         const auto&   mem_ptrs = mem_manager.insert(degree);
         h_vertex_basic_data[i] = pair_t(mem_ptrs.second, degree);

@@ -38,6 +38,7 @@
 #pragma once
 
 #include "GraphIO/GraphBase.hpp"
+#include "Support/Host/Bitmask.hpp"   //xlib::Bitmask
 #include <utility>  //std::pair
 
 namespace graph {
@@ -182,11 +183,11 @@ public:
 
     explicit GraphStd()                                    noexcept = default;
 
-    explicit GraphStd(Structure Structure)                 noexcept;
+    explicit GraphStd(Structure::Enum Structure)           noexcept;
 
     explicit GraphStd(const char* filename, Property prop) noexcept;
 
-    explicit GraphStd(Structure Structure, const char* filename,
+    explicit GraphStd(Structure::Enum Structure, const char* filename,
                       Property property) noexcept;
 
     explicit GraphStd(const eoff_t* csr_offsets, vid_t nV,
@@ -213,12 +214,14 @@ public:
     vid_t     max_in_degree_vertex()  const noexcept;
 
     bool      is_directed()           const noexcept;
+    using GraphBase<vid_t, eoff_t>::set_structure;
 
     void print()     const noexcept override;
     void print_raw() const noexcept override;
-    void toBinary(const std::string& filename, bool print = true) const;
-    void toMarket(const std::string& filename) const;
+    void writeBinary(const std::string& filename, bool print = true) const;
+    void writeMarket(const std::string& filename) const;
 private:
+    xlib::Bitmask _bitmask;
     eoff_t    *_out_offsets { nullptr };
     eoff_t    *_in_offsets  { nullptr };
     vid_t     *_out_edges   { nullptr };
@@ -227,22 +230,24 @@ private:
     degree_t* _in_degrees   { nullptr };
     coo_t*    _coo_edges    { nullptr };
     size_t    _coo_size     { 0 };
+
     using GraphBase<vid_t, eoff_t>::_nE;
     using GraphBase<vid_t, eoff_t>::_nV;
     using GraphBase<vid_t, eoff_t>::_structure;
+    using GraphBase<vid_t, eoff_t>::_prop;
+    using GraphBase<vid_t, eoff_t>::_store_inverse;
 
-    void allocate() noexcept override;
+    void allocate(GInfo ginfo) noexcept override;
 
-    void readMarket  (std::ifstream& fin, Property prop)   override;
-    void readDimacs9 (std::ifstream& fin, Property prop)   override;
-    void readDimacs10(std::ifstream& fin, Property prop)   override;
-    void readSnap    (std::ifstream& fin, Property prop)   override;
-    void readKonect  (std::ifstream& fin, Property prop)   override;
-    void readNetRepo (std::ifstream& fin, Property prop)   override;
-    void readBinary  (const char* filename, Property prop) override;
+    void readMarket  (std::ifstream& fin, bool print)   override;
+    void readDimacs9 (std::ifstream& fin, bool print)   override;
+    void readDimacs10(std::ifstream& fin, bool print)   override;
+    void readSnap    (std::ifstream& fin, bool print)   override;
+    void readKonect  (std::ifstream& fin, bool print)   override;
+    void readNetRepo (std::ifstream& fin, bool print)   override;
+    void readBinary  (const char* filename, bool print) override;
 
-    void COOtoCSR(Property prop) noexcept;
-    void CSRtoCOO(Property prop) noexcept;
+    void COOtoCSR() noexcept override;
 };
 
 } // namespace graph

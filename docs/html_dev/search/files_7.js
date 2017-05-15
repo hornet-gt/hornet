@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['indexing_2ecuh',['Indexing.cuh',['../Indexing_8cuh.html',1,'']]]
+  ['hostdevice_2ehpp',['HostDevice.hpp',['../HostDevice_8hpp.html',1,'']]]
 ];

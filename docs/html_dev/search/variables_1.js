@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['edges_5fper_5fblockarray',['EDGES_PER_BLOCKARRAY',['../namespacecustinger.html#aef4c140e39e99adbdfbd2e76ecf2f60d',1,'custinger']]]
+  ['d_5fvertex_5fptrs',['d_vertex_ptrs',['../structcustinger_1_1cuStingerDevData.html#a7371f663af4e122be010b24b2eff62c8',1,'custinger::cuStingerDevData']]]
 ];

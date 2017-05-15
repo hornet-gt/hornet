@@ -70,7 +70,17 @@ TwoLevelQueue<T>::TwoLevelQueue(const custinger::cuStinger& custinger,
 }
 
 template<typename T>
+TwoLevelQueue<T>::TwoLevelQueue(const TwoLevelQueue<T>& obj) noexcept :
+                            _custinger(obj._custinger),
+                            _max_allocated_items(obj._max_allocated_items),
+                            _d_queue_ptrs(obj._d_queue_ptrs),
+                            _d_queue_counter(obj._d_queue_counter),
+                            _enable_delete(false) { std::cout << "copy" << std::endl; }
+
+template<typename T>
 inline TwoLevelQueue<T>::~TwoLevelQueue() noexcept {
+    if (!_enable_delete)
+        return;
     cuFree(_d_queue_ptrs.first, _d_queue_ptrs.second,
            _d_work_ptrs.first, _d_work_ptrs.second, _d_queue_counter);
     delete[] _host_data;
@@ -146,14 +156,21 @@ __host__ int TwoLevelQueue<T>::size() const noexcept {
 }
 
 template<typename T>
-__host__ void TwoLevelQueue<T>::print() const noexcept {
-    cu::printArray(_d_queue_ptrs.first, _num_queue_vertices);
+__host__ void TwoLevelQueue<T>::print1() noexcept {
+    cuMemcpyToHost(_d_queue_counter, _num_queue_vertices);
+    cu::printArray(_d_queue_ptrs.second, _num_queue_vertices);
+}
+
+template<typename T>
+__host__ void TwoLevelQueue<T>::print2() noexcept {
+    cuMemcpyToHost(_d_queue_counter, _num_queue_vertices);
+    cu::printArray(_d_queue_ptrs.second, _num_queue_vertices);
 }
 
 //------------------------------------------------------------------------------
 
 template<typename T>
-__host__ typename TwoLevelQueue<T>::EnableTraverse
+__host__ void
 TwoLevelQueue<T>
 ::work_evaluate(const custinger::vid_t* items_array, int num_items) noexcept {
     using custinger::vid_t;
@@ -172,10 +189,18 @@ TwoLevelQueue<T>
     delete[] work;
 }
 
+
 template<typename T>
 template<typename Operator>
-__host__ typename TwoLevelQueue<T>::EnableTraverse
-TwoLevelQueue<T>::traverse_edges(Operator op) noexcept {
+__host__ void TwoLevelQueue<T>::traverse_edges(Operator op) noexcept {
+    static_assert(sizeof(T) != sizeof(T),
+              "\nTwoLevelQueue::traverse_edges() is disabled for T != vid_t\n");
+}
+
+template<>
+template<typename Operator>
+__host__ void TwoLevelQueue<custinger::vid_t>
+::traverse_edges(Operator op) noexcept {
     using custinger::vid_t;
     const int ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
     if (!_enable_traverse)

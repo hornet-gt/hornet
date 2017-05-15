@@ -62,8 +62,6 @@ struct ptr2_t {
  */
 template<typename T>
 class TwoLevelQueue {
-static const bool is_vid = std::is_same<T, custinger::vid_t>::value;
-using     EnableTraverse = typename std::enable_if< is_vid >::type;
 public:
     /**
      * @brief Default costructor
@@ -77,6 +75,7 @@ public:
                            bool   enable_traverse     = false,
                            size_t max_allocated_items = 0) noexcept;
 
+    TwoLevelQueue(const TwoLevelQueue<T>& obj) noexcept;
     /**
      * @brief Default Decostructor
      */
@@ -143,7 +142,13 @@ public:
      * @brief print the items stored at the output queue
      * @remark the method may be expensive
      */
-    __host__ void print() const noexcept;
+    __host__ void print1() noexcept;
+
+    /**
+     * @brief print the items stored at the output queue
+     * @remark the method may be expensive
+     */
+    __host__ void print2() noexcept;
 
     /**
      * @brief traverse the edges of queue vertices
@@ -157,8 +162,7 @@ public:
      * @remark the method is enabled only if the queue type is `vid_t`
      */
     template<typename Operator>
-    __host__ EnableTraverse
-    traverse_edges(Operator op) noexcept;
+    __host__ void traverse_edges(Operator op) noexcept;
 
 private:
     ///@internal @brief if `true` check for kernel errors in `traverse_edges()
@@ -187,6 +191,7 @@ private:
     ///@internal @brief number of edges in the queue for `traverse_edges()`
     int          _num_queue_edges     { 0 };   // traverse_edges
     bool         _enable_traverse     { false };
+    bool         _enable_delete       { true };
 
     /**
      * @brief evaluate the workload for a set of vertices
@@ -194,7 +199,7 @@ private:
      * @param[in] number of vertices in the array
      * @remark the method is enabled only if the queue type is `vid_t`
      */
-    __host__ EnableTraverse
+    __host__ void
     work_evaluate(const custinger::vid_t* items_array, int num_items) noexcept;
 };
 

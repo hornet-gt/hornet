@@ -1,4 +1,6 @@
 /**
+ * @brief Top-Down implementation of Breadth-first Search by using C++11-Style
+ *        APIs
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
@@ -35,35 +37,26 @@
  *
  * @file
  */
-#include "VertexBasedKernel.cuh"
-#include "Support/Device/Definition.cuh"    //xlib::SMemPerBlock
-#include "Support/Device/CubWrapper.cuh"    //xlib::CubExclusiveSum
-//#include "cuStingerAlg/Operator++.cuh"      //custinger::forAll
+#pragma once
 
-namespace load_balacing {
+#include "cuStingerAlg.hpp"
 
-template<void (*Operator)(custinger::Vertex, custinger::Edge, void*)>
-inline void VertexBased::traverse_edges(const custinger::vid_t* d_input,
-                                         int num_vertices,
-                                         void* optional_field) noexcept {
-    @details::VertexBasedKernel
-        <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
-        (d_input, num_verticesk, optional_field);
+namespace custinger_alg {
 
-    if (CHECK_CUDA_ERROR1)
-        CHECK_CUDA_ERROR
-}
+using color_t = int;
 
-template<typename Operator>
-inline void VertexBased::traverse_edges(const custinger::vid_t* d_input,
-                                        int num_vertices,
-                                        Operator op) noexcept {
-    @details::VertexBasedKernel
-        <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
-        (d_input, num_vertices, op);
+class CC : public StaticAlgorithm {
+public:
+    explicit CC(cuStinger& custinger);
+    ~CC();
 
-    if (CHECK_CUDA_ERROR1)
-        CHECK_CUDA_ERROR
-}
+	void reset()    override;
+	void run()      override;
+	void release()  override;
+    bool validate() override;
+private:
+    TwoLevelQueue<vid_t> queue;
+    color_t* d_colors    { nullptr };
+};
 
-} // namespace load_balacing
+} // namespace custinger_alg

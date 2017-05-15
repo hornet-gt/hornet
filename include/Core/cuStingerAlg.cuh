@@ -1,5 +1,4 @@
 /**
- * @internal
  * @brief cuStinger algorithms interface
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
@@ -49,8 +48,8 @@ namespace custinger_alg {
 
 /**
  * @brief Abstract class for cuStinger static algorithms
- * @details the user must extend this class to be full compliant with the
- *          cuStinger interface
+ * @remark the user must extend this class to be full compliant with the
+ *         cuStinger interface
  */
 class StaticAlgorithm {
 public:
@@ -120,17 +119,17 @@ public:
 
     /**
      * @brief Synchronize the Device with the Host
-     * @detail Copy the algorithm-dependent data from the device to the host in
+     * @@details Copy the algorithm-dependent data from the device to the host in
      *         the reference passed to `register_data()`
      * @pre    the user must call `register_data()` before
-     * @remark the user should call this method after the main algorith
+     * @remark the user should call this method after the main algorithm
      *         iteration
      */
     virtual void syncDeviceWithHost() noexcept final;
 
     /**
      * @brief Synchronize the Host with the Device
-     * @detail Copy the algorithm-dependent data from the host to the device in
+     * @@details Copy the algorithm-dependent data from the host to the device in
      *         the poiter return by `register_data()`
      * @pre    the user must call `register_data()` before
      * @remark the user should call this method before the main algorithm

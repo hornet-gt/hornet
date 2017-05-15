@@ -33,7 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "StaticBreadthFirstSearch/TopDown++.cuh"
+#include "Static/BreadthFirstSearch/TopDown++.cuh"
 
 namespace custinger_alg {
 

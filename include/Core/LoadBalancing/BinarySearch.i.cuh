@@ -38,7 +38,7 @@
 #include <Support/Device/Definition.cuh>    //xlib::SMemPerBlock
 
 namespace load_balacing {
-namespace detail {
+namespace @details {
 
 template<bool = true>
 __global__
@@ -54,7 +54,7 @@ void computeWorkKernel(const custinger::vid_t*    __restrict__ d_input,
         d_work[num_vertices] = 0;//must be zero for prefixsum
 }
 
-} // namespace detail
+} // namespace @details
 //------------------------------------------------------------------------------
 
 inline BinarySearch::BinarySearch(const custinger::cuStinger& custinger)
@@ -82,9 +82,9 @@ void BinarySearch::traverse_edges(const custinger::vid_t* d_input,
     using custinger::vid_t;
     const int ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
 
-    cu::printArray(d_input, num_vertices);
+    //cu::printArray(d_input, num_vertices);
 
-    detail::computeWorkKernel
+    @details::computeWorkKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
         (d_input, _d_degrees, num_vertices, _d_work);
 

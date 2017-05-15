@@ -28,7 +28,7 @@ The document is organized as follows:
 * [CMake](https://cmake.org) v3.5 or greater.
 * 64-bit Operating System (Ubuntu tested).
 
-<sup>*The next release will support C++14 (CUDA Toolkit v8.5). </sup>
+<sup>*The next release will support C++14 (CUDA Toolkit v9). </sup>
 
 ## Quick Start ##
 
@@ -49,16 +49,20 @@ make -j
 | (CC) Connected Components           |     yes       | on-going |
 | (SCC) Strongly Connected Components |    to-do      |  to-do   |
 | (MST) Minimum Spanning Tree         |    to-do      |  to-do   |
-| (BC) Betweenness Centrality         |     yes       | on-going |
+| (BC) Betweeness Centrality          |     yes       | on-going |
 | (PG) Page Rank                      |     yes       | on-going |
 | (TC) Triangle Counting              |     yes       |   yes    |
 | (KC) Katz Centrality                |     yes       |   yes    |
 | (MIS) Maximal Independent Set       |    to-do      |  to-do   |
 | (MF) Maximum Flow                   |    to-do      |  to-do   |
+| (CC) Clustering Coeffient           |    to-do      |  to-do   |
+| (ST) St-Connectivity                |    to-do      |  to-do   |
+| (TC) Transitive Closure             |    to-do      |  to-do   |
 | Community Detection                 |    to-do      |  to-do   |
 | Temporal Motif Finding              |   on-going    |  to-do   |
 | Sparse Vector-Matrix Multiplication |     yes       |  to-do   |
 | Jaccard indices                     |    to-do      |  to-do   |
+| Energy/Parity Game                  |    to-do      |  to-do   |
 
 ## Performance ##
 

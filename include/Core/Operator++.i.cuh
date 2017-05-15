@@ -1,7 +1,7 @@
 #include "Core/cuStingerTypes.cuh"
 
 namespace custinger_alg {
-namespace detail {
+namespace @details {
 
 template<typename Operator>
 __global__ void forAllKernel(int size, Operator op) {
@@ -53,14 +53,14 @@ void forAllEdgesKernel(const custinger::eoff_t* __restrict__ csr_offsets,
     xlib::binarySearchLB<BLOCK_SIZE>(csr_offsets, data.nV + 1, smem, lambda);
 }
 
-} //namespace detail
+} //namespace @details
 
 //==============================================================================
 //==============================================================================
 
 template<typename Operator>
-void forAll(size_t size, Operator op) {
-    detail::forAllKernel
+void forAll(size_t size, const Operator& op) {
+    @details::forAllKernel
         <<< xlib::ceil_div<BLOCK_SIZE_OP2>(size), BLOCK_SIZE_OP2 >>>
         (size, op);
 }
@@ -68,8 +68,8 @@ void forAll(size_t size, Operator op) {
 //------------------------------------------------------------------------------
 
 template<typename Operator>
-void forAllnumV(const custinger::cuStinger& custinger, Operator op) {
-    detail::forAllnumVKernel
+void forAllnumV(const custinger::cuStinger& custinger, const Operator& op) {
+    @details::forAllnumVKernel
         <<< xlib::ceil_div<BLOCK_SIZE_OP2>(custinger.nV()), BLOCK_SIZE_OP2 >>>
         (custinger.nV(), op);
 }
@@ -77,8 +77,8 @@ void forAllnumV(const custinger::cuStinger& custinger, Operator op) {
 //------------------------------------------------------------------------------
 
 template<typename Operator>
-void forAllnumE(const custinger::cuStinger& custinger, Operator op) {
-    detail::forAllnumEKernel
+void forAllnumE(const custinger::cuStinger& custinger, const Operator& op) {
+    @details::forAllnumEKernel
         <<< xlib::ceil_div<BLOCK_SIZE_OP2>(custinger.nE()), BLOCK_SIZE_OP2 >>>
         (custinger.nE(), op);
 }
@@ -86,8 +86,8 @@ void forAllnumE(const custinger::cuStinger& custinger, Operator op) {
 //------------------------------------------------------------------------------
 
 template<typename Operator>
-void forAllVertices(const custinger::cuStinger& custinger, Operator op) {
-    detail::forAllVerticesKernel
+void forAllVertices(const custinger::cuStinger& custinger, const Operator& op) {
+    @details::forAllVerticesKernel
         <<< xlib::ceil_div<BLOCK_SIZE_OP2>(custinger.nV()), BLOCK_SIZE_OP2 >>>
         (custinger.device_data(), op);
 }
@@ -95,12 +95,12 @@ void forAllVertices(const custinger::cuStinger& custinger, Operator op) {
 //------------------------------------------------------------------------------
 
 template<typename Operator>
-void forAllEdges(custinger::cuStinger& custinger, Operator op) {
+void forAllEdges(custinger::cuStinger& custinger, const Operator& op) {
     using custinger::vid_t;
     const int PARTITION_SIZE = xlib::SMemPerBlock<BLOCK_SIZE_OP2, vid_t>::value;
     int num_partitions = xlib::ceil_div<PARTITION_SIZE>(custinger.nE());
 
-    detail::forAllEdgesKernel<BLOCK_SIZE_OP2, PARTITION_SIZE, Operator>
+    @details::forAllEdgesKernel<BLOCK_SIZE_OP2, PARTITION_SIZE, Operator>
        <<< num_partitions, BLOCK_SIZE_OP2 >>>
        (custinger.device_csr_offsets(), custinger.device_data(), op);
 }

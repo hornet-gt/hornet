@@ -55,7 +55,7 @@ const int BLOCK_SIZE_OP2 = 256;
  * @remark    all algorithm-dependent data must be capture by `op`
  */
 template<typename Operator>
-void forAll(int num_items, Operator op);
+void forAll(int num_items, const Operator& op);
 
 /**
  * @brief apply the `Operator` a number of times equal to the actual number of
@@ -66,7 +66,7 @@ void forAll(int num_items, Operator op);
  * @remark    all algorithm-dependent data must be capture by `op`
  */
 template<typename Operator>
-void forAllnumV(const custinger::cuStinger& custinger, Operator op);
+void forAllnumV(const custinger::cuStinger& custinger, const Operator& op);
 
 
 /**
@@ -78,7 +78,7 @@ void forAllnumV(const custinger::cuStinger& custinger, Operator op);
  * @remark    all algorithm-dependent data must be capture by `op`
  */
 template<typename Operator>
-void forAllnumE(const custinger::cuStinger& custinger, Operator op);
+void forAllnumE(const custinger::cuStinger& custinger, const Operator& op);
 
 //------------------------------------------------------------------------------
 
@@ -93,7 +93,7 @@ void forAllnumE(const custinger::cuStinger& custinger, Operator op);
  *            `[=](Vertex){}`
  */
 template<typename Operator>
-void forAllVertices(const custinger::cuStinger& custinger, Operator op);
+void forAllVertices(const custinger::cuStinger& custinger, const Operator& op);
 
 /**
  * @brief apply the `Operator` to all edges in the graph
@@ -106,15 +106,15 @@ void forAllVertices(const custinger::cuStinger& custinger, Operator op);
  *            `[=](Vertex, Edge){}`
  */
 template<typename Operator>
-void forAllEdges(const custinger::cuStinger& custinger, Operator op);
+void forAllEdges(const custinger::cuStinger& custinger, const Operator& op);
 
 //------------------------------------------------------------------------------
 
 template<typename Operator>
-void forAllBatchEdges(Operator op);
+void forAllBatchEdges(const Operator& op);
 
 template<typename Operator>
-void forAllBatchVertices(Operator op);
+void forAllBatchVertices(const Operator& op);
 
 } // namespace custinger_alg
 

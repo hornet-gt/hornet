@@ -38,8 +38,10 @@
  */
 #pragma once
 
-#include "Core/RawTypes.hpp"
+#include "Core/cuStingerDeviceData.cuh" //cuStingerDevData
+#include "Core/BatchUpdate.cuh"         //BatchUpdate
 #include "Core/MemoryManager.hpp"
+#include "Core/RawTypes.hpp"
 #include <cstddef>                      //size_t
 
 /**
@@ -137,22 +139,6 @@ private:
 //==============================================================================
 
 /**
- * @internal
- * @brief The structure contanins all information to use the cuStinger data
- *        structure in the device
- */
-struct cuStingerDevData {
-    /**
-     * @brief array of pointers to vertex data
-     * @detail the first element points to the structure that contanins the
-     *         edge pointer and the degree of the vertex
-     */
-    byte_t* d_vertex_ptrs[NUM_VTYPES];
-    ///@brief number of vertices in the graph
-    vid_t   nV;
-};
-
-/**
  * @brief Main cuStinger class
  */
 class cuStinger {
@@ -236,6 +222,8 @@ public:
 
     vid_t max_degree_vertex() const noexcept;
 
+    void insertEdgeBatch(BatchUpdate& batch_update) noexcept;
+
 private:
     static int global_id;
 
@@ -274,56 +262,6 @@ private:
      * @param[out] csr_offsets csr edges to build
      */
     void convert_to_csr(eoff_t* csr_offsets, vid_t* csr_edges) const noexcept;
-};
-
-//==============================================================================
-
-/**
- * @brief Batch Property
- */
-class BatchProperty {
-public:
-    /**
-     * @brief default costructor
-     * @param[in] sort the edge batch is sorted in lexicographic order
-     *            (source, destination)
-     * @param[in] weighted_distr generate a batch by using a random weighted
-     *            distribution based on the degree of the vertices
-     * @param[in] print print the batch on the standard output
-     */
-    explicit BatchProperty(bool           sort = false,
-                           bool weighted_distr = false,
-                           bool          print = false) noexcept;
-private:
-    bool _sort, _print, _weighted_distr;
-};
-
-/**
- * @brief Batch update class
- */
-class BatchUpdate {
-    friend cuStinger;
-public:
-    /**
-     * @brief default costructor
-     * @param[in] batch_size number of edges of the batch
-     */
-    explicit BatchUpdate(size_t batch_size) noexcept;
-
-    /**
-     * @brief Insert additional edge data
-     * @param[in] edge_data list of edge data. The list must contains atleast
-     *            the source and the destination arrays (vid_t type)
-     * @remark the types of the input arrays must be equal to the type List
-     *         for edges specified in the *config.inc* file
-     * @see ::insertVertexData
-     */
-    template<typename... TArgs>
-    void insertEdgeData(TArgs... edge_data) noexcept;
-
-private:
-    byte_t* _edge_data_ptrs[ NUM_ETYPES + 1 ]; //+1 for source ids
-    size_t  _batch_size;
 };
 
 } // namespace custinger

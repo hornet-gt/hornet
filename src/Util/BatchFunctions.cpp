@@ -39,13 +39,21 @@
 #include <random>
 #include <utility>
 
+inline BatchProperty::BatchProperty(bool weighted, bool print) noexcept:
+                                    _weighted(weighted),
+                                    _print(print) {}
+
+inline bool BatchProperty::is_weighted() const noexcept { return _weighted; }
+inline bool BatchProperty::is_print()    const noexcept { return _print;    }
+
 void generateInsertBatch(custinger::vid_t* batch_src,
                          custinger::vid_t* batch_dest,
                          int batch_size, const graph::GraphStd<>& graph,
                          BatchProperty prop) {
     using custinger::vid_t;
-    if (!prop.weighted) {
-        auto seed = std::chrono::system_clock::now().time_since_epoch().count();
+    if (!prop.is_weighted()) {
+        auto seed = std::chrono::high_resolution_clock::now().time_since_epoch()
+                    .count();
         std::mt19937_64 gen(seed);
         std::uniform_int_distribution<vid_t> distribution(0, graph.nV() - 1);
         for (int i = 0; i < batch_size; i++) {
@@ -62,26 +70,19 @@ void generateInsertBatch(custinger::vid_t* batch_src,
         }
     }
 
-    if (prop.print || prop.sort) {
+    if (prop.is_print()) {
         auto tmp_batch = new std::pair<vid_t, vid_t>[batch_size];
         for (int i = 0; i < batch_size; i++)
             tmp_batch[i] = std::make_pair(batch_src[i], batch_dest[i]);
 
         std::sort(tmp_batch, tmp_batch + batch_size);
-        if (prop.sort) {
-            for (int i = 0; i < batch_size; i++) {
-                batch_src[i]  = tmp_batch[i].first;
-                batch_dest[i] = tmp_batch[i].second;
-            }
+
+        std::cout << "Batch:\n";
+        for (int i = 0; i < batch_size; i++) {
+            std::cout << "(" << tmp_batch[i].first << ","
+                      << tmp_batch[i].second << ")\n";
         }
-        if (prop.print) {
-            std::cout << "Batch:\n";
-            for (int i = 0; i < batch_size; i++) {
-                std::cout << "(" << tmp_batch[i].first << ","
-                          << tmp_batch[i].second << ")\n";
-            }
-            std::cout << std::endl;
-        }
+        std::cout << std::endl;
         delete[] tmp_batch;
     }
 }

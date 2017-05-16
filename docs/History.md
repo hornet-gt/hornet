@@ -79,6 +79,7 @@
     - BFS Separate lookup and filtering
     - Support for Yahoo webscope dataset
     - Support Amazon dataset?
+    - Fast batch insertion
 * Others
     - Regression test (ctest)
     - Add class diagram to doxygen

@@ -38,7 +38,7 @@
  */
 #pragma once
 
-#include "Core/cuStinger.hpp"
+#include "Core/cuStingerDeviceData.cuh" //cuStingerDevData
 #include "Core/RawTypes.hpp"
 
 namespace custinger {
@@ -215,11 +215,6 @@ public:
     typename std::tuple_element<INDEX, EdgeTypes>::type
     field() const;
 
-protected:
-    vid_t    _dst;
-    byte_t* _ptrs[NUM_EXTRA_ETYPES];
-
-private:
     /**
      * @internal
      * @brief Default Costrustor
@@ -229,6 +224,10 @@ private:
      */
     __device__ __forceinline__
     Edge(byte_t* block_ptr, degree_t index, degree_t limit);
+
+protected:
+    vid_t    _dst;
+    byte_t* _ptrs[NUM_EXTRA_ETYPES];
 };
 
 //==============================================================================

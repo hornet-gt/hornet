@@ -35,8 +35,8 @@
  */
 #pragma once
 
-#include "Support/Host/Numeric.hpp"
 #include "Support/Device/SafeCudaAPI.cuh"
+#include "Support/Host/Numeric.hpp"
 
 namespace custinger {
 

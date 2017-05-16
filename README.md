@@ -23,6 +23,8 @@ The document is organized as follows:
 * [Nvidia Modern GPU](https://developer.nvidia.com/cuda-gpus) (compute capability >= 3.0): Kerpler, Maxwell, Pascal architectures.
 * [CUDA toolkit](https://developer.nvidia.com/cuda-toolkit) v7.5 or greater. (CUDA toolkit v8.0 recommended, CUDA toolkit v7.0 supported but not tested)
 * GCC or [Clang](https://clang.llvm.org) host compiler with support for C++11<sup>*</sup>.
+  Note: the compiler must be compatible with the related CUDA toolkit version.
+  For more information see [CUDA Installation Guide](http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html)
 * [CMake](https://cmake.org) v3.5 or greater.
 * 64-bit Operating System (Ubuntu tested).
 

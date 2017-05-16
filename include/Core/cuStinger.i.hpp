@@ -35,9 +35,6 @@
  */
 namespace custinger {
 
-template<unsigned INDEX = 0, unsigned SIZE, typename T, typename... TArgs>
-void bind(byte_t* (&data_ptrs)[SIZE], const T* data, TArgs... args) noexcept;
-
 //==============================================================================
 ///////////////////
 // cuStingerInit //
@@ -118,104 +115,5 @@ inline cuStingerDevData cuStinger::device_data() const noexcept {
     std::copy(_d_vertex_ptrs, _d_vertex_ptrs + NUM_VTYPES, data.d_vertex_ptrs);
     return data;
 }
-
-//==============================================================================
-/////////////////
-// BatchUpdate //
-/////////////////
-
-inline BatchProperty::BatchProperty(bool sort, bool weighted_distr, bool print)
-                                    noexcept:
-                                _sort(sort),
-                                _weighted_distr(weighted_distr),
-                                _print(print) {}
-
-inline BatchUpdate::BatchUpdate(size_t batch_size) noexcept:
-                                _batch_size(batch_size) {}
-
-template<typename... TArgs>
-void BatchUpdate::insertEdgeData(TArgs... edge_data) noexcept {
-    static_assert(sizeof...(TArgs) + 2 == NUM_EXTRA_ETYPES,
-                  "Number of Edge data type not correct");
-    using T = typename xlib::tuple_rm_pointers<std::tuple<TArgs...>>::type;
-    using R = typename xlib::TupleConcat<std::tuple<vid_t, vid_t>,
-                                         EdgeTypes>::type;
-    static_assert(xlib::tuple_compare<R, T>::value, "Incorrect Edge data type");
-
-    bind(_edge_data_ptrs, edge_data...);
-}
-
-//==============================================================================
-
-template<unsigned INDEX, unsigned SIZE>
-void bind(byte_t* (&data_ptrs)[SIZE]) noexcept {}
-
-template<unsigned INDEX, unsigned SIZE, typename T, typename... TArgs>
-void bind(byte_t* (&data_ptrs)[SIZE], const T* data, TArgs... args) noexcept {
-    static_assert(INDEX < SIZE, "Index out-of-bound");
-    data_ptrs[INDEX] = reinterpret_cast<byte_t*>(const_cast<T*>(data));
-    bind<INDEX + 1>(data_ptrs, args...);
-}
-
-//==============================================================================
-
-
-
-/*
-template<unsigned INDEX, typename T, typename... TArgs>
-void cuStinger::insertEdgeBatch(const T* edge_data, TArgs... args) {
-    static edge_t* d_batch_ptr = nullptr;
-    if (INDEX == 0) {
-        cuMalloc(d_batch_ptr, size);
-    }
-    cuMemcpyToDevice(edge_data, size, reinterpret_cast<T*>(d_batch_ptr));
-    insertEdgeBatch(TArgs...);
-
-    if (INDEX == NUM_ETYPES) {
-
-    }
-}
-
-template<typename EqualOp>
-__global__ void insertBatchKernel(edge_t* batch_ptr,
-                            EqualOp equal_op = [](const Edge& a, const Edge& b){
-                                                    return false;
-                                                }) {
-
-    int     id = blockIdx.x * BLOCK_DIM + gridDim.x;
-    int stride = blockIdx.x * BLOCK_DIM + gridDim.x;
-
-    for (int i = id; i < batch_size; i++) {
-        auto     src_id = reinterpret_cast<vid_t*>(batch_ptr)[i];
-        auto batch_edge = Edge(batch_ptr + batch_size, batch_size);
-        auto        dst = batch_edge.dst();
-
-        auto batch_vertex = Vertex(batch_src);
-        auto   degree_ptr = batch_vertex.degree_ptr();
-        auto       degree = batch_vertex.degree();
-        auto     adj_list = batch_vertex.adj_list();
-
-        for (int j = 0; j < degree; j++) {
-            if (equal_op(batch_edge, batch_vertex.edge(j))
-                break;
-        }
-        degree_t old_pos = atomicAdd(degree_ptr, 1);
-        batch_vertex.store(batch_edge, old_pos);
-    }
-}
-
-template<unsigned INDEX>
-void cuStinger::insertEdgeBatch() {
-    Timer<DEVICE> TM;
-    TM.start();
-
-    insertBatchKernel <<< xlib:ceil_div<BLOCK_DIM>(size), BLOCK_DIM >>>
-        (d_batch_ptr);
-
-    TM.stop();
-    TM.print("insertBatchKernel");
-    CHECK_CUDA_ERROR
-    cuFree(d_batch_ptr);
-}*/
 
 } // namespace custinger

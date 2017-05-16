@@ -56,6 +56,9 @@ using degree_t = int;
 struct ALIGN(16) VertexBasicData {
     byte_t* __restrict__ edge_ptr;
     degree_t             degree;
+
+    VertexBasicData(degree_t degree, byte_t* edge_ptr) :
+        degree(degree), edge_ptr(edge_ptr) {}
 };
 
 //User configuration
@@ -83,6 +86,20 @@ HOST_DEVICE degree_t limit(degree_t degree) noexcept {
 }
 
 } //namespace detail
+
+
+template<unsigned INDEX = 0, unsigned SIZE, typename T, typename... TArgs>
+void bind(byte_t* (&data_ptrs)[SIZE], const T* data, TArgs... args) noexcept;
+
+template<unsigned INDEX, unsigned SIZE>
+void bind(byte_t* (&data_ptrs)[SIZE]) noexcept {}
+
+template<unsigned INDEX, unsigned SIZE, typename T, typename... TArgs>
+void bind(byte_t* (&data_ptrs)[SIZE], const T* data, TArgs... args) noexcept {
+    static_assert(INDEX < SIZE, "Index out-of-bound");
+    data_ptrs[INDEX] = reinterpret_cast<byte_t*>(const_cast<T*>(data));
+    bind<INDEX + 1>(data_ptrs, args...);
+}
 
 } // namespace custinger
 

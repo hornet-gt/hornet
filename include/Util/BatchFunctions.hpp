@@ -37,16 +37,17 @@
  */
 #pragma once
 
-#include "GraphIO/GraphStd.hpp"
 #include "Core/RawTypes.hpp"
+#include "GraphIO/GraphStd.hpp"
 
-struct BatchProperty {
-    bool sort, print, weighted;
+class BatchProperty {
+public:
+    BatchProperty(bool weighted = false, bool print = false) noexcept;
 
-    BatchProperty(bool _sort       = false,
-                  bool _weighted   = false,
-                  bool _print      = false) :
-                        sort(_sort), weighted(_weighted), print(_print) {}
+    bool is_weighted() const noexcept;
+    bool is_print()    const noexcept;
+private:
+    bool _print, _weighted;
 };
 
 void generateInsertBatch(custinger::vid_t* batch_src,

@@ -2,6 +2,8 @@
 #include "Core/cuStinger.hpp"
 
 #include "GraphIO/GraphStd.hpp"        //GraphStd
+#include "Util/BatchFunctions.hpp"        //GraphStd
+
 //#include "Util/Parameters.hpp"         //Param
 #include "Support/Host/FileUtil.hpp"   //xlib::extract_filepath_noextension
 #include "Support/Device/CudaUtil.cuh" //xlib::deviceInfo
@@ -63,12 +65,17 @@ int main(int argc, char* argv[]) {
 
     custiger_graph.print();
     //--------------------------------------------------------------------------
+    int batch_size = 10;
+    auto batch_src = new vid_t[batch_size];
+    auto batch_dst = new vid_t[batch_size];
+    generateInsertBatch(batch_src, batch_dst, batch_size, graph,
+                        batch_property::PRINT);
 
-    BatchUpdate batch_update(100);
-    //batch_update.insertEdgeData(time_stamp, weights);
+    BatchInit batch_init(batch_src, batch_dst, batch_size);
+    BatchUpdate batch_update(batch_init);
 
-    //custiger_graph.insertBatch(batch_update);
-    //custiger_graph.insertBatch(batch_update, equal_operator);
+    custiger_graph.insertEdgeBatch(batch_update);
+    custiger_graph.print();
 
     //Timer<DEVICE> TM;
 

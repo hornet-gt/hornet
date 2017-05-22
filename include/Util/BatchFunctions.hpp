@@ -39,7 +39,7 @@
 
 #include "Core/RawTypes.hpp"
 #include "GraphIO/GraphStd.hpp"
-
+/*
 class BatchProperty {
 public:
     BatchProperty(bool weighted = false, bool print = false) noexcept;
@@ -48,7 +48,20 @@ public:
     bool is_print()    const noexcept;
 private:
     bool _print, _weighted;
+};*/
+
+enum class BatchEnum { WEIGHTED = 1, PRINT = 2 };
+
+struct BatchProperty : xlib::PropertyClass<BatchEnum> {
+    explicit BatchProperty() : xlib::PropertyClass<BatchEnum>() {}
+    explicit BatchProperty(const BatchEnum& obj) :
+                               xlib::PropertyClass<BatchEnum>(obj) {}
 };
+
+namespace batch_property {
+    const BatchProperty WEIGHTED (BatchEnum::WEIGHTED);
+    const BatchProperty PRINT    (BatchEnum::PRINT);
+}
 
 void generateInsertBatch(custinger::vid_t* batch_src,
                          custinger::vid_t* batch_dest,

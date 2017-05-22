@@ -150,6 +150,22 @@ std::string type_name();
 
 bool is_integer(const std::string& str);
 
+//------------------------------------------------------------------------------
+
+template<typename Enum>
+class PropertyClass {
+public:
+    explicit PropertyClass() noexcept = default;
+    explicit PropertyClass(Enum value) noexcept;
+
+    PropertyClass operator|(const PropertyClass& obj) const noexcept;
+    bool          operator&(const PropertyClass& obj) const noexcept;
+protected:
+   explicit PropertyClass(int value) noexcept;
+private:
+    const int value { 0 };
+};
+
 } // namespace xlib
 
 #include "impl/Basic.i.hpp"

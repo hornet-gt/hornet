@@ -53,24 +53,6 @@ using TypeList = std::tuple<TArgs...>;
 using   byte_t = char;
 using degree_t = int;
 
-struct ALIGN(16) VertexBasicData {
-    byte_t* __restrict__ edge_ptr;
-    degree_t             degree;
-
-    VertexBasicData(degree_t degree, byte_t* edge_ptr) :
-        degree(degree), edge_ptr(edge_ptr) {}
-};
-
-//User configuration
-#include "../config.inc"
-
-using vertex_t = typename xlib::TupleConcat<TypeList<VertexBasicData>,
-                                            VertexTypes>::type;
-
-using   edge_t = typename xlib::TupleConcat<TypeList<vid_t>, EdgeTypes>::type;
-
-#include "RawTypesUtil.hpp"
-//------------------------------------------------------------------------------
 
 namespace detail {
 
@@ -87,6 +69,29 @@ HOST_DEVICE degree_t limit(degree_t degree) noexcept {
 
 } //namespace detail
 
+struct ALIGN(16) VertexBasicData {
+    byte_t* __restrict__ edge_ptr;
+    degree_t             degree;
+
+    HOST_DEVICE
+    VertexBasicData(degree_t degree, byte_t* edge_ptr) :
+        degree(degree), edge_ptr(edge_ptr) {}
+
+    HOST_DEVICE degree_t limit() {
+        return detail::limit(degree);
+    }
+};
+
+//User configuration
+#include "../config.inc"
+
+using vertex_t = typename xlib::TupleConcat<TypeList<VertexBasicData>,
+                                            VertexTypes>::type;
+
+using   edge_t = typename xlib::TupleConcat<TypeList<vid_t>, EdgeTypes>::type;
+
+#include "RawTypesUtil.hpp"
+//------------------------------------------------------------------------------
 
 template<unsigned INDEX = 0, unsigned SIZE, typename T, typename... TArgs>
 void bind(byte_t* (&data_ptrs)[SIZE], const T* data, TArgs... args) noexcept;

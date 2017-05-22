@@ -192,7 +192,7 @@ void inplace_merge(T* left, S size_left, const T* right, S size_right) {
     S i = size_left - 1, j = size_right - 1, k = size_left + size_right - 1;
     while (i >= 0 && j >= 0)
         left[k--] = left[i] <= right[j] ? right[j--] : left[i--];
-    while(j >= 0)
+    while (j >= 0)
         left[k--] = right[j--];
 }
 

@@ -77,6 +77,11 @@ Edge Vertex::edge(degree_t index) const {
     return Edge(_edge_ptr, index, _limit);
 }
 
+__device__ __forceinline__
+vid_t* Vertex::edge_ptr() const {
+    return reinterpret_cast<vid_t*>(_edge_ptr);
+}
+
 //------------------------------------------------------------------------------
 __device__ __forceinline__
 degree_t Vertex::limit() const {

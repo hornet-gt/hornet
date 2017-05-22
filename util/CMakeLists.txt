@@ -1,6 +1,6 @@
 #[[
 --------------------------------------------------------------------------------
-Copyright © 2017 by Nicola Bombieri
+Copyright © 2017 by Federico Busato
 
 XLib is provided under the terms of The MIT License (MIT):
 

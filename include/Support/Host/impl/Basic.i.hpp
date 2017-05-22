@@ -100,4 +100,25 @@ inline bool is_integer(const std::string& str) {
     return str.find_first_not_of("0123456789") == std::string::npos;
 }
 
+//------------------------------------------------------------------------------
+                    
+template<typename Enum>
+PropertyClass<Enum>::PropertyClass(Enum value) noexcept :
+                        value(static_cast<int>(value)) {}
+
+template<typename Enum>
+PropertyClass<Enum>::PropertyClass(int value) noexcept : value(value) {}
+
+template<typename Enum>
+PropertyClass<Enum>
+PropertyClass<Enum>::operator|(const PropertyClass<Enum>& obj) const noexcept {
+    return PropertyClass<Enum>(value | obj.value);
+}
+
+template<typename Enum>
+bool PropertyClass<Enum>
+::operator&(const PropertyClass<Enum>& obj) const noexcept {
+    return value & obj.value;
+}
+
 } // namespace xlib

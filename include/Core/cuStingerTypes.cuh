@@ -127,6 +127,9 @@ public:
     __device__ __forceinline__
     void store(const Edge& edge, degree_t index);
 
+    __device__ __forceinline__
+    vid_t* edge_ptr() const;
+
 protected:
     vid_t    _id;
     degree_t _degree;

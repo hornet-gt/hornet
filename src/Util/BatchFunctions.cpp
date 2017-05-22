@@ -38,20 +38,21 @@
 #include <chrono>
 #include <random>
 #include <utility>
-
-inline BatchProperty::BatchProperty(bool weighted, bool print) noexcept:
+/*
+BatchProperty::BatchProperty(bool weighted, bool print) noexcept:
                                     _weighted(weighted),
                                     _print(print) {}
 
-inline bool BatchProperty::is_weighted() const noexcept { return _weighted; }
-inline bool BatchProperty::is_print()    const noexcept { return _print;    }
+bool BatchProperty::is_weighted() const noexcept { return _weighted; }
+bool BatchProperty::is_print()    const noexcept { return _print;    }
+*/
 
 void generateInsertBatch(custinger::vid_t* batch_src,
                          custinger::vid_t* batch_dest,
                          int batch_size, const graph::GraphStd<>& graph,
                          BatchProperty prop) {
     using custinger::vid_t;
-    if (!prop.is_weighted()) {
+    if (!(prop & batch_property::WEIGHTED)) {
         auto seed = std::chrono::high_resolution_clock::now().time_since_epoch()
                     .count();
         std::mt19937_64 gen(seed);
@@ -70,7 +71,7 @@ void generateInsertBatch(custinger::vid_t* batch_src,
         }
     }
 
-    if (prop.is_print()) {
+    if (prop & batch_property::PRINT) {
         auto tmp_batch = new std::pair<vid_t, vid_t>[batch_size];
         for (int i = 0; i < batch_size; i++)
             tmp_batch[i] = std::make_pair(batch_src[i], batch_dest[i]);

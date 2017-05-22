@@ -58,8 +58,8 @@ public:
      *            distribution based on the degree of the vertices
      * @param[in] print print the batch on the standard output
      */
-    explicit BatchInit(int batch_size, const vid_t* src_array,
-                       const vid_t* dst_array) noexcept;
+    explicit BatchInit(const vid_t* src_array,  const vid_t* dst_array,
+                       int batch_size) noexcept;
 
     /**
      * @brief Insert additional edge data
@@ -114,12 +114,18 @@ public:
     typename std::tuple_element<INDEX, VertexTypes>::type
     field(int index) const noexcept;
 
+    __host__ __device__ __forceinline__
+    vid_t* src_ptr() const noexcept;
+
+    __host__ __device__ __forceinline__
+    vid_t* dst_ptr() const noexcept;
+
 #endif
 
 private:
     byte_t*   _d_edge_ptrs[ NUM_ETYPES + 1 ] = {};
     const int _batch_size  { 0 };
-    const int _batch_pitch { 0 }; //number of edges
+    const int _batch_pitch { 0 }; //number of edges to the next field
 };
 
 } // namespace custinger

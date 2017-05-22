@@ -52,27 +52,19 @@ void CubSortByValue<T>::run() noexcept {
 
 template<typename T, typename R>
 CubSortByKey<T, R>::CubSortByKey(const T* d_key, const R* d_data_in,
-                                     size_t num_items,
-                                     T*& d_key_sorted, R*& d_data_out,
-                                     T d_key_max) :
+                                 size_t num_items, T* d_key_sorted,
+                                 R* d_data_out, T d_key_max) noexcept :
                         CubWrapper(num_items),
                         _d_key(d_key), _d_data_in(d_data_in),
                         _d_key_sorted(d_key_sorted),
                         _d_data_out(d_data_out),
                         _d_key_max(d_key_max) {
 
-    cuMalloc(_d_key_sorted, _num_items);
-    cuMalloc(_d_data_out, _num_items);
     cub::DeviceRadixSort::SortPairs(_d_temp_storage, _temp_storage_bytes,
                                     _d_key, _d_key_sorted,
                                     _d_data_in, _d_data_out,
                                     _num_items, 0, xlib::ceil_log2(_d_key_max));
     SAFE_CALL( cudaMalloc(&_d_temp_storage, _temp_storage_bytes) )
-}
-
-template<typename T, typename R>
-CubSortByKey<T, R>::~CubSortByKey() noexcept {
-    cuFree(_d_key_sorted, _d_data_out);
 }
 
 template<typename T, typename R>
@@ -85,38 +77,51 @@ void CubSortByKey<T, R>::run() noexcept {
 //------------------------------------------------------------------------------
 
 template<typename T, typename R>
-CubSort2<T, R>::CubSort2(T* d_in1, R* d_in2, size_t num_items,
-                        T d_in1_max, R d_in2_max) :
+CubSortPairs2<T, R>::CubSortPairs2(T* d_in1, R* d_in2, size_t num_items,
+                                   T d_in1_max, R d_in2_max) :
                            CubWrapper(num_items), _d_in1(d_in1), _d_in2(d_in2),
-                           _d_in1_tmp(nullptr), _d_in2_tmp(nullptr),
                            _d_in1_max(d_in1_max), _d_in2_max(d_in2_max) {
 
-    cudaMallocX(_d_in1_tmp, _num_items);
-    cudaMallocX(_d_in2_tmp, _num_items);
+    cuMalloc(_d_in1_tmp, _num_items);
+    cuMalloc(_d_in2_tmp, _num_items);
     auto max = std::max(_d_in1_max, d_in2_max);
-
     cub::DeviceRadixSort::SortPairs(_d_temp_storage, _temp_storage_bytes,
-                                    _d_in2, _d_in2_tmp,
-                                    _d_in1, _d_in1_tmp,
+                                    _d_in2, _d_in2_tmp, _d_in1, _d_in1_tmp,
+                                    _num_items, 0, xlib::ceil_log2(max));
+    SAFE_CALL( cudaMalloc(&_d_temp_storage, _temp_storage_bytes) )
+    _internal_alloc = true;
+}
+
+template<typename T, typename R>
+CubSortPairs2<T, R>::CubSortPairs2(const T* d_in1, const R* d_in2,
+                                   size_t num_items, T* d_out1, R* d_out2,
+                                   T d_in1_max, R d_in2_max) :
+                           CubWrapper(num_items), _d_in1(const_cast<T*>(d_in1)),
+                           _d_in2(const_cast<R*>(d_in2)),
+                           _d_in1_tmp(d_out1), _d_in2_tmp(d_out2),
+                           _d_in1_max(d_in1_max), _d_in2_max(d_in2_max) {
+
+    auto max = std::max(_d_in1_max, d_in2_max);
+    cub::DeviceRadixSort::SortPairs(_d_temp_storage, _temp_storage_bytes,
+                                    _d_in2, _d_in2_tmp, _d_in1, _d_in1_tmp,
                                     _num_items, 0, xlib::ceil_log2(max));
     SAFE_CALL( cudaMalloc(&_d_temp_storage, _temp_storage_bytes) )
 }
 
 template<typename T, typename R>
-CubSort2<T, R>::~CubSort2() noexcept {
-    cuFree(_d_in1_tmp, _d_in2_tmp);
+CubSortPairs2<T, R>::~CubSortPairs2() noexcept {
+    if (_internal_alloc)
+        cuFree(_d_in1_tmp, _d_in2_tmp);
 }
 
 template<typename T, typename R>
-void CubSort2<T, R>::run() noexcept {
+void CubSortPairs2<T, R>::run() noexcept {
     cub::DeviceRadixSort::SortPairs(_d_temp_storage, _temp_storage_bytes,
-                                    _d_in2, _d_in2_tmp,
-                                    _d_in1, _d_in1_tmp,
+                                    _d_in2, _d_in2_tmp, _d_in1, _d_in1_tmp,
                                     _num_items, 0, xlib::ceil_log2(_d_in2_max));
 
     cub::DeviceRadixSort::SortPairs(_d_temp_storage, _temp_storage_bytes,
-                                    _d_in1_tmp, _d_in1,
-                                    _d_in2_tmp, _d_in2,
+                                    _d_in1_tmp, _d_in1, _d_in2_tmp, _d_in2,
                                     _num_items, 0, xlib::ceil_log2(_d_in1_max));
 }
 //------------------------------------------------------------------------------
@@ -179,8 +184,39 @@ int CubRunLengthEncode<T, R>::run() noexcept {
                                        _d_in, _d_unique_out, _d_counts_out,
                                        _d_num_runs_out, _num_items);
     int h_num_runs_out;
-    cuMemcpyToHost(_d_num_runs_out, h_num_runs_out);
+    cuMemcpyToHostAsync(_d_num_runs_out, h_num_runs_out);
     return h_num_runs_out;
+}
+
+//------------------------------------------------------------------------------
+
+template<typename T>
+PartitionFlagged<T>::PartitionFlagged(const T* d_in, const bool* d_flags,
+                                      size_t num_items, T* d_out) noexcept :
+                                CubWrapper(num_items), _d_in(d_in),
+                                _d_flags(d_flags), _d_out(d_out){
+    cuMalloc(_d_num_selected_out, 1);
+    cub::DevicePartition::Flagged(_d_temp_storage, _temp_storage_bytes, _d_in,
+                                  _d_flags, _d_out, _d_num_selected_out,
+                                  _num_items);
+    SAFE_CALL( cudaMalloc(&_d_temp_storage, _temp_storage_bytes) )
+}
+
+template<typename T>
+PartitionFlagged<T>::~PartitionFlagged() noexcept {
+    cuFree(_d_num_selected_out);
+}
+
+template<typename T>
+int PartitionFlagged<T>::run() noexcept {
+    CHECK_CUDA_ERROR
+    cub::DevicePartition::Flagged(_d_temp_storage, _temp_storage_bytes, _d_in,
+                                  _d_flags, _d_out, _d_num_selected_out,
+                                  _num_items);
+    CHECK_CUDA_ERROR
+    int h_num_selected_out;
+    cuMemcpyToHostAsync(_d_num_selected_out, h_num_selected_out);
+    return h_num_selected_out;
 }
 
 //------------------------------------------------------------------------------

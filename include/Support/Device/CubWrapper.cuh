@@ -49,6 +49,7 @@ public:
                             T d_in_max = std::numeric_limits<T>::max())
                             noexcept;
     void run() noexcept;
+
 private:
     const T* _d_in;
     T*       _d_sorted;
@@ -58,32 +59,44 @@ private:
 template<typename T, typename R>
 class CubSortByKey : public CubWrapper {
 public:
-    CubSortByKey(const T* d_key, const R* d_data_in, size_t size,
-                   T*& d_key_sorted, R*& d_data_out,
-                   T d_key_max = std::numeric_limits<T>::max());
-    ~CubSortByKey() noexcept;
+    CubSortByKey(const T* d_key, const R* d_data_in, size_t num_items,
+                 T* d_key_sorted, R* d_data_out,
+                 T d_key_max = std::numeric_limits<T>::max()) noexcept;
+
     void run() noexcept;
+
 private:
     const T* _d_key;
     const R* _d_data_in;
-    T*&      _d_key_sorted;
-    R*&      _d_data_out;
+    T*       _d_key_sorted;
+    R*       _d_data_out;
     T        _d_key_max;
 };
 
 template<typename T, typename R>
-class CubSort2 : public CubWrapper {
+class CubSortPairs2 : public CubWrapper {
 public:
-    CubSort2(T* d_in1, R* d_in2, size_t size,
-             T d_in1_max = std::numeric_limits<T>::max(),
-             R d_in2_max = std::numeric_limits<R>::max());
-    ~CubSort2() noexcept;
+    CubSortPairs2(T* d_in1, R* d_in2, size_t num_items,
+                  T d_in1_max = std::numeric_limits<T>::max(),
+                  R d_in2_max = std::numeric_limits<R>::max());
+
+    CubSortPairs2(const T* d_in1, const R* d_in2, size_t num_items,
+                  T* d_out1, R* d_out2,
+                  T d_in1_max = std::numeric_limits<T>::max(),
+                  R d_in2_max = std::numeric_limits<R>::max());
+
+    ~CubSortPairs2() noexcept;
+
     void run() noexcept;
+
 private:
-    T* _d_in1, *_d_in1_tmp;
-    R* _d_in2, *_d_in2_tmp;
-    T  _d_in1_max;
-    R  _d_in2_max;
+    T*       _d_in1;
+    T*       _d_in1_tmp { nullptr };
+    R*       _d_in2;
+    R*       _d_in2_tmp { nullptr };
+    T        _d_in1_max;
+    R        _d_in2_max;
+    bool     _internal_alloc { false };
 };
 
 template<typename T>
@@ -110,6 +123,21 @@ private:
     T*       _d_unique_out;
     R*       _d_counts_out;
     R*       _d_num_runs_out  { nullptr };
+};
+
+template<typename T>
+class PartitionFlagged : public CubWrapper {
+public:
+    explicit PartitionFlagged(const T* d_in, const bool* d_flags,
+                              size_t num_items, T* d_out) noexcept;
+    ~PartitionFlagged() noexcept;
+    int run() noexcept;
+private:
+    const T*    _d_in;
+    const bool* _d_flags;
+    size_t      _num_items;
+    T*          _d_out;
+    T*          _d_num_selected_out { nullptr };
 };
 
 template<typename T>

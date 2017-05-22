@@ -33,15 +33,61 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
+#include "Support/Device/DeviceQueue.cuh"
+#include "Support/Device/Definition.cuh"
+#include "Support/Host/Algorithm.hpp"
+#include "Support/Device/BinarySearchLB.cuh"
+
+
 namespace custinger {
 
+template<typename EqualOp>
+__global__
+void findDuplicateKernel(cuStingerDevData   data,
+                         BatchUpdate        batch_update,
+                         EqualOp            equal_op,
+                         bool* __restrict__ d_flags) {
+    int     id = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (threadIdx.x == 0)
+        printf("%d\n", batch_update.size());
+    return;
+
+    for (int i = id; i < batch_update.size(); i += stride) {
+        auto        src = batch_update.src(i);
+        auto batch_edge = batch_update.edge(i);
+
+        bool flag = true;
+        auto vertex_src = Vertex(data, src);
+        auto     degree = vertex_src.degree();
+        for (degree_t j = 0; j < degree; j++) {
+            if (equal_op(batch_edge, vertex_src.edge(j))) {
+                flag = false;
+                break;
+            }
+        }
+        d_flags[i] = flag;
+        /*if (flag) {
+            auto  degree_ptr = vertex_src.degree_ptr();
+            degree_t old_pos = atomicAdd(degree_ptr, 1);
+            vertex_src.store(batch_edge, old_pos);
+        }*/
+    }
+}
+
+//==============================================================================
+
 struct __align__(16) UpdateStr {
-    vid_t     src;
+    vid_t    src;
     degree_t old_degree;
     degree_t new_degree;
 
     __device__ __forceinline__
-    UpdateStr(id_t src, degree_t old_degree, degree_t new_degree) :
+    UpdateStr() {}
+
+    __device__ __forceinline__
+    UpdateStr(vid_t src, degree_t old_degree, degree_t new_degree) :
         src(src), old_degree(old_degree), new_degree(new_degree) {}
 };
 
@@ -54,10 +100,10 @@ std::ostream& operator<<(std::ostream& os, const UpdateStr& obj) {
 //==============================================================================
 
 __global__
-void findSpaceRequest(const VertexBasicData* __restrict__ d_nodes,
-                      const id_t*            __restrict__ d_unique_src,
+void findSpaceRequest(const VertexBasicData* __restrict__ d_vertex,
+                      const vid_t*           __restrict__ d_unique_src,
                       const int*             __restrict__ d_counts,
-                      int                                 batch_size,
+                      int                                 unique_size,
                       UpdateStr*             __restrict__ d_queue,
                       int*                   __restrict__ d_queue_size) {
 
@@ -66,26 +112,26 @@ void findSpaceRequest(const VertexBasicData* __restrict__ d_nodes,
 
     const int SIZE = 16;
     UpdateStr array[SIZE];
-    xlib::WarpQueueSimple<UpdateStr, SIZE> queue(array, d_queue, d_queue_size);
-    int size = xlib::upper_approx<xlib::WARP_SIZE>(batch_size);
+    xlib::DeviceQueue<UpdateStr, SIZE> queue(array, d_queue, d_queue_size);
+    int size = xlib::upper_approx<xlib::WARP_SIZE>(unique_size);
 
     for (int i = id; i < size; i += stride) {
-        if (i < batch_size) {
+        if (i < unique_size) {
             vid_t       src = d_unique_src[i];
             auto    request = d_counts[i];
-            auto       node = d_nodes[src];
-            auto new_degree = request + node.degree;
+            auto      vnode = d_vertex[src];
+            auto new_degree = request + vnode.degree;
             //printf("src: %lld\td: %d\treq %d\tp:%d \n",
-            //    src, node.degree, request,new_degree > node.limit);
-            if (new_degree > node.limit)
-                queue.insert(UpdateStr(src, node.degree, new_degree));
+            //    src, vnode.degree, request,new_degree > vnode.limit);
+            if (new_degree > vnode.limit())
+                queue.insert(UpdateStr(src, vnode.degree, new_degree));
         }
         queue.store();
     }
 }
 
 __global__
-void CollectInfoForHost(const VertexBasicData* __restrict__ d_nodes,
+void collectInfoForHost(const VertexBasicData* __restrict__ d_vertex,
                         const UpdateStr*       __restrict__ d_queue,
                         int                                 queue_size,
                         degree_t*              __restrict__ d_old_degrees,
@@ -96,62 +142,64 @@ void CollectInfoForHost(const VertexBasicData* __restrict__ d_nodes,
 
     for (int i = id; i < queue_size; i += stride) {
         UpdateStr    str = d_queue[i];
-        auto        node = d_nodes[str.src];
-        d_old_degrees[i] = node.degree;
-        d_old_ptrs[i]    = node.edge_ptr;
+        auto       vnode = d_vertex[str.src];
+        d_old_degrees[i] = vnode.degree;
+        d_old_ptrs[i]    = reinterpret_cast<edge_t*>(vnode.edge_ptr);
     }
 }
 
 __global__
-void updateVertexBasicData(const VertexBasicData* __restrict__ d_nodes,
-                           const UpdateStr*       __restrict__ d_queue,
-                           int                                 queue_size,
-                           const edge_t* const*   __restrict__ d_new_ptrs) {
+void updateVertexBasicData(VertexBasicData* __restrict__ d_vertex,
+                           const UpdateStr* __restrict__ d_queue,
+                           int                           queue_size,
+                           edge_t* const*   __restrict__ d_new_ptrs) {
 
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
 
     for (int i = id; i < queue_size; i += stride) {
-        UpdateStr    str = d_queue[i];
-        d_nodes[str.src] = VertexBasicData(d_new_ptrs[i], str.new_degree);
+        UpdateStr     str = d_queue[i];
+        d_vertex[str.src] = VertexBasicData(str.new_degree,
+                                      reinterpret_cast<byte_t*>(d_new_ptrs[i]));
     }
 }
 
 template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK>
 __global__
-void bulkCopyAdjLists(const int*     __restrict__ d_prefixsum,
-                      edge_t* const* __restrict__ d_old_ptr,
-                      edge_t* const* __restrict__ d_new_ptrs) {
+void bulkCopyAdjLists(const degree_t* __restrict__ d_prefixsum,
+                      int                          work_size,
+                      edge_t* const*  __restrict__ d_old_ptr,
+                      edge_t* const*  __restrict__ d_new_ptrs) {
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
-    auto lambda = [] (int pos, degree_t offset) {
-                        auto    old_ptr = d_old_ptr[ pos ];
-                        auto    new_ptr = d_new_ptrs[ pos ];
-                        new_ptr[offset] = old_ptr[ offset ];
-                    };
-    xlib::binarySearchLBs<BLOCK_SIZE>(d_work, work_size, smem, lambda);
+    auto lambda = [&] (int pos, degree_t offset) {
+                    auto    old_ptr = reinterpret_cast<vid_t*>(d_old_ptr[pos]);
+                    auto    new_ptr = reinterpret_cast<vid_t*>(d_new_ptrs[pos]);
+                    new_ptr[offset] = old_ptr[offset];
+                };
+    xlib::binarySearchLB<BLOCK_SIZE>(d_prefixsum, work_size, smem, lambda);
 }
 
-    /*const int SIZE = xlib::SMemPerThread<int>::value;
-    __shared__ int smem[SIZE * BLOCK_SIZE];
-    int queue_pos[SIZE];
-    int queue_offset[SIZE];
-    xlib::reg_fill(queue_offset, -1);
+__global__
+void mergeAdjListKernel(cuStingerDevData          data,
+                        BatchUpdate               batch_update,
+                        int                       queue_size,
+                        const vid_t* __restrict__ d_unique,
+                        const int*   __restrict__ d_counts_ps) {
+    int     id = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = gridDim.x * blockDim.x;
 
-    xlib::threadPartition<BLOCK_SIZE>(d_partition, d_prefixsum,
-                                      queue_pos, queue_offset, smem);
-    __syncthreads();
+    for (int i = id; i < queue_size; i += stride) {
+        auto    vertex = Vertex(data, d_unique[i]);
+        auto      left = vertex.edge_ptr();
+        auto left_size = vertex.degree();
 
-    xlib::threadToWarpIndexing(queue_pos, queue_offset, smem);
+        int      start = d_counts_ps[i];
+        int        end = d_counts_ps[i + 1];
+        int right_size = end - start;
+        auto     right = batch_update.dst_ptr() + start;
 
-    #pragma unroll
-    for (int i = 0; i < SIZE; i++) {
-        if (queue_offset[i] != -1) {
-            auto      old_ptr = d_old_ptr[ queue_pos[i] ];
-            auto      new_ptr = d_new_ptrs[ queue_pos[i] ];
-            int        offset = queue_offset[i];
-            new_ptr[ offset ] = old_ptr[ offset ];
-            //printf("%d\t%d\t%d\t%lld\n", threadIdx.x, queue_pos[i], queue_offset[i]);
-        }
-    }*/
+        xlib::inplace_merge(left, left_size, right, right_size);
+    }
+}
 
 } // namespace custinger

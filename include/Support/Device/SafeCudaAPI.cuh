@@ -137,14 +137,14 @@ inline void cuFreeAux(const char* file, int line, const char* func_name,
 
 template<typename T>
 inline void cuMemset0x00Aux(const char* file, int line, const char* func_name,
-                            T* ptr, size_t num_items) {
+                            T* ptr, size_t num_items = 1) {
     assert(num_items > 0 && ptr != nullptr);
     xlib::__cudaErrorHandler(cudaMemset(ptr, 0x00, num_items * sizeof(T)),
                              "cudaMemset(0x00)", file, line, func_name);
 }
 template<typename T>
 inline void cuMemset0xFFAux(const char* file, int line, const char* func_name,
-                            T* ptr, size_t num_items) {
+                            T* ptr, size_t num_items = 1) {
     assert(num_items > 0 && ptr != nullptr);
     xlib::__cudaErrorHandler(cudaMemset(ptr, 0xFF, num_items * sizeof(T)),
                              "cudaMemset(0xFF)", file, line, func_name);

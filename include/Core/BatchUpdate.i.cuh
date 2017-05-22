@@ -37,8 +37,8 @@
 
 namespace custinger {
 
-inline BatchInit::BatchInit(int batch_size, const vid_t* src_array,
-                            const vid_t* dst_array) noexcept :
+inline BatchInit::BatchInit(const vid_t* src_array, const vid_t* dst_array,
+                            int batch_size) noexcept :
                                 _batch_size(batch_size) {
     _edge_ptrs[0] = reinterpret_cast<const byte_t*>(src_array);
     _edge_ptrs[1] = reinterpret_cast<const byte_t*>(dst_array);
@@ -62,14 +62,25 @@ inline const byte_t* BatchInit::edge_ptrs(int index) const noexcept {
 inline BatchUpdate::BatchUpdate(BatchInit batch_init) noexcept :
                             _batch_size(batch_init.size()),
                             _batch_pitch(xlib::upper_approx<512>(_batch_size)) {
-    byte_t* ptr;
-    cuMalloc(ptr, _batch_pitch * (sizeof(edge_t) + sizeof(vid_t)));
+
     for (int i = 0; i < NUM_ETYPES + 1; i++) {
-        _d_edge_ptrs[i] = ptr;
-        cuMemcpyToDeviceAsync(batch_init.edge_ptrs(i), _batch_size,
-                              _d_edge_ptrs[i]);
-        ptr += _batch_pitch;
+        if (batch_init.edge_ptrs(i) == nullptr)
+            ERROR("Edge data not initializated");
     }
+    byte_t* ptr;
+    cuMalloc(ptr, _batch_pitch * (sizeof(vid_t) + sizeof(edge_t)));
+    _d_edge_ptrs[0] = ptr;
+    cuMemcpyToDeviceAsync(batch_init.edge_ptrs(0), _batch_size * sizeof(vid_t),
+                          _d_edge_ptrs[0]);
+    ptr += _batch_pitch * sizeof(vid_t);
+    for (int i = 0; i < NUM_ETYPES; i++) {
+        _d_edge_ptrs[i + 1] = ptr;
+        cuMemcpyToDeviceAsync(batch_init.edge_ptrs(i + 1),
+                              _batch_size * ETYPE_SIZE[i], _d_edge_ptrs[i + 1]);
+        ptr += _batch_pitch * ETYPE_SIZE[i];
+    }
+    for (int i = 0; i < NUM_ETYPES + 1; i++)
+        std::cout << (int*) _d_edge_ptrs[i] << std::endl;
 }
 
 inline BatchUpdate::~BatchUpdate() noexcept {
@@ -93,6 +104,16 @@ vid_t BatchUpdate::dst(int index) const noexcept {
     return reinterpret_cast<vid_t*>(_d_edge_ptrs[1])[index];
 }
 
+__host__ __device__ __forceinline__
+vid_t* BatchUpdate::src_ptr() const noexcept {
+    return reinterpret_cast<vid_t*>(_d_edge_ptrs[0]);
+}
+
+__host__ __device__ __forceinline__
+vid_t* BatchUpdate::dst_ptr() const noexcept {
+    return reinterpret_cast<vid_t*>(_d_edge_ptrs[1]);
+}
+
 __device__ __forceinline__
 Edge BatchUpdate::edge(int index) const noexcept {
     return Edge(_d_edge_ptrs[1], index, _batch_pitch);
@@ -102,92 +123,9 @@ template<int INDEX>
 __device__ __forceinline__
 typename std::tuple_element<INDEX, VertexTypes>::type
 BatchUpdate::field(int index) const noexcept {
-
+    //_batch_pitch
 }
 
 #endif
 
-//==============================================================================
-/*
-    const unsigned BLOCK_SIZE = 256;
-
-    vid_t *d_batch_src, *d_batch_dest, *d_batch_src_sorted,
-          *d_batch_dest_sorted, *d_unique;
-    int   *d_counts, *d_queue_size;
-    degree_t*  d_degree;
-    UpdateStr* d_queue;
-    edge_t**   d_old_ptrs, **d_new_ptrs;
-    auto h_old_ptrs = new edge_t*[batch_size];
-    auto  h_new_ptr = new edge_t*[batch_size];
-    auto    h_queue = new UpdateStr[batch_size];
-
-    generateDeviceBatch(d_batch_src, d_batch_dest, batch_size,
-                        BatchType::INSERT, prop);
-    cuMalloc(d_queue_size);
-    cuMalloc(d_degree, batch_size + 1);
-    cuMalloc(d_queue, batch_size);      // allocate |queue| = num. unique src
-    cuMalloc(d_old_ptrs, batch_size);
-    cuMalloc(d_new_ptrs, batch_size);
-    cuMemset0x00(d_degree);
-    cuMemset0x00(d_queue_size);
-
-
-    xlib::CubSortByKey<vid_t, vid_t> sort_cub(d_batch_src, d_batch_dest,
-                                              batch_size, d_batch_src_sorted,
-                                              d_batch_dest_sorted, _nV);
-
-    xlib::CubRunLengthEncode<id_t> runlength_cub(d_batch_src_sorted, batch_size,
-                                                 d_unique, d_counts);
-
-    sort_cub.run();                        // batch sorting
-    int num_items = runlength_cub.run();   // find src and src occurences
-
-    CollectInfoForHost
-        <<<xlib::ceil_div<BLOCK_SIZE>(num_items), BLOCK_SIZE>>>
-        (d_unique, d_counts, num_items, d_queue, d_queue_size);
-
-    int h_queue_size;
-    cuMemcpyToHost(d_queue_size, h_queue_size);
-
-    if (h_queue_size > 0) {
-        sendInfoToHost <<<xlib::ceil_div<BLOCK_SIZE>(num_items), BLOCK_SIZE>>>
-            (d_queue, h_queue_size, d_degree + 1, d_old_ptrs);
-
-        CHECK_CUDA_ERROR
-        cuMemcpyToHostAsync(d_old_ptrs, h_old_ptrs, h_queue_size);
-        cuMemcpyToHostAsync(d_queue, h_queue, h_queue_size);
-
-        for (int i = 0; i < h_queue_size; i++)
-            mem_management.remove(h_old_ptrs[i], h_queue[i].old_degree);
-        for (int i = 0; i < h_queue_size; i++)
-            h_new_ptrs[i] = mem_management.insert(h_queue[i].new_degree).second;
-
-        cuMemcpyToDeviceAsync(h_new_ptrs, d_new_ptrs, h_queue_size);
-
-        //----------------------------------------------------------------------
-        updateVertexBasicData
-            <<<xlib::ceil_div<BLOCK_SIZE>(h_queue_size), BLOCK_SIZE>>>                        // update data structures
-            (d_queue, h_queue_size, d_new_ptrs);
-        //----------------------------------------------------------------------
-        xlib::CubInclusiveSum<degree_t> prefixsum_cub(d_degree, h_queue_size);
-        prefixsum_cub.run();
-
-        degree_t* d_prefixsum = d_degree;     //alias
-        int    prefixsum_size = h_queue_size; //alias
-
-        degree_t prefixsum_total;           //get the total
-        cuMemcpyToHost(d_prefixsum + prefixsum_size, prefixsum_total);
-                                            //find partition size
-
-        //----------------------------------------------------------------------
-        const int     SMEM = xlib::SMemPerBlock<BLOCK_SIZE, degree_t>::value;
-        int partition_size = xlib::ceil_div<SMEM>(prefixsum_total);
-
-        bulkCopyAdjLists <<< partition_size, BLOCK_SIZE >>>
-            (d_partition, d_prefixsum, d_old_ptrs, d_new_ptrs);
-
-        bulkCopyAdjLists <<< partition_size, BLOCK_SIZE >>>
-            (d_partition, d_prefixsum, d_old_ptrs, d_new_ptrs);
-    }
-*/
 } // namespace custinger

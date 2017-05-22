@@ -224,6 +224,10 @@ public:
 
     void insertEdgeBatch(BatchUpdate& batch_update) noexcept;
 
+    template<typename EqualOp>
+    void insertEdgeBatch(BatchUpdate& batch_update, const EqualOp& equal_op)
+                         noexcept;
+
 private:
     static int global_id;
 

@@ -46,7 +46,14 @@ DeviceQueue<T, SIZE>::DeviceQueue(T    (&queue)[SIZE],
                                   int* __restrict__ size_ptr) :
                                        _queue(queue),
                                        _queue_ptr(queue_ptr),
-                                       _size_ptr(_size_ptr) {}
+                                       _size_ptr(size_ptr) {}
+
+template<typename T, int SIZE>
+__device__ __forceinline__
+DeviceQueue<T, SIZE>::~DeviceQueue() {
+    if (SIZE > 1)
+        store_localqueue_aux();
+}
 
 template<typename T, int SIZE>
 __device__ __forceinline__
@@ -76,15 +83,20 @@ template<typename T, int SIZE>
 __device__ __forceinline__
 void DeviceQueue<T, SIZE>::store_localqueue() {
     assert(__ballot(true) == static_cast<unsigned>(-1));
-    if (__any(_size >= SIZE)) {
-        int thread_offset = _size, total;
-        int   warp_offset = xlib::WarpExclusiveScan<>::AtomicAdd(thread_offset,
-                                                              _size_ptr, total);
-        T* ptr = _queue_ptr + warp_offset + thread_offset;
-        for (int i = 0; i < _size; i++)
-            ptr[i] = _queue[i];
-        _size = 0;
-    }
+    if (__any(_size >= SIZE))
+        store_localqueue_aux();
+}
+
+template<typename T, int SIZE>
+__device__ __forceinline__
+void DeviceQueue<T, SIZE>::store_localqueue_aux() {
+    int thread_offset = _size;
+    int   warp_offset = xlib::WarpExclusiveScan<>::AtomicAdd(thread_offset,
+                                                             _size_ptr);
+    T* ptr = _queue_ptr + warp_offset + thread_offset;
+    for (int i = 0; i < _size; i++)
+        ptr[i] = _queue[i];
+    _size = 0;
 }
 
 template<typename T, int SIZE>

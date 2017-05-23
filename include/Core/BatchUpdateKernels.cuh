@@ -38,7 +38,6 @@
 #include "Support/Host/Algorithm.hpp"
 #include "Support/Device/BinarySearchLB.cuh"
 
-
 namespace custinger {
 
 template<typename EqualOp>
@@ -48,23 +47,29 @@ void findDuplicateKernel(cuStingerDevData   data,
                          EqualOp            equal_op,
                          bool* __restrict__ d_flags) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
-    int stride = blockIdx.x * blockDim.x + threadIdx.x;
-
-    if (threadIdx.x == 0)
-        printf("%d\n", batch_update.size());
-    return;
+    int stride = gridDim.x * blockDim.x;
 
     for (int i = id; i < batch_update.size(); i += stride) {
         auto        src = batch_update.src(i);
         auto batch_edge = batch_update.edge(i);
 
-        bool flag = true;
-        auto vertex_src = Vertex(data, src);
-        auto     degree = vertex_src.degree();
-        for (degree_t j = 0; j < degree; j++) {
-            if (equal_op(batch_edge, vertex_src.edge(j))) {
-                flag = false;
-                break;
+        bool flag;
+        if (i + 1 != batch_update.size() && src == batch_update.src(i)
+                 && equal_op(batch_edge, batch_update.edge(i + 1))) {
+            flag = false;
+        }
+        else {
+            auto vertex_src = Vertex(data, src);
+            auto     degree = vertex_src.degree();
+            flag = true;
+            for (degree_t j = 0; j < degree; j++) {
+                /*printf("i %d\t b (%d, %d)\t edge %d -> %d\n",
+                        i, src, batch_edge.dst(), vertex_src.edge(j).dst(),
+                       equal_op(batch_edge, vertex_src.edge(j)));*/
+                if (equal_op(batch_edge, vertex_src.edge(j))) {
+                    flag = false;
+                    break;
+                }
             }
         }
         d_flags[i] = flag;
@@ -100,12 +105,13 @@ std::ostream& operator<<(std::ostream& os, const UpdateStr& obj) {
 //==============================================================================
 
 __global__
-void findSpaceRequest(const VertexBasicData* __restrict__ d_vertex,
-                      const vid_t*           __restrict__ d_unique_src,
-                      const int*             __restrict__ d_counts,
-                      int                                 unique_size,
-                      UpdateStr*             __restrict__ d_queue,
-                      int*                   __restrict__ d_queue_size) {
+void findSpaceRequest(VertexBasicData* __restrict__ d_vertex,
+                      const vid_t*     __restrict__ d_unique_src,
+                      const int*       __restrict__ d_counts,
+                      int                           unique_size,
+                      UpdateStr*       __restrict__ d_queue,
+                      int*             __restrict__ d_queue_size,
+                      degree_t*        __restrict__ d_degrees_changed) {
 
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
@@ -121,10 +127,14 @@ void findSpaceRequest(const VertexBasicData* __restrict__ d_vertex,
             auto    request = d_counts[i];
             auto      vnode = d_vertex[src];
             auto new_degree = request + vnode.degree;
-            //printf("src: %lld\td: %d\treq %d\tp:%d \n",
-            //    src, vnode.degree, request,new_degree > vnode.limit);
-            if (new_degree > vnode.limit())
+            //printf("src: %d\td: %d\treq: %d\tp:%d \n",
+            //       src, vnode.degree, request, new_degree > vnode.limit());
+            if (new_degree >= vnode.limit())
                 queue.insert(UpdateStr(src, vnode.degree, new_degree));
+            else
+                d_vertex[src] = VertexBasicData(new_degree, vnode.edge_ptr);
+            //if (...)
+                d_degrees_changed[i] = vnode.degree;
         }
         queue.store();
     }
@@ -145,6 +155,9 @@ void collectInfoForHost(const VertexBasicData* __restrict__ d_vertex,
         auto       vnode = d_vertex[str.src];
         d_old_degrees[i] = vnode.degree;
         d_old_ptrs[i]    = reinterpret_cast<edge_t*>(vnode.edge_ptr);
+        //if (vnode.edge_ptr != nullptr)
+        //printf("%d  ptr %llX  %d\n", str.src, d_old_ptrs[i],
+        //        reinterpret_cast<vid_t*>(vnode.edge_ptr)[0]);
     }
 }
 
@@ -168,36 +181,50 @@ template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK>
 __global__
 void bulkCopyAdjLists(const degree_t* __restrict__ d_prefixsum,
                       int                          work_size,
-                      edge_t* const*  __restrict__ d_old_ptr,
+                      edge_t* const*  __restrict__ d_old_ptrs,
                       edge_t* const*  __restrict__ d_new_ptrs) {
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
     auto lambda = [&] (int pos, degree_t offset) {
-                    auto    old_ptr = reinterpret_cast<vid_t*>(d_old_ptr[pos]);
+                    auto    old_ptr = reinterpret_cast<vid_t*>(d_old_ptrs[pos]);
                     auto    new_ptr = reinterpret_cast<vid_t*>(d_new_ptrs[pos]);
+                    //printf("p: %d    %d \t\t%llX\n", pos, old_ptr[offset], old_ptr);
                     new_ptr[offset] = old_ptr[offset];
                 };
     xlib::binarySearchLB<BLOCK_SIZE>(d_prefixsum, work_size, smem, lambda);
 }
 
 __global__
-void mergeAdjListKernel(cuStingerDevData          data,
-                        BatchUpdate               batch_update,
-                        int                       queue_size,
-                        const vid_t* __restrict__ d_unique,
-                        const int*   __restrict__ d_counts_ps) {
+void mergeAdjListKernel(cuStingerDevData             data,
+                        const degree_t* __restrict__ d_degrees_changed,
+                        BatchUpdate                  batch_update,
+                        const vid_t* __restrict__    d_unique_src,
+                        const int*   __restrict__    d_counts_ps,
+                        int                          num_uniques) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
 
-    for (int i = id; i < queue_size; i += stride) {
-        auto    vertex = Vertex(data, d_unique[i]);
+    for (int i = id; i < num_uniques; i += stride) {
+        auto    vertex = Vertex(data, d_unique_src[i]);
         auto      left = vertex.edge_ptr();
-        auto left_size = vertex.degree();
+        auto left_size = d_degrees_changed[i];
 
         int      start = d_counts_ps[i];
         int        end = d_counts_ps[i + 1];
         int right_size = end - start;
         auto     right = batch_update.dst_ptr() + start;
 
+        /*for (int j = 0; j < queue_size; j++) {
+            if (threadIdx.x == j) {
+                printf("%d : %d -> (%d, %d)", threadIdx.x, d_unique_src[i], left_size, right_size);
+                for (int i = 0; i < left_size; i++)
+                    printf("%d ", left[i]);
+                printf("    |    ");
+                for (int i = 0; i < right_size; i++)
+                    printf("%d ", right[i]);
+                printf("\n");
+            }
+            __syncthreads();
+        }*/
         xlib::inplace_merge(left, left_size, right, right_size);
     }
 }

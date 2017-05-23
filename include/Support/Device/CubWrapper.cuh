@@ -27,7 +27,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #pragma once
 
-#include <cub.cuh>
 #include <limits>
 
 namespace xlib {
@@ -90,10 +89,8 @@ public:
     void run() noexcept;
 
 private:
-    T*       _d_in1;
-    T*       _d_in1_tmp { nullptr };
-    R*       _d_in2;
-    R*       _d_in2_tmp { nullptr };
+    T*       _d_in1, *_d_out1, *_d_in1_tmp { nullptr };
+    R*       _d_in2, *_d_out2, *_d_in2_tmp { nullptr };
     T        _d_in1_max;
     R        _d_in2_max;
     bool     _internal_alloc { false };
@@ -135,7 +132,6 @@ public:
 private:
     const T*    _d_in;
     const bool* _d_flags;
-    size_t      _num_items;
     T*          _d_out;
     T*          _d_num_selected_out { nullptr };
 };
@@ -150,7 +146,7 @@ private:
     const T* _d_in;
     T*       _d_out;
 };
-
+/*
 template<typename T>
 class CubInclusiveSum : public CubWrapper {
 public:
@@ -165,7 +161,7 @@ private:
     T*        _d_in_out;
 };
 template<typename T>
-T* CubInclusiveSum<T>::null_ptr_ref = nullptr;
+T* CubInclusiveSum<T>::null_ptr_ref = nullptr;*/
 
 template<typename T>
 class CubPartitionFlagged : public CubWrapper {
@@ -212,7 +208,7 @@ private:
     int   _num_rows, _num_cols, _num_nonzeros;
 };
 
-
+/*
 template<typename T>
 class CubArgMax : public CubWrapper {
 public:
@@ -221,8 +217,8 @@ public:
 private:
     const T*                   _d_in;
     cub::KeyValuePair<int, T>* _d_out;
-};
+};*/
 
 } // namespace xlib
 
-#include "impl/CubWrapper.i.cuh"
+//#include "impl/CubWrapper.i.cuh"

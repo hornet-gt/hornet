@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
     //Param param(argc, argv);
 
     graph::GraphStd<custinger::vid_t, custinger::eoff_t> graph;
-    graph.read(argv[1]);
+    graph.read(argv[1], graph::Property(graph::Property::SORT));
     graph.print_raw();
 
     //if (param.binary)
@@ -63,19 +63,23 @@ int main(int argc, char* argv[]) {
     delete[] time_stamp;
     delete[] weights;
 
-    custiger_graph.print();
+    //custiger_graph.print();
     //--------------------------------------------------------------------------
     int batch_size = 10;
     auto batch_src = new vid_t[batch_size];
     auto batch_dst = new vid_t[batch_size];
-    generateInsertBatch(batch_src, batch_dst, batch_size, graph,
-                        batch_property::PRINT);
+    generateInsertBatch(batch_src, batch_dst, batch_size, graph);
+                        //batch_property::PRINT);
+
+    /*int batch_size = 2;
+    vid_t  batch_src[] = { 0, 0 };
+    vid_t  batch_dst[] = { 6, 7 };*/
 
     BatchInit batch_init(batch_src, batch_dst, batch_size);
     BatchUpdate batch_update(batch_init);
 
     custiger_graph.insertEdgeBatch(batch_update);
-    custiger_graph.print();
+    //custiger_graph.print();
 
     //Timer<DEVICE> TM;
 

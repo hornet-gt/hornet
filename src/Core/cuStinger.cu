@@ -35,9 +35,9 @@
  */
 #include "Core/cuStinger.hpp"
 #include "Core/cuStingerTypes.cuh"              //VertexBasicData
+#include "Support/Device/BinarySearchLB.cuh"    //xlib::binarySearchLB
 #include "Support/Device/CubWrapper.cuh"        //CubSortByValue
 #include "Support/Device/Definition.cuh"        //xlib::SMemPerBlock
-#include "Support/Device/BinarySearchLB.cuh"    //xlib::binarySearchLB
 /*
 namespace cub {
 
@@ -78,7 +78,8 @@ __global__ void printKernel(cuStingerDevData data) {
         auto vertex = Vertex(data, i);
         auto degree = vertex.degree();
         //auto field0 = vertex.field<0>();
-        printf("%d [%d, %d]:    ", i, vertex.degree(), vertex.limit());
+        printf("%d [%d, %d, %llX]:    ", i, vertex.degree(), vertex.limit(),
+                                        vertex.edge_ptr());
 
         for (degree_t j = 0; j < vertex.degree(); j++) {
             auto   edge = vertex.edge(j);

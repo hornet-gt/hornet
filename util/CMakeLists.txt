@@ -248,6 +248,11 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "--use_fast_math" "-DNDEBUG"
     "-Xcompiler=-O3,${D_QUNUSED}${D_MARCH}-mtune=native,-funroll-loops,-DNDEBUG")
 
+elseif (CMAKE_BUILD_TYPE STREQUAL "ReleaseEx")
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "--use_fast_math" "-DNDEBUG"
+"-Xcompiler=-O3,${D_QUNUSED}${D_MARCH}-mtune=native,-funroll-loops,-DNDEBUG\
+-DNO_CHECK_CUDA_ERROR" "-DNO_CHECK_CUDA_ERROR")
+
 elseif (CMAKE_BUILD_TYPE STREQUAL "Info")
     file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/build/TMP)
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-lineinfo" "-keep" "--use_fast_math"
@@ -308,6 +313,9 @@ set(CMAKE_CXX_FLAGS_INFO "-O3 ${H_MARCH} -mtune=native ${FLTO} \
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 ${H_MARCH} -mtune=native ${FLTO} \
 -funroll-loops -DNDEBUG")
+
+set(CMAKE_CXX_FLAGS_RELEASE_EX "-O3 ${H_MARCH} -mtune=native ${FLTO} \
+-funroll-loops -DNDEBUG -DNO_CHECK_CUDA_ERROR")
 
 #-------------------------------------------------------------------------------
 

@@ -129,7 +129,7 @@ void printArray(T (&array)[SIZE], const std::string& str = "", char sep = ' ')
                 noexcept;
 
 template<typename T>
-void printArray(T* array, size_t size, const std::string& str = "",
+void printArray(const T* array, size_t size, const std::string& str = "",
                 char sep = ' ') noexcept;
 
 template<typename T>

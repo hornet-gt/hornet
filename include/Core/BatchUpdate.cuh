@@ -93,6 +93,9 @@ public:
      * @param[in] batch_size number of edges of the batch
      */
     explicit BatchUpdate(BatchInit batch_init) noexcept;
+
+    BatchUpdate(const BatchUpdate& obj) noexcept;
+
     ~BatchUpdate() noexcept;
 
 #if defined(__NVCC__)
@@ -123,9 +126,10 @@ public:
 #endif
 
 private:
-    byte_t*   _d_edge_ptrs[ NUM_ETYPES + 1 ] = {};
-    const int _batch_size  { 0 };
-    const int _batch_pitch { 0 }; //number of edges to the next field
+    byte_t*    _d_edge_ptrs[ NUM_ETYPES + 1 ] = {};
+    const int  _batch_size    { 0 };
+    const int  _batch_pitch   { 0 }; //number of edges to the next field
+    const bool _enable_delete { true };
 };
 
 } // namespace custinger

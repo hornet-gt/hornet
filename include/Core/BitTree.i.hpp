@@ -48,6 +48,7 @@ BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>::BitTree() noexcept :
                                               _size(0) {
     _h_ptr = new T[BLOCKARRAY_ITEMS];
     cuMalloc(_d_ptr, BLOCKARRAY_ITEMS);
+    cuMemset0xFF(_d_ptr, BLOCKARRAY_ITEMS);
     const word_t EMPTY = static_cast<word_t>(-1);
     std::fill(_array, _array + NUM_WORDS, EMPTY);
     _last_level = _array + INTERNAL_WORDS;

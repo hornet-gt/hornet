@@ -61,7 +61,8 @@ void printArray(T (&array)[SIZE], const std::string& str, char sep) noexcept {
 }
 
 template<class T>
-void printArray(T* array, size_t size, const std::string& str, char sep) noexcept {
+void printArray(const T* array, size_t size, const std::string& str, char sep)
+                noexcept {
     std::cout << str;
     for (size_t i = 0; i < size; i++)
         std::cout << array[i] << sep;
@@ -69,11 +70,11 @@ void printArray(T* array, size_t size, const std::string& str, char sep) noexcep
 }
 
 template<>
-void printArray<char>(char* array, size_t size, const std::string& str,
+void printArray<char>(const char* array, size_t size, const std::string& str,
                       char sep) noexcept;
 
 template<>
-void printArray<unsigned char>(unsigned char* array, size_t size,
+void printArray<unsigned char>(const unsigned char* array, size_t size,
                                const std::string& str, char sep) noexcept;
 
 //------------------------------------------------------------------------------

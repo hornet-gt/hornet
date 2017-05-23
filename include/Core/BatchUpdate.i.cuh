@@ -79,12 +79,19 @@ inline BatchUpdate::BatchUpdate(BatchInit batch_init) noexcept :
                               _batch_size * ETYPE_SIZE[i], _d_edge_ptrs[i + 1]);
         ptr += _batch_pitch * ETYPE_SIZE[i];
     }
-    for (int i = 0; i < NUM_ETYPES + 1; i++)
-        std::cout << (int*) _d_edge_ptrs[i] << std::endl;
+}
+
+inline BatchUpdate::BatchUpdate(const BatchUpdate& obj) noexcept :
+                                            _batch_size(obj._batch_size),
+                                            _batch_pitch(obj._batch_pitch),
+                                            _enable_delete(false) {
+    std::copy(obj._d_edge_ptrs, obj._d_edge_ptrs + NUM_ETYPES + 1,
+              _d_edge_ptrs);
 }
 
 inline BatchUpdate::~BatchUpdate() noexcept {
-    cuFree(_d_edge_ptrs[0]);
+    if (_enable_delete)
+        cuFree(_d_edge_ptrs[0]);
 }
 
 #if defined(__NVCC__)

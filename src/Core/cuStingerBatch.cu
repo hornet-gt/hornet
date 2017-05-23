@@ -38,7 +38,6 @@
 #include "Support/Device/CubWrapper.cuh"
 #include "Support/Device/PrintExt.cuh"
 
-
 namespace custinger {
 
 void cuStinger::insertEdgeBatch(BatchUpdate& batch_update) noexcept {
@@ -55,9 +54,9 @@ void cuStinger::insertEdgeBatch(BatchUpdate& batch_update,
 
     vid_t     *d_batch_src_sorted, *d_batch_dst_sorted, *d_unique;
     bool      *d_flags;
-    int       *d_counts, *d_queue_size;
-    degree_t  *d_degree;
-    UpdateStr *d_queue;
+    int       *d_counts, *d_num_realloc;
+    degree_t  *d_degree, *d_degree_changed;
+    UpdateStr *d_queue_realloc;
     edge_t    **d_old_ptrs, **d_new_ptrs;
     //--------------------------------------------------------------------------
     ////////////////
@@ -70,142 +69,129 @@ void cuStinger::insertEdgeBatch(BatchUpdate& batch_update,
     cuMalloc(d_flags, batch_size);
     cuMalloc(d_counts, batch_size + 1);
     cuMalloc(d_unique, batch_size);
-    cuMalloc(d_queue, batch_size);      // allocate |queue| = num. unique src
-    cuMalloc(d_queue_size, 1);
+    cuMalloc(d_degree_changed, batch_size);
+    cuMalloc(d_queue_realloc, batch_size);      // allocate |queue| = num. unique src
+    cuMalloc(d_num_realloc, 1);
     cuMalloc(d_degree, batch_size + 1);
-    cuMemset0x00(d_queue_size);
+    cuMemset0x00(d_num_realloc);
     cuMemset0x00(d_degree + batch_size);
     cuMemset0x00(d_counts + batch_size);
 
-    auto h_old_ptrs = new edge_t*[batch_size];
-    auto h_new_ptrs = new edge_t*[batch_size];
-    auto    h_queue = new UpdateStr[batch_size];
+    auto      h_old_ptrs = new edge_t*[batch_size];
+    auto      h_new_ptrs = new edge_t*[batch_size];
+    auto h_queue_realloc = new UpdateStr[batch_size];
     cuMalloc(d_old_ptrs, batch_size);
     cuMalloc(d_new_ptrs, batch_size);
     //cudaMallocHost()cudaFreeHost
-    vid_t* tmp1, *tmp2;
-    cuMalloc(tmp1, batch_size);
-    cuMalloc(tmp2, batch_size);
-
-    std::cout << d_batch_src << " " << d_batch_dst << std::endl;
-    std::cout << ((uint64_t)d_batch_src % 16) << " " << ((uint64_t)d_batch_dst % 16) << std::endl;
-
     //--------------------------------------------------------------------------
     //////////////
     // CUB INIT //
     //////////////
     //*xlib::CubSortByKey<vid_t, vid_t> sort_cub(d_batch_src, batch_size,
     //                                            d_batch_src_sorted, _nV);
-    /*xlib::CubSortPairs2<vid_t, vid_t> sort_cub(d_batch_src, d_batch_dst,
+    xlib::CubSortPairs2<vid_t, vid_t> sort_cub(d_batch_src, d_batch_dst,
                                                batch_size, _nV);
 
     xlib::PartitionFlagged<vid_t> partition_cub1(d_batch_src, d_flags,
                                                  batch_size, d_batch_src);
 
     xlib::PartitionFlagged<vid_t> partition_cub2(d_batch_dst, d_flags,
-                                                 batch_size, d_batch_dst);*/
-    xlib::CubSortPairs2<vid_t, vid_t> sort_cub(d_batch_src, d_batch_dst,
-                                               batch_size, d_batch_src_sorted,
-                                               d_batch_dst_sorted, _nV);
-
-    xlib::PartitionFlagged<vid_t> partition_cub1(d_batch_src_sorted, d_flags,
-                                                 batch_size, tmp1/*d_batch_src*/);
-
-    xlib::PartitionFlagged<vid_t> partition_cub2(d_batch_dst_sorted, d_flags,
                                                  batch_size, d_batch_dst);
-
-    xlib::CubRunLengthEncode<vid_t> runlength_cub(d_batch_src, batch_size,
-                                                  d_unique, d_counts);
-
     //==========================================================================
     sort_cub.run();                        // batch sorting
-
-    cu::printArray(d_batch_src_sorted, batch_size);
-    cu::printArray(d_batch_dst_sorted, batch_size);
+    //cu::printArray(d_batch_src, batch_size);
+    //cu::printArray(d_batch_dst, batch_size);
 
     findDuplicateKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(batch_update.size()), BLOCK_SIZE >>>
         (device_data(), batch_update, equal_op, d_flags);
     CHECK_CUDA_ERROR
 
-    std::cout << "findDuplicateKernel " << std::endl;
-    cu::printArray(d_flags, batch_size);
+    int num_noduplicate = partition_cub1.run();//remove dublicate from batch_src
+    partition_cub2.run();                      //remove dublicate from batch_dst
 
-    partition_cub1.run();                   //remove dublicate from batch_src
-
-    std::cout << "partition_cub1 " << std::endl;
-
-    partition_cub2.run();                   //remove dublicate from batch_dst
-
-    std::cout << "partition_cub2 " << std::endl;
-    int   num_items = runlength_cub.run();  //find unique src and occurences
+    xlib::CubRunLengthEncode<vid_t> runlength_cub(d_batch_src, num_noduplicate,
+                                                  d_unique, d_counts);
+    int num_uniques = runlength_cub.run();     //find unique src and occurences
     auto vertex_ptr = reinterpret_cast<VertexBasicData*>(_d_vertex_ptrs[0]);
-
-    std::cout << "num_items " << num_items << std::endl;
+    //std::cout <<   "      nodup: " << num_noduplicate
+    //          << "\nnum_uniques: " << num_uniques << std::endl;
+    //cu::printArray(d_unique, num_uniques);
+    //cu::printArray(d_counts, num_uniques);
 
     findSpaceRequest
-        <<< xlib::ceil_div<BLOCK_SIZE>(num_items), BLOCK_SIZE >>>
-        (vertex_ptr, d_unique, d_counts, num_items, d_queue, d_queue_size);
+        <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
+        (vertex_ptr, d_unique, d_counts, num_uniques,
+         d_queue_realloc, d_num_realloc, d_degree_changed);
     CHECK_CUDA_ERROR
 
-    int h_queue_size;
-    cuMemcpyToHostAsync(d_queue_size, h_queue_size);
+    int h_num_realloc;
+    cuMemcpyToHostAsync(d_num_realloc, h_num_realloc);
 
+    //std::cout << "h_num_realloc: " << h_num_realloc <<std::endl;
     //==========================================================================
     ///////////////////////
     // MEMORY ALLOCATION //
     ///////////////////////
-    if (h_queue_size > 0) {
+    if (h_num_realloc > 0) {
         collectInfoForHost
-            <<< xlib::ceil_div<BLOCK_SIZE>(num_items), BLOCK_SIZE >>>
-            (vertex_ptr, d_queue, h_queue_size, d_degree, d_old_ptrs);
+            <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
+            (vertex_ptr, d_queue_realloc, h_num_realloc, d_degree, d_old_ptrs);
         CHECK_CUDA_ERROR
 
-        cuMemcpyToHostAsync(d_old_ptrs, h_queue_size, h_old_ptrs);
-        cuMemcpyToHostAsync(d_queue,    h_queue_size, h_queue);
+        cuMemcpyToHostAsync(d_old_ptrs, h_num_realloc, h_old_ptrs);
+        cuMemcpyToHostAsync(d_queue_realloc, h_num_realloc, h_queue_realloc);
+        //xlib::printArray(h_queue_realloc, h_num_realloc);
 
-        for (int i = 0; i < h_queue_size; i++)
-            mem_manager.remove(h_old_ptrs[i], h_queue[i].old_degree);
-        for (int i = 0; i < h_queue_size; i++)
-            h_new_ptrs[i] = mem_manager.insert(h_queue[i].new_degree).second;
+        for (int i = 0; i < h_num_realloc; i++) {
+            auto new_degree = h_queue_realloc[i].new_degree;
+            h_new_ptrs[i]   = mem_manager.insert(new_degree).second;
+        }
+        for (int i = 0; i < h_num_realloc; i++)
+            mem_manager.remove(h_old_ptrs[i], h_queue_realloc[i].old_degree);
 
-        cuMemcpyToDeviceAsync(h_new_ptrs, h_queue_size, d_new_ptrs);
-
+        cuMemcpyToDeviceAsync(h_new_ptrs, h_num_realloc, d_new_ptrs);
         //----------------------------------------------------------------------
         updateVertexBasicData
-            <<< xlib::ceil_div<BLOCK_SIZE>(h_queue_size), BLOCK_SIZE >>>                        // update data structures
-            (vertex_ptr, d_queue, h_queue_size, d_new_ptrs);
+            <<< xlib::ceil_div<BLOCK_SIZE>(h_num_realloc), BLOCK_SIZE >>>                        // update data structures
+            (vertex_ptr, d_queue_realloc, h_num_realloc, d_new_ptrs);
         CHECK_CUDA_ERROR
 
         //----------------------------------------------------------------------
         // WORKLOAD COMPUTATION
-        xlib::CubExclusiveSum<degree_t> prefixsum1(d_degree, h_queue_size + 1);
-        xlib::CubExclusiveSum<int>      prefixsum2(d_counts, num_items + 1);
+        xlib::CubExclusiveSum<degree_t> prefixsum1(d_degree, h_num_realloc + 1);
+        xlib::CubExclusiveSum<int>      prefixsum2(d_counts, num_uniques + 1);
         prefixsum1.run();
 
-        const auto& d_prefixsum = d_degree;     //alias
-        int      prefixsum_size = h_queue_size; //alias
+        const auto& d_prefixsum = d_degree;      //alias
+        int      prefixsum_size = h_num_realloc; //alias
 
-        degree_t prefixsum_total;               //get the total
+        degree_t prefixsum_total;                //get the total
         cuMemcpyToHostAsync(d_prefixsum + prefixsum_size, prefixsum_total);
-
+        //cu::printArray(d_prefixsum, prefixsum_size + 1, "prefix degree\n");
         //----------------------------------------------------------------------
-        //copy adjcency lists to new memory locations
-        const int     SMEM = xlib::SMemPerBlock<BLOCK_SIZE, degree_t>::value;
-        int partition_size = xlib::ceil_div<SMEM>(prefixsum_total);
+        if (prefixsum_total > 0) {
+            //copy adjcency lists to new memory locations
+            const int SMEM = xlib::SMemPerBlock<BLOCK_SIZE, degree_t>::value;
+            int num_blocks = xlib::ceil_div<SMEM>(prefixsum_total);
 
-        bulkCopyAdjLists<BLOCK_SIZE, SMEM> <<< partition_size, BLOCK_SIZE >>>
-            (d_prefixsum, prefixsum_size, d_old_ptrs, d_new_ptrs);
+            bulkCopyAdjLists<BLOCK_SIZE, SMEM> <<< num_blocks, BLOCK_SIZE >>>
+                (d_prefixsum, prefixsum_size + 1, d_old_ptrs, d_new_ptrs);
+            CHECK_CUDA_ERROR
+        }
         //----------------------------------------------------------------------
         //Merge sort
         prefixsum2.run();
-
-        //bulkCopyAdjLists <<< partition_size, BLOCK_SIZE >>>
+        //cu::printArray(d_counts, num_uniques + 1, "prefix count\n");
+        //bulkCopyAdjLists <<< num_noduplicate, BLOCK_SIZE >>>
         //    (d_prefixsum, d_old_ptrs, d_new_ptrs);
+        //cu::printArray(d_batch_dst, num_noduplicate, "dst:\n");
 
         mergeAdjListKernel
-            <<< xlib::ceil_div<BLOCK_SIZE>(num_items), BLOCK_SIZE >>>
-            (device_data(), batch_update, num_items, d_unique, d_counts);
+            <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
+            (device_data(), d_degree_changed, batch_update,
+             d_unique, d_counts, num_uniques);
+        CHECK_CUDA_ERROR
     }
 }
 

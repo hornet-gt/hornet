@@ -69,6 +69,9 @@ public:
     DeviceQueue(T (&queue)[SIZE], T* __restrict__ queue_ptr,
                 int* __restrict__ size_ptr);
 
+    __device__ __forceinline__
+    ~DeviceQueue();
+
     /**
      * @brief insert an item in the queue
      * @param item item to insert
@@ -99,6 +102,9 @@ private:
 
     __device__ __forceinline__
     void store_localqueue();
+
+    __device__ __forceinline__
+    void store_localqueue_aux();
 
     __device__ __forceinline__
     void store_ballot();

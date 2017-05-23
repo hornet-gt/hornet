@@ -149,6 +149,8 @@ MemoryManager::insert(degree_t degree) noexcept {
 }
 
 inline void MemoryManager::remove(edge_t* ptr, degree_t degree) noexcept {
+    if (ptr == nullptr)
+        return;
     int index = find_bin(degree);
     traverse<detail::MMRemove>(index, _num_blockarrays, ptr);
 }
@@ -212,7 +214,9 @@ inline void MemoryManager::statistics() noexcept {
 inline int MemoryManager::find_bin(degree_t degree) const noexcept {
     const unsigned LOG_EDGES_PER_BLOCK = xlib::Log2<MIN_EDGES_PER_BLOCK>::value;
     return degree < MIN_EDGES_PER_BLOCK ? 0 :
-                     xlib::ceil_log2(degree + 1) - LOG_EDGES_PER_BLOCK;
+             xlib::ceil_log2(degree + 1) - LOG_EDGES_PER_BLOCK;
+    //return degree <= MIN_EDGES_PER_BLOCK ? 0 :
+    //         xlib::ceil_log2(degree) - LOG_EDGES_PER_BLOCK;
 }
 
 inline int MemoryManager::num_blockarrays() const noexcept {

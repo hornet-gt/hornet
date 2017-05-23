@@ -108,7 +108,7 @@ void printTitle(const std::string& str, char c, int sequence_length) noexcept {
 //------------------------------------------------------------------------------
 
 template<>
-void printArray<char>(char* array, size_t size, const std::string& str,
+void printArray<char>(const char* array, size_t size, const std::string& str,
                       char sep) noexcept {
     std::cout << str;
     for (size_t i = 0; i < size; i++)
@@ -117,7 +117,7 @@ void printArray<char>(char* array, size_t size, const std::string& str,
 }
 
 template<>
-void printArray<unsigned char>(unsigned char* array, size_t size,
+void printArray<unsigned char>(const unsigned char* array, size_t size,
                                const std::string& str, char sep) noexcept {
     std::cout << str;
     for (size_t i = 0; i < size; i++)

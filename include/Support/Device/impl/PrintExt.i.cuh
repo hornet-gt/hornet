@@ -39,11 +39,10 @@
 namespace cu {
 
 template<class T>
-void printArray(const T* d_array, size_t size, const std::string& str,
-                char sep) noexcept {
+void printArray(const T* d_array, size_t size, const std::string& str, char sep)
+                noexcept {
     auto h_array = new T[size];
     cuMemcpyToHost(d_array, size, h_array);
-
     xlib::printArray(h_array, size, str, sep);
     delete[] h_array;
 }

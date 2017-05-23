@@ -5,11 +5,12 @@
 #include "Static/ConnectedComponents/CC++.cuh"
 
 int main(int argc, char* argv[]) {
+    using namespace graph;
     using namespace timer;
     using namespace custinger;
     using namespace custinger_alg;
 
-    graph::GraphStd<vid_t, eoff_t> graph(graph::Structure::UNDIRECTED);
+    GraphStd<vid_t, eoff_t> graph(Structure::UNDIRECTED);
     CommandLineParam(graph, argc, argv);
 
     cuStingerInit custinger_init(graph.nV(), graph.nE(), graph.out_offsets(),

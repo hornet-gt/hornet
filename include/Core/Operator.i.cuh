@@ -117,7 +117,7 @@ void forAllVertices(const custinger::cuStinger& custinger, void* optional_data)
 
     detail::forAllVerticesKernel<Operator>
         <<< xlib::ceil_div<BLOCK_SIZE_OP1>(custinger.nV()), BLOCK_SIZE_OP1 >>>
-        (custinger.nV(), optional_data);
+        (custinger.device_data(), optional_data);
 }
 
 //------------------------------------------------------------------------------

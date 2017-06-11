@@ -331,7 +331,7 @@ endif()
 #################
 # CUSTOM TARGET #
 #################
-if(DEFINED ENABLE_TARGET)
+if (ENABLE_TARGET)
 
 add_custom_target(rm rm -rf * COMMENT "Clear build directory")
 

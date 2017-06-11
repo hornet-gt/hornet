@@ -208,16 +208,16 @@ private:
     int   _num_rows, _num_cols, _num_nonzeros;
 };
 
-/*
+
 template<typename T>
 class CubArgMax : public CubWrapper {
 public:
     explicit CubArgMax(const T* d_in, size_t size) noexcept;
     typename std::pair<int, T> run() noexcept;
 private:
-    const T*                   _d_in;
-    cub::KeyValuePair<int, T>* _d_out;
-};*/
+    const T* _d_in;
+    void*    _d_out;
+};
 
 } // namespace xlib
 

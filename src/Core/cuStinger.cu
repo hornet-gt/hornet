@@ -38,36 +38,8 @@
 #include "Support/Device/BinarySearchLB.cuh"    //xlib::binarySearchLB
 #include "Support/Device/CubWrapper.cuh"        //CubSortByValue
 #include "Support/Device/Definition.cuh"        //xlib::SMemPerBlock
-/*
-namespace cub {
+#include "Support/Device/PrintExt.cuh"        //xlib::SMemPerBlock
 
-template<>
-__host__ __device__ __forceinline__
-struct BaseTraits<NOT_A_NUMBER, false, false, custinger::VertexBasicData, custinger::VertexBasicData> {
-    static __host__ __device__ __forceinline__ int Lowest() {
-        return -1;
-    }
-};
-
-template<>
-struct KeyValuePair<int, custinger::VertexBasicData> {
-    int     key;
-    custinger::degree_t   value;
-
-    typedef int Key;
-    typedef custinger::degree_t Value;
-
-    typedef char Pad[AlignBytes<int>::ALIGN_BYTES - AlignBytes<custinger::degree_t>::ALIGN_BYTES];
-
-    __host__ __device__ __forceinline__
-    KeyValuePair() {}
-
-    __host__ __device__ __forceinline__
-    KeyValuePair(int key_, custinger::degree_t degree) :
-                                        key(key_), value(degree) {}
-};
-
-}*/
 
 namespace custinger {
 
@@ -171,11 +143,28 @@ void cuStinger::transpose() noexcept {
     initialize();
 }
 
+__global__
+void buildDegreeKernel(const VertexBasicData* __restrict__ d_in,  vid_t nV,
+                       degree_t* __restrict__ d_tmp) {
+    int    idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
+    for (int i = idx; i < nV; i += stride)
+        d_tmp[i] = d_in[i].degree;
+}
+
 vid_t cuStinger::max_degree_vertex() const noexcept {
-    /*auto ptr = reinterpret_cast<long2*>(_d_vertex_ptrs[0]);
-    xlib::CubArgMax<long2> arg_max(ptr, _nV);
-    return arg_max.run().first;*/
-    return _max_degree_vertex;
+    const unsigned BLOCK_SIZE = 256;
+    degree_t* d_tmp;
+    cuMalloc(d_tmp, _nV);
+    auto dev_data = device_data();
+
+    buildDegreeKernel <<< xlib::ceil_div<BLOCK_SIZE>(_nV), BLOCK_SIZE >>>
+        (reinterpret_cast<VertexBasicData*>(dev_data.d_vertex_ptrs[0]),
+        dev_data.nV, d_tmp);
+
+    xlib::CubArgMax<degree_t> arg_max(d_tmp, _nV);
+    cuFree(d_tmp);
+    return arg_max.run().first;
 }
 
 } // namespace custinger

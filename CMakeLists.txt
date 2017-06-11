@@ -1,3 +1,10 @@
+get_directory_property(has_parent PARENT_DIRECTORY)
+if (has_parent)
+    set(ENABLE_TARGET OFF)
+else()
+    set(ENABLE_TARGET ON)
+endif()
+#-------------------------------------------------------------------------------
 set(PROJECT "cuSTINGER")
 project(${PROJECT} CXX)
 
@@ -9,7 +16,7 @@ set(CUDA_SEPARABLE_COMPILATION ON)
 include_directories(include)
 include_directories(externals/cub)
 include_directories(${CUDA_INCLUDE_DIRS})
-set(ENABLE_TARGET OFF)
+
 include(util/CMakeLists.txt)
 #-------------------------------------------------------------------------------
 file(GLOB_RECURSE CPP_SRCS ${PROJECT_SOURCE_DIR}/src/*.cpp)

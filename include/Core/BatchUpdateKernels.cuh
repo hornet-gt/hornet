@@ -213,18 +213,6 @@ void mergeAdjListKernel(cuStingerDevData             data,
         int right_size = end - start;
         auto     right = batch_update.dst_ptr() + start;
 
-        /*for (int j = 0; j < queue_size; j++) {
-            if (threadIdx.x == j) {
-                printf("%d : %d -> (%d, %d)", threadIdx.x, d_unique_src[i], left_size, right_size);
-                for (int i = 0; i < left_size; i++)
-                    printf("%d ", left[i]);
-                printf("    |    ");
-                for (int i = 0; i < right_size; i++)
-                    printf("%d ", right[i]);
-                printf("\n");
-            }
-            __syncthreads();
-        }*/
         xlib::inplace_merge(left, left_size, right, right_size);
     }
 }

@@ -271,7 +271,6 @@ GraphStd<vid_t, eoff_t>::get_vertex(vid_t index) const noexcept {
     return Vertex(index, *this);
 }
 
-
 template<typename vid_t, typename eoff_t>
 inline bool GraphStd<vid_t, eoff_t>::is_directed() const noexcept {
     return _structure.is_directed();

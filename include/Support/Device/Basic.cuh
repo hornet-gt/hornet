@@ -115,8 +115,7 @@ private:
 template<typename T>
 __device__ __forceinline__
 T shfl(const T& var, int src_lane, int width = 32) {
-    const int NUM = sizeof(T) / sizeof(int);
-    static_assert(sizeof(T) % sizeof(int) == 0, "T must be multiple of 4");
+    const int NUM = (sizeof(T) + sizeof(int) - 1) / sizeof(int);
 
     int tmp[NUM];
     reinterpret_cast<T&>(tmp) = var;

@@ -64,6 +64,8 @@ template<class T>
 void printArray(const T* array, size_t size, const std::string& str, char sep)
                 noexcept {
     std::cout << str;
+    if (size == 0)
+        std::cout << "empty";
     for (size_t i = 0; i < size; i++)
         std::cout << array[i] << sep;
     std::cout << "\n" << std::endl;

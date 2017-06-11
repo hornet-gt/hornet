@@ -25,6 +25,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * Univerity of Verona, Dept. of Computer Science
  * federico.busato@univr.it
  */
+
+
 #include "Support/Device/CubWrapper.cuh"
 #include "Support/Device/SafeCudaAPI.cuh"
 #include "Support/Host/Numeric.hpp"
@@ -358,30 +360,38 @@ void CubSpMV<T>::run() noexcept {
 }
 
 //------------------------------------------------------------------------------
-/*
+
 template<typename T>
 CubArgMax<T>::CubArgMax(const T* d_in, size_t num_items) noexcept :
                                     _d_in(d_in), CubWrapper(num_items) {
-    cuMalloc(_d_out, 1);
+    cub::KeyValuePair<int, T>* d_tmp;
+    cuMalloc(d_tmp, 1);
     cub::DeviceReduce::ArgMax(_d_temp_storage, _temp_storage_bytes, _d_in,
-                              _d_out, _num_items);
+                              static_cast<cub::KeyValuePair<int, T>*>(_d_out),
+                              _num_items);
     SAFE_CALL( cudaMalloc(&_d_temp_storage, _temp_storage_bytes) )
+    _d_out = reinterpret_cast<cub::KeyValuePair<int, T>*>(d_tmp);
 }
 
 template<typename T>
 typename std::pair<int, T>
 CubArgMax<T>::run() noexcept {
     cub::DeviceReduce::ArgMax(_d_temp_storage, _temp_storage_bytes, _d_in,
-                              _d_out, _num_items);
+                              static_cast<cub::KeyValuePair<int, T>*>(_d_out),
+                              _num_items);
     cub::KeyValuePair<int, T> h_out;
-    cuMemcpyToHost(_d_out, h_out);
-    return std::pair<int, T>(h_out.value, h_out.key);
-}*/
+    cuMemcpyToHost(static_cast<cub::KeyValuePair<int, T>*>(_d_out), h_out);
+    return std::pair<int, T>(h_out.key, h_out.value);
+}
+
+//------------------------------------------------------------------------------
 
 template class CubSortByKey<int, int>;
 template class CubRunLengthEncode<int, int>;
 template class CubExclusiveSum<int>;
 template class CubSortPairs2<int, int>;
 template class PartitionFlagged<int>;
+template class CubArgMax<int>;
+
 
 } //namespace xlib

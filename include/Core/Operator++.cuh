@@ -47,6 +47,8 @@ namespace custinger_alg {
  */
 const int BLOCK_SIZE_OP2 = 256;
 
+enum class LoadBalancing { BINARY_SEARCH, NODE_BASED, SCAN_BASED };
+
 /**
  * @brief apply the `Operator` a fixed number of times
  * @tparam    Operator typename of the operator (deduced)
@@ -107,6 +109,24 @@ void forAllVertices(const custinger::cuStinger& custinger, const Operator& op);
  */
 template<typename Operator>
 void forAllEdges(const custinger::cuStinger& custinger, const Operator& op);
+
+//------------------------------------------------------------------------------
+
+/**
+ * @brief apply the `Operator` to all vertices in the graph
+ * @tparam    Operator typename of the operator (deduced)
+ * @param[in] custinger cuStinger instance
+ * @param[in] op struct/lambda expression that implements the operator
+ * @remark    all algorithm-dependent data must be capture by `op`
+ * @remark    the Operator typename must implement the method
+ *            `void operator()(Vertex)` or the lambda expression
+ *            `[=](Vertex){}`
+ */
+template<typename Operator>
+void forAllTraverseEdges(const custinger::cuStinger& custinger,
+                         TwoLevelQueue<custinger::vid_t>& queue,
+                         const Operator& op,
+                         LoadBalancing LB = LoadBalancing::BINARY_SEARCH);
 
 //------------------------------------------------------------------------------
 

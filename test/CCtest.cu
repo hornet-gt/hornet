@@ -19,8 +19,8 @@ int main(int argc, char* argv[]) {
     graph.print();
 
     cuStinger custiger_graph(custinger_init);
-
     CC cc_multistep(custiger_graph);
+
     Timer<DEVICE> TM;
     TM.start();
 

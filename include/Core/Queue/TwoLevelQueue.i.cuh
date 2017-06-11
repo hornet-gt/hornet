@@ -212,7 +212,7 @@ __host__ void TwoLevelQueue<custinger::vid_t>
 
     ExpandContractLBKernel<BLOCK_SIZE, ITEMS_PER_BLOCK>
         <<< grid_size, BLOCK_SIZE >>> (_custinger.device_data(),
-                                       _d_queue_ptrs,  _d_work_ptrs,
+                                       _d_queue_ptrs, _d_work_ptrs,
                                        _d_queue2_counter,
                                        _num_queue_vertices + 1, op);
     if (CHECK_CUDA_ERROR1)

@@ -151,6 +151,7 @@ void GraphStd<vid_t, eoff_t>::readDimacs10(std::ifstream& fin, bool print){
         char* token = std::strtok(const_cast<char*>(str.c_str()), " ");
         while (token != nullptr) {
             vid_t dest = std::stoi(token) - 1;
+            assert(count_edges < ginfo.num_edges);
             _coo_edges[count_edges++] = { lines, dest };
             token = std::strtok(nullptr, " ");
         }

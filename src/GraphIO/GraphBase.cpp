@@ -165,14 +165,18 @@ GInfo GraphBase<vid_t, eoff_t>::getDimacs10Header(std::ifstream& fin) {
     size_t num_lines, num_vertices;
     fin >> num_vertices >> num_lines;
     Structure::Enum direction;
-    if (fin.peek() != '\n' && fin.peek() != ' ') {
-        xlib::skip_words(fin, 1);
-        direction = Structure::DIRECTED;
-    } else {
+    _store_inverse = false;
+
+    if (fin.peek() == '\n')
         direction = Structure::UNDIRECTED;
-        _store_inverse = true;
+    else {
+        std::string flag;
+        fin >> flag;
+        direction = flag == "100" ? Structure::DIRECTED : Structure::UNDIRECTED;
+        xlib::skip_lines(fin);
     }
-    xlib::skip_lines(fin);
+    if (direction == Structure::UNDIRECTED)
+        num_lines *= 2;
     return { num_vertices, num_lines, direction };
 }
 

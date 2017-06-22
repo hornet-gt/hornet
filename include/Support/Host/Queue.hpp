@@ -64,7 +64,7 @@ protected:
     virtual void clear()            noexcept final;
     virtual void sort()             noexcept final;
 
-    virtual bool     is_empty()       const noexcept final;
+    virtual bool     empty()          const noexcept final;
     virtual size_t   size()           const noexcept final;
     virtual T&       at(size_t index) noexcept final;
     virtual const T& at(size_t index) const noexcept final;
@@ -95,7 +95,7 @@ public:
     using detail::QueueBase<T>::clear;
     using detail::QueueBase<T>::insert;
     using detail::QueueBase<T>::sort;
-    using detail::QueueBase<T>::is_empty;
+    using detail::QueueBase<T>::empty;
     using detail::QueueBase<T>::size;
     using detail::QueueBase<T>::at;
     using detail::QueueBase<T>::print;
@@ -122,7 +122,7 @@ public:
     using detail::QueueBase<T>::clear;
     using detail::QueueBase<T>::insert;
     using detail::QueueBase<T>::sort;
-    using detail::QueueBase<T>::is_empty;
+    using detail::QueueBase<T>::empty;
     using detail::QueueBase<T>::size;
     using detail::QueueBase<T>::at;
     using detail::QueueBase<T>::print;
@@ -153,7 +153,7 @@ protected:
     virtual const T& extract()       const noexcept = 0;
     void             sort()          noexcept;
 
-    bool     is_empty()          const noexcept;
+    bool     empty()          const noexcept;
     size_t   size()           const noexcept;
     T&       at(size_t index) noexcept;
     const T& at(size_t index) const noexcept;

@@ -112,18 +112,59 @@ private:
     const unsigned _mask;
 };
 
-template<typename T>
+namespace detail {
+
+template<typename T, typename Lambda>
 __device__ __forceinline__
-T shfl(const T& var, int src_lane, int width = 32) {
+T generic_shfl(const T& var, int src_lane, int width, const Lambda& lambda) {
     const int NUM = (sizeof(T) + sizeof(int) - 1) / sizeof(int);
 
     int tmp[NUM];
     reinterpret_cast<T&>(tmp) = var;
     #pragma unroll
     for (int i = 0; i < NUM; i++)
-        tmp[i] = __shfl(tmp[i], src_lane, width);
+        tmp[i] = lambda(tmp[i], src_lane, width);
     return reinterpret_cast<T&>(tmp);
 }
+
+} // namespace detail
+
+template<typename T>
+__device__ __forceinline__
+T shfl(const T& var, int src_lane, int width = 32) {
+    const auto& lambda = [](const int& value, int src_lane, int width) {
+                            return __shfl(value, src_lane, width);
+                        };
+    return detail::generic_shfl(var, src_lane, width, lambda);
+}
+
+template<typename T>
+__device__ __forceinline__
+T shfl_xor(const T& var, int src_lane, int width = 32) {
+    const auto& lambda = [](const int& value, int src_lane, int width) {
+                            return __shfl_xor(value, src_lane, width);
+                        };
+    return detail::generic_shfl(var, src_lane, width, lambda);
+}
+
+template<typename T>
+__device__ __forceinline__
+T shfl_up(const T& var, int src_lane, int width = 32) {
+    const auto& lambda = [](const int& value, int src_lane, int width) {
+                            return __shfl_up(value, src_lane, width);
+                        };
+    return detail::generic_shfl(var, src_lane, width, lambda);
+}
+
+template<typename T>
+__device__ __forceinline__
+T shfl_down(const T& var, int src_lane, int width = 32) {
+    const auto& lambda = [](const int& value, int src_lane, int width) {
+                            return __shfl_down(value, src_lane, width);
+                        };
+    return detail::generic_shfl(var, src_lane, width, lambda);
+}
+
 
 /** @fn void swap(T& A, T& B)
  *  @brief swap A and B

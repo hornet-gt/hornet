@@ -118,6 +118,7 @@ namespace detail {
 template<typename T>
 inline void cuMallocAux(const char* file, int line, const char* func_name,
                         T*& ptr, size_t num_items) {
+    assert(num_items > 0);
     xlib::__cudaErrorHandler(cudaMalloc(&ptr, num_items * sizeof(T)),
                              "cudaMalloc", file, line, func_name);
 }
@@ -137,14 +138,14 @@ inline void cuFreeAux(const char* file, int line, const char* func_name,
 template<typename T>
 inline void cuMemset0x00Aux(const char* file, int line, const char* func_name,
                             T* ptr, size_t num_items = 1) {
-    assert(ptr != nullptr);
+    assert(num_items > 0 && ptr != nullptr);
     xlib::__cudaErrorHandler(cudaMemset(ptr, 0x00, num_items * sizeof(T)),
                              "cudaMemset(0x00)", file, line, func_name);
 }
 template<typename T>
 inline void cuMemset0xFFAux(const char* file, int line, const char* func_name,
                             T* ptr, size_t num_items = 1) {
-    assert(ptr != nullptr);
+    assert(num_items > 0 && ptr != nullptr);
     xlib::__cudaErrorHandler(cudaMemset(ptr, 0xFF, num_items * sizeof(T)),
                              "cudaMemset(0xFF)", file, line, func_name);
 }
@@ -159,7 +160,7 @@ inline void cuMemcpyToDeviceAux(const char* file, int line,
                                 const char* func_name,
                                 const T* input, size_t num_items,
                                 T* output) {
-    assert(input != nullptr && output != nullptr);
+    assert(num_items > 0 && input != nullptr && output != nullptr);
     xlib::__cudaErrorHandler(cudaMemcpy(output, input, num_items * sizeof(T),
                                         cudaMemcpyHostToDevice),
                             "cudaMemcpy(ToDevice)", file, line, func_name);
@@ -194,7 +195,7 @@ inline void cuMemcpyToDeviceAsyncAux(const char* file, int line,
                                      const char* func_name,
                                      const T* input, size_t num_items,
                                      T* output) {
-    assert(input != nullptr && output != nullptr);
+    assert(num_items > 0 && input != nullptr && output != nullptr);
     xlib::__cudaErrorHandler(cudaMemcpyAsync(output, input,
                                              num_items * sizeof(T),
                                              cudaMemcpyHostToDevice),

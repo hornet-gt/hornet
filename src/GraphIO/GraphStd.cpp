@@ -61,6 +61,21 @@ GraphStd<vid_t, eoff_t>::GraphStd(Structure::Enum structure) noexcept :
                        GraphBase<vid_t, eoff_t>(structure) {}
 
 template<typename vid_t, typename eoff_t>
+GraphStd<vid_t, eoff_t>::GraphStd(const char* filename, Property prop)
+                                        noexcept : GraphBase<vid_t, eoff_t>() {
+    GraphBase<vid_t, eoff_t>::read(filename, prop);
+}
+
+template<typename vid_t, typename eoff_t>
+GraphStd<vid_t, eoff_t>::GraphStd(Structure::Enum structure,
+                                  const char* filename, Property prop)
+                                noexcept : GraphBase<vid_t, eoff_t>(structure) {
+    GraphBase<vid_t, eoff_t>::read(filename, prop);
+}
+
+//------------------------------------------------------------------------------
+
+template<typename vid_t, typename eoff_t>
 void GraphStd<vid_t, eoff_t>::allocate(GInfo ginfo) noexcept {
     assert(ginfo.num_vertices > 0 && ginfo.num_edges > 0);
     if (!_structure.is_direction_set())

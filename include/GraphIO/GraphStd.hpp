@@ -185,7 +185,8 @@ public:
 
     explicit GraphStd(Structure::Enum Structure)           noexcept;
 
-    explicit GraphStd(const char* filename, Property prop) noexcept;
+    explicit GraphStd(const char* filename,
+                      Property prop = Property(Property::PRINT)) noexcept;
 
     explicit GraphStd(Structure::Enum Structure, const char* filename,
                       Property property) noexcept;
@@ -222,14 +223,14 @@ public:
     void writeMarket(const std::string& filename) const;
 private:
     xlib::Bitmask _bitmask;
-    eoff_t    *_out_offsets { nullptr };
-    eoff_t    *_in_offsets  { nullptr };
-    vid_t     *_out_edges   { nullptr };
-    vid_t     *_in_edges    { nullptr };
-    degree_t* _out_degrees  { nullptr };
-    degree_t* _in_degrees   { nullptr };
-    coo_t*    _coo_edges    { nullptr };
-    size_t    _coo_size     { 0 };
+    eoff_t*   _out_offsets { nullptr };
+    eoff_t*   _in_offsets  { nullptr };
+    vid_t*    _out_edges   { nullptr };
+    vid_t*    _in_edges    { nullptr };
+    degree_t* _out_degrees { nullptr };
+    degree_t* _in_degrees  { nullptr };
+    coo_t*    _coo_edges   { nullptr };
+    size_t    _coo_size    { 0 };
 
     using GraphBase<vid_t, eoff_t>::_nE;
     using GraphBase<vid_t, eoff_t>::_nV;

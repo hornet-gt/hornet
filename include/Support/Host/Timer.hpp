@@ -240,7 +240,7 @@ private:
 #endif
 //------------------------------------------------------------------------------
 //#if defined(__NVCC__)
-
+/*
 template<typename ChronoPrecision>
 class Timer<DEVICE, ChronoPrecision> :
         public TimerBase<DEVICE, ChronoPrecision> {
@@ -264,7 +264,7 @@ private:
     using TimerBase<DEVICE, ChronoPrecision>::_start_flag;
 
     cudaEvent_t _start_event, _stop_event;
-};
+};*/
 
 //#endif
 

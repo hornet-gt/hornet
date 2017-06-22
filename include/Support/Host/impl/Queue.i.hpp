@@ -93,7 +93,7 @@ void QueueBase<T>::sort() noexcept {
 }
 
 template<typename T>
-bool QueueBase<T>::is_empty() const noexcept {
+bool QueueBase<T>::empty() const noexcept {
     return _left >= _right;
 }
 
@@ -212,7 +212,7 @@ void QueueStackBase<T, SIZE>::sort() noexcept {
 }
 
 template<typename T, size_t SIZE>
-bool QueueStackBase<T, SIZE>::is_empty() const noexcept {
+bool QueueStackBase<T, SIZE>::empty() const noexcept {
     return _left >= _right;
 }
 

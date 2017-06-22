@@ -212,7 +212,7 @@ inline void Timer<SYS, ChronoPrecision>::print(const std::string& str)  //NOLINT
 //-------------------------- CUDA ----------------------------------------------
 
 //#if defined(__NVCC__)
-
+/*
 template<typename ChronoPrecision>
 Timer<DEVICE, ChronoPrecision>
 ::Timer(int decimals, int space, xlib::Color color) :
@@ -246,7 +246,7 @@ void Timer<DEVICE, ChronoPrecision>::stop() {
     _total_time_elapsed += _time_elapsed;
     _num_executions++;
     assert(!(_start_flag = false));
-}
+}*/
 
 //#endif
 

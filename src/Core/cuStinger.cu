@@ -160,7 +160,7 @@ vid_t cuStinger::max_degree_vertex() const noexcept {
 
     buildDegreeKernel <<< xlib::ceil_div<BLOCK_SIZE>(_nV), BLOCK_SIZE >>>
         (reinterpret_cast<VertexBasicData*>(dev_data.d_vertex_ptrs[0]),
-        dev_data.nV, d_tmp);
+         dev_data.nV, d_tmp);
 
     xlib::CubArgMax<degree_t> arg_max(d_tmp, _nV);
     cuFree(d_tmp);

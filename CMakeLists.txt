@@ -17,9 +17,9 @@ file(GLOB_RECURSE CU_SRCS  ${PROJECT_SOURCE_DIR}/src/*.cu)
 cuda_add_library(cuStingerAlg ${CU_SRCS})
 #-------------------------------------------------------------------------------
 
-cuda_add_executable(bfs++ test/BFStest++.cu)
-cuda_add_executable(bfs   test/BFStest.cu)
-cuda_add_executable(CC    test/CCtest.cu)
+cuda_add_executable(bfs++ test/BFSTest++.cu)
+cuda_add_executable(bfs   test/BFSTest.cu)
+cuda_add_executable(CC    test/CCTest.cu)
 
 target_link_libraries(bfs++ cuStingerAlg cuStinger)
 target_link_libraries(bfs   cuStingerAlg cuStinger)

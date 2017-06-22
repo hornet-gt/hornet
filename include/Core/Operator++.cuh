@@ -47,7 +47,7 @@ namespace custinger_alg {
  */
 const int BLOCK_SIZE_OP2 = 256;
 
-enum class LoadBalancing { BINARY_SEARCH, NODE_BASED, SCAN_BASED };
+enum class LoadBalancing { SIMPLE, BINARY_SEARCH, NODE_BASED, SCAN_BASED };
 
 /**
  * @brief apply the `Operator` a fixed number of times
@@ -108,7 +108,8 @@ void forAllVertices(const custinger::cuStinger& custinger, const Operator& op);
  *            `[=](Vertex, Edge){}`
  */
 template<typename Operator>
-void forAllEdges(const custinger::cuStinger& custinger, const Operator& op);
+void forAllEdges(const custinger::cuStinger& custinger, const Operator& op,
+                 LoadBalancing LB = LoadBalancing::BINARY_SEARCH);
 
 //------------------------------------------------------------------------------
 

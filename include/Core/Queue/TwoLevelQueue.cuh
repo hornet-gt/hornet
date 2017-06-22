@@ -63,6 +63,9 @@ struct ptr2_t {
 template<typename T>
 class TwoLevelQueue {
 public:
+    explicit TwoLevelQueue();
+    explicit TwoLevelQueue(size_t size);
+
     /**
      * @brief Default costructor
      * @param[in] custinger reference to the custinger instance
@@ -80,6 +83,8 @@ public:
      * @brief Default Decostructor
      */
     ~TwoLevelQueue() noexcept;
+
+    __host__ void init(size_t size);
 
     /**
      * @brief insert an item in the queue

@@ -9,8 +9,7 @@ int main(int argc, char* argv[]) {
     using namespace custinger;
     using namespace custinger_alg;
 
-    graph::GraphStd<vid_t, eoff_t> graph;
-    graph.read(argv[1]);
+    graph::GraphStd<vid_t, eoff_t> graph(argv[1]);
 
     cuStingerInit custinger_init(graph.nV(), graph.nE(), graph.out_offsets(),
                                  graph.out_edges());

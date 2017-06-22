@@ -55,11 +55,11 @@ class StaticAlgorithm {
 public:
     /**
      * @brief Default costructor
-     * @param[in] custinger_ cuStinger instance on which the algorithm is run
+     * @param[in] custinger cuStinger instance on which the algorithm is run
      * @remark the cuStinger instance reference can be used in also methods
      *          throws `custinger` field
      */
-    explicit StaticAlgorithm(custinger::cuStinger& custinger_) noexcept;
+    explicit StaticAlgorithm(custinger::cuStinger& custinger) noexcept;
 
     /**
      * @brief Decostructor
@@ -119,7 +119,7 @@ public:
 
     /**
      * @brief Synchronize the Device with the Host
-     * @@details Copy the algorithm-dependent data from the device to the host in
+     * @details Copy the algorithm-dependent data from the device to the host in
      *         the reference passed to `register_data()`
      * @pre    the user must call `register_data()` before
      * @remark the user should call this method after the main algorithm

@@ -61,8 +61,7 @@ void forAllEdgesKernel(const custinger::eoff_t* __restrict__ csr_offsets,
 template<typename Operator>
 void forAll(size_t size, const Operator& op) {
     detail::forAllKernel
-        <<< xlib::ceil_div<BLOCK_SIZE_OP2>(size), BLOCK_SIZE_OP2 >>>
-        (size, op);
+        <<< xlib::ceil_div<BLOCK_SIZE_OP2>(size), BLOCK_SIZE_OP2 >>> (size, op);
 }
 
 //------------------------------------------------------------------------------
@@ -95,7 +94,8 @@ void forAllVertices(const custinger::cuStinger& custinger, const Operator& op) {
 //------------------------------------------------------------------------------
 
 template<typename Operator>
-void forAllEdges(custinger::cuStinger& custinger, const Operator& op) {
+void forAllEdges(custinger::cuStinger& custinger, const Operator& op,
+                 LoadBalancing LB) {
     using custinger::vid_t;
     const int PARTITION_SIZE = xlib::SMemPerBlock<BLOCK_SIZE_OP2, vid_t>::value;
     int num_partitions = xlib::ceil_div<PARTITION_SIZE>(custinger.nE());
@@ -103,6 +103,15 @@ void forAllEdges(custinger::cuStinger& custinger, const Operator& op) {
     detail::forAllEdgesKernel<BLOCK_SIZE_OP2, PARTITION_SIZE, Operator>
        <<< num_partitions, BLOCK_SIZE_OP2 >>>
        (custinger.device_csr_offsets(), custinger.device_data(), op);
+}
+
+//------------------------------------------------------------------------------
+
+template<typename Operator>
+void forAllTraverseEdges(const custinger::cuStinger& custinger,
+                         TwoLevelQueue<custinger::vid_t>& queue,
+                         const Operator& op, LoadBalancing LB) {
+
 }
 
 } // namespace custinger_alg

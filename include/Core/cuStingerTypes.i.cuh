@@ -150,9 +150,17 @@ typename Edge::WeightT Edge::weight() const {
 
 template<typename T>
 __device__ __forceinline__
-typename Edge::TimeStamp1T Edge::time_stamp1() const {
+void Edge::set_weight(WeightT weight) {
     static_assert(!std::is_same<T, void>::value,
                   "weight is not part of edge type list");
+    *reinterpret_cast<WeightT*>(_ptrs[0]) = weight;
+}
+
+template<typename T>
+__device__ __forceinline__
+typename Edge::TimeStamp1T Edge::time_stamp1() const {
+    static_assert(!std::is_same<T, void>::value,
+                  "time_stamp1 is not part of edge type list");
     return *reinterpret_cast<TimeStamp1T*>(_ptrs[1]);
 }
 
@@ -160,7 +168,7 @@ template<typename T>
 __device__ __forceinline__
 typename Edge::TimeStamp2T Edge::time_stamp2() const {
     static_assert(!std::is_same<T, void>::value,
-                  "weight is not part of edge type list");
+                  "time_stamp2 is not part of edge type list");
     return *reinterpret_cast<TimeStamp2T*>(_ptrs[2]);
 }
 

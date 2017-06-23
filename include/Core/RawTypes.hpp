@@ -53,7 +53,6 @@ using TypeList = std::tuple<TArgs...>;
 using   byte_t = char;
 using degree_t = int;
 
-
 namespace detail {
 
 HOST_DEVICE degree_t limit(degree_t degree) noexcept {
@@ -83,7 +82,7 @@ struct ALIGN(16) VertexBasicData {
 };
 
 //User configuration
-#include "../config.inc"
+#include "configWeight.inc"
 
 using vertex_t = typename xlib::TupleConcat<TypeList<VertexBasicData>,
                                             VertexTypes>::type;
@@ -107,8 +106,6 @@ void bind(byte_t* (&data_ptrs)[SIZE], const T* data, TArgs... args) noexcept {
 }
 
 } // namespace custinger
-
-
 
         /*    static constexpr custinger::degree_t Lowest() {
                 return std::numeric_limits<custinger::degree_t>::lowest();

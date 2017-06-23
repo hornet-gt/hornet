@@ -66,7 +66,7 @@ void WCC<vid_t, eoff_t>::run() noexcept {
         _color[source] = wcc_count;
         _queue.insert(source);
 
-        while (!_queue.is_empty()) {
+        while (!_queue.empty()) {
             vid_t current = _queue.extract();
             vertex_count++;
 

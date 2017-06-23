@@ -32,5 +32,5 @@ using VertexTypes = TypeList<>;
  *       using EdgeTypes = TypeList<uint64_t, float>;
  * @endcode
  */
-using EdgeTypes = TypeList<>;
+using EdgeTypes = TypeList<int>;
 //using EdgeTypes = TypeList<uint64_t, float>;

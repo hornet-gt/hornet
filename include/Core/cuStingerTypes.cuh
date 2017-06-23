@@ -52,6 +52,8 @@ class EdgeIt;
 
 class Vertex {
     friend class VertexSet;
+    using WeightT = typename std::tuple_element<(NUM_ETYPES > 1 ? 1 : 0),
+                                                 edge_t>::type;
 public:
     /**
      * @internal
@@ -130,6 +132,10 @@ public:
     __device__ __forceinline__
     vid_t* edge_ptr() const;
 
+    template<typename T = WeightT>
+    __device__ __forceinline__
+    WeightT* edge_weight_ptr() const;
+
 protected:
     vid_t    _id;
     degree_t _degree;
@@ -158,7 +164,16 @@ class Edge {
                                                         int, void>::type;
     using EnableTimeStamp2 = typename std::conditional<(NUM_ETYPES > 3),
                                                         int, void>::type;
+
+    static_assert(std::is_same<WeightT, int>::value, "T error");
 public:
+    /**
+     * @brief source of the edge
+     * @return source of the edge
+     */
+    __device__ __forceinline__
+    vid_t src() const;
+
     /**
      * @brief destination of the edge
      * @return destination of the edge
@@ -179,6 +194,10 @@ public:
     template<typename T = EnableWeight>
     __device__ __forceinline__
     WeightT weight() const;
+
+    template<typename T = EnableWeight>
+    __device__ __forceinline__
+    void set_weight(WeightT weight);
 
     /**
      * @brief first time stamp of the edge

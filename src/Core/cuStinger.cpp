@@ -34,7 +34,8 @@
  * </blockquote>}
  */
 #include "Core/cuStinger.hpp"
-#include "GraphIO/GraphBase.hpp"        //graph::structure
+#include "GraphIO/GraphBase.hpp"        //graph::structur
+#include "Support/Device/Timer.cuh"     //xlib::Timer
 #include "Support/Host/FileUtil.hpp"    //graph::structure
 #include "Support/Host/Timer.hpp"       //xlib::Timer
 #include <cstring>                      //std::memcpy

@@ -59,7 +59,7 @@ void BFS<vid_t, eoff_t>::run(vid_t source) noexcept {
     _bitmask[source]   = true;
     _distances[source] = 0;
 
-    while (!_queue.is_empty()) {
+    while (!_queue.empty()) {
         auto current = _queue.extract();
         for (eoff_t j = _graph._out_offsets[current];
                 j < _graph._out_offsets[current + 1]; j++) {
@@ -129,7 +129,7 @@ BFS<vid_t, eoff_t>::statistics(vid_t source) noexcept {
     _distances[source] = 0;
     _queue.insert(source);
 
-    while (!_queue.is_empty()) {
+    while (!_queue.empty()) {
         vid_t current = _queue.extract();
 
         if (_distances[current] > level) {
@@ -171,7 +171,7 @@ std::vector<vid_t> BFS<vid_t, eoff_t>::weaklyConnectedComponents() noexcept {
         _bitmask[source] = true;
         _queue.insert(source);
 
-        while (!_queue.is_empty()) {
+        while (!_queue.empty()) {
             vid_t current = _queue.extract();
             count++;
 

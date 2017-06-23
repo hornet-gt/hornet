@@ -18,7 +18,8 @@ struct KTrussData {
     int* isActive;
     int* offsetArray;
     int* trianglePerEdge;
-    int*
+    int* trianglePerVertex;
+
     vid_t* src;
     vid_t* dst;
     int    counter;
@@ -47,7 +48,7 @@ public:
     bool validate() override;
 
     //--------------------------------------------------------------------------
-    void setInitParameters(vid_t nv, off_t ne, int tsp, int nbl, int shifter,
+    void setInitParameters(vid_t nv, eoff_t ne, int tsp, int nbl, int shifter,
                            int blocks, int sps);
     void init();
 
@@ -68,7 +69,7 @@ public:
 
 private:
     KTrussData hostKTrussData;
-    //KTrussData* deviceKTrussData;
+    KTrussData* deviceKTrussData;
 };
 
 //==============================================================================
@@ -166,8 +167,9 @@ __device__ __forceinline__
 void resetWeights(const Vertex& vertex, void* metadata) {
     KTrussData* kt = reinterpret_cast<KTrussData*>(metadata);
     //vid_t  src_len = custinger->dVD->used[src];
+    //int        pos = kt->offsetArray[src];
     vid_t  src_len = vertex.degree();
-    int        pos = kt->offsetArray[src];
+    int        pos = kt->offsetArray[vertex.id()];
 
     for (vid_t adj = 0; adj < src_len; adj++)
         //custinger->dVD->adj[src]->ew[adj] = kt->trianglePerEdge[pos + adj];

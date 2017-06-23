@@ -44,6 +44,19 @@ __global__ void forAllVerticesKernel(custinger::cuStingerDevData data,
         Operator(custinger::Vertex(data, i), optional_data);
 }
 
+template<void (*Operator)(const custinger::Vertex&, void*)>
+__global__
+void forAllVerticesKernel(custinger::cuStingerDevData data,
+                          const custinger::vid_t* __restrict__ d_array,
+                          void*  __restrict__ optional_data) {
+    using custinger::vid_t;
+    int     id = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = gridDim.x * blockDim.x;
+
+    for (vid_t i = id; i < data.nV; i += stride)
+        Operator(custinger::Vertex(data, d_array[i]), optional_data);
+}
+
 //------------------------------------------------------------------------------
 
 template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
@@ -118,6 +131,16 @@ void forAllVertices(const custinger::cuStinger& custinger, void* optional_data)
     detail::forAllVerticesKernel<Operator>
         <<< xlib::ceil_div<BLOCK_SIZE_OP1>(custinger.nV()), BLOCK_SIZE_OP1 >>>
         (custinger.device_data(), optional_data);
+}
+
+template<void (*Operator)(const custinger::Vertex&, void*)>
+void forAllVertices(const custinger::cuStinger& custinger,
+                    const TwoLevelQueue<custinger::vid_t>& queue,
+                    void* optional_data) noexcept {
+
+    detail::forAllVerticesKernel<Operator>
+        <<< xlib::ceil_div<BLOCK_SIZE_OP1>(queue.size()), BLOCK_SIZE_OP1 >>>
+        (custinger.device_data(), queue.device_ptr_q1(), optional_data);
 }
 
 //------------------------------------------------------------------------------

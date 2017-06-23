@@ -38,6 +38,7 @@
  */
 #pragma once
 
+#include "Static/config.inc"
 #include "cuStingerAlg.hpp"
 
 namespace custinger_alg {

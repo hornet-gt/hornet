@@ -1,11 +1,8 @@
-#include <stdio.h>
-#include <inttypes.h>
-
-#include "timer.h"
-#include "update.hpp"
+/*#include "update.hpp"
 #include "cuStinger.hpp"
 #include "operators.cuh"
-#include "static_k_truss/k_truss.cuh"
+#include "static_k_truss/k_truss.cuh"*/
+#include "Static/KTruss/KTruss.cuh"
 
 namespace custinger_alg {
 
@@ -16,11 +13,11 @@ void kTrussOneIteration(cuStinger& custinger,
                         int shifter,
                         int thread_blocks,
                         int blockdim,
-                        kTrussData* __restrict__ devData);
+                        KTrussData* __restrict__ devData);
 
 void callDeviceDifferenceTriangles(
                                 cuStinger& custinger,
-                                BatchUpdate& batch_update,
+                                custinger::BatchUpdate& batch_update,
                                 const triangle_t* __restrict__ outPutTriangles,
                                 int threads_per_intersection,
                                 int num_intersec_perblock,
@@ -29,7 +26,7 @@ void callDeviceDifferenceTriangles(
                                 int blockdim,
                                 bool deletion);
 
-void KTruss::setInitParameters(vid_t nv, vid_t ne, int tsp, int nbl,
+void KTruss::setInitParameters(vid_t nv, eoff_t ne, int tsp, int nbl,
                                int shifter, int blocks, int sps) {
     hostKTrussData.nv      = nv;
     hostKTrussData.ne      = ne;
@@ -57,13 +54,17 @@ void KTruss::init(){
 }
 
 void KTruss::copyOffsetArrayHost(vid_t* hostOffsetArray) {
-    cuMemcpyToDevice(hostOffsetArray, hostKTrussData.offsetArray,
-                     hostKTrussData.nv + 1);
+    //copyArrayHostToDevice(hostOffsetArray, hostKTrussData.offsetArray,
+    //                      hostKTrussData.nv+1, sizeof(length_t));
+    cuMemcpyToDevice(hostOffsetArray, hostKTrussData.nv + 1,
+                     hostKTrussData.offsetArray);
 }
 
 void KTruss::copyOffsetArrayDevice(vid_t* deviceOffsetArray){
-    copyArrayDeviceToDevice(deviceOffsetArray, hostKTrussData.offsetArray,
-                            hostKTrussData.nv + 1, sizeof(vid_t));
+    //copyArrayDeviceToDevice(deviceOffsetArray, hostKTrussData.offsetArray,
+    //                        hostKTrussData.nv + 1, sizeof(vid_t));
+    cuMemcpyToDevice(deviceOffsetArray, hostKTrussData.nv + 1,
+                     hostKTrussData.offsetArray);
 }
 
 vid_t KTruss::getMaxK() {
@@ -97,7 +98,7 @@ void KTruss::release() {
 
 //==============================================================================
 
-void KTruss::run(cuStinger& custinger){
+void KTruss::run() {
     hostKTrussData.maxK = 3;
     syncDeviceWithHost();
 
@@ -113,8 +114,8 @@ void KTruss::run(cuStinger& custinger){
         syncDeviceWithHost();
     }
     // cout << "Found the maximal KTruss at : " << hostKTrussData.maxK << endl;
-    cout << "The number of full triangle counting iterations is  : "
-         << hostKTrussData.fullTriangleIterations << endl;
+    std::cout << "The number of full triangle counting iterations is  : "
+              << hostKTrussData.fullTriangleIterations << std::endl;
 }
 
 void KTruss::runForK(cuStinger& custinger, int maxK) {
@@ -127,14 +128,14 @@ void KTruss::runForK(cuStinger& custinger, int maxK) {
 
 
 bool KTruss::findTrussOfK(cuStinger& custinger, bool& stop) {
-    forAllVertices<kTrussOperators::init>(custinger, deviceKTrussData);
-    //allVinG_TraverseVertices<kTrussOperators::init>(custinger,deviceKTrussData);
+    forAllVertices<ktruss_operators::init>(custinger, deviceKTrussData);
+    //allVinG_TraverseVertices<ktruss_operators::init>(custinger,deviceKTrussData);
 
     resetEdgeArray();
     resetVertexArray();
 
     hostKTrussData.counter = 0;
-    hostKTrussData.activeVertices = custinger.nv;
+    hostKTrussData.activeVertices = custinger.nV();
     syncDeviceWithHost();
 
     int sumDeletedEdges = 0;
@@ -150,8 +151,8 @@ bool KTruss::findTrussOfK(cuStinger& custinger, bool& stop) {
                            hostKTrussData.blocks, hostKTrussData.sps,
                            deviceKTrussData);
 
-        forAllVertices<kTrussOperators::findUnderK>(custinger,deviceKTrussData);
-        //allVinG_TraverseVertices<kTrussOperators::findUnderK>(custinger,deviceKTrussData);
+        forAllVertices<ktruss_operators::findUnderK>(custinger,deviceKTrussData);
+        //allVinG_TraverseVertices<ktruss_operators::findUnderK>(custinger,deviceKTrussData);
         syncHostWithDevice();
         // cout << "Current number of deleted edges is " << hostKTrussData.counter << endl;
         sumDeletedEdges += hostKTrussData.counter;
@@ -160,23 +161,32 @@ bool KTruss::findTrussOfK(cuStinger& custinger, bool& stop) {
             return false;
         }
         if (hostKTrussData.counter != 0) {
-            BatchUpdateData* bud = new BatchUpdateData(hostKTrussData.counter,
-                                                       true, hostKTrussData.nv);
+            //BatchUpdateData* bud = new BatchUpdateData(hostKTrussData.counter,
+            //                                           true, hostKTrussData.nv);
+            //BatchUpdateData bud(hostKTrussData.counter, true, hostKTrussData.nv);
 
-            cuMemcpyToHost(hostKTrussData.src, bud->getSrc(),
-                           hostKTrussData.counter);
-            cuMemcpyToHost(hostKTrussData.dst, bud->getDst(),
-                           hostKTrussData.counter);
+            auto src_array = new vid_t[hostKTrussData.counter];
+            auto dst_array = new vid_t[hostKTrussData.counter];
+
+            cuMemcpyToHost(hostKTrussData.src,  hostKTrussData.counter,
+                           src_array);
+            cuMemcpyToHost(hostKTrussData.dst, hostKTrussData.counter,
+                           dst_array);
             /*copyArrayDeviceToHost(hostKTrussData.src, bud->getSrc(),
                                   hostKTrussData.counter, sizeof(int));
             copyArrayDeviceToHost(hostKTrussData.dst, bud->getDst(),
                                   hostKTrussData.counter, sizeof(int));*/
-            BatchUpdate* batch_update = new BatchUpdate(*bud);
+            custinger::BatchInit batch_init(src_array, dst_array,
+                                            hostKTrussData.counter);
+            custinger::BatchUpdate batch_update(batch_init);
 
-            batch_update->sortDeviceBUD(hostKTrussData.sps);
-            custinger.edgeDeletionsSorted(*batch_update);
-            delete batch_update;
-            delete bud;
+            custinger.edgeDeletionsSorted(batch_update);    ///???
+
+            //batch_update->sortDeviceBUD(hostKTrussData.sps);
+            //custinger.edgeDeletionsSorted(*batch_update);
+
+            delete[] src_array;
+            delete[] dst_array;
         }
         else
             return false;
@@ -186,10 +196,10 @@ bool KTruss::findTrussOfK(cuStinger& custinger, bool& stop) {
 
         syncDeviceWithHost();
 
-        forAllVertices<kTrussOperators::countActive>
+        forAllVertices<ktruss_operators::countActive>
             (custinger, deviceKTrussData);
 
-        //allVinG_TraverseVertices<kTrussOperators::countActive>
+        //allVinG_TraverseVertices<ktruss_operators::countActive>
         //    (custinger, deviceKTrussData);
         syncHostWithDevice();
         resetEdgeArray();
@@ -206,8 +216,8 @@ void KTruss::runDynamic(cuStinger& custinger){
     hostKTrussData.maxK = 3;
     syncDeviceWithHost();
 
-    forAllVertices<kTrussOperators::init>(custinger, deviceKTrussData);
-    //allVinG_TraverseVertices<kTrussOperators::init>(custinger, deviceKTrussData);
+    forAllVertices<ktruss_operators::init>(custinger, deviceKTrussData);
+    //allVinG_TraverseVertices<ktruss_operators::init>(custinger, deviceKTrussData);
 
     resetEdgeArray();
     resetVertexArray();
@@ -219,8 +229,8 @@ void KTruss::runDynamic(cuStinger& custinger){
 
     syncHostWithDevice();
 
-    forAllVertices<kTrussOperators::resetWeights>(custinger, deviceKTrussData);
-    //allVinG_TraverseVertices<kTrussOperators::resetWeights>
+    forAllVertices<ktruss_operators::resetWeights>(custinger, deviceKTrussData);
+    //allVinG_TraverseVertices<ktruss_operators::resetWeights>
     //    (custinger, deviceKTrussData);
 
     while (true) {
@@ -247,26 +257,25 @@ bool KTruss::findTrussOfKDynamic(cuStinger& custinger, bool& stop) {
     hostKTrussData.activeQueue.clear();
     syncDeviceWithHost();
 
-    forAllVertices<kTrussOperators::queueActive>(custinger, deviceKTrussData);
-    forAllVertices<kTrussOperators::countActive>(custinger, deviceKTrussData);
-    //allVinG_TraverseVertices<kTrussOperators::queueActive>
+    forAllVertices<ktruss_operators::queueActive>(custinger, deviceKTrussData);
+    forAllVertices<ktruss_operators::countActive>(custinger, deviceKTrussData);
+    //allVinG_TraverseVertices<ktruss_operators::queueActive>
     //    (custinger, deviceKTrussData);
-    //allVinG_TraverseVertices<kTrussOperators::countActive>
+    //allVinG_TraverseVertices<ktruss_operators::countActive>
     //    (custinger, deviceKTrussData);
     syncHostWithDevice();
 
-    int activeThisIteration = hostKTrussData.activeQueue.getQueueEnd();//???
+    //int activeThisIteration = hostKTrussData.activeQueue.getQueueEnd();
+    int activeThisIteration = hostKTrussData.activeQueue.size();
     stop       = true;
-    bool first = true;
+    //bool first = true;
     while (hostKTrussData.activeVertices > 0) {
-        allVinA_TraverseVertices<kTrussOperators::findUnderKDynamic>
-            (custinger, deviceKTrussData, hostKTrussData.activeQueue.getQueue(),
-             activeThisIteration);
-        // allVinA_TraverseEdges_Weights<kTrussOperators::findUnderKDynamicWeights>(custinger, deviceKTrussData, hostKTrussData.activeQueue.getQueue(), activeThisIteration);
-        // allVinG_TraverseVertices<kTrussOperators::findUnderKDynamic>(custinger,deviceKTrussData);
+        //allVinA_TraverseVertices<ktruss_operators::findUnderKDynamic>
+        //    (custinger, deviceKTrussData, hostKTrussData.activeQueue.getQueue(),
+        //     activeThisIteration);
+        forAllVertices<ktruss_operators::findUnderKDynamic>
+            (custinger, hostKTrussData.activeQueue, deviceKTrussData);    //???
 
-        // allVinA_TraverseEdges_LB_Weight<kTrussOperators::findUnderKDynamicWeights>(custinger,deviceKTrussData, *cusLB,hostKTrussData.activeQueue, first);
-        // first=false;
         syncHostWithDevice();
         // cout << "Current number of deleted edges is " << hostKTrussData.counter << endl;
 
@@ -275,29 +284,37 @@ bool KTruss::findTrussOfKDynamic(cuStinger& custinger, bool& stop) {
             return false;
         }
         if (hostKTrussData.counter != 0) {
-            BatchUpdateData bud(hostKTrussData.counter,true, hostKTrussData.nv);
+            //BatchUpdateData bud(hostKTrussData.counter,true, hostKTrussData.nv);
 
-            cuMemcpyToHost(hostKTrussData.src, bud->getSrc(),
-                           hostKTrussData.counter);
-            cuMemcpyToHost(hostKTrussData.dst, bud->getDst(),
-                           hostKTrussData.counter);
+            auto src_array = new vid_t[hostKTrussData.counter];
+            auto dst_array = new vid_t[hostKTrussData.counter];
+
+            cuMemcpyToHost(hostKTrussData.src, hostKTrussData.counter,
+                           src_array);
+            cuMemcpyToHost(hostKTrussData.dst, hostKTrussData.counter,
+                           dst_array);
             //copyArrayDeviceToHost(hostKTrussData.src,bud->getSrc(),
             //                      hostKTrussData.counter, sizeof(int));
             //copyArrayDeviceToHost(hostKTrussData.dst, bud->getDst(),
             //                      hostKTrussData.counter, sizeof(int));
+            custinger::BatchInit batch_init(src_array, dst_array,
+                                            hostKTrussData.counter);
+            custinger::BatchUpdate batch_update(batch_init);
 
-            BatchUpdate batch_update(*bud);
-            batch_update->sortDeviceBUD(hostKTrussData.sps);
+            custinger.edgeDeletionsSorted(batch_update);    ///???
+            //custinger::BatchUpdate batch_update(*bud);
+            //batch_update->sortDeviceBUD(hostKTrussData.sps);
+            //custinger.edgeDeletionsSorted(*batch_update);
 
-            custinger.edgeDeletionsSorted(*batch_update);
-
-            callDeviceDifferenceTriangles(custinger, *batch_update,
+            callDeviceDifferenceTriangles(custinger, batch_update,
                                           hostKTrussData.trianglePerVertex,
                                           hostKTrussData.tsp,
                                           hostKTrussData.nbl,
                                           hostKTrussData.shifter,
                                           hostKTrussData.blocks,
                                           hostKTrussData.sps, true);
+            delete[] src_array;
+            delete[] dst_array;
         }
         else
             return false;
@@ -307,9 +324,11 @@ bool KTruss::findTrussOfKDynamic(cuStinger& custinger, bool& stop) {
         hostKTrussData.counter        = 0;
         syncDeviceWithHost();
 
-        allVinA_TraverseVertices<kTrussOperators::countActive>
-            (custinger, deviceKTrussData, hostKTrussData.activeQueue.getQueue(),
-             activeThisIteration);
+        //allVinA_TraverseVertices<ktruss_operators::countActive>
+        //    (custinger, deviceKTrussData, hostKTrussData.activeQueue.getQueue(),
+        //     activeThisIteration);  //???
+        forAllVertices<ktruss_operators::countActive>
+            (custinger, hostKTrussData.activeQueue, deviceKTrussData);
 
         syncHostWithDevice();
         stop = false;
@@ -321,24 +340,24 @@ void KTruss::runForKDynamic(cuStinger& custinger, int maxK) {
     hostKTrussData.maxK = maxK;
     syncDeviceWithHost();
 
-    forAllVertices<kTrussOperators::init>(custing, deviceKTrussData);
-    //allVinG_TraverseVertices<kTrussOperators::init>(custing,deviceKTrussData);
+    forAllVertices<ktruss_operators::init>(custinger, deviceKTrussData);
+    //allVinG_TraverseVertices<ktruss_operators::init>(custing,deviceKTrussData);
 
     resetEdgeArray();
     resetVertexArray();
     syncDeviceWithHost();
 
-    kTrussOneIteration(custing, hostKTrussData.trianglePerVertex, 4,
+    kTrussOneIteration(custinger, hostKTrussData.trianglePerVertex, 4,
                        hostKTrussData.sps / 4, 2, hostKTrussData.blocks,
                        hostKTrussData.sps, deviceKTrussData);
 
     syncHostWithDevice();
 
-    forAllVertices<kTrussOperators::resetWeights>(custing,deviceKTrussData);
-    //allVinG_TraverseVertices<kTrussOperators::resetWeights>(custing,deviceKTrussData);
+    forAllVertices<ktruss_operators::resetWeights>(custinger, deviceKTrussData);
+    //allVinG_TraverseVertices<ktruss_operators::resetWeights>(custing,deviceKTrussData);
 
     bool needStop = false;
-    bool     more = findTrussOfKDynamic(custing, needStop);
+    bool     more = findTrussOfKDynamic(custinger, needStop);
     // cout << "Found the maximal KTruss at : " << hostKTrussData.maxK << endl;
 }
 

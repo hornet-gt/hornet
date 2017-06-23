@@ -95,6 +95,11 @@ template<void (*Operator)(const custinger::Vertex&, void*)>
 void forAllVertices(const custinger::cuStinger& custinger, void* optional_data)
                     noexcept;
 
+template<void (*Operator)(const custinger::Vertex&, void*)>
+void forAllVertices(const custinger::cuStinger& custinger,
+                    const TwoLevelQueue<custinger::vid_t>& queue,
+                    void* optional_data) noexcept;
+
 /**
  * @brief apply the `Operator` to the algorithm-dependent data for all edges
  *        in the graph

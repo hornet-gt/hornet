@@ -464,8 +464,7 @@ void devicecuStingerNewTriangles(custinger::cuStingerDevData custinger,
                                  int threads_per_block,
                                  int number_blocks,
                                  int shifter,
-                                 bool deletion,
-                                 const vid_t* __restrict__ redCU) {
+                                 bool deletion) {
     //vid_t batchSize = *(batch_update->getBatchSize());
     vid_t batchSize = batch_update.size();
     // Partitioning the work to the multiple thread of a single GPU processor.
@@ -564,11 +563,11 @@ void intersectCountAsymmetric(const custinger::cuStingerDevData& custinger,
                     atomicSub(outPutTriangles + uNodes[*uCurr], multiplier);
 
                     // Ktruss
-                    vid_t common = uNodes[*uCurr];
+                    //vid_t common = uNodes[*uCurr];
 
-                    if(dest==u) {
+                    if (dest == u) {
                         auto w_ptr = Vertex(custinger, dest).edge_weight_ptr();
-                        atomicSub(w_ptr, V + *uCurr, 1);
+                        atomicSub(w_ptr + *uCurr, 1);
                         //atomicSub(custinger->dVD->adj[dest]->ew + *uCurr, 1);
                     }
                     else {
@@ -603,7 +602,7 @@ triangle_t count_trianglesAsymmetric(
                                  int threads_per_block,
                                  volatile vid_t* __restrict__ firstFound,
                                  int tId,
-                                 const triangle_t* __restrict__ outPutTriangles,
+                                 triangle_t* __restrict__ outPutTriangles,
                                  const vid_t* __restrict__ uMask,
                                  const vid_t* __restrict__ vMask,
                                  triangle_t multiplier,
@@ -654,9 +653,7 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevData custinger,
                                 int  threads_per_block,
                                 int  number_blocks,
                                 int  shifter,
-                                bool deletion,
-                                const vid_t* __restrict__ redCU,
-                                const vid_t* __restrict__ redBU) {
+                                bool deletion) {
     //vid_t batchsize = *(batch_update->getBatchSize());
     vid_t batchsize = batch_update.size();
 
@@ -666,7 +663,9 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevData custinger,
     int tx = threadIdx.x;
     vid_t this_mp_start, this_mp_stop;
 
-    vid_t* d_off = batch_update->getOffsets();   //???
+    //vid_t* d_off = batch_update->getOffsets();
+    vid_t* d_off = batch_update.offsets_ptr();
+
     //vid_t* d_ind = batch_update->getDst();
     //vid_t* d_seg = batch_update->getSrc();
     vid_t* d_ind = batch_update.src_ptr();
@@ -709,10 +708,10 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevData custinger,
         vid_t    small_len = sourceSmaller ? srcLen : destLen;
         vid_t    large_len = sourceSmaller ? destLen : srcLen;
 
-        const vid_t*      small_ptr = sourceSmaller? src_ptr : dst_ptr;
-        const vid_t* small_mask_ptr = sourceSmaller? src_mask_ptr : nullptr;
-        const vid_t*      large_ptr = sourceSmaller? dst_ptr : src_ptr;
-        const vid_t* large_mask_ptr = sourceSmaller? nullptr : src_mask_ptr;
+        const vid_t*      small_ptr = sourceSmaller ? src_ptr : dst_ptr;
+        const vid_t* small_mask_ptr = sourceSmaller ? src_mask_ptr : nullptr;
+        const vid_t*      large_ptr = sourceSmaller ? dst_ptr : src_ptr;
+        const vid_t* large_mask_ptr = sourceSmaller ? nullptr : src_mask_ptr;
 
         // triangle_t tCount=0;
         triangle_t tCount = sourceSmaller ?
@@ -751,11 +750,11 @@ void callDeviceDifferenceTriangles(
     vid_t batchsize = batch_update.size();
 
     //vid_t        nv = *(batch_update.getHostBUD()->getNumVertices());
-    vid_t        nv = custinger.nV(); ///??? not sure
+    vid_t        nv = custinger.nV();
 
     numBlocks.x = ceil( (float) nv / (float) blockdim );
-    vid_t* redCU;
-    vid_t* redBU;
+    //vid_t* redCU;
+    //vid_t* redBU;
 
     numBlocks.x = ceil( (float) (batchsize * threads_per_intersection) /
                         (float) blockdim );
@@ -766,7 +765,7 @@ void callDeviceDifferenceTriangles(
     devicecuStingerNewTriangles <<< numBlocks, blockdim >>>
         (custinger.device_data(), batch_update,
          outPutTriangles, threads_per_intersection, num_intersec_perblock,
-         shifter, deletion, redCU);
+         shifter, deletion);
 
     // Calculate triangles formed by ALL new edges
         // deviceBUThreeTriangles<<<numBlocks,blockdim>>>(custinger.devicePtr(),
@@ -777,7 +776,7 @@ void callDeviceDifferenceTriangles(
     deviceBUTwoCUOneTriangles <<< numBlocks, blockdim >>>
         (custinger.device_data(), batch_update,
         outPutTriangles, threads_per_intersection, num_intersec_perblock,
-        shifter, deletion, redCU, redBU);
+        shifter, deletion);
 }
 
 } // namespace custinger_alg

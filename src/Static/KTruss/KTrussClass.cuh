@@ -326,9 +326,9 @@ bool KTruss::findTrussOfKDynamic(cuStinger& custinger, bool& stop) {
 
         //allVinA_TraverseVertices<ktruss_operators::countActive>
         //    (custinger, deviceKTrussData, hostKTrussData.activeQueue.getQueue(),
-        //     activeThisIteration);  //???
+        //     activeThisIteration);
         forAllVertices<ktruss_operators::countActive>
-            (custinger, hostKTrussData.activeQueue, deviceKTrussData);
+            (custinger, hostKTrussData.activeQueue, deviceKTrussData);  //???
 
         syncHostWithDevice();
         stop = false;

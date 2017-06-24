@@ -54,7 +54,7 @@ void findDuplicateKernel(cuStingerDevData   data,
         auto batch_edge = batch_update.edge(i);
 
         bool flag;
-        if (i + 1 != batch_update.size() && src == batch_update.src(i)
+        if (i + 1 != batch_update.size() //&& src == batch_update.src(i)
                  && equal_op(batch_edge, batch_update.edge(i + 1))) {
             flag = false;
         }

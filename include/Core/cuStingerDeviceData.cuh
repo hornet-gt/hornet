@@ -54,6 +54,7 @@ struct cuStingerDevData {
      *         edge pointer and the degree of the vertex
      */
     byte_t* d_vertex_ptrs[NUM_VTYPES];
+
     ///@brief number of vertices in the graph
     vid_t   nV;
 };

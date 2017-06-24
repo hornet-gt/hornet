@@ -34,7 +34,8 @@
  * </blockquote>}
  */
 #include "Core/cuStinger.hpp"
-#include "Core/BatchUpdateKernels.cuh"
+#include "Core/BatchInsertKernels.cuh"
+#include "Core/BatchDeleteKernels.cuh"
 #include "Support/Device/CubWrapper.cuh"
 #include "Support/Device/PrintExt.cuh"
 
@@ -193,6 +194,86 @@ void cuStinger::insertEdgeBatch(BatchUpdate& batch_update,
              d_unique, d_counts, num_uniques);
         CHECK_CUDA_ERROR
     }
+}
+
+//==============================================================================
+//==============================================================================
+
+void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
+    const unsigned BLOCK_SIZE = 256;
+    size_t batch_size = batch_update.size();
+
+    vid_t     *d_batch_src_sorted, *d_batch_dst_sorted, *d_unique, *d_tmp;
+    int       *d_counts;
+    degree_t  *d_degree_old, *d_degree_new;
+    vid_t     **d_ptrs_array;
+    //--------------------------------------------------------------------------
+    ////////////////
+    // ALLOCATION //
+    ////////////////
+    vid_t* d_batch_src = batch_update.src_ptr();
+    vid_t* d_batch_dst = batch_update.dst_ptr();
+    cuMalloc(d_batch_src_sorted, batch_size);
+    cuMalloc(d_batch_dst_sorted, batch_size);
+    cuMalloc(d_counts, batch_size);
+    cuMalloc(d_unique, batch_size);
+    cuMalloc(d_degree_old, batch_size + 1);
+    cuMalloc(d_degree_new, batch_size + 1);
+    cuMalloc(d_tmp, _nE);
+    cuMalloc(d_ptrs_array, batch_size);
+    //--------------------------------------------------------------------------
+    //////////////
+    // CUB INIT //
+    //////////////
+    xlib::CubSortPairs2<vid_t, vid_t> sort_cub(d_batch_src, d_batch_dst,
+                                               batch_size, _nV);
+    xlib::CubRunLengthEncode<vid_t> runlength_cub(d_batch_src, batch_size,
+                                                  d_unique, d_counts);
+    //==========================================================================
+    sort_cub.run();                        // batch sorting
+    //cu::printArray(d_batch_src, batch_size);
+    //cu::printArray(d_batch_dst, batch_size);
+    int num_uniques = runlength_cub.run();
+
+    deleteEdgesKernel
+        <<< xlib::ceil_div<BLOCK_SIZE>(batch_size), BLOCK_SIZE >>>
+        (device_data(), batch_update);
+    CHECK_CUDA_ERROR
+
+    collectDataKernel   //modify also the vertices degree
+        <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
+        (device_data(), d_unique, d_counts, num_uniques,
+         d_degree_old, d_degree_new, d_ptrs_array);
+
+    xlib::CubExclusiveSum<degree_t> prefixsum1(d_degree_old, num_uniques + 1);
+    xlib::CubExclusiveSum<degree_t> prefixsum2(d_degree_new, num_uniques + 1);
+    prefixsum1.run();
+    prefixsum2.run();
+
+    degree_t total_degree_old, total_degree_new;                //get the total
+    cuMemcpyToHostAsync(d_degree_old + num_uniques, total_degree_old);
+    cuMemcpyToHostAsync(d_degree_new + num_uniques, total_degree_new);
+
+    const int SMEM = xlib::SMemPerBlock<BLOCK_SIZE, degree_t>::value;
+
+    moveDataKernel1<BLOCK_SIZE, SMEM>
+        <<< xlib::ceil_div<BLOCK_SIZE>(total_degree_old), BLOCK_SIZE >>>
+        (d_degree_old, num_uniques + 1, d_ptrs_array, d_tmp);
+
+    /*struct LessThan {
+        CUB_RUNTIME_FUNCTION __forceinline__
+        bool operator()(const int &dst) const {
+            return dst != -1;
+        }
+    };*/
+    const auto& lambda = [] __device__ (const vid_t& dst) { return dst != -1; };
+    xlib::CubDeviceSelect<degree_t> device_select(d_tmp, total_degree_old,
+                                                  lambda);
+    device_select.run();
+
+    moveDataKernel2<BLOCK_SIZE, SMEM>
+        <<< xlib::ceil_div<BLOCK_SIZE>(total_degree_new), BLOCK_SIZE >>>
+        (d_degree_new, num_uniques + 1, d_tmp, d_ptrs_array);
 }
 
 } // namespace custinger

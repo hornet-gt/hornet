@@ -228,6 +228,8 @@ public:
     void insertEdgeBatch(BatchUpdate& batch_update, const EqualOp& equal_op)
                          noexcept;
 
+    void edgeDeletionsSorted(BatchUpdate& batch_update) noexcept;    
+
 private:
     static int global_id;
 

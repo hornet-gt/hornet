@@ -117,6 +117,9 @@ public:
     typename std::tuple_element<INDEX, VertexTypes>::type
     field(int index) const noexcept;
 
+    __device__ __forceinline__
+    eoff_t* offsets_ptr() const noexcept;
+
     __host__ __device__ __forceinline__
     vid_t* src_ptr() const noexcept;
 
@@ -127,6 +130,7 @@ public:
 
 private:
     byte_t*    _d_edge_ptrs[ NUM_ETYPES + 1 ] = {};
+    eoff_t*    _d_offsets     { nullptr };
     const int  _batch_size    { 0 };
     const int  _batch_pitch   { 0 }; //number of edges to the next field
     const bool _enable_delete { true };

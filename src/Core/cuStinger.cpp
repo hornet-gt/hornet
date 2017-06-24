@@ -85,7 +85,7 @@ void cuStinger::initialize() noexcept {
     const byte_t* h_vertex_ptrs[NUM_VTYPES];
     std::copy(vertex_data, vertex_data + NUM_VTYPES, h_vertex_ptrs);
 
-    const auto lamba = [](const byte_t* ptr) { return ptr != nullptr; };
+    const auto& lamba = [](const byte_t* ptr) { return ptr != nullptr; };
     bool vertex_init_data = std::all_of(h_vertex_ptrs,
                                         h_vertex_ptrs + NUM_VTYPES, lamba);
     bool   edge_init_data = std::all_of(edge_data_ptrs,

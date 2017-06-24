@@ -111,6 +111,11 @@ vid_t BatchUpdate::dst(int index) const noexcept {
     return reinterpret_cast<vid_t*>(_d_edge_ptrs[1])[index];
 }
 
+__device__ __forceinline__
+eoff_t* BatchUpdate::offsets_ptr() const noexcept {
+    return _d_offsets;
+}
+
 __host__ __device__ __forceinline__
 vid_t* BatchUpdate::src_ptr() const noexcept {
     return reinterpret_cast<vid_t*>(_d_edge_ptrs[0]);
@@ -120,6 +125,7 @@ __host__ __device__ __forceinline__
 vid_t* BatchUpdate::dst_ptr() const noexcept {
     return reinterpret_cast<vid_t*>(_d_edge_ptrs[1]);
 }
+
 
 __device__ __forceinline__
 Edge BatchUpdate::edge(int index) const noexcept {

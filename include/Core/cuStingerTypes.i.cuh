@@ -82,6 +82,13 @@ vid_t* Vertex::edge_ptr() const {
     return reinterpret_cast<vid_t*>(_edge_ptr);
 }
 
+template<typename T>
+__device__ __forceinline__
+Vertex::WeightT* Vertex::edge_weight_ptr() const {
+    xlib::SeqDev<ETypeSizePS> ETYPE_SIZE_PS_D;
+    return reinterpret_cast<WeightT*>(_edge_ptr + _limit * ETYPE_SIZE_PS_D[0]);
+}
+
 //------------------------------------------------------------------------------
 __device__ __forceinline__
 degree_t Vertex::limit() const {

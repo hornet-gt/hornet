@@ -44,8 +44,8 @@ struct MMInsert {
     template<typename T>
     static void op(T& bit_tree_set, int& num_blockarrays,
                    std::pair<edge_t*, edge_t*>& ret) {
-        auto& vect = std::get<INDEX>(bit_tree_set);
-        for (auto& it : vect) {
+        auto& container = std::get<INDEX>(bit_tree_set);
+        for (auto& it : container) {
             if (!it.is_full()) {
                 ret = it.insert();
                 return;
@@ -54,8 +54,8 @@ struct MMInsert {
         const auto      BLOCK_ITEMS = MIN_EDGES_PER_BLOCK * (1 << INDEX);
         const auto BLOCKARRAY_ITEMS = BLOCK_ITEMS <= EDGES_PER_BLOCKARRAY ?
                                       EDGES_PER_BLOCKARRAY : BLOCK_ITEMS;
-        vect.push_back(BitTree<edge_t, BLOCK_ITEMS, BLOCKARRAY_ITEMS>{});
-        ret = vect.back().insert();
+        container.push_back(BitTree<edge_t, BLOCK_ITEMS, BLOCKARRAY_ITEMS>{});
+        ret = container.back().insert();
         num_blockarrays++;
     }
 };
@@ -64,14 +64,14 @@ template<int INDEX>
 struct MMRemove {
     template<typename T>
     static void op(T& bit_tree_set, int& num_blockarrays, edge_t* ptr) {
-        auto& vect = std::get<INDEX>(bit_tree_set);
-        auto end_it = vect.end();
-        for (auto it = vect.begin(); it != end_it; it++) {
+        auto& container = std::get<INDEX>(bit_tree_set);
+        auto end_it = container.end();
+        for (auto it = container.begin(); it != end_it; it++) {
             if (it->belong_to(ptr)) {
                 it->remove(ptr);
                 if (it->size() == 0) {
                     num_blockarrays--;
-                    vect.erase(it);
+                    container.erase(it);
                 }
                 return;
             }
@@ -110,8 +110,8 @@ struct MMGetBlockPtr2 {
     template<typename T>
     static void op(T& bit_tree_set, int block_index,
                    std::pair<edge_t*, edge_t*>& ret) {
-        const auto& vect = std::get<INDEX>(bit_tree_set);
-        ret = vect.at(block_index).base_address();
+        const auto& container = std::get<INDEX>(bit_tree_set);
+        ret = container.at(block_index).base_address();
     }
 };
 
@@ -122,16 +122,16 @@ struct MMStatistics {
         const degree_t  BLOCK_ITEMS = MIN_EDGES_PER_BLOCK * (1 << INDEX);
         const auto BLOCKARRAY_ITEMS = BLOCK_ITEMS <= EDGES_PER_BLOCKARRAY ?
                                       EDGES_PER_BLOCKARRAY : BLOCK_ITEMS;
-        const auto& vect = std::get<INDEX>(bit_tree_set);
+        const auto& container = std::get<INDEX>(bit_tree_set);
         int local_used_items = 0;
-        for (const auto& it : vect)
+        for (const auto& it : container)
             local_used_items += it.size();
         used_items      += local_used_items * BLOCK_ITEMS;
-        allocated_items += vect.size() * BLOCKARRAY_ITEMS;
+        allocated_items += container.size() * BLOCKARRAY_ITEMS;
         std::cout << std::setw(4) << INDEX
                   << std::setw(15) << BLOCK_ITEMS
                   << std::setw(18) << BLOCKARRAY_ITEMS
-                  << std::setw(16) << vect.size()
+                  << std::setw(16) << container.size()
                   << std::setw(11) << local_used_items << "\n";
     }
 };
@@ -156,7 +156,7 @@ inline void MemoryManager::remove(edge_t* ptr, degree_t degree) noexcept {
 }
 
 inline std::pair<edge_t*, edge_t*>
-MemoryManager::get_block_array_ptr(int block_index) noexcept {
+MemoryManager::get_blockarray_ptr(int block_index) noexcept {
     assert(block_index >= 0 && block_index < _num_blockarrays);
     for (int i = 0; i < LIMIT; i++) {
         int vect_size = 0;
@@ -172,7 +172,7 @@ MemoryManager::get_block_array_ptr(int block_index) noexcept {
     return std::pair<edge_t*, edge_t*>(nullptr, nullptr);
 }
 
-inline void MemoryManager::free_host_ptr() noexcept {
+inline void MemoryManager::free_host_ptrs() noexcept {
     for (int i = 0; i < LIMIT; i++)
         traverse<detail::MMFreeHost>(i);
 }

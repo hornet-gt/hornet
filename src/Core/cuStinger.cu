@@ -50,17 +50,20 @@ __global__ void printKernel(cuStingerDevData data) {
         auto vertex = Vertex(data, i);
         auto degree = vertex.degree();
         //auto field0 = vertex.field<0>();
-        printf("%d [%d, %d, %llX]:    ", i, vertex.degree(), vertex.limit(),
+        printf("%d [%d, %d, 0x%llX]:    ", i, vertex.degree(), vertex.limit(),
                                         vertex.edge_ptr());
 
+        auto ptr = vertex.edge_ptr();
+        auto weight_ptr = vertex.edge_weight_ptr();
         for (degree_t j = 0; j < vertex.degree(); j++) {
             auto   edge = vertex.edge(j);
-            /*auto weight = edge.weight();
-            auto  time1 = edge.time_stamp1();
+            //auto weight = edge.weight();
+            /*auto  time1 = edge.time_stamp1();
             auto field0 = edge.field<0>();
             auto field1 = edge.field<1>();*/
 
-            printf("%d    ", edge.dst());
+            //printf("%d    ", edge.dst());
+            printf("(%d, %d)    ", ptr[j], weight_ptr[j]);
         //    d_array[j] = edge.dst();
         }
         printf("\n");

@@ -235,6 +235,50 @@ int PartitionFlagged<T>::run() noexcept {
 }
 
 //------------------------------------------------------------------------------
+template<typename T>
+struct SelectOpDiff {
+    T diff;
+    CUB_RUNTIME_FUNCTION __forceinline__
+    SelectOpDiff(const T& diff) noexcept : diff(diff) {}
+
+    //CUB_RUNTIME_FUNCTION __forceinline__
+    //bool operator()(const T& item) const { return item != diff; }*/
+    CUB_RUNTIME_FUNCTION __forceinline__
+    bool operator()(const T& item) const { return item != diff; }
+};
+
+template<typename T>
+CubSelect<T>::CubSelect(T* d_in_out, size_t num_items) noexcept :
+                        CubSelect(d_in_out, num_items, d_in_out) {}
+
+template<typename T>
+CubSelect<T>::CubSelect(const T* d_in, size_t num_items, T* d_out) noexcept :
+                                CubWrapper(num_items), _d_in(d_in),
+                                _d_out(d_out), _num_items(num_items) {
+    cuMalloc(_d_num_selected_out, 1);
+    T value = T();
+    SelectOpDiff<T> select_op(value);
+    cub::DeviceSelect::If(_d_temp_storage, _temp_storage_bytes, _d_in,
+                          _d_out, _d_num_selected_out, _num_items, select_op);
+    SAFE_CALL( cudaMalloc(&_d_temp_storage, _temp_storage_bytes) )
+}
+
+template<typename T>
+CubSelect<T>::~CubSelect() noexcept {
+    cuFree(_d_num_selected_out);
+}
+
+template<typename T>
+int CubSelect<T>::run_diff(const T& diff) noexcept {
+    SelectOpDiff<T> select_op(diff);
+    cub::DeviceSelect::If(_d_temp_storage, _temp_storage_bytes, _d_in,
+                          _d_out, _d_num_selected_out, _num_items, select_op);
+    int h_num_selected_out;
+    cuMemcpyToHostAsync(_d_num_selected_out, h_num_selected_out);
+    return h_num_selected_out;
+}
+
+//------------------------------------------------------------------------------
 
 template<typename T>
 CubExclusiveSum<T>::CubExclusiveSum(const T* d_in, size_t num_items, T* d_out)
@@ -392,6 +436,6 @@ template class CubExclusiveSum<int>;
 template class CubSortPairs2<int, int>;
 template class PartitionFlagged<int>;
 template class CubArgMax<int>;
-
+template class CubSelect<int>;
 
 } //namespace xlib

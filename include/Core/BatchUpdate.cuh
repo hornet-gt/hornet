@@ -125,7 +125,6 @@ public:
 
     __host__ __device__ __forceinline__
     vid_t* dst_ptr() const noexcept;
-
 #endif
 
 private:

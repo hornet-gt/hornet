@@ -114,26 +114,26 @@ void cuStinger::initialize() noexcept {
             _max_degree_vertex = i;
             max_degree = degree;
         }
-        const auto&   mem_ptrs = mem_manager.insert(degree);
-        h_vertex_basic_data[i] = pair_t(mem_ptrs.second, degree);
+        const auto&   mem_data = mem_manager.insert(degree);
+        h_vertex_basic_data[i] = pair_t(mem_data.second, degree);
 
-        byte_t*   h_blockarray = reinterpret_cast<byte_t*>(mem_ptrs.first);
+        byte_t*   h_blockarray = reinterpret_cast<byte_t*>(mem_data.first);
         size_t          offset = _csr_offsets[i];
 
         #pragma unroll
         for (int j = 0; j < NUM_ETYPES; j++) {
             size_t    num_bytes = degree * ETYPE_SIZE[j];
             size_t offset_bytes = offset * ETYPE_SIZE[j];
-            std::memcpy(h_blockarray, edge_data_ptrs[j] + offset_bytes,
-                        num_bytes);
+            std::memcpy(h_blockarray + EDGES_PER_BLOCKARRAY * ETYPE_SIZE_PS[j],
+                        edge_data_ptrs[j] + offset_bytes, num_bytes);
         }
     }
     //copy BlockArrays to the device
     int num_blockarrays = mem_manager.num_blockarrays();
     for (int i = 0; i < num_blockarrays; i++) {
-        const auto& mem_ptrs = mem_manager.get_block_array_ptr(i);
-        cuMemcpyToDeviceAsync(mem_ptrs.first, EDGES_PER_BLOCKARRAY,
-                              mem_ptrs.second);
+        const auto& mem_data = mem_manager.get_blockarray_ptr(i);
+        cuMemcpyToDeviceAsync(mem_data.first, EDGES_PER_BLOCKARRAY,
+                              mem_data.second);
     }
     //--------------------------------------------------------------------------
     ////////////////////////
@@ -187,9 +187,9 @@ void cuStinger::check_consistency(const cuStingerInit& custinger_init)
     auto csr_edges   = new vid_t[_nE];
     convert_to_csr(csr_offsets, csr_edges);
 
-    auto offset_check = std::equal(csr_offsets, csr_offsets + _nV,
+    auto offsets_check = std::equal(csr_offsets, csr_offsets + _nV,
                                    custinger_init.csr_offsets());
-    if (!offset_check)
+    if (!offsets_check)
         ERROR("Vertex Array not consistent")
     auto edge_ref = custinger_init._edge_data_ptrs[0];
     auto edge_ptr = reinterpret_cast<const vid_t*>(edge_ref);

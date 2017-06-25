@@ -167,7 +167,7 @@ template<typename T>
 class CubPartitionFlagged : public CubWrapper {
 public:
     CubPartitionFlagged(const T* d_in, const bool* d_flag, size_t size,
-                        T*& d_out);
+                        T*& d_out) noexcept;
     ~CubPartitionFlagged() noexcept;
     int run() noexcept;
     void run_no_copy() noexcept;
@@ -176,6 +176,21 @@ private:
     T*&         _d_out;
     const bool* _d_flag;
     int*        _d_num_selected_out;
+};
+
+template<typename T>
+class CubSelect : public CubWrapper {
+public:
+    CubSelect(T* d_in_out, size_t num_items) noexcept;
+    CubSelect(const T* d_in, size_t num_items, T* d_out) noexcept;
+    ~CubSelect() noexcept;
+
+    int run_diff(const T& diff) noexcept;
+private:
+    const T* _d_in;
+    T*       _d_out;
+    int*     _d_num_selected_out;
+    int      _num_items;
 };
 
 template<typename T>
@@ -220,5 +235,3 @@ private:
 };
 
 } // namespace xlib
-
-//#include "impl/CubWrapper.i.cuh"

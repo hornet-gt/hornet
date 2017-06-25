@@ -33,6 +33,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
+#include "Core/MemoryManager.hpp"
+
 namespace custinger {
 
 __device__ __forceinline__
@@ -40,7 +42,7 @@ Vertex::Vertex(cuStingerDevData data, vid_t index) : _id(index) {
     assert(index < data.nV);
     xlib::SeqDev<VTypeSize> VTYPE_SIZE_D;
     _vertex_ptr = reinterpret_cast<VertexBasicData*>(data.d_vertex_ptrs[0]) +
-                   index;
+                  index;
     auto basic_data = *_vertex_ptr;
 
     _degree   = basic_data.degree;
@@ -86,7 +88,8 @@ template<typename T>
 __device__ __forceinline__
 Vertex::WeightT* Vertex::edge_weight_ptr() const {
     xlib::SeqDev<ETypeSizePS> ETYPE_SIZE_PS_D;
-    return reinterpret_cast<WeightT*>(_edge_ptr + _limit * ETYPE_SIZE_PS_D[0]);
+    auto ptr = _edge_ptr + EDGES_PER_BLOCKARRAY * ETYPE_SIZE_PS_D[1];
+    return reinterpret_cast<WeightT*>(ptr);
 }
 
 //------------------------------------------------------------------------------
@@ -139,7 +142,7 @@ Edge::Edge(byte_t* edge_ptr, degree_t index, degree_t limit) {
     _dst = reinterpret_cast<vid_t*>(edge_ptr)[index];
     #pragma unroll
     for (int i = 0; i < NUM_EXTRA_ETYPES; i++)
-        _ptrs[i] = edge_ptr + limit * ETYPE_SIZE_PS_D[i + 1];
+        _ptrs[i] = edge_ptr + EDGES_PER_BLOCKARRAY * ETYPE_SIZE_PS_D[i + 1];
 }
 
 __device__ __forceinline__

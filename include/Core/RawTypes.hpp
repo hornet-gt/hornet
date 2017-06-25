@@ -93,13 +93,15 @@ using   edge_t = typename xlib::TupleConcat<TypeList<vid_t>, EdgeTypes>::type;
 //------------------------------------------------------------------------------
 
 template<unsigned INDEX = 0, unsigned SIZE, typename T, typename... TArgs>
-void bind(byte_t* (&data_ptrs)[SIZE], const T* data, TArgs... args) noexcept;
+void bind(const byte_t* (&data_ptrs)[SIZE], const T* data, TArgs... args)
+          noexcept;
 
 template<unsigned INDEX, unsigned SIZE>
-void bind(byte_t* (&data_ptrs)[SIZE]) noexcept {}
+void bind(const byte_t* (&data_ptrs)[SIZE]) noexcept {}
 
 template<unsigned INDEX, unsigned SIZE, typename T, typename... TArgs>
-void bind(byte_t* (&data_ptrs)[SIZE], const T* data, TArgs... args) noexcept {
+void bind(const byte_t* (&data_ptrs)[SIZE], const T* data, TArgs... args)
+          noexcept {
     static_assert(INDEX < SIZE, "Index out-of-bound");
     data_ptrs[INDEX] = reinterpret_cast<byte_t*>(const_cast<T*>(data));
     bind<INDEX + 1>(data_ptrs, args...);

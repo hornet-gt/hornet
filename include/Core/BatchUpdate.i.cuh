@@ -63,10 +63,10 @@ inline BatchUpdate::BatchUpdate(BatchInit batch_init) noexcept :
                             _batch_size(batch_init.size()),
                             _batch_pitch(xlib::upper_approx<512>(_batch_size)) {
 
-    for (int i = 0; i < NUM_ETYPES + 1; i++) {
+    /*for (int i = 0; i < NUM_ETYPES + 1; i++) {
         if (batch_init.edge_ptrs(i) == nullptr)
             ERROR("Edge data not initializated");
-    }
+    }*/
     byte_t* ptr;
     cuMalloc(ptr, _batch_pitch * (sizeof(vid_t) + sizeof(edge_t)));
     _d_edge_ptrs[0] = ptr;
@@ -75,6 +75,8 @@ inline BatchUpdate::BatchUpdate(BatchInit batch_init) noexcept :
     ptr += _batch_pitch * sizeof(vid_t);
     for (int i = 0; i < NUM_ETYPES; i++) {
         _d_edge_ptrs[i + 1] = ptr;
+        if (batch_init.edge_ptrs(i + 1) == nullptr)
+            continue;
         cuMemcpyToDeviceAsync(batch_init.edge_ptrs(i + 1),
                               _batch_size * ETYPE_SIZE[i], _d_edge_ptrs[i + 1]);
         ptr += _batch_pitch * ETYPE_SIZE[i];

@@ -39,6 +39,14 @@
 
 namespace custinger {
 
+struct TmpData {
+    using WeightT = typename std::tuple_element<(NUM_ETYPES > 1 ? 1 : 0),
+                                                 edge_t>::type;
+    TmpData(vid_t id, WeightT weight) : id(id), weight(weight){}
+    vid_t   id;
+    WeightT weight;
+};
+
 __global__
 void deleteEdgesKernel(cuStingerDevData data,
                        BatchUpdate      batch_update) {
@@ -66,21 +74,23 @@ void collectDataKernel(cuStingerDevData data,
                        int num_uniques,
                        degree_t* __restrict__ d_degree_old,
                        degree_t* __restrict__ d_degree_new,
-                       vid_t**  __restrict__ d_ptr) {
+                       byte_t**  __restrict__ d_ptrs_array) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
 
     for (int i = id; i < num_uniques; i += stride) {
         auto d_vertex_ptrs = reinterpret_cast<VertexBasicData*>
                                 (data.d_vertex_ptrs[0]);
-        auto vertex_data = d_vertex_ptrs[i];
+        auto         src = d_unique[i];
+        auto vertex_data = d_vertex_ptrs[src];
         auto  new_degree = vertex_data.degree - d_count[i];
+        printf("src %d  degree %d, d_count %d\n", src, vertex_data.degree, d_count[i]);
 
-        d_ptr[i]         = reinterpret_cast<vid_t*>(vertex_data.edge_ptr);
-        d_degree_old[i]  = vertex_data.degree;
-        d_degree_new[i]  = new_degree;
+        d_ptrs_array[i] = vertex_data.edge_ptr;
+        d_degree_old[i] = vertex_data.degree;
+        d_degree_new[i] = new_degree;
 
-        d_vertex_ptrs[i] = VertexBasicData(new_degree, vertex_data.edge_ptr);
+        d_vertex_ptrs[src] = VertexBasicData(new_degree, vertex_data.edge_ptr);
     }
     if (id == 0)
         d_degree_old[num_uniques] = 0;
@@ -92,12 +102,15 @@ template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK>
 __global__
 void moveDataKernel1(const degree_t* __restrict__ d_degree_old_prefix,
                      int                          num_items,
-                     vid_t**         __restrict__ d_ptrs_array,
-                     vid_t*          __restrict__ d_tmp) {
+                     byte_t**        __restrict__ d_ptrs_array,
+                     TmpData*        __restrict__ d_tmp) {
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
     auto lambda = [&] (int pos, degree_t offset) {
-                    int tmp_offset    = d_degree_old_prefix[pos] + offset;
+                    int    tmp_offset = d_degree_old_prefix[pos] + offset;
+                    auto          ptr = d_ptrs_array[pos];
+                    TmpData tmp(ptr, );
                     d_tmp[tmp_offset] = d_ptrs_array[pos][offset];
+                    d_tmp[tmp_offset] = TmpData(ptr, );
                 };
     xlib::binarySearchLB<BLOCK_SIZE>(d_degree_old_prefix, num_items, smem,
                                      lambda);
@@ -107,8 +120,8 @@ template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK>
 __global__
 void moveDataKernel2(const degree_t* __restrict__ d_degree_new_prefix,
                       int                         num_items,
-                      vid_t*         __restrict__ d_tmp,
-                      vid_t**        __restrict__ d_ptrs_array) {
+                      TmpData*       __restrict__ d_tmp,
+                      TmpData**      __restrict__ d_ptrs_array) {
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
     auto lambda = [&] (int pos, degree_t offset) {
                     int tmp_offset = d_degree_new_prefix[pos] + offset;

@@ -121,9 +121,9 @@ public:
      */
 
     /**
-     * @brief Free the host memory reserved for *BlockArrays*
+     * @brief Free the host memory reserved for all *BlockArrays*
      */
-    void free_host_ptr() noexcept;
+    void free_host_ptrs() noexcept;
 
     /**
      * @brief Insert a new *block* of size
@@ -146,8 +146,8 @@ public:
     void remove(edge_t* ptr, degree_t degree) noexcept;
 
     /**
-     * @brief Number of *blockarrays*
-     * @return the number of allocated *blockarrays*
+     * @brief Number of *BlockArrays*
+     * @return the number of allocated *BlockArrays*
      */
     int num_blockarrays() const noexcept;
 
@@ -169,7 +169,7 @@ public:
      *           \f$0 \le \text{block_index} < \text{total_block_arrays} \f$,
      *           otherwise an error is raised (debug mode)
      */
-    std::pair<edge_t*, edge_t*> get_block_array_ptr(int block_index) noexcept;
+    std::pair<edge_t*, edge_t*> get_blockarray_ptr(int block_index) noexcept;
 
     /**
      * @brief Deallocate all host and device *BlockArrays*

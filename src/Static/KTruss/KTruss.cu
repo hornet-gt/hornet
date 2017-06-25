@@ -26,6 +26,13 @@ void callDeviceDifferenceTriangles(
                                 int blockdim,
                                 bool deletion);
 
+KTruss::KTruss(cuStinger& custinger) : StaticAlgorithm(custinger),
+                                        hostKTrussData(custinger) {}
+
+KTruss::~KTruss() {
+    release();
+}
+
 void KTruss::setInitParameters(vid_t nv, eoff_t ne, int tsp, int nbl,
                                int shifter, int blocks, int sps) {
     hostKTrussData.nv      = nv;
@@ -47,7 +54,7 @@ void KTruss::init(){
     //cuMalloc(deviceKTrussData, 1);
     deviceKTrussData = register_data(hostKTrussData);
 
-    hostKTrussData.activeQueue.init(hostKTrussData.nv + 1);
+    //hostKTrussData.activeQueue.init(hostKTrussData.nv + 1);
 
     syncDeviceWithHost();
     reset();
@@ -94,6 +101,10 @@ void KTruss::resetEdgeArray() {
 void KTruss::release() {
     cuFree(hostKTrussData.isActive, hostKTrussData.offsetArray,
            hostKTrussData.trianglePerEdge, hostKTrussData.trianglePerVertex);
+    hostKTrussData.isActive = nullptr;
+    hostKTrussData.offsetArray = nullptr;
+    hostKTrussData.trianglePerEdge  = nullptr;
+    hostKTrussData.trianglePerVertex = nullptr;
 }
 
 //==============================================================================
@@ -104,7 +115,7 @@ void KTruss::run() {
 
     while (true) {
         bool needStop = false;
-        bool     more = findTrussOfK(custinger, needStop);
+        bool     more = findTrussOfK(needStop);
         if (more == false && needStop) {
             hostKTrussData.maxK--;
             syncDeviceWithHost();
@@ -118,16 +129,16 @@ void KTruss::run() {
               << hostKTrussData.fullTriangleIterations << std::endl;
 }
 
-void KTruss::runForK(cuStinger& custinger, int maxK) {
+void KTruss::runForK(int maxK) {
     hostKTrussData.maxK = maxK;
     syncDeviceWithHost();
 
     bool exitOnFirstIteration;
-    findTrussOfK(custinger,exitOnFirstIteration);
+    findTrussOfK(exitOnFirstIteration);
 }
 
 
-bool KTruss::findTrussOfK(cuStinger& custinger, bool& stop) {
+bool KTruss::findTrussOfK(bool& stop) {
     forAllVertices<ktruss_operators::init>(custinger, deviceKTrussData);
     //allVinG_TraverseVertices<ktruss_operators::init>(custinger,deviceKTrussData);
 
@@ -212,7 +223,7 @@ bool KTruss::findTrussOfK(cuStinger& custinger, bool& stop) {
     return true;
 }
 
-void KTruss::runDynamic(cuStinger& custinger){
+void KTruss::runDynamic(){
     hostKTrussData.maxK = 3;
     syncDeviceWithHost();
 
@@ -238,7 +249,7 @@ void KTruss::runDynamic(cuStinger& custinger){
         // break;
         // cout << "New iteration" << endl;
         bool needStop = false;
-        bool     more = findTrussOfKDynamic(custinger, needStop);
+        bool     more = findTrussOfKDynamic(needStop);
         if (more == false && needStop) {
             hostKTrussData.maxK--;
             syncDeviceWithHost();
@@ -250,7 +261,7 @@ void KTruss::runDynamic(cuStinger& custinger){
     // cout << "Found the maximal KTruss at : " << hostKTrussData.maxK << endl;
 }
 
-bool KTruss::findTrussOfKDynamic(cuStinger& custinger, bool& stop) {
+bool KTruss::findTrussOfKDynamic(bool& stop) {
     hostKTrussData.counter = 0;
     syncDeviceWithHost();
 
@@ -336,7 +347,7 @@ bool KTruss::findTrussOfKDynamic(cuStinger& custinger, bool& stop) {
     return true;
 }
 
-void KTruss::runForKDynamic(cuStinger& custinger, int maxK) {
+void KTruss::runForKDynamic(int maxK) {
     hostKTrussData.maxK = maxK;
     syncDeviceWithHost();
 
@@ -357,7 +368,7 @@ void KTruss::runForKDynamic(cuStinger& custinger, int maxK) {
     //allVinG_TraverseVertices<ktruss_operators::resetWeights>(custing,deviceKTrussData);
 
     bool needStop = false;
-    bool     more = findTrussOfKDynamic(custinger, needStop);
+    bool     more = findTrussOfKDynamic(needStop);
     // cout << "Found the maximal KTruss at : " << hostKTrussData.maxK << endl;
 }
 

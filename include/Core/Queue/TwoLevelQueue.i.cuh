@@ -85,6 +85,21 @@ inline TwoLevelQueue<T>::~TwoLevelQueue() noexcept {
            _d_work_ptrs.first, _d_work_ptrs.second, _d_queue_counter);
     delete[] _host_data;
 }
+/*
+template<typename T>
+inline TwoLevelQueue<T>::init(size_t size) noexcept {
+    cuMalloc(_d_queue_ptrs.first, _max_allocated_items);
+    cuMalloc(_d_queue_ptrs.second, _max_allocated_items);
+    cuMalloc(_d_queue_counter, 1);
+    cuMemcpyToDevice(0, _d_queue_counter);
+    if (enable_traverse) {
+        cuMalloc(_d_work_ptrs.first,  _max_allocated_items);
+        cuMalloc(_d_work_ptrs.second, _max_allocated_items);
+        cuMalloc(_d_queue2_counter, 1);
+        cuMemcpyToDevice(0, const_cast<int*>(_d_work_ptrs.first));
+        cuMemcpyToDevice(make_int2(0, 0), _d_queue2_counter);
+    }
+}*/
 
 template<typename T>
 __host__ void TwoLevelQueue<T>::insert(const T& item) noexcept {

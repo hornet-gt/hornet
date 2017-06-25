@@ -84,7 +84,7 @@ public:
      */
     ~TwoLevelQueue() noexcept;
 
-    __host__ void init(size_t size);
+    //__host__ void init(size_t size) noexcept;
 
     /**
      * @brief insert an item in the queue
@@ -178,7 +178,7 @@ private:
     static const unsigned        BLOCK_SIZE = 256;
 
     const custinger::cuStinger& _custinger;
-    const custinger::eoff_t* _csr_offsets { nullptr };
+    //const custinger::eoff_t* _csr_offsets { nullptr };
 
     ///@internal @brief input and output queue pointers
     ptr2_t<T>    _d_queue_ptrs        { nullptr, nullptr };

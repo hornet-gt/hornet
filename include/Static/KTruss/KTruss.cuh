@@ -7,6 +7,7 @@ using triangle_t = int;
 namespace custinger_alg {
 
 struct KTrussData {
+    KTrussData(const custinger::cuStinger& custinger) : activeQueue(custinger){}
     int maxK;
 
     int tsp;
@@ -39,25 +40,25 @@ struct KTrussData {
 // Label propogation is based on the values from the previous iteration.
 class KTruss : public StaticAlgorithm {
 public:
-    explicit KTruss(cuStinger& custinger);
+    KTruss(cuStinger& custinger);
     ~KTruss();
 
     void reset()    override;
     void run()      override;
     void release()  override;
-    bool validate() override;
+    bool validate() override { return true; }
 
     //--------------------------------------------------------------------------
     void setInitParameters(vid_t nv, eoff_t ne, int tsp, int nbl, int shifter,
                            int blocks, int sps);
     void init();
 
-    bool findTrussOfK(cuStinger& custinger,bool& stop);
-    void      runForK(cuStinger& custinger,int maxK);
+    bool findTrussOfK(bool& stop);
+    void      runForK(int maxK);
 
-    void          runDynamic(cuStinger& custinger);
-    bool findTrussOfKDynamic(cuStinger& custinger, bool& stop);
-    void      runForKDynamic(cuStinger& custinger, int maxK);
+    void          runDynamic();
+    bool findTrussOfKDynamic(bool& stop);
+    void      runForKDynamic(int maxK);
 
     void   copyOffsetArrayHost(vid_t* hostOffsetArray);
     void copyOffsetArrayDevice(vid_t* deviceOffsetArray);

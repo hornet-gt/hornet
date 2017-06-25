@@ -664,7 +664,7 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevData custinger,
     vid_t this_mp_start, this_mp_stop;
 
     //vid_t* d_off = batch_update->getOffsets();
-    vid_t* d_off = batch_update.offsets_ptr();
+    vid_t* d_off = batch_update.offsets_ptr();  //???
 
     //vid_t* d_ind = batch_update->getDst();
     //vid_t* d_seg = batch_update->getSrc();
@@ -688,8 +688,9 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevData custinger,
         vid_t src = batch_update.src(edge);
         vid_t dest= batch_update.dst(edge);
 
-        vid_t  srcLen = d_off[src + 1] - d_off[src];
+        //vid_t  srcLen = d_off[src + 1] - d_off[src];
         //vid_t destLen = custinger->dVD->getUsed()[dest];
+        vid_t  srcLen = Vertex(custinger, src).degree();
         vid_t destLen = Vertex(custinger, dest).degree();
 
 
@@ -698,7 +699,8 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevData custinger,
             continue;
 
         const vid_t*      src_ptr = d_ind + d_off[src];
-        const vid_t* src_mask_ptr = batch_update->getIndDuplicate() + d_off[src];//???
+        //const vid_t* src_mask_ptr = batch_update->getIndDuplicate() + d_off[src];//???
+        const vid_t* src_mask_ptr = src_ptr; ///???
         //const vid_t*      dst_ptr = custinger->dVD->getAdj()[dest]->dst;
         const vid_t*      dst_ptr = Vertex(custinger, dest).edge_ptr();
 

@@ -1,13 +1,14 @@
-#include "Static/KTruss/Ktruss.cuh"
+#include "Static/KTruss/KTruss.cuh"
+#include "Support/Device/Timer.cuh"
 
 using namespace timer;
 using namespace custinger;
 using namespace custinger_alg;
 
-int runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
+void runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
               const std::string& graphName);
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     graph::GraphStd<vid_t, eoff_t> graph;
     graph.read(argv[1]);
 
@@ -30,22 +31,28 @@ const int             arrayBlockSize[] = { 32 };
 const int arrayThreadPerIntersection[] = { 1 };
 const int           arrayThreadShift[] = { 0 };
 
-int runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
-              const std::string& graphName) {
+void runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
+               const std::string& graphName) {
+
+    int nv = custinger_init.nV();
+    int ne = custinger_init.nE();
 
     triangle_t* d_triangles;
-    cuMalloc(d_triangles, nv + 1);
+    cudaMalloc(&d_triangles, (nv + 1) * sizeof(triangle_t));
+    vid_t* d_off;
+    cudaMalloc(&d_off, (nv + 1) * sizeof(vid_t));
 
     auto              triNE = new int[ne];
     auto        h_triangles = new triangle_t[nv + 1];
-    int64_t allTrianglesCPU = 0;
-    int64_t       sumDevice = 0;
+    //int64_t allTrianglesCPU = 0;
+    //int64_t       sumDevice = 0;
 
     float minTimecuStinger = 10e9;
 
     const int    blocksToTest = sizeof(arrayBlocks) / sizeof(int);
     const int blockSizeToTest = sizeof(arrayBlockSize) / sizeof(int);
     const int       tSPToTest = sizeof(arrayThreadPerIntersection) /sizeof(int);
+    Timer<DEVICE> TM;
 
     for (int b = 0; b < blocksToTest; b++) {
         int blocks = arrayBlocks[b];
@@ -57,39 +64,39 @@ int runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
                 int     nbl = sps / tsp;
 
                 cuStinger custiger_graph(custinger_init);
-                kTruss kt;
+                KTruss kt(custiger_graph);
 
                 if (alg & 1) {
                     kt.setInitParameters(nv,ne, tsp, nbl, shifter, blocks, sps);
-                    kt.init(custinger);
+                    kt.init();
                     kt.copyOffsetArrayDevice(d_off);
                     kt.reset();
 
                     TM.start();
 
-                    kt.run(custinger);
+                    kt.run();
 
                     TM.stop();
                     std::cout << "graph=" << graphName << "\nk=" << kt.getMaxK()
                               << ":" << TM.duration() << std::endl;
-                    kt.release();
-                    custinger.freecuStinger();
+
+                    //custiger_graph.freecuStinger();
                 }
                 if (alg & 2) {
-                    kt2.setInitParameters(nv, ne, tsp, nbl, shifter,
+                    kt.setInitParameters(nv, ne, tsp, nbl, shifter,
                                           blocks, sps);
-                    kt2.init(custing2);
-                    kt2.copyOffsetArrayDevice(d_off);
-                    kt2.reset();
+                    kt.init();
+                    kt.copyOffsetArrayDevice(d_off);
+                    kt.reset();
 
                     TM.start();
 
-                    kt2.runDynamic(custing2);
+                    kt.runDynamic();
 
                     TM.stop();
                     std::cout << "graph=" << graphName << "\nk=" << kt.getMaxK()
                               << ":" << TM.duration() << std::endl;
-                    kt2.release();
+                    //kt.release();
 
                     if (TM.duration() < minTimecuStinger)
                         minTimecuStinger = TM.duration();
@@ -98,21 +105,22 @@ int runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
                 if (alg & 4) {
                     kt.setInitParameters(nv, ne, tsp, nbl, shifter,
                                          blocks, sps);
-                    kt.init(custinger);
+                    kt.init();
                     kt.copyOffsetArrayDevice(d_off);
                     kt.reset();
 
                     TM.start();
 
-                    kt.runForK(custinger, maxk);
+                    kt.runForK(maxk);
 
                     TM.stop();
 
                     std::cout << "graph=" << graphName << "\nk=" << kt.getMaxK()
                               << ":" << TM.duration() << std::endl;
-                    kt.release();
-                    //custinger.freecuStinger();
+                    //kt.release();
+                    //custiger_graph.freecuStinger();
                 }
+                kt.release();
             }
         }
     }

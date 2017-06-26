@@ -253,6 +253,13 @@ private:
     bool          _internal_csr_data { false };
     vid_t         _max_degree_vertex { -1 };
 
+    ///! KTRUSS !
+    vid_t     *d_unique;
+    int       *d_counts;
+    degree_t  *d_degree_old, *d_degree_new;
+    byte_t    **d_ptrs_array;
+    int2      *d_tmp;
+
     void initialize() noexcept;
 
     /**
@@ -272,4 +279,4 @@ private:
 
 } // namespace custinger
 
-#include "cuStinger.i.hpp"
+#include "impl/cuStinger.i.hpp"

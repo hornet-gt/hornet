@@ -52,7 +52,7 @@ public:
 
     void run() noexcept;
 
-    const std::vector<vid_t>& vector() const noexcept;
+    const std::vector<vid_t>& list() const noexcept;
 
     vid_t size() const noexcept;
 
@@ -70,10 +70,10 @@ private:
     using color_t = vid_t;
     const color_t NO_COLOR = std::numeric_limits<color_t>::max();
 
-    const GraphStd<vid_t, eoff_t>&  _graph;
-    xlib::Queue<vid_t> _queue;
-    std::vector<vid_t> _wcc_vector;
-    color_t*           _color;
+    const GraphStd<vid_t, eoff_t>& _graph;
+    xlib::Queue<vid_t>             _queue;
+    std::vector<vid_t>             _wcc_vector;
+    color_t*                       _color { nullptr };
 };
 
 } // namespace graph

@@ -43,7 +43,7 @@ template<int INDEX>
 struct MMInsert {
     template<typename T>
     static void op(T& bit_tree_set, int& num_blockarrays,
-                   std::pair<edge_t*, edge_t*>& ret) {
+                   std::pair<byte_t*, byte_t*>& ret) {
         auto& container = std::get<INDEX>(bit_tree_set);
         for (auto& it : container) {
             if (!it.is_full()) {
@@ -54,7 +54,7 @@ struct MMInsert {
         const auto      BLOCK_ITEMS = MIN_EDGES_PER_BLOCK * (1 << INDEX);
         const auto BLOCKARRAY_ITEMS = BLOCK_ITEMS <= EDGES_PER_BLOCKARRAY ?
                                       EDGES_PER_BLOCKARRAY : BLOCK_ITEMS;
-        container.push_back(BitTree<edge_t, BLOCK_ITEMS, BLOCKARRAY_ITEMS>{});
+        container.push_back(BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>{});
         ret = container.back().insert();
         num_blockarrays++;
     }
@@ -63,7 +63,7 @@ struct MMInsert {
 template<int INDEX>
 struct MMRemove {
     template<typename T>
-    static void op(T& bit_tree_set, int& num_blockarrays, edge_t* ptr) {
+    static void op(T& bit_tree_set, int& num_blockarrays, void* ptr) {
         auto& container = std::get<INDEX>(bit_tree_set);
         auto end_it = container.end();
         for (auto it = container.begin(); it != end_it; it++) {
@@ -109,7 +109,7 @@ template<int INDEX>
 struct MMGetBlockPtr2 {
     template<typename T>
     static void op(T& bit_tree_set, int block_index,
-                   std::pair<edge_t*, edge_t*>& ret) {
+                   std::pair<byte_t*, byte_t*>& ret) {
         const auto& container = std::get<INDEX>(bit_tree_set);
         ret = container.at(block_index).base_address();
     }
@@ -140,36 +140,36 @@ struct MMStatistics {
 
 //==============================================================================
 
-inline std::pair<edge_t*, edge_t*>
+inline std::pair<byte_t*, byte_t*>
 MemoryManager::insert(degree_t degree) noexcept {
     int index = find_bin(degree);
-    std::pair<edge_t*, edge_t*> ret;
+    std::pair<byte_t*, byte_t*> ret;
     traverse<detail::MMInsert>(index, _num_blockarrays, ret);
     return ret;
 }
 
-inline void MemoryManager::remove(edge_t* ptr, degree_t degree) noexcept {
-    if (ptr == nullptr)
+inline void MemoryManager::remove(void* device_ptr, degree_t degree) noexcept {
+    if (device_ptr == nullptr)
         return;
     int index = find_bin(degree);
-    traverse<detail::MMRemove>(index, _num_blockarrays, ptr);
+    traverse<detail::MMRemove>(index, _num_blockarrays, device_ptr);
 }
 
-inline std::pair<edge_t*, edge_t*>
+inline std::pair<byte_t*, byte_t*>
 MemoryManager::get_blockarray_ptr(int block_index) noexcept {
     assert(block_index >= 0 && block_index < _num_blockarrays);
     for (int i = 0; i < LIMIT; i++) {
         int vect_size = 0;
         traverse<detail::MMGetBlockPtr1>(i, vect_size);
         if (block_index < vect_size) {
-            std::pair<edge_t*, edge_t*> ret;
+            std::pair<byte_t*, byte_t*> ret;
             traverse<detail::MMGetBlockPtr2>(i, block_index, ret);
             return ret;
         }
         block_index -= vect_size;
     }
     assert(false && "block_index out-of-bounds");
-    return std::pair<edge_t*, edge_t*>(nullptr, nullptr);
+    return std::pair<byte_t*, byte_t*>(nullptr, nullptr);
 }
 
 inline void MemoryManager::free_host_ptrs() noexcept {

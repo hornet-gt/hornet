@@ -34,8 +34,8 @@
  * </blockquote>}
  */
 #include "Core/cuStinger.hpp"
-#include "Core/BatchInsertKernels.cuh"
-#include "Core/BatchDeleteKernels.cuh"
+#include "Core/Kernels/BatchInsertKernels.cuh"
+#include "Core/Kernels/BatchDeleteKernels.cuh"
 #include "Support/Device/CubWrapper.cuh"
 #include "Support/Device/PrintExt.cuh"
 
@@ -146,7 +146,8 @@ void cuStinger::insertEdgeBatch(BatchUpdate& batch_update,
 
         for (int i = 0; i < h_num_realloc; i++) {
             auto new_degree = h_queue_realloc[i].new_degree;
-            h_new_ptrs[i]   = mem_manager.insert(new_degree).second;
+            h_new_ptrs[i]   = reinterpret_cast<edge_t*>
+                                (mem_manager.insert(new_degree).second);
         }
         for (int i = 0; i < h_num_realloc; i++)
             mem_manager.remove(h_old_ptrs[i], h_queue_realloc[i].old_degree);
@@ -199,27 +200,28 @@ void cuStinger::insertEdgeBatch(BatchUpdate& batch_update,
 //==============================================================================
 //==============================================================================
 
+//optimized for KTruss
 void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     const unsigned BLOCK_SIZE = 256;
     size_t batch_size = batch_update.size();
 
-    vid_t     *d_unique;
+    /*vid_t     *d_unique;
     int       *d_counts;
     degree_t  *d_degree_old, *d_degree_new;
     byte_t    **d_ptrs_array;
-    int2      *d_tmp;
+    int2      *d_tmp;*/
     //--------------------------------------------------------------------------
     ////////////////
     // ALLOCATION //
     ////////////////
     vid_t* d_batch_src = batch_update.src_ptr();
     vid_t* d_batch_dst = batch_update.dst_ptr();
-    cuMalloc(d_counts, batch_size);
+    /*cuMalloc(d_counts, batch_size);
     cuMalloc(d_unique, batch_size);
     cuMalloc(d_degree_old, batch_size + 1);
     cuMalloc(d_degree_new, batch_size + 1);
     cuMalloc(d_tmp, _nE);
-    cuMalloc(d_ptrs_array, batch_size);
+    cuMalloc(d_ptrs_array, batch_size);*/
     //--------------------------------------------------------------------------
     //////////////
     // CUB INIT //
@@ -230,13 +232,13 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
                                                   d_unique, d_counts);
     //==========================================================================
     sort_cub.run();                        // batch sorting
-    cu::printArray(d_batch_src, batch_size);
-    cu::printArray(d_batch_dst, batch_size);
+    //cu::printArray(d_batch_src, batch_size);
+    //cu::printArray(d_batch_dst, batch_size);
 
     int num_uniques = runlength_cub.run();
 
-    std::cout << num_uniques << std::endl;
-    cu::printArray(d_counts, num_uniques, "d_counts\n");
+    //std::cout << num_uniques << std::endl;
+    //cu::printArray(d_counts, num_uniques, "d_counts\n");
 
     deleteEdgesKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(batch_size), BLOCK_SIZE >>>
@@ -248,16 +250,16 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
         (device_data(), d_unique, d_counts, num_uniques,
          d_degree_old, d_degree_new, d_ptrs_array);
 
-    cu::printArray(d_degree_old, num_uniques, "d_degree_old\n");
-    cu::printArray(d_degree_new, num_uniques, "d_degree_new\n");
+    //cu::printArray(d_degree_old, num_uniques, "d_degree_old\n");
+    //cu::printArray(d_degree_new, num_uniques, "d_degree_new\n");
 
     xlib::CubExclusiveSum<degree_t> prefixsum1(d_degree_old, num_uniques + 1);
     xlib::CubExclusiveSum<degree_t> prefixsum2(d_degree_new, num_uniques + 1);
     prefixsum1.run();
     prefixsum2.run();
 
-    cu::printArray(d_degree_old, num_uniques + 1, "d_degree_old\n");
-    cu::printArray(d_degree_new, num_uniques + 1, "d_degree_new\n");
+    //cu::printArray(d_degree_old, num_uniques + 1, "d_degree_old\n");
+    //cu::printArray(d_degree_new, num_uniques + 1, "d_degree_new\n");
 
     degree_t total_degree_old, total_degree_new;                //get the total
     cuMemcpyToHostAsync(d_degree_old + num_uniques, total_degree_old);
@@ -275,14 +277,18 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     int tmp_size_new = select.run_diff(make_int2(-1, -1));
     assert(total_degree_new == tmp_size_new);
 
-    std::cout << total_degree_new << " , " << tmp_size_new << "\n";
+    //std::cout << total_degree_new << " , " << tmp_size_new << "\n";
     //cu::printArray(d_tmp, total_degree_new, "d_tmp new\n");
 
     moveDataKernel2<BLOCK_SIZE, SMEM>
         <<< xlib::ceil_div<BLOCK_SIZE>(total_degree_new), BLOCK_SIZE >>>
         (d_degree_new, num_uniques + 1, d_tmp, d_ptrs_array);
 
-    cuFree(d_counts, d_unique, d_degree_old, d_degree_new, d_tmp, d_ptrs_array);
+    xlib::CubExclusiveSum<int> prefixsum3(d_counts, num_uniques + 1);
+    prefixsum3.run();
+
+    batch_update._d_offsets = d_counts;
+    //cuFree(d_counts, d_unique, d_degree_old, d_degree_new, d_tmp, d_ptrs_array);
 }
 
 } // namespace custinger

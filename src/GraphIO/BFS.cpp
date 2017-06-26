@@ -157,7 +157,7 @@ BFS<vid_t, eoff_t>::statistics(vid_t source) noexcept {
     _reset = false;
     return statistics;
 }
-
+/*
 template<typename vid_t, typename eoff_t>
 std::vector<vid_t> BFS<vid_t, eoff_t>::weaklyConnectedComponents() noexcept {
     if (!_reset)
@@ -198,7 +198,7 @@ std::vector<vid_t> BFS<vid_t, eoff_t>::weaklyConnectedComponents() noexcept {
     }
     _reset = false;
     return wcc_distr;
-}
+}*/
 
 template class BFS<int, int>;
 template class BFS<int64_t, int64_t>;

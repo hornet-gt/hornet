@@ -54,6 +54,7 @@ enum class BatchEnum { WEIGHTED = 1, PRINT = 2 };
 
 struct BatchProperty : xlib::PropertyClass<BatchEnum> {
     explicit BatchProperty() : xlib::PropertyClass<BatchEnum>() {}
+
     explicit BatchProperty(const BatchEnum& obj) :
                                xlib::PropertyClass<BatchEnum>(obj) {}
 };

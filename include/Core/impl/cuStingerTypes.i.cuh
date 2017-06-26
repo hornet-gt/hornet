@@ -57,7 +57,7 @@ __device__ __forceinline__
 Vertex::Vertex() {}*/
 
 __device__ __forceinline__
-degree_t Vertex::id() const {
+vid_t Vertex::id() const {
     return _id;
 }
 

@@ -57,6 +57,15 @@ struct cuStingerDevData {
 
     ///@brief number of vertices in the graph
     vid_t   nV;
+
+    /*__host__ __device__ __forceinline__
+    vid_t nV() const noexcept;
+
+    __host__ __device__ __forceinline__
+    eoff_t nE() const noexcept;
+
+    __device__ __forceinline__
+    Vertex vertex(vid_t index) const noexcept;*/
 };
 
 } // namespace custinger

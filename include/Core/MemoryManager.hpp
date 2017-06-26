@@ -70,8 +70,7 @@ template<typename T>
 using Container = std::vector<T>;
 
 template<degree_t BLOCK_ITEMS, degree_t BLOCKARRAY_ITEMS>
-using BitTreeContainer = Container< BitTree<edge_t, BLOCK_ITEMS,
-                                    BLOCKARRAY_ITEMS >>;
+using BitTreeContainer = Container< BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS> >;
 //------------------------------------------------------------------------------
 ///@cond
 template<degree_t  LOW = MIN_EDGES_PER_BLOCK,
@@ -115,12 +114,6 @@ auto tuple_gen(std::tuple<T...>) -> typename std::tuple<T...> {
 class MemoryManager {
 public:
     /**
-     * @brief Default Costrustor
-     * @details It creates an empty *BlockArray* container for each valid
-     *          *block* size
-     */
-
-    /**
      * @brief Free the host memory reserved for all *BlockArrays*
      */
     void free_host_ptrs() noexcept;
@@ -134,7 +127,7 @@ public:
      * @return Pair < `host_block_ptr`, `device_block_ptr` > of the
      *         corresponding *block*
      */
-    std::pair<edge_t*, edge_t*> insert(degree_t degree) noexcept;
+    std::pair<byte_t*, byte_t*> insert(degree_t degree) noexcept;
 
     /**
      * @brief Remove the *block* pointed by `ptr`
@@ -143,7 +136,7 @@ public:
      * @warning the pointer must be previously inserted, otherwise an error is
      *          raised (debug mode)
      */
-    void remove(edge_t* ptr, degree_t degree) noexcept;
+    void remove(void* device_ptr, degree_t degree) noexcept;
 
     /**
      * @brief Number of *BlockArrays*
@@ -169,7 +162,7 @@ public:
      *           \f$0 \le \text{block_index} < \text{total_block_arrays} \f$,
      *           otherwise an error is raised (debug mode)
      */
-    std::pair<edge_t*, edge_t*> get_blockarray_ptr(int block_index) noexcept;
+    std::pair<byte_t*, byte_t*> get_blockarray_ptr(int block_index) noexcept;
 
     /**
      * @brief Deallocate all host and device *BlockArrays*
@@ -191,4 +184,4 @@ private:
 
 } // namespace custinger
 
-#include "MemoryManager.i.hpp"
+#include "impl/MemoryManager.i.hpp"

@@ -46,7 +46,7 @@ namespace xlib {
 
 class Progress {
 public:
-    explicit Progress(size_t total) noexcept;
+    explicit Progress(size_t total)    noexcept;
     void     next    (size_t progress) noexcept;
     void     per_cent(size_t progress) const noexcept;
 private:
@@ -80,9 +80,9 @@ private:
 
     Progress _progress;
     char*    _mmap_ptr   { nullptr };
-    size_t   _partial    {};
+    size_t   _partial    { 0 };
     size_t   _file_size;
-    int      _fd         {};
+    int      _fd         { 0 };
     bool     _print;
 };
 

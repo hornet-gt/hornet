@@ -6,7 +6,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date June, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -57,15 +57,27 @@ using ExtraETypeSize = typename xlib::TupleToTypeSize<EdgeTypes>::type;
 using    VTypeSizePS = typename xlib::ExcPrefixSum<VTypeSize>::type;
 using    ETypeSizePS = typename xlib::ExcPrefixSum<ETypeSize>::type;
 
+///@internal @brief Array of all vertex field (type) sizes
 extern const VTypeSize      VTYPE_SIZE;
+///@internal @brief Array of all edge field (type) sizes
 extern const ETypeSize      ETYPE_SIZE;
+///@internal @brief Array of extra vertex field (type) sizes
 extern const ExtraVTypeSize EXTRA_VTYPE_SIZE;
+///@internal @brief Array of extra edge field (type) sizes
 extern const ExtraETypeSize EXTRA_ETYPE_SIZE;
 
+///@internal @brief Array of exclusive prefix-sum of all vertex field (type)
+///                 sizes
 extern const VTypeSizePS    VTYPE_SIZE_PS;
+///@internal @brief Array of exclusive prefix-sum of all edge field (type) sizes
 extern const ETypeSizePS    ETYPE_SIZE_PS;
 
-const unsigned NUM_EXTRA_VTYPES = std::tuple_size<VertexTypes>::value;
-const unsigned NUM_EXTRA_ETYPES = std::tuple_size<EdgeTypes>::value;
+
+///@internal @brief Number of all vertex fields (types)
 const unsigned       NUM_VTYPES = std::tuple_size<vertex_t>::value;
+///@internal @brief Number of all edge fields (types)
 const unsigned       NUM_ETYPES = std::tuple_size<edge_t>::value;
+///@internal @brief Number of extra vertex fields (types)
+const unsigned NUM_EXTRA_VTYPES = std::tuple_size<VertexTypes>::value;
+///@internal @brief Number of extra vertex fields (types)
+const unsigned NUM_EXTRA_ETYPES = std::tuple_size<EdgeTypes>::value;

@@ -87,16 +87,22 @@ private:
  * @brief Batch update class
  */
 class BatchUpdate {
+    friend class cuStinger;
 public:
     /**
      * @brief default costructor
      * @param[in] batch_size number of edges of the batch
      */
-    explicit BatchUpdate(BatchInit batch_init) noexcept;
+    explicit BatchUpdate(const BatchInit& batch_init) noexcept;
 
+    explicit BatchUpdate(size_t size) noexcept;
+
+    //copy costructor to copy the batch to the kernel
     BatchUpdate(const BatchUpdate& obj) noexcept;
 
     ~BatchUpdate() noexcept;
+
+    void insert(const BatchInit& batch_init) noexcept;
 
 #if defined(__NVCC__)
 
@@ -128,13 +134,14 @@ public:
 #endif
 
 private:
+    byte_t*    _pinned_ptr    { nullptr };
     byte_t*    _d_edge_ptrs[ NUM_ETYPES + 1 ] = {};
     eoff_t*    _d_offsets     { nullptr };
-    const int  _batch_size    { 0 };
+    int        _batch_size    { 0 };
     const int  _batch_pitch   { 0 }; //number of edges to the next field
     const bool _enable_delete { true };
 };
 
 } // namespace custinger
 
-#include "BatchUpdate.i.cuh"
+#include "impl/BatchUpdate.i.cuh"

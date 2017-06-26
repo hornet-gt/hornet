@@ -44,9 +44,6 @@
 namespace custinger {
 
 class Edge;
-class VertexSet;
-class VertexIt;
-class EdgeIt;
 
 //==============================================================================
 
@@ -68,7 +65,7 @@ public:
      * @return id of the vertex
      */
     __device__ __forceinline__
-    degree_t id() const;
+    vid_t id() const;
 
     /**
      * @brief degree of the vertex
@@ -102,7 +99,7 @@ public:
      * The behavior is undefined otherwise.
      */
     __device__ __forceinline__
-    Edge edge(eoff_t index) const;
+    Edge edge(degree_t index) const;
 
     /**
      * @internal
@@ -122,12 +119,12 @@ public:
 
     /**
      * @internal
-     * @brief store an edge at a specific index in the adjacency array
-     * @param[in] edge edge to store
-     * @param[in] index where substite the edge
+     * @brief Store an edge at a specific position in the adjacency array
+     * @param[in] edge Edge to store
+     * @param[in] pos Position where substite the edge
      */
     __device__ __forceinline__
-    void store(const Edge& edge, degree_t index);
+    void store(const Edge& edge, degree_t pos);
 
     __device__ __forceinline__
     vid_t* edge_ptr() const;
@@ -165,7 +162,7 @@ class Edge {
     using EnableTimeStamp2 = typename std::conditional<(NUM_ETYPES > 3),
                                                         int, void>::type;
 
-    static_assert(std::is_same<WeightT, int>::value, "T error");
+    static_assert(std::is_same<WeightT, int>::value, "T error");//???
 public:
     /**
      * @brief source of the edge
@@ -180,6 +177,20 @@ public:
      */
     __device__ __forceinline__
     vid_t dst() const;
+
+    /**
+     * @brief Source vertex of the edge
+     * @return Source vertex
+     */
+    //__device__ __forceinline__
+    //Vertex src() const;
+
+    /**
+     * @brief Destination vertex of the edge
+     * @return Destination vertex
+     */
+    //__device__ __forceinline__
+    //Vertex dst() const;
 
     /**
      * @brief weight of the edge (if it exists)
@@ -248,33 +259,10 @@ public:
     Edge(byte_t* block_ptr, degree_t index, degree_t limit);
 
 protected:
-    vid_t    _dst;
+    vid_t   _dst;
     byte_t* _ptrs[NUM_EXTRA_ETYPES];
-};
-
-//==============================================================================
-
-class VertexSet {
-public:
-    __device__ __forceinline__
-    VertexIt begin() const;
-
-    __device__ __forceinline__
-    VertexIt end() const;
-};
-
-//==============================================================================
-
-class VertexIt {
-
-};
-
-//================================================================s==============
-
-class EdgeIt {
-
 };
 
 } // namespace custinger
 
-#include "cuStingerTypes.i.cuh"
+#include "impl/cuStingerTypes.i.cuh"

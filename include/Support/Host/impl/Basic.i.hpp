@@ -101,9 +101,9 @@ inline bool is_integer(const std::string& str) {
 }
 
 //------------------------------------------------------------------------------
-                    
+
 template<typename Enum>
-PropertyClass<Enum>::PropertyClass(Enum value) noexcept :
+PropertyClass<Enum>::PropertyClass(const Enum& value) noexcept :
                         value(static_cast<int>(value)) {}
 
 template<typename Enum>

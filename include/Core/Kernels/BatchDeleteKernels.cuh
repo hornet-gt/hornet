@@ -73,7 +73,7 @@ void deleteEdgesKernel(cuStingerDevData data,
 __global__
 void collectDataKernel(cuStingerDevData data,
                        const vid_t*    __restrict__ d_unique,
-                       const degree_t* __restrict__ d_count,
+                       degree_t*       __restrict__ d_count,
                        int num_uniques,
                        degree_t* __restrict__ d_degree_old,
                        degree_t* __restrict__ d_degree_new,
@@ -98,6 +98,8 @@ void collectDataKernel(cuStingerDevData data,
         d_degree_old[num_uniques] = 0;
     if (id == 1)
         d_degree_new[num_uniques] = 0;
+    if (id == 2)
+        d_count[num_uniques] = 0;
 }
 
 template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK>

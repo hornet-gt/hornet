@@ -114,7 +114,7 @@ vid_t WCC<vid_t, eoff_t>::num_trivial() const noexcept {
 }
 
 template<typename vid_t, typename eoff_t>
-const std::vector<vid_t>& WCC<vid_t, eoff_t>::vector() const noexcept {
+const std::vector<vid_t>& WCC<vid_t, eoff_t>::list() const noexcept {
     return _wcc_vector;
 }
 

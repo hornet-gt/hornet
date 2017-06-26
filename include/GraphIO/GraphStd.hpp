@@ -64,7 +64,7 @@ public:
     class Vertex {
         template<typename T, typename R> friend class GraphStd;
     public:
-        vid_t     id()         const noexcept;
+        vid_t    id()         const noexcept;
         degree_t out_degree() const noexcept;
         degree_t in_degree()  const noexcept;
 
@@ -181,9 +181,9 @@ public:
     VerticesContainer V { *this };
     EdgesContainer    E { *this };
 
-    explicit GraphStd()                                    noexcept = default;
+    explicit GraphStd()                          noexcept = default;
 
-    explicit GraphStd(Structure::Enum Structure)           noexcept;
+    explicit GraphStd(Structure::Enum Structure) noexcept;
 
     explicit GraphStd(const char* filename,
                       Property prop = Property(Property::PRINT)) noexcept;
@@ -195,6 +195,7 @@ public:
                       const vid_t* csr_edges, eoff_t nE) noexcept;
 
     virtual ~GraphStd() noexcept final;                                 //NOLINT
+    //--------------------------------------------------------------------------
 
     Vertex   get_vertex(vid_t index)  const noexcept;
     Edge     get_edge  (eoff_t index) const noexcept;

@@ -65,7 +65,7 @@ public:
     dist_t eccentricity()  const noexcept;
 
     std::vector<std::array<vid_t, 4>> statistics(vid_t source) noexcept;
-    std::vector<vid_t>                weaklyConnectedComponents() noexcept;
+    //std::vector<vid_t> weaklyConnectedComponents() noexcept;
 
     vid_t radius() noexcept;
     vid_t diameter() noexcept;
@@ -73,10 +73,10 @@ private:
     const dist_t INF = std::numeric_limits<dist_t>::max();
 
     const GraphStd<vid_t, eoff_t>&  _graph;
-    xlib::Bitmask      _bitmask;
-    xlib::Queue<vid_t> _queue;
-    dist_t*            _distances { nullptr };
-    bool               _reset     { true };
+    xlib::Bitmask                   _bitmask;
+    xlib::Queue<vid_t>              _queue;
+    dist_t*                         _distances { nullptr };
+    bool                            _reset     { true };
 };
 
 } // namespace graph

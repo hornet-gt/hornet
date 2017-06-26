@@ -40,23 +40,23 @@
 
 namespace custinger {
 
-template<typename T, unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
-BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>::BitTree() noexcept :
+template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
+BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>::BitTree() noexcept :
                                               _last_level(nullptr),
                                               _h_ptr(nullptr),
                                               _d_ptr(nullptr),
                                               _size(0) {
-    _h_ptr = new T[BLOCKARRAY_ITEMS];
-    cuMalloc(_d_ptr, BLOCKARRAY_ITEMS);
-    cuMemset0xFF(_d_ptr, BLOCKARRAY_ITEMS);
+    _h_ptr = new byte_t[BLOCKARRAY_ITEMS * sizeof(edge_t)];
+    cuMalloc(_d_ptr, BLOCKARRAY_ITEMS * sizeof(edge_t));
+    //cuMemset0xFF(_d_ptr, BLOCKARRAY_ITEMS);
     const word_t EMPTY = static_cast<word_t>(-1);
     std::fill(_array, _array + NUM_WORDS, EMPTY);
     _last_level = _array + INTERNAL_WORDS;
 }
 
-template<typename T, unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
-BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>
-::BitTree(BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>&& obj) noexcept :
+template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
+BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>
+::BitTree(BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>&& obj) noexcept :
                                 _last_level(_array + INTERNAL_WORDS),
                                 _h_ptr(obj._h_ptr),
                                 _d_ptr(obj._d_ptr),
@@ -69,15 +69,15 @@ BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>
     obj._size       = 0;
 }
 
-template<typename T, unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
-BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>&
-BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>
-::operator=(BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>&& obj) noexcept {
+template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
+BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>&
+BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>
+::operator=(BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>&& obj) noexcept {
     std::copy(obj._array, obj._array + NUM_WORDS, _array);
     _last_level = _array + INTERNAL_WORDS;
-    _d_ptr   = obj._d_ptr;
-    _h_ptr   = obj._h_ptr;
-    _size    = obj._size;
+    _d_ptr      = obj._d_ptr;
+    _h_ptr      = obj._h_ptr;
+    _size       = obj._size;
 
     obj._last_level = nullptr;
     obj._h_ptr      = nullptr;
@@ -86,25 +86,24 @@ BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>
     return *this;
 }
 
-template<typename T, unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
-BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>::~BitTree() noexcept {
+template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
+BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>::~BitTree() noexcept {
     cuFree(_d_ptr);
     delete[] _h_ptr;
     _d_ptr = nullptr;
-
 }
 
-template<typename T, unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
-void BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>::free_host_ptr() noexcept {
+template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
+void BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>::free_host_ptr() noexcept {
     delete[] _h_ptr;
     _h_ptr = nullptr;
 }
 
 //------------------------------------------------------------------------------
 
-template<typename T, unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
-inline std::pair<T*, T*>
-BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>::insert() noexcept {
+template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
+inline std::pair<byte_t*, byte_t*>
+BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>::insert() noexcept {
     assert(_size < NUM_BLOCKS && "tree is full");
     _size++;
     //find the first empty location
@@ -126,31 +125,32 @@ BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>::insert() noexcept {
         parent_traverse(index, lambda);
     }
     int block_index = index - INTERNAL_BITS;
-    return std::pair<T*, T*>(_h_ptr + block_index * BLOCK_ITEMS,
-                             _d_ptr + block_index * BLOCK_ITEMS);
+    return std::pair<byte_t*, byte_t*>(_h_ptr + block_index * BLOCK_ITEMS,
+                                       _d_ptr + block_index * BLOCK_ITEMS);
 }
 
 //------------------------------------------------------------------------------
 
-template<typename T, unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
-inline void BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>
-::remove(T* to_delete) noexcept {
+template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
+inline void BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>
+::remove(void* device_ptr) noexcept {
     assert(_size != 0 && "tree is empty");
     _size--;
-    int p_index = remove_aux(to_delete) + INTERNAL_BITS;
+    int p_index = remove_aux(device_ptr) + INTERNAL_BITS;
+
     parent_traverse(p_index, [&](int index) {
-            bool ret = _array[index / WORD_SIZE] != 0;
-            xlib::write_bit(_array, index);
-            return ret;
-        });
+                                bool ret = _array[index / WORD_SIZE] != 0;
+                                xlib::write_bit(_array, index);
+                                return ret;
+                            });
 }
 
 //------------------------------------------------------------------------------
 
-template<typename T, unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
-inline int BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>
-::remove_aux(T* to_delete) noexcept {
-    unsigned diff = std::distance(_d_ptr, to_delete);
+template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
+inline int BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>
+::remove_aux(void* device_ptr) noexcept {
+    unsigned diff = std::distance(_d_ptr, static_cast<byte_t*>(device_ptr));
     int     index = diff / BLOCK_ITEMS;
     assert(index < NUM_BLOCKS);
     assert(xlib::read_bit(_last_level, index) == 0 && "not found");
@@ -159,9 +159,9 @@ inline int BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>
     return index;
 }
 
-template<typename T, unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
+template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
 template<typename Lambda>
-inline void BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>
+inline void BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>
 ::parent_traverse(int index, const Lambda& lambda) noexcept {
     index /= WORD_SIZE;
     while (index != 0) {
@@ -172,31 +172,30 @@ inline void BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>
     }
 }
 
-template<typename T, unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
-inline int BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>::size() const noexcept {
+template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
+inline int BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>::size() const noexcept {
     return _size;
 }
 
-template<typename T, unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
-inline bool BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>
-::is_full() const noexcept {
+template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
+inline bool BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>::is_full() const noexcept {
     return _size == NUM_BLOCKS;
 }
 
-template<typename T, unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
-inline std::pair<T*, T*>
-BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>::base_address() const noexcept {
-    return std::pair<T*, T*>(_h_ptr, _d_ptr);
+template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
+inline std::pair<byte_t*, byte_t*>
+BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>::base_address() const noexcept {
+    return std::pair<byte_t*, byte_t*>(_h_ptr, _d_ptr);
 }
 
-template<typename T, unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
-inline bool BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>
-::belong_to(T* to_check) const noexcept {
+template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
+inline bool BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>
+::belong_to(void* to_check) const noexcept {
     return to_check >= _d_ptr && to_check < _d_ptr + BLOCKARRAY_ITEMS;
 }
 
-template<typename T, unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
-void BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>::print() const noexcept {
+template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
+void BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>::print() const noexcept {
     const int ROW_SIZE = 64;
     int          count = WORD_SIZE;
     auto       tmp_ptr = _array;
@@ -220,15 +219,15 @@ void BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>::print() const noexcept {
     std::cout << std::endl;
 }
 
-template<typename T, unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
-void BitTree<T, BLOCK_ITEMS, BLOCKARRAY_ITEMS>::statistics() const noexcept {
+template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
+void BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>::statistics() const noexcept {
     std::cout << "\nBitTree Statistics:\n"
               << "\n     BLOCK_ITEMS: " << BLOCK_ITEMS
               << "\nBLOCKARRAY_ITEMS: " << BLOCKARRAY_ITEMS
               << "\n      NUM_BLOCKS: " << NUM_BLOCKS
-              << "\n          type T: " << xlib::type_name<T>()
-              << "\n       sizeof(T): " << sizeof(T)
-              << "\n   BLOCK_SIZE(b): " << BLOCK_ITEMS * sizeof(T) << "\n"
+              << "\n          type T: " << xlib::type_name<edge_t>()
+              << "\n       sizeof(T): " << sizeof(edge_t)
+              << "\n   BLOCK_SIZE(b): " << BLOCK_ITEMS * sizeof(edge_t) << "\n"
               << "\n      NUM_LEVELS: " << NUM_LEVELS
               << "\n       WORD_SIZE: " << WORD_SIZE
               << "\n   INTERNAL_BITS: " << INTERNAL_BITS

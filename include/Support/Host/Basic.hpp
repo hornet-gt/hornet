@@ -156,7 +156,7 @@ template<typename Enum>
 class PropertyClass {
 public:
     explicit PropertyClass() noexcept = default;
-    explicit PropertyClass(Enum value) noexcept;
+    explicit PropertyClass(const Enum& value) noexcept;
 
     PropertyClass operator|(const PropertyClass& obj) const noexcept;
     bool          operator&(const PropertyClass& obj) const noexcept;

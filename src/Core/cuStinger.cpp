@@ -77,9 +77,18 @@ cuStinger::~cuStinger() noexcept {
         delete[] _csr_offsets;
         delete[] _csr_edges;
     }
+    cuFree(d_counts, d_unique, d_degree_old, d_degree_new, d_tmp, d_ptrs_array);
 }
 
 void cuStinger::initialize() noexcept {
+    //! KTRUSS !
+    cuMalloc(d_counts, _nV + 1);
+    cuMalloc(d_unique, _nV);
+    cuMalloc(d_degree_old, _nV + 1);
+    cuMalloc(d_degree_new, _nV + 1);
+    cuMalloc(d_tmp, _nE);
+    cuMalloc(d_ptrs_array, _nV);
+
     auto edge_data_ptrs = _custinger_init._edge_data_ptrs;
     auto    vertex_data = _custinger_init._vertex_data_ptrs;
     const byte_t* h_vertex_ptrs[NUM_VTYPES];
@@ -115,9 +124,10 @@ void cuStinger::initialize() noexcept {
             max_degree = degree;
         }
         const auto&   mem_data = mem_manager.insert(degree);
-        h_vertex_basic_data[i] = pair_t(mem_data.second, degree);
+        h_vertex_basic_data[i] = pair_t(reinterpret_cast<edge_t*>
+                                        (mem_data.second), degree);
 
-        byte_t*   h_blockarray = reinterpret_cast<byte_t*>(mem_data.first);
+        byte_t*   h_blockarray = mem_data.first;
         size_t          offset = _csr_offsets[i];
 
         #pragma unroll

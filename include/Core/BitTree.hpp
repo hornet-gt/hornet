@@ -60,7 +60,7 @@ namespace custinger {
  *
  * @pre BLOCK_ITEMS \f$\le\f$ BLOCKARRAY_ITEMS
  */
-template<typename T, unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
+template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
 class BitTree {
     using word_t = unsigned;
     static_assert(BLOCK_ITEMS <= BLOCKARRAY_ITEMS, "BitTree Constrains");
@@ -88,14 +88,14 @@ public:
      * @details Find the first empty *block* within the *BlockArray*
      * @return pair < host_block_ptr, device_block_ptr >
      */
-    std::pair<T*, T*> insert() noexcept;
+    std::pair<byte_t*, byte_t*> insert() noexcept;
 
     /**
      * @brief Remove a *block*
-     * @details Remove the *block* pointed by `to_delete` pointer
-     * @param[in] to_delete pointer to the *block* to delete
+     * @details Remove the *block* pointed by `device_ptr` pointer
+     * @param[in] device_ptr pointer to the *block* to delete
      */
-    void remove(T* to_delete) noexcept;
+    void remove(void* device_ptr) noexcept;
 
     /**
      * @brief Size of the *BitTree*
@@ -113,16 +113,16 @@ public:
      * @brief Base address of the *BlockArray*
      * @return Pair < `host_block_ptr`, `device_block_ptr` > of the *BlockArray*
      */
-    std::pair<T*, T*> base_address() const noexcept;
+    std::pair<byte_t*, byte_t*> base_address() const noexcept;
 
     /**
-     * @brief Check if a particular *block* address belong to the actual
+     * @brief Check if a particular *block* device address belong to the actual
      *        *BlockArray*
      * @param[in] ptr pointer to check
      * @return `true` if `ptr` belong to *BitTree*  the actual *BlockArray*,
      *         `false` otherwise
      */
-    bool belong_to(T* ptr) const noexcept;
+    bool belong_to(void* device_ptr) const noexcept;
 
     /**
      * @brief Print BitTree  internal representation
@@ -160,11 +160,11 @@ private:
 
     word_t  _array[NUM_WORDS];
     word_t* _last_level;
-    T*      _h_ptr;
-    T*      _d_ptr;
+    byte_t* _h_ptr;
+    byte_t* _d_ptr;
     size_t  _size;
 
-    int remove_aux(T* to_delete) noexcept;
+    int remove_aux(void* device_ptr) noexcept;
 
     template<typename Lambda>
     void parent_traverse(int index, const Lambda& lambda) noexcept;
@@ -172,4 +172,4 @@ private:
 
 } // namespace custinger
 
-#include "BitTree.i.hpp"
+#include "impl/BitTree.i.hpp"

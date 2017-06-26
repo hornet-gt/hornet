@@ -75,6 +75,16 @@ private:
 
 //==============================================================================
 
+void callDeviceDifferenceTriangles(const custinger::cuStinger& custinger,
+                                   const custinger::BatchUpdate& batch_update,
+                                   triangle_t* __restrict__ outPutTriangles,
+                                   int threads_per_intersection,
+                                   int num_intersec_perblock,
+                                   int shifter,
+                                   int thread_blocks,
+                                   int blockdim,
+                                   bool deletion);
+
 namespace ktruss_operators {
 
 __device__ __forceinline__

@@ -15,17 +15,6 @@ void kTrussOneIteration(cuStinger& custinger,
                         int blockdim,
                         KTrussData* __restrict__ devData);
 
-void callDeviceDifferenceTriangles(
-                                cuStinger& custinger,
-                                custinger::BatchUpdate& batch_update,
-                                const triangle_t* __restrict__ outPutTriangles,
-                                int threads_per_intersection,
-                                int num_intersec_perblock,
-                                int shifter,
-                                int thread_blocks,
-                                int blockdim,
-                                bool deletion);
-
 KTruss::KTruss(cuStinger& custinger) : StaticAlgorithm(custinger),
                                         hostKTrussData(custinger) {}
 

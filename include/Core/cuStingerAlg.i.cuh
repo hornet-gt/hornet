@@ -33,6 +33,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
+#include <cstring>
+
 namespace custinger_alg {
 
 inline StaticAlgorithm::StaticAlgorithm(custinger::cuStinger& custinger_)
@@ -42,15 +44,17 @@ inline StaticAlgorithm::StaticAlgorithm(custinger::cuStinger& custinger_)
 
 inline StaticAlgorithm::~StaticAlgorithm() noexcept {
     cuFree(_d_ptr);
+    delete[] reinterpret_cast<char*>(_h_ptr);
 }
 
 template<typename T>
 inline T* StaticAlgorithm::register_data(T& data) noexcept {
     if (_is_registered)
-        ERROR("register_data() must be called only one times")
+        ERROR("register_data() can be called only one times")
     _is_registered = true;
     _data_size     = sizeof(T);
-    _h_ptr         = &data;
+    _h_ptr         = reinterpret_cast<void*>(new char[sizeof(T)]);
+    std::memcpy(_h_ptr, &data, sizeof(T));
     SAFE_CALL( cudaMalloc(&_d_ptr, _data_size) )
     return reinterpret_cast<T*>(_d_ptr);
 }

@@ -9,7 +9,7 @@ void runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
               const std::string& graphName);
 
 int main(int argc, char* argv[]) {
-    graph::GraphStd<vid_t, eoff_t> graph;
+    graph::GraphStd<vid_t, eoff_t> graph(graph::Structure::UNDIRECTED);
     graph.read(argv[1]);
 
     cuStingerInit custinger_init(graph.nV(), graph.nE(), graph.out_offsets(),
@@ -21,7 +21,10 @@ int main(int argc, char* argv[]) {
     if (argc >= 4)
         maxk = std::stoi(argv[3]);
 
+    auto weights = new int[graph.nE()]();
+    custinger_init.insertEdgeData(weights);
     runKtruss(custinger_init, alg, maxk, graph.name());
+    delete[] weights;
 }
 
 //==============================================================================

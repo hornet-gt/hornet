@@ -430,7 +430,7 @@ void devicecuStingerKTruss(custinger::cuStingerDevData custinger,
             //indexBinarySearch(custinger->dVD->getAdj()[dest]->dst
             //                  destLen, src,pos);
             indexBinarySearch(Vertex(custinger, dest).edge_ptr(),
-                              destLen, src,pos);
+                              destLen, src, pos);
 
             pos = devData->offsetArray[dest] + pos;
             atomicAdd(devData->trianglePerEdge + pos, triFound);
@@ -678,8 +678,8 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevData custinger,
 
     vid_t     adj_offset = tx >> shifter;
     vid_t* firstFoundPos = firstFound + (adj_offset << shifter);
-    for (vid_t edge = this_mp_start+adj_offset; edge < this_mp_stop;
-            edge+=number_blocks) {
+    for (vid_t edge = this_mp_start + adj_offset; edge < this_mp_stop;
+            edge += number_blocks) {
         //if (batch_update->getIndDuplicate()[edge]) // this means it's a duplicate edge
         //    continue;
 
@@ -690,9 +690,9 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevData custinger,
 
         //vid_t  srcLen = d_off[src + 1] - d_off[src];
         //vid_t destLen = custinger->dVD->getUsed()[dest];
-        vid_t  srcLen = Vertex(custinger, src).degree();
-        vid_t destLen = Vertex(custinger, dest).degree();
-
+        //vid_t  srcLen = Vertex(custinger, src).degree(); ///???
+        vid_t  srcLen = d_off[src + 1] - d_off[src];
+        vid_t destLen = Vertex(custinger, dest).degree();///???
 
         bool avoidCalc = src == dest || srcLen == 0;
         if (avoidCalc)
@@ -700,7 +700,7 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevData custinger,
 
         const vid_t*      src_ptr = d_ind + d_off[src];
         //const vid_t* src_mask_ptr = batch_update->getIndDuplicate() + d_off[src];//???
-        const vid_t* src_mask_ptr = src_ptr; ///???
+        const vid_t* src_mask_ptr = nullptr;
         //const vid_t*      dst_ptr = custinger->dVD->getAdj()[dest]->dst;
         const vid_t*      dst_ptr = Vertex(custinger, dest).edge_ptr();
 
@@ -717,13 +717,13 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevData custinger,
 
         // triangle_t tCount=0;
         triangle_t tCount = sourceSmaller ?
-                            count_trianglesAsymmetric<true,false,true,true>
+                            count_trianglesAsymmetric<false,false,true,true>
                                 (custinger, small, small_ptr, small_len,
                                   large, large_ptr, large_len,
                                  threads_per_block,firstFoundPos,
                                  tx % threads_per_block, outPutTriangles,
                                    small_mask_ptr, large_mask_ptr, 1,src,dest) :
-                            count_trianglesAsymmetric<false,true,true,true>
+                            count_trianglesAsymmetric<false,false,true,true>
                                 (custinger, small, small_ptr, small_len,
                                  large, large_ptr, large_len,
                                    threads_per_block, firstFoundPos,

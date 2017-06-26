@@ -15,12 +15,19 @@
 using namespace custinger;
 using namespace timer;
 
+void exec(int argc, char* argv[]);
+
 /**
  * @brief Example tester for cuSTINGER.
  * Loads an input graph, creates a batches of edges, inserts them into the
  * graph, and then removes them from the graph.
  */
 int main(int argc, char* argv[]) {
+    exec(argc, argv);
+    cudaDeviceReset();
+}
+
+void exec(int argc, char* argv[]) {
     xlib::deviceInfo();
     //Param param(argc, argv);
 
@@ -89,6 +96,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "\n\n";
     custiger_graph.print();
+
     //custiger_graph.print();
 
     //Timer<DEVICE> TM;

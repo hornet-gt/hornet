@@ -203,20 +203,17 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     const unsigned BLOCK_SIZE = 256;
     size_t batch_size = batch_update.size();
 
-    vid_t     *d_batch_src_sorted, *d_batch_dst_sorted, *d_unique;
+    vid_t     *d_unique;
     int       *d_counts;
     degree_t  *d_degree_old, *d_degree_new;
     byte_t    **d_ptrs_array;
-    TmpData   *d_tmp;
-
+    int2      *d_tmp;
     //--------------------------------------------------------------------------
     ////////////////
     // ALLOCATION //
     ////////////////
     vid_t* d_batch_src = batch_update.src_ptr();
     vid_t* d_batch_dst = batch_update.dst_ptr();
-    cuMalloc(d_batch_src_sorted, batch_size);
-    cuMalloc(d_batch_dst_sorted, batch_size);
     cuMalloc(d_counts, batch_size);
     cuMalloc(d_unique, batch_size);
     cuMalloc(d_degree_old, batch_size + 1);
@@ -272,18 +269,20 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
         <<< xlib::ceil_div<BLOCK_SIZE>(total_degree_old), BLOCK_SIZE >>>
         (d_degree_old, num_uniques + 1, d_ptrs_array, d_tmp);
 
-    cu::printArray(d_tmp, total_degree_old, "d_tmp old\n");
+    //cu::printArray(d_tmp, total_degree_old, "d_tmp old\n");
 
-    xlib::CubSelect<degree_t> select(d_tmp, total_degree_old);
-    int tmp_size_new = select.run_diff(-1);
+    xlib::CubSelect<int2> select(d_tmp, total_degree_old);
+    int tmp_size_new = select.run_diff(make_int2(-1, -1));
     assert(total_degree_new == tmp_size_new);
 
     std::cout << total_degree_new << " , " << tmp_size_new << "\n";
-    cu::printArray(d_tmp, total_degree_new, "d_tmp new\n");
+    //cu::printArray(d_tmp, total_degree_new, "d_tmp new\n");
 
     moveDataKernel2<BLOCK_SIZE, SMEM>
         <<< xlib::ceil_div<BLOCK_SIZE>(total_degree_new), BLOCK_SIZE >>>
         (d_degree_new, num_uniques + 1, d_tmp, d_ptrs_array);
+
+    cuFree(d_counts, d_unique, d_degree_old, d_degree_new, d_tmp, d_ptrs_array);
 }
 
 } // namespace custinger

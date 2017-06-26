@@ -437,5 +437,6 @@ template class CubSortPairs2<int, int>;
 template class PartitionFlagged<int>;
 template class CubArgMax<int>;
 template class CubSelect<int>;
+template class CubSelect<int2>;
 
 } //namespace xlib

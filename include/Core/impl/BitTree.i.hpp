@@ -119,14 +119,16 @@ BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>::insert() noexcept {
 
     xlib::delete_bit(_array, index);
     if (_array[index / WORD_SIZE] == 0) {
-        auto lambda = [&](int index) { xlib::delete_bit(_array, index);
-                                       return _array[index / WORD_SIZE] != 0;
-                                     };
+        const auto& lambda = [&](int index) {
+                                          xlib::delete_bit(_array, index);
+                                          return _array[index / WORD_SIZE] != 0;
+                                        };
         parent_traverse(index, lambda);
     }
     int block_index = index - INTERNAL_BITS;
-    return std::pair<byte_t*, byte_t*>(_h_ptr + block_index * BLOCK_ITEMS,
-                                       _d_ptr + block_index * BLOCK_ITEMS);
+    assert(block_index >= 0 && block_index < BLOCKARRAY_ITEMS);
+    return std::pair<byte_t*, byte_t*>(_h_ptr + block_index * BLOCK_ITEMS * sizeof(vid_t),
+                                       _d_ptr + block_index * BLOCK_ITEMS * sizeof(vid_t));
 }
 
 //------------------------------------------------------------------------------
@@ -150,7 +152,8 @@ inline void BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>
 template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
 inline int BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>
 ::remove_aux(void* device_ptr) noexcept {
-    unsigned diff = std::distance(_d_ptr, static_cast<byte_t*>(device_ptr));
+    unsigned diff = std::distance(reinterpret_cast<edge_t*>(_d_ptr),
+                                  static_cast<edge_t*>(device_ptr));
     int     index = diff / BLOCK_ITEMS;
     assert(index < NUM_BLOCKS);
     assert(xlib::read_bit(_last_level, index) == 0 && "not found");
@@ -178,7 +181,7 @@ inline int BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>::size() const noexcept {
 }
 
 template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
-inline bool BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>::is_full() const noexcept {
+inline bool BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>::full() const noexcept {
     return _size == NUM_BLOCKS;
 }
 
@@ -191,7 +194,7 @@ BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>::base_address() const noexcept {
 template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
 inline bool BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>
 ::belong_to(void* to_check) const noexcept {
-    return to_check >= _d_ptr && to_check < _d_ptr + BLOCKARRAY_ITEMS;
+    return to_check >= _d_ptr && to_check < _d_ptr + BLOCKARRAY_ITEMS * sizeof(edge_t);
 }
 
 template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>

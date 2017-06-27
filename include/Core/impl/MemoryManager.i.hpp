@@ -46,7 +46,7 @@ struct MMInsert {
                    std::pair<byte_t*, byte_t*>& ret) {
         auto& container = std::get<INDEX>(bit_tree_set);
         for (auto& it : container) {
-            if (!it.is_full()) {
+            if (!it.full()) {
                 ret = it.insert();
                 return;
             }
@@ -57,6 +57,7 @@ struct MMInsert {
         container.push_back(BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>{});
         ret = container.back().insert();
         num_blockarrays++;
+        assert(BLOCK_ITEMS <= EDGES_PER_BLOCKARRAY);
     }
 };
 

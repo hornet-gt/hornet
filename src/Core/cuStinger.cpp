@@ -111,7 +111,7 @@ void cuStinger::initialize() noexcept {
     ///////////////////////////////////
     using pair_t = typename std::pair<edge_t*, degree_t>;
     auto h_vertex_basic_data = new pair_t[_nV];
-
+    
     degree_t max_degree = -1;
     for (vid_t i = 0; i < _nV; i++) {
         auto degree = _csr_offsets[i + 1] - _csr_offsets[i];
@@ -138,11 +138,13 @@ void cuStinger::initialize() noexcept {
                         edge_data_ptrs[j] + offset_bytes, num_bytes);
         }
     }
+
     //copy BlockArrays to the device
     int num_blockarrays = mem_manager.num_blockarrays();
     for (int i = 0; i < num_blockarrays; i++) {
         const auto& mem_data = mem_manager.get_blockarray_ptr(i);
-        cuMemcpyToDeviceAsync(mem_data.first, EDGES_PER_BLOCKARRAY,
+        cuMemcpyToDeviceAsync(mem_data.first,
+                              EDGES_PER_BLOCKARRAY * sizeof(edge_t),
                               mem_data.second);
     }
     //--------------------------------------------------------------------------

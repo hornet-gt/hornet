@@ -48,7 +48,7 @@ namespace custinger {
  * @brief minimum number of edges for a **block**
  * @remark `MIN_EDGES_PER_BLOCK` must be a power of two
  */
-const size_t MIN_EDGES_PER_BLOCK = 1;
+const size_t MIN_EDGES_PER_BLOCK = 2;
 
 /**
  * @brief number of edges for a **BlockArray**

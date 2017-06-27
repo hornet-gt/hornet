@@ -32,9 +32,9 @@ void exec(int argc, char* argv[]) {
     //Param param(argc, argv);
 
     graph::GraphStd<custinger::vid_t, custinger::eoff_t> graph;
-    graph.read(argv[1], graph::Property(graph::Property::SORT));
-    graph.print();
-    graph.print_raw();
+    graph.read(argv[1], graph::Property(static_cast<graph::Property::Enum>(6)));
+    //graph.print();
+    //graph.print_raw();
 
     //if (param.binary)
     //    graph.toBinary(xlib::extract_filepath_noextension(argv[1]) + ".bin");
@@ -76,7 +76,7 @@ void exec(int argc, char* argv[]) {
     //delete[] time_stamp;
     delete[] weights;
 
-    custiger_graph.print();
+    //custiger_graph.print();
     //--------------------------------------------------------------------------
     /*int batch_size = 10;
     auto batch_src = new vid_t[batch_size];
@@ -95,7 +95,7 @@ void exec(int argc, char* argv[]) {
     custiger_graph.edgeDeletionsSorted(batch_update);
 
     std::cout << "\n\n";
-    custiger_graph.print();
+    //custiger_graph.print();
 
     //custiger_graph.print();
 

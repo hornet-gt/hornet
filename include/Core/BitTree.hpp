@@ -107,7 +107,7 @@ public:
      * @brief Check if the *BitTree* is full
      * @return `true` if *BitTree* is full, `false` otherwise
      */
-    bool is_full() const noexcept;
+    bool full() const noexcept;
 
     /**
      * @brief Base address of the *BlockArray*
@@ -143,6 +143,9 @@ public:
      * @brief Assignment operator
      */
     BitTree& operator=(BitTree&& obj) noexcept;
+
+    BitTree(BitTree& obj)            = delete;
+    BitTree& operator=(BitTree& obj) = delete;
 private:
     static const unsigned   WORD_SIZE = sizeof(word_t) * 8;
     static const auto      NUM_BLOCKS = BLOCKARRAY_ITEMS / BLOCK_ITEMS;

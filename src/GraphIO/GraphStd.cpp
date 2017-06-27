@@ -167,11 +167,11 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
         }
         delete[] random_array;
     }
-    if (_prop.is_sort()) {
+    /*if (_prop.is_sort()) {
         if (_prop.is_print())
-            std::cout << "Sorting...\n" << std::flush;
+            std::cout << "Sorting..." << std::endl;
         std::sort(_coo_edges, _coo_edges + _coo_size);
-    }
+    }*/
     if (_prop.is_print())
         std::cout << "COO to CSR...\t" << std::flush;
 
@@ -206,6 +206,12 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
         }
     }
     delete[] tmp;
+    if (_prop.is_sort()) {
+        for (size_t i = 0; i < _nV; i++) {
+            std::sort(_out_edges + _out_offsets[i],
+                      _out_edges + _out_offsets[i + 1]);
+        }
+    }
     if (!_structure.is_coo()) {
         delete[] _coo_edges;
         _coo_edges = nullptr;

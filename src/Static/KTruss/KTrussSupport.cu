@@ -155,15 +155,15 @@ void indexBinarySearch(vid_t* data, vid_t arrLen, vid_t key, int& pos) {
     int  low = 0;
     int high = arrLen - 1;
     while (high >= low) {
-         int middle = (low + high) / 2;
-         if (data[middle] == key) {
+        int middle = (low + high) / 2;
+        if (data[middle] == key) {
              pos = middle;
              return;
-         }
-         if(data[middle] < key)
-             low = middle + 1;
-         if(data[middle] > key)
-             high = middle - 1;
+        }
+        if (data[middle] < key)
+            low = middle + 1;
+        if (data[middle] > key)
+            high = middle - 1;
     }
 }
 
@@ -394,7 +394,6 @@ void devicecuStingerKTruss(custinger::cuStingerDevData custinger,
         triangle_t tCount = 0;
         for(int k = adj_offset; k < srcLen; k += number_blocks) {
             //vid_t  dest = custinger->dVD->getAdj()[src]->dst[k];
-            //auto edge = vertex.edge(k);
             vid_t dest = vertex.edge(k).dst();
             //int destLen = custinger->dVD->getUsed()[dest];
             int destLen = Vertex(custinger, dest).degree();
@@ -429,8 +428,8 @@ void devicecuStingerKTruss(custinger::cuStingerDevData custinger,
             pos = -1;
             //indexBinarySearch(custinger->dVD->getAdj()[dest]->dst
             //                  destLen, src,pos);
-            indexBinarySearch(Vertex(custinger, dest).edge_ptr(),
-                              destLen, src, pos);
+            auto dest_ptr = Vertex(custinger, dest).edge_ptr();
+            indexBinarySearch(dest_ptr, destLen, src, pos);
 
             pos = devData->offsetArray[dest] + pos;
             atomicAdd(devData->trianglePerEdge + pos, triFound);

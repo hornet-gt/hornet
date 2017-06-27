@@ -10,10 +10,14 @@ void runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
 
 int main(int argc, char* argv[]) {
     graph::GraphStd<vid_t, eoff_t> graph(graph::Structure::UNDIRECTED);
-    graph.read(argv[1]);
+    graph.read(argv[1], graph::Property(static_cast<graph::Property::Enum>(6)));
 
     cuStingerInit custinger_init(graph.nV(), graph.nE(), graph.out_offsets(),
                                  graph.out_edges());
+
+    const auto tmp = graph.get_vertex(3328);
+    for (const auto& it : tmp)
+        std::cout << it.dest() << " ";
 
     int alg = 3, maxk = 3;
     if (argc >= 3)

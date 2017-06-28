@@ -281,6 +281,41 @@ int CubSelect<T>::run_diff(const T& diff) noexcept {
 //------------------------------------------------------------------------------
 
 template<typename T>
+CubSelectFlagged<T>::CubSelectFlagged(T* d_in_out, size_t num_items,
+                                      const bool* d_flags) noexcept :
+                    CubSelectFlagged(d_in_out, num_items, d_flags, d_in_out) {}
+
+template<typename T>
+CubSelectFlagged<T>::CubSelectFlagged(const T* d_in, size_t num_items,
+                                      const bool* d_flags, T* d_out) noexcept :
+                                      CubWrapper(num_items), _d_in(d_in),
+                                      _d_flags(d_flags), _d_out(d_out),
+                                      _num_items(num_items) {
+    cuMalloc(_d_num_selected_out, 1);
+    cub::DeviceSelect::Flagged(_d_temp_storage, _temp_storage_bytes, _d_in,
+                               _d_flags, _d_out, _d_num_selected_out,
+                               _num_items);
+    SAFE_CALL( cudaMalloc(&_d_temp_storage, _temp_storage_bytes) )
+}
+
+template<typename T>
+CubSelectFlagged<T>::~CubSelectFlagged() noexcept {
+    cuFree(_d_num_selected_out);
+}
+
+template<typename T>
+int CubSelectFlagged<T>::run() noexcept {
+    cub::DeviceSelect::Flagged(_d_temp_storage, _temp_storage_bytes, _d_in,
+                               _d_flags, _d_out, _d_num_selected_out,
+                               _num_items);
+    int h_num_selected_out;
+    cuMemcpyToHostAsync(_d_num_selected_out, h_num_selected_out);
+    return h_num_selected_out;
+}
+
+//------------------------------------------------------------------------------
+
+template<typename T>
 CubExclusiveSum<T>::CubExclusiveSum(const T* d_in, size_t num_items, T* d_out)
                                     noexcept :
                                         CubWrapper(num_items),
@@ -438,5 +473,6 @@ template class PartitionFlagged<int>;
 template class CubArgMax<int>;
 template class CubSelect<int>;
 template class CubSelect<int2>;
+template class CubSelectFlagged<int2>;
 
 } //namespace xlib

@@ -194,6 +194,24 @@ private:
 };
 
 template<typename T>
+class CubSelectFlagged : public CubWrapper {
+public:
+    CubSelectFlagged(T* d_in_out, size_t num_items, const bool* d_flags)
+                     noexcept;
+    CubSelectFlagged(const T* d_in, size_t num_items, const bool* d_flags,
+                     T* d_out) noexcept;
+    ~CubSelectFlagged() noexcept;
+
+    int run() noexcept;
+private:
+    const T*    _d_in;
+    T*          _d_out;
+    int*        _d_num_selected_out;
+    int         _num_items;
+    const bool* _d_flags;
+};
+
+template<typename T>
 class CubSegmentedReduce : public CubWrapper {
 public:
     CubSegmentedReduce(int* _d_offsets, const T* d_in, int _num_segments,

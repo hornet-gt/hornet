@@ -38,21 +38,32 @@
 #include "Support/Device/BinarySearchLB.cuh"
 
 namespace custinger {
-/*
-struct TmpData {
-    using WeightT = typename std::tuple_element<(NUM_ETYPES > 1 ? 1 : 0),
-                                                 edge_t>::type;
-
-    __host__ __device__ __forceinline__
-    TmpData(vid_t id, WeightT weight) : id(id), weight(weight){}
-
-    vid_t   id;
-    WeightT weight;
-};*/
 
 __global__
-void deleteEdgesKernel(cuStingerDevData data,
-                       BatchUpdate      batch_update) {
+void collectOldDegreeKernel(cuStingerDevData          data,
+                            const vid_t* __restrict__ d_unique,
+                            int                       num_uniques,
+                            degree_t*    __restrict__ d_degree_old,
+                            int*         __restrict__ d_inverse_pos) {
+
+    int     id = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = gridDim.x * blockDim.x;
+
+    for (int i = id; i < num_uniques; i += stride) {
+        auto        src = d_unique[i];
+        d_degree_old[i] = Vertex(data, src).degree();
+        d_inverse_pos[src]      = i;
+    }
+    if (id == 0)
+        d_degree_old[num_uniques] = 0;
+}
+
+__global__
+void deleteEdgesKernel(cuStingerDevData        data,
+                       BatchUpdate             batch_update,
+                       degree_t*  __restrict__ d_degree_old_prefix,
+                       bool*      __restrict__ d_flags,
+                       const int* __restrict__ d_inverse_pos) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
 
@@ -60,24 +71,25 @@ void deleteEdgesKernel(cuStingerDevData data,
         vid_t src = batch_update.src(i);
         vid_t dst = batch_update.dst(i);
 
-        Vertex vertex(data, src);
-        auto    adj_ptr = vertex.edge_ptr();
-        auto weight_ptr = vertex.edge_weight_ptr();
+        Vertex src_vertex(data, src);
+        auto adj_ptr = src_vertex.edge_ptr();
 
-        auto pos = xlib::binary_search(adj_ptr, vertex.degree(), dst);
-        adj_ptr[pos]    = -1;
-        weight_ptr[pos] = -1;
+        auto pos = xlib::binary_search(adj_ptr, src_vertex.degree(), dst);
+        int inverse_pos = d_inverse_pos[src];
+        d_flags[d_degree_old_prefix[inverse_pos] + pos] = false;
+        //printf("del %d %d \t%d\t%d\t%d\n",
+        //    src, dst, d_degree_old_prefix[inverse_pos], pos,
+        //    d_degree_old_prefix[inverse_pos] + pos);
     }
 }
 
 __global__
-void collectDataKernel(cuStingerDevData data,
-                       const vid_t*    __restrict__ d_unique,
-                       degree_t*       __restrict__ d_count,
-                       int num_uniques,
-                       degree_t* __restrict__ d_degree_old,
-                       degree_t* __restrict__ d_degree_new,
-                       byte_t**  __restrict__ d_ptrs_array) {
+void collectDataKernel(cuStingerDevData          data,
+                       const vid_t* __restrict__ d_unique,
+                       degree_t*    __restrict__ d_count,
+                       int                       num_uniques,
+                       degree_t*    __restrict__ d_degree_new,
+                       byte_t**     __restrict__ d_ptrs_array) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
 
@@ -89,13 +101,10 @@ void collectDataKernel(cuStingerDevData data,
         auto  new_degree = vertex_data.degree - d_count[i];
 
         d_ptrs_array[i] = vertex_data.edge_ptr;
-        d_degree_old[i] = vertex_data.degree;
         d_degree_new[i] = new_degree;
 
         d_vertex_ptrs[src] = VertexBasicData(new_degree, vertex_data.edge_ptr);
     }
-    if (id == 0)
-        d_degree_old[num_uniques] = 0;
     if (id == 1)
         d_degree_new[num_uniques] = 0;
     if (id == 2)

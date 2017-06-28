@@ -87,7 +87,11 @@ void cuStinger::initialize() noexcept {
     cuMalloc(d_degree_old, _nV + 1);
     cuMalloc(d_degree_new, _nV + 1);
     cuMalloc(d_tmp, _nE);
-    cuMalloc(d_ptrs_array, _nV);
+    cuMalloc(d_ptrs_array, _nV + 1);
+    cuMalloc(d_tmp1, _nV * 2);  //max batch size
+    cuMalloc(d_tmp2, _nV * 2);  //max batch size
+    cuMalloc(d_flags, _nE);
+    cuMalloc(d_inverse_pos, _nV);
 
     auto edge_data_ptrs = _custinger_init._edge_data_ptrs;
     auto    vertex_data = _custinger_init._vertex_data_ptrs;
@@ -111,7 +115,7 @@ void cuStinger::initialize() noexcept {
     ///////////////////////////////////
     using pair_t = typename std::pair<edge_t*, degree_t>;
     auto h_vertex_basic_data = new pair_t[_nV];
-    
+
     degree_t max_degree = -1;
     for (vid_t i = 0; i < _nV; i++) {
         auto degree = _csr_offsets[i + 1] - _csr_offsets[i];

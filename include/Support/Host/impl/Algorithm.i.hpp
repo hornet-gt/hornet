@@ -44,12 +44,12 @@ template<typename T>
 struct numeric_limits;
 
 template<typename T, typename R>
-R UniqueMap<T, R>::insertValue(T id) {
-    auto it = this->find(id);
+R UniqueMap<T, R>::insert(T key) {
+    const auto& it = this->find(key);
     if (it == this->end()) {
-        auto node_id = static_cast<R>(this->size());
-        this->insert(std::pair<T, R>(id, node_id));
-        return node_id;
+        auto id = static_cast<R>(this->size());
+        this->std::unordered_map<T, R>::insert(std::pair<T, R>(key, id));
+        return id;
     }
     return it->second;
 }

@@ -54,7 +54,7 @@ class UniqueMap : public std::unordered_map<T, R> {
 static_assert(std::is_integral<R>::value,
               "UniqueMap accept only Integral types");
 public:
-    R insertValue(T id);
+    R insert(T key);
 };
 
 template<class Iterator1, class Iterator2>

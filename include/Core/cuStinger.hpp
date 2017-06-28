@@ -259,6 +259,10 @@ private:
     degree_t  *d_degree_old, *d_degree_new;
     byte_t    **d_ptrs_array;
     int2      *d_tmp;
+    vid_t*    d_tmp1;
+    vid_t*    d_tmp2;
+    bool*     d_flags;
+    int*      d_inverse_pos;
 
     void initialize() noexcept;
 

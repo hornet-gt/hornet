@@ -31,9 +31,9 @@ void exec(int argc, char* argv[]) {
     xlib::deviceInfo();
     //Param param(argc, argv);
 
-    graph::GraphStd<custinger::vid_t, custinger::eoff_t> graph;
+    graph::GraphStd<custinger::vid_t, custinger::eoff_t> graph(graph::Structure::UNDIRECTED);
     graph.read(argv[1], graph::Property(static_cast<graph::Property::Enum>(6)));
-    //graph.print();
+    graph.print();
     //graph.print_raw();
 
     //if (param.binary)
@@ -76,7 +76,7 @@ void exec(int argc, char* argv[]) {
     //delete[] time_stamp;
     delete[] weights;
 
-    //custiger_graph.print();
+    custiger_graph.print();
     //--------------------------------------------------------------------------
     /*int batch_size = 10;
     auto batch_src = new vid_t[batch_size];
@@ -89,15 +89,17 @@ void exec(int argc, char* argv[]) {
     int batch_size = sizeof(batch_src) / sizeof(vid_t);
 
     BatchInit batch_init(batch_src, batch_dst, batch_size);
-    BatchUpdate batch_update(batch_init);
+    //BatchUpdate batch_update(batch_init);
+    BatchUpdate batch_update(custiger_graph.nV());
 
+
+    batch_update.insert(batch_init);
     //custiger_graph.insertEdgeBatch(batch_update);
     custiger_graph.edgeDeletionsSorted(batch_update);
 
     std::cout << "\n\n";
-    //custiger_graph.print();
+    custiger_graph.print();
 
-    //custiger_graph.print();
 
     //Timer<DEVICE> TM;
 

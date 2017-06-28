@@ -2,7 +2,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date June, 2017
  * @version v1.3
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -43,7 +43,8 @@
 namespace graph {
 
 template<typename vid_t, typename eoff_t>
-void GraphBase<vid_t, eoff_t>::read(const char* filename, Property prop) {
+void GraphBase<vid_t, eoff_t>::read(const char* filename,
+                                    const Property& prop) {
     xlib::check_regular_file(filename);
     size_t size = xlib::file_size(filename);
     _graph_name = xlib::extract_filename(filename);
@@ -51,13 +52,13 @@ void GraphBase<vid_t, eoff_t>::read(const char* filename, Property prop) {
 
     if (prop.is_print()) {
         std::cout << "\nGraph File:\t" << _graph_name
-                  << "       Size: "   <<  xlib::format(size >> 20) << " MB";
+                  << "       Size: " <<  xlib::format(size / xlib::MB) << " MB";
     }
 
     std::string file_ext = xlib::extract_file_extension(filename);
     if (file_ext == ".bin") {
         if (prop.is_print())
-            std::cout << "            (Binary)\n";
+            std::cout << "            (Binary)Reading...   \n";
         if (prop.is_print() && (prop.is_randomize() || prop.is_sort()))
             std::cerr << "#input sort/randomize ignored on binary format\n";
         readBinary(filename, prop.is_print());
@@ -79,12 +80,12 @@ void GraphBase<vid_t, eoff_t>::read(const char* filename, Property prop) {
 
     if (file_ext == ".mtx" && first_str == "%%MatrixMarket") {
         if (prop.is_print())
-            std::cout << "      (MatrixMarket)\n";
+            std::cout << "      (MatrixMarket)\nReading...   ";
         readMarket(fin, prop.is_print());
     }
     else if (file_ext == ".graph") {
         if (prop.is_print())
-            std::cout << "        (Dimacs10th)\n";
+            std::cout << "        (Dimacs10th)\nReading...   ";
         if (prop.is_randomize() || prop.is_sort()) {
             std::cerr << "#input sort/randomize ignored on Dimacs10th format"
                       << std::endl;
@@ -93,22 +94,22 @@ void GraphBase<vid_t, eoff_t>::read(const char* filename, Property prop) {
     }
     else if (file_ext == ".gr" && (first_str == "c"|| first_str == "p")) {
         if (prop.is_print())
-            std::cout << "         (Dimacs9th)\n";
+            std::cout << "         (Dimacs9th)\nReading...   ";
         readDimacs9(fin, prop.is_print());
     }
     else if (file_ext == ".txt" && first_str == "#") {
         if (prop.is_print())
-            std::cout << "              (SNAP)\n";
+            std::cout << "              (SNAP)\nReading...   ";
         readSnap(fin, prop.is_print());
     }
     else if (file_ext == ".edges") {
         if (prop.is_print())
-            std::cout << "    (Net Repository)\n";
+            std::cout << "    (Net Repository)\nReading...   ";
         readNetRepo(fin, prop.is_print());
     }
     else if (first_str == "%") {
         if (prop.is_print())
-            std::cout << "            (Konect)\n";
+            std::cout << "            (Konect)\nReading...   ";
         readKonect(fin, prop.is_print());
     } else
         ERROR("Graph type not recognized");
@@ -122,9 +123,9 @@ template<typename vid_t, typename eoff_t>
 GInfo GraphBase<vid_t, eoff_t>::getMarketHeader(std::ifstream& fin) {
     std::string header_lines;
     std::getline(fin, header_lines);
-    _store_inverse = true;
     auto direction = header_lines.find("symmetric") != std::string::npos ?
                         Structure::UNDIRECTED : Structure::DIRECTED;
+    _directed_to_undirected = direction == Structure::UNDIRECTED;
 
     if (header_lines.find("integer") != std::string::npos)
         _structure._wtype = Structure::INTEGER;
@@ -134,12 +135,14 @@ GInfo GraphBase<vid_t, eoff_t>::getMarketHeader(std::ifstream& fin) {
     while (fin.peek() == '%')
         xlib::skip_lines(fin);
 
-    size_t num_lines, rows, columns;
+    size_t rows, columns, num_lines;
     fin >> rows >> columns >> num_lines;
     if (rows != columns)
         WARNING("Rectangular matrix");
     xlib::skip_lines(fin);
-    return { std::max(rows, columns), num_lines, direction };
+    size_t num_edges = direction == Structure::UNDIRECTED ? num_lines * 2 :
+                                                          : num_lines;
+    return { std::max(rows, columns), num_edges, num_lines, direction };
 }
 
 //------------------------------------------------------------------------------
@@ -150,9 +153,9 @@ GInfo GraphBase<vid_t, eoff_t>::getDimacs9Header(std::ifstream& fin) {
         xlib::skip_lines(fin);
 
     xlib::skip_words(fin, 2);
-    size_t num_lines, num_vertices;
-    fin >> num_vertices >> num_lines;
-    return { num_vertices, num_lines, Structure::UNDIRECTED };
+    size_t num_vertices, num_edges;
+    fin >> num_vertices >> num_edges;
+    return { num_vertices, num_edges, num_edges, Structure::UNDIRECTED };
 }
 
 //------------------------------------------------------------------------------
@@ -162,10 +165,9 @@ GInfo GraphBase<vid_t, eoff_t>::getDimacs10Header(std::ifstream& fin) {
     while (fin.peek() == '%')
         xlib::skip_lines(fin);
 
-    size_t num_lines, num_vertices;
-    fin >> num_vertices >> num_lines;
+    size_t num_vertices, num_edges;
+    fin >> num_vertices >> num_edges;
     Structure::Enum direction;
-    _store_inverse = false;
 
     if (fin.peek() == '\n')
         direction = Structure::UNDIRECTED;
@@ -175,9 +177,10 @@ GInfo GraphBase<vid_t, eoff_t>::getDimacs10Header(std::ifstream& fin) {
         direction = flag == "100" ? Structure::DIRECTED : Structure::UNDIRECTED;
         xlib::skip_lines(fin);
     }
+    _directed_to_undirected = direction == Structure::UNDIRECTED;
     if (direction == Structure::UNDIRECTED)
-        num_lines *= 2;
-    return { num_vertices, num_lines, direction };
+        num_edges *= 2;
+    return { num_vertices, num_edges, num_vertices, direction };
 }
 
 //------------------------------------------------------------------------------
@@ -193,6 +196,7 @@ GInfo GraphBase<vid_t, eoff_t>::getKonectHeader(std::ifstream& fin) {
     xlib::skip_lines(fin);
     if (str != "%")
         ERROR("Wrong file format")
+    _directed_to_undirected = direction == Structure::UNDIRECTED;
     return { std::max(value1, value2), num_edges, direction };
 }
 
@@ -227,6 +231,7 @@ GInfo GraphBase<vid_t, eoff_t>::getSnapHeader(std::ifstream& fin) {
         }
     }
     xlib::skip_lines(fin);
+    _directed_to_undirected = direction == Structure::UNDIRECTED;
     return { num_vertices, num_lines, direction };
 }
 

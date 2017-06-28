@@ -3,6 +3,7 @@
 #include "operators.cuh"
 #include "static_k_truss/k_truss.cuh"*/
 #include "Static/KTruss/KTruss.cuh"
+#include "Support/Device/CudaUtil.cuh"
 
 namespace custinger_alg {
 
@@ -215,9 +216,10 @@ bool KTruss::findTrussOfK(bool& stop) {
 void KTruss::runDynamic(){
     hostKTrussData.maxK = 3;
     syncDeviceWithHost();
-
+    CHECK_CUDA_ERROR
     forAllVertices<ktruss_operators::init>(custinger, deviceKTrussData);
     //allVinG_TraverseVertices<ktruss_operators::init>(custinger, deviceKTrussData);
+    CHECK_CUDA_ERROR
 
     resetEdgeArray();
     resetVertexArray();
@@ -226,19 +228,20 @@ void KTruss::runDynamic(){
     kTrussOneIteration(custinger, hostKTrussData.trianglePerVertex, 4,
                        hostKTrussData.sps / 4, 2, hostKTrussData.blocks,
                        hostKTrussData.sps, deviceKTrussData);
-
+    CHECK_CUDA_ERROR
     syncHostWithDevice();
 
     forAllVertices<ktruss_operators::resetWeights>(custinger, deviceKTrussData);
     //allVinG_TraverseVertices<ktruss_operators::resetWeights>
     //    (custinger, deviceKTrussData);
-
+    CHECK_CUDA_ERROR
     while (true) {
         // if(hostKTrussData.maxK >=5)
         // break;
         // cout << "New iteration" << endl;
         bool needStop = false;
         bool     more = findTrussOfKDynamic(needStop);
+        CHECK_CUDA_ERROR
         if (more == false && needStop) {
             hostKTrussData.maxK--;
             syncDeviceWithHost();
@@ -259,6 +262,7 @@ bool KTruss::findTrussOfKDynamic(bool& stop) {
 
     forAllVertices<ktruss_operators::queueActive>(custinger, deviceKTrussData);
     forAllVertices<ktruss_operators::countActive>(custinger, deviceKTrussData);
+    CHECK_CUDA_ERROR
     //allVinG_TraverseVertices<ktruss_operators::queueActive>
     //    (custinger, deviceKTrussData);
     //allVinG_TraverseVertices<ktruss_operators::countActive>
@@ -273,8 +277,10 @@ bool KTruss::findTrussOfKDynamic(bool& stop) {
         //allVinA_TraverseVertices<ktruss_operators::findUnderKDynamic>
         //    (custinger, deviceKTrussData, hostKTrussData.activeQueue.getQueue(),
         //     activeThisIteration);
+        CHECK_CUDA_ERROR
         forAllVertices<ktruss_operators::findUnderKDynamic>
             (custinger, hostKTrussData.activeQueue, deviceKTrussData);    //???
+        CHECK_CUDA_ERROR
 
         syncHostWithDevice();
         // cout << "Current number of deleted edges is " << hostKTrussData.counter << endl;
@@ -318,7 +324,7 @@ bool KTruss::findTrussOfKDynamic(bool& stop) {
         }
         else
             return false;
-
+CHECK_CUDA_ERROR
         hostKTrussData.ne_remaining  -= hostKTrussData.counter;
         hostKTrussData.activeVertices = 0;
         hostKTrussData.counter        = 0;
@@ -329,7 +335,7 @@ bool KTruss::findTrussOfKDynamic(bool& stop) {
         //     activeThisIteration);
         forAllVertices<ktruss_operators::countActive>
             (custinger, hostKTrussData.activeQueue, deviceKTrussData);  //???
-
+CHECK_CUDA_ERROR
         syncHostWithDevice();
         stop = false;
     }

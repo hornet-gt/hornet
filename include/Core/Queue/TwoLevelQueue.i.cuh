@@ -166,7 +166,8 @@ __host__ const T* TwoLevelQueue<T>::host_data() noexcept {
 }
 
 template<typename T>
-__host__ int TwoLevelQueue<T>::size() const noexcept {
+__host__ int TwoLevelQueue<T>::size() noexcept {
+    cuMemcpyToHost(_d_queue_counter, _num_queue_vertices);
     return _num_queue_vertices;
 }
 

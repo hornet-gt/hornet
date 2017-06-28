@@ -110,8 +110,8 @@ template<void (*Operator)(const custinger::Vertex&, const custinger::Edge&,
 void BinarySearch::traverse_edges(const
                           custinger_alg::TwoLevelQueue<custinger::vid_t>& queue,
                           void* optional_field) noexcept {
-    traverse_edges<Operator>(queue.device_ptr_q1(), queue.size(),
-                             optional_field);
+    //traverse_edges<Operator>(queue.device_ptr_q1(), queue.size(),
+    //                         optional_field);
 }
 
 } // namespace load_balacing

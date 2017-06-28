@@ -120,7 +120,7 @@ public:
      * @return actual number of queue items at the input queue
      * @remark the method is cheap
      */
-    __host__ int size() const noexcept;
+    __host__ int size() noexcept;
 
     /**
      * @brief device pointer of the input queue

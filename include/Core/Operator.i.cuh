@@ -135,7 +135,7 @@ void forAllVertices(const custinger::cuStinger& custinger, void* optional_data)
 
 template<void (*Operator)(const custinger::Vertex&, void*)>
 void forAllVertices(const custinger::cuStinger& custinger,
-                    const TwoLevelQueue<custinger::vid_t>& queue,
+                    TwoLevelQueue<custinger::vid_t>& queue,
                     void* optional_data) noexcept {
 
     detail::forAllVerticesKernel<Operator>

@@ -3,7 +3,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date June, 2017
  * @version v1.3
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.

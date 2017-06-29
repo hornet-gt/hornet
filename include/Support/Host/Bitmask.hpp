@@ -50,9 +50,10 @@ public:
     bool   operator[](size_t index) const noexcept;
     BitRef operator[](size_t index) noexcept;
 
-    void   randomize() noexcept;
-    void   clear()     noexcept;
-    size_t size()      const noexcept;
+    void   randomize()              noexcept;
+    void   randomize(uint64_t seed) noexcept;
+    void   clear()                  noexcept;
+    size_t size()                   const noexcept;
 
     Bitmask(const Bitmask&)        = delete;
     bool operator=(const Bitmask&) = delete;

@@ -78,7 +78,6 @@ inline void BatchUpdate::insert(const BatchInit& batch_init) noexcept {
     cuMemcpyToDeviceAsync(batch_init.edge_ptrs(0), batch_size * sizeof(vid_t),
                           _d_edge_ptrs[1] + batch_size * sizeof(vid_t));
     _batch_size = batch_size * 2;
-
     /*for (int i = 0; i < NUM_ETYPES; i++) {
         if (batch_init.edge_ptrs(i + 1) == nullptr)
             continue;

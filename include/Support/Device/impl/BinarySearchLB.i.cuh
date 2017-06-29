@@ -226,7 +226,7 @@ void binarySearchLBGen(const T* __restrict__ d_prefixsum,
                        int                   prefixsum_size,
                        int*     __restrict__ d_partitions,
                        void*    __restrict__ smem,
-                       const                 Lambda& lambda) {
+                       const Lambda&         lambda) {
 
     const unsigned _ITEMS_PER_THREAD = ITEMS_PER_THREAD == 0 ?
                                        SMemPerThread<T, BLOCK_SIZE>::value :
@@ -277,14 +277,18 @@ void binarySearchLBGen(const T* __restrict__ d_prefixsum,
     if (LAST_BLOCK_CHECK && blockIdx.x == gridDim.x - 1) {
         #pragma unroll
         for (int i = 0; i < _ITEMS_PER_THREAD; i++) {
-            if (reg_pos[i] != -1)
+            if (reg_pos[i] != -1) {
+                assert(reg_pos[i] < prefixsum_size);
                 lambda(reg_pos[i], reg_offset[i]);
+            }
         }
     }
     else {
         #pragma unroll
-        for (int i = 0; i < _ITEMS_PER_THREAD; i++)
+        for (int i = 0; i < _ITEMS_PER_THREAD; i++) {
+            assert(reg_pos[i] < prefixsum_size);
             lambda(reg_pos[i], reg_offset[i]);
+        }
     }
 }
 
@@ -299,7 +303,7 @@ __device__ __forceinline__
 void binarySearchLB(const T* __restrict__ d_prefixsum,
                     int                   prefixsum_size,
                     void*    __restrict__ smem,
-                    const                 Lambda& lambda) {
+                    const Lambda&         lambda) {
 
     detail::binarySearchLBGen<false, false, true, BLOCK_SIZE, ITEMS_PER_THREAD>
         (d_prefixsum, prefixsum_size, nullptr, smem, lambda);

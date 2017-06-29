@@ -3,7 +3,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date June, 2017
  * @version v1.3
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -38,46 +38,54 @@
  */
 #pragma once
 
-#include <string>   //std::string
+#include "Support/Host/Basic.hpp"   //xlib::PropertyClass
+#include <string>                   //std::string
 
 namespace graph {
 
-class Property {
-    template<typename, typename> friend class GraphBase;
-    template<typename, typename> friend class GraphStd;
+namespace detail {
+    enum class ParsingEnum { RANDOMIZE = 1, SORT = 2, PRINT = 4 };
+} // namespace detail
+
+class ParsingProp : public xlib::PropertyClass<detail::ParsingEnum,
+                                               ParsingProp> {
+    template<typename, typename>           friend class GraphBase;
+    template<typename, typename>           friend class GraphStd;
     template<typename, typename, typename> friend class GraphWeight;
 public:
-    enum Enum { RANDOMIZE = 1, SORT = 2, PRINT = 4 };
-    explicit Property() noexcept = default;
-    explicit Property(Property::Enum state) noexcept;
-    void operator+= (Property::Enum state)  noexcept;
-    void operator-= (Property::Enum state)  noexcept;
+    explicit ParsingProp() noexcept = default;
+    explicit ParsingProp(const detail::ParsingEnum& value) noexcept;
 private:
-    int _state { 0 };
-
-    bool is_undefined() const noexcept;
     bool is_sort()      const noexcept;
     bool is_randomize() const noexcept;
     bool is_print()     const noexcept;
 };
 
-class Structure {
-    template<typename, typename> friend class GraphBase;
-    template<typename, typename> friend class GraphStd;
+namespace parsing_prop {
+
+const ParsingProp RANDOMIZE( detail::ParsingEnum::RANDOMIZE );
+const ParsingProp      SORT( detail::ParsingEnum::SORT );
+const ParsingProp     PRINT( detail::ParsingEnum::PRINT );
+
+} // namespace parsing_prop
+
+//==============================================================================
+namespace detail {
+    enum class StructureEnum { DIRECTED = 1, UNDIRECTED = 2, REVERSE = 4,
+                               COO = 8 };
+} // namespace detail
+
+class StructureProp :
+              public xlib::PropertyClass<detail::StructureEnum, StructureProp> {
+    template<typename, typename>           friend class GraphBase;
+    template<typename, typename>           friend class GraphStd;
     template<typename, typename, typename> friend class GraphWeight;
 public:
-    enum Enum { DIRECTED = 1, UNDIRECTED = 2, REVERSE = 4,
-                COO = 8, UNDEF = 16 };
-    explicit Structure(Structure::Enum state) noexcept;
-    void operator= (Structure::Enum state)    noexcept;
-    void operator+= (Structure::Enum state)   noexcept;
-    void operator+= (Structure structure)     noexcept;
+    explicit StructureProp() noexcept = default;
+    explicit StructureProp(const detail::StructureEnum& value) noexcept;
 private:
-    enum WType   { NONE, INTEGER, REAL };
-    int   _state { 0 };
-    WType _wtype { NONE };
-
-    bool is_undefined()     const noexcept;
+    //enum WType   { NONE, INTEGER, REAL };
+    //WType _wtype { NONE };
     bool is_directed()      const noexcept;
     bool is_undirected()    const noexcept;
     bool is_reverse()       const noexcept;
@@ -86,10 +94,22 @@ private:
     bool is_weighted()      const noexcept;
 };
 
+namespace structure_prop {
+
+const StructureProp DIRECTED  ( detail::StructureEnum::DIRECTED );
+const StructureProp UNDIRECTED( detail::StructureEnum::UNDIRECTED );
+const StructureProp REVERSE   ( detail::StructureEnum::REVERSE );
+const StructureProp COO       ( detail::StructureEnum::COO );
+
+} // namespace structure_prop
+
+//==============================================================================
+
 struct GInfo {
-    size_t          num_vertices;
-    size_t          num_edges;
-    Structure::Enum direction;
+    size_t        num_vertices;
+    size_t        num_edges;
+    size_t        num_lines;
+    StructureProp direction;
 };
 
 template<typename vid_t, typename eoff_t>
@@ -99,29 +119,31 @@ public:
     virtual eoff_t nE() const noexcept final;
     virtual const std::string& name() const noexcept final;
 
-    virtual void read(const char* filename,                             //NOLINT
-                      Property prop = Property(Property::PRINT)) final;
+    virtual void read(const char* filename,
+                      const ParsingProp& prop =
+                            ParsingProp(parsing_prop::PRINT)) final;    //NOLINT
+
     virtual void print()     const noexcept = 0;
     virtual void print_raw() const noexcept = 0;
 
     GraphBase(const GraphBase&)      = delete;
     void operator=(const GraphBase&) = delete;
 protected:
-    std::string _graph_name    { "" };
-    vid_t       _nV            { 0 };
-    eoff_t      _nE            { 0 };
-    Structure   _structure     { Structure::UNDEF };
-    Property    _prop;
-    bool        _store_inverse { false };
+    std::string   _graph_name { "" };
+    vid_t         _nV         { 0 };
+    eoff_t        _nE         { 0 };
+    StructureProp _structure;
+    ParsingProp   _prop;
+    bool          _directed_to_undirected { false };
+    bool          _undirected_to_directed { false };
 
-    explicit GraphBase()                          noexcept;
-    explicit GraphBase(Structure::Enum structure) noexcept;
-    explicit GraphBase(vid_t nV, eoff_t nE, Structure::Enum structure)
+    explicit GraphBase() = default;
+    explicit GraphBase(StructureProp structure) noexcept;
+    explicit GraphBase(vid_t nV, eoff_t nE, const StructureProp& structure)
                        noexcept;
     virtual ~GraphBase() noexcept = default;
 
-    virtual void   set_structure(Structure::Enum structure) noexcept final;
-    virtual void   allocate(GInfo info) noexcept = 0;
+    virtual void   set_structure(const StructureProp& structure) noexcept final;
 
     virtual void   readMarket   (std::ifstream& fin, bool print)   = 0;
     virtual void   readDimacs9  (std::ifstream& fin, bool print)   = 0;
@@ -140,9 +162,16 @@ protected:
 
     virtual void COOtoCSR() noexcept = 0;
     //virtual void CSRtoCOO() noexcept = 0;
-    //virtual void  print_property() final;
 };
 
-} // namespace graph
+template<typename vid_t, typename eoff_t>
+inline vid_t GraphBase<vid_t, eoff_t>::nV() const noexcept {
+    return _nV;
+}
 
-#include "GraphBase.i.hpp"
+template<typename vid_t, typename eoff_t>
+inline eoff_t GraphBase<vid_t, eoff_t>::nE() const noexcept {
+    return _nE;
+}
+
+} // namespace graph

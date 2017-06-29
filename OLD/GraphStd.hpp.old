@@ -183,12 +183,12 @@ public:
 
     explicit GraphStd()                          noexcept = default;
 
-    explicit GraphStd(Structure::Enum Structure) noexcept;
+    explicit GraphStd(Structure::Enum structure) noexcept;
 
     explicit GraphStd(const char* filename,
-                      Property prop = Property(Property::PRINT)) noexcept;
+                      Property property = Property(Property::PRINT)) noexcept;
 
-    explicit GraphStd(Structure::Enum Structure, const char* filename,
+    explicit GraphStd(Structure::Enum structure, const char* filename,
                       Property property) noexcept;
 
     explicit GraphStd(const eoff_t* csr_offsets, vid_t nV,
@@ -223,6 +223,7 @@ public:
     void writeBinary(const std::string& filename, bool print = true) const;
     void writeMarket(const std::string& filename) const;
 private:
+    xlib::Bitmask _bitmask;
     eoff_t*   _out_offsets { nullptr };
     eoff_t*   _in_offsets  { nullptr };
     vid_t*    _out_edges   { nullptr };
@@ -231,7 +232,6 @@ private:
     degree_t* _in_degrees  { nullptr };
     coo_t*    _coo_edges   { nullptr };
     size_t    _coo_size    { 0 };
-    _seed
 
     using GraphBase<vid_t, eoff_t>::_nE;
     using GraphBase<vid_t, eoff_t>::_nV;

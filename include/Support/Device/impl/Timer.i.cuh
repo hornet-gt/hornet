@@ -27,6 +27,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * @date April, 2017
  * @version v1.3
  */
+#include <cassert>
+
 namespace timer {
 
 template<typename ChronoPrecision>

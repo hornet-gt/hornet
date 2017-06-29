@@ -57,6 +57,7 @@ class GraphStd : public GraphBase<vid_t, eoff_t> {
     friend class WCC<vid_t, eoff_t>;
 
 public:
+    class Edge;
     class VertexIt;
     class EdgeIt;
 
@@ -67,6 +68,8 @@ public:
         vid_t    id()         const noexcept;
         degree_t out_degree() const noexcept;
         degree_t in_degree()  const noexcept;
+        Edge     edge(int index) const noexcept;
+        vid_t    neighbor_id(int index) const noexcept;
 
         friend inline std::ostream& operator<<(std::ostream& os,
                                                const Vertex& vertex) {
@@ -79,7 +82,7 @@ public:
     private:
         const GraphStd& _graph;
         const vid_t      _id;
-        Vertex(vid_t id, const GraphStd& graph) noexcept;
+        explicit Vertex(vid_t id, const GraphStd& graph) noexcept;
     };
 
     class VertexIt : public std::iterator<std::forward_iterator_tag, vid_t> {
@@ -102,7 +105,7 @@ public:
     private:
         const GraphStd& _graph;
 
-        VerticesContainer(const GraphStd& graph) noexcept;
+        explicit VerticesContainer(const GraphStd& graph) noexcept;
     };
     //--------------------------------------------------------------------------
 
@@ -146,7 +149,7 @@ public:
     private:
         const GraphStd& _graph;
 
-        EdgesContainer(const GraphStd& graph) noexcept;
+        explicit EdgesContainer(const GraphStd& graph) noexcept;
     };
     //--------------------------------------------------------------------------
 
@@ -181,15 +184,16 @@ public:
     VerticesContainer V { *this };
     EdgesContainer    E { *this };
 
-    explicit GraphStd()                          noexcept = default;
+    explicit GraphStd() = default;
 
-    explicit GraphStd(Structure::Enum Structure) noexcept;
+    explicit GraphStd(const StructureProp& structure = StructureProp()) noexcept;
 
     explicit GraphStd(const char* filename,
-                      Property prop = Property(Property::PRINT)) noexcept;
+                      const ParsingProp& property
+                        = ParsingProp(parsing_prop::PRINT)) noexcept;
 
-    explicit GraphStd(Structure::Enum Structure, const char* filename,
-                      Property property) noexcept;
+    explicit GraphStd(const StructureProp& structure, const char* filename,
+                      const ParsingProp& property) noexcept;
 
     explicit GraphStd(const eoff_t* csr_offsets, vid_t nV,
                       const vid_t* csr_edges, eoff_t nE) noexcept;
@@ -197,7 +201,7 @@ public:
     virtual ~GraphStd() noexcept final;                                 //NOLINT
     //--------------------------------------------------------------------------
 
-    Vertex   get_vertex(vid_t index)  const noexcept;
+    Vertex   vertex(vid_t index)  const noexcept;
     Edge     get_edge  (eoff_t index) const noexcept;
     degree_t out_degree(vid_t index)  const noexcept;
     degree_t in_degree (vid_t index)  const noexcept;
@@ -223,7 +227,6 @@ public:
     void writeBinary(const std::string& filename, bool print = true) const;
     void writeMarket(const std::string& filename) const;
 private:
-    xlib::Bitmask _bitmask;
     eoff_t*   _out_offsets { nullptr };
     eoff_t*   _in_offsets  { nullptr };
     vid_t*    _out_edges   { nullptr };
@@ -232,14 +235,16 @@ private:
     degree_t* _in_degrees  { nullptr };
     coo_t*    _coo_edges   { nullptr };
     size_t    _coo_size    { 0 };
+    const uint64_t _seed   { 0xA599AC3F0FD21B92 };
 
     using GraphBase<vid_t, eoff_t>::_nE;
     using GraphBase<vid_t, eoff_t>::_nV;
     using GraphBase<vid_t, eoff_t>::_structure;
     using GraphBase<vid_t, eoff_t>::_prop;
-    using GraphBase<vid_t, eoff_t>::_store_inverse;
+    using GraphBase<vid_t, eoff_t>::_directed_to_undirected;
+    using GraphBase<vid_t, eoff_t>::_undirected_to_directed;
 
-    void allocate(GInfo ginfo) noexcept override;
+    void allocate(const GInfo& ginfo) noexcept;
 
     void readMarket  (std::ifstream& fin, bool print)   override;
     void readDimacs9 (std::ifstream& fin, bool print)   override;

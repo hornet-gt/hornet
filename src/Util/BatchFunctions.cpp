@@ -38,21 +38,44 @@
 #include <chrono>
 #include <random>
 #include <utility>
-/*
-BatchProperty::BatchProperty(bool weighted, bool print) noexcept:
-                                    _weighted(weighted),
-                                    _print(print) {}
 
-bool BatchProperty::is_weighted() const noexcept { return _weighted; }
-bool BatchProperty::is_print()    const noexcept { return _print;    }
-*/
+BatchProperty::BatchProperty(const detail::BatchEnum& obj) noexcept :
+                   xlib::PropertyClass<detail::BatchEnum, BatchProperty>(obj) {}
 
-void generateInsertBatch(custinger::vid_t* batch_src,
-                         custinger::vid_t* batch_dest,
-                         int batch_size, const graph::GraphStd<>& graph,
-                         BatchProperty prop) {
+//------------------------------------------------------------------------------
+
+void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
+                   custinger::vid_t* batch_src, custinger::vid_t* batch_dest,
+                   const BatchType& batch_type, const BatchProperty& prop) {
     using custinger::vid_t;
-    if (!(prop & batch_property::WEIGHTED)) {
+    using vid_distribution = std::uniform_int_distribution<vid_t>;
+
+    if (batch_type == BatchType::REMOVE) {
+        auto seed = std::chrono::high_resolution_clock::now().time_since_epoch()
+                    .count();
+        std::mt19937_64 gen(seed);
+        vid_distribution distribution_src(0, graph.nV() - 1);
+        for (int i = 0; i < batch_size; i++) {
+            auto      src = distribution_src(gen);
+            if (graph.out_degree(src) == 0) {
+                i--;
+                continue;
+            }
+            vid_distribution distribution_dst(0, graph.out_degree(src) - 1);
+            auto    index = distribution_dst(gen);
+            batch_src[i]  = src;
+            batch_dest[i] = graph.vertex(src).neighbor_id(index);
+        }
+    }
+    else if (prop == batch_property::WEIGHTED) {
+        xlib::WeightedRandomGenerator<vid_t>
+            weighted_gen(graph.out_degrees(), graph.nV());
+        for (int i = 0; i < batch_size; i++) {
+            batch_src[i]  = weighted_gen.get();
+            batch_dest[i] = weighted_gen.get();
+        }
+    }
+    else {
         auto seed = std::chrono::high_resolution_clock::now().time_since_epoch()
                     .count();
         std::mt19937_64 gen(seed);
@@ -62,28 +85,29 @@ void generateInsertBatch(custinger::vid_t* batch_src,
             batch_dest[i] = distribution(gen);
         }
     }
-    else {
-        xlib::WeightedRandomGenerator<vid_t>
-            weighted_gen(graph.out_degrees(), graph.nV());
-        for (int i = 0; i < batch_size; i++) {
-            batch_src[i]  = weighted_gen.get();
-            batch_dest[i] = weighted_gen.get();
-        }
-    }
 
-    if (prop & batch_property::PRINT) {
+    if (prop == batch_property::PRINT || prop == batch_property::UNIQUE) {
         auto tmp_batch = new std::pair<vid_t, vid_t>[batch_size];
         for (int i = 0; i < batch_size; i++)
             tmp_batch[i] = std::make_pair(batch_src[i], batch_dest[i]);
 
         std::sort(tmp_batch, tmp_batch + batch_size);
-
-        std::cout << "Batch:\n";
-        for (int i = 0; i < batch_size; i++) {
-            std::cout << "(" << tmp_batch[i].first << ","
-                      << tmp_batch[i].second << ")\n";
+        if (prop == batch_property::UNIQUE) {
+            auto    it = std::unique(tmp_batch, tmp_batch + batch_size);
+            batch_size = std::distance(tmp_batch, it);
+            for (int i = 0; i < batch_size; i++) {
+                batch_src[i]  = tmp_batch[i].first;
+                batch_dest[i] = tmp_batch[i].second;
+            }
         }
-        std::cout << std::endl;
+        if (prop == batch_property::PRINT) {
+            std::cout << "Batch:\n";
+            for (int i = 0; i < batch_size; i++) {
+                std::cout << "(" << tmp_batch[i].first << ","
+                          << tmp_batch[i].second << ")\n";
+            }
+            std::cout << std::endl;
+        }
         delete[] tmp_batch;
     }
 }

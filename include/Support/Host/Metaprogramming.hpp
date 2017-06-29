@@ -95,7 +95,7 @@ struct Seq {
     constexpr unsigned operator[](int index) const { return value[index]; }
 };
 template<unsigned... Is>
-constexpr unsigned Seq<Is...>::value[];
+constexpr unsigned Seq<Is...>::value[];                                //NOTLINT
 ///@cond
 
 template<unsigned... Is>

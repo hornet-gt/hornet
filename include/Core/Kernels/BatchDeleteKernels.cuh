@@ -52,18 +52,18 @@ void collectOldDegreeKernel(cuStingerDevData          data,
     for (int i = id; i < num_uniques; i += stride) {
         auto        src = d_unique[i];
         d_degree_old[i] = Vertex(data, src).degree();
-        d_inverse_pos[src]      = i;
+        d_inverse_pos[src] = i;
     }
     if (id == 0)
         d_degree_old[num_uniques] = 0;
 }
 
 __global__
-void deleteEdgesKernel(cuStingerDevData        data,
-                       BatchUpdate             batch_update,
-                       degree_t*  __restrict__ d_degree_old_prefix,
-                       bool*      __restrict__ d_flags,
-                       const int* __restrict__ d_inverse_pos) {
+void deleteEdgesKernel(cuStingerDevData              data,
+                       BatchUpdate                   batch_update,
+                       const degree_t*  __restrict__ d_degree_old_prefix,
+                       bool*            __restrict__ d_flags,
+                       const int*       __restrict__ d_inverse_pos) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
 

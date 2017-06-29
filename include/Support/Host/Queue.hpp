@@ -46,6 +46,9 @@ namespace detail {
 
 template<typename T>
 class QueueBase {
+public:
+    QueueBase(const QueueBase&)      = delete;
+    void operator=(const QueueBase&) = delete;
 protected:
     size_t _left  { 0 };
     size_t _right { 0 };
@@ -69,9 +72,6 @@ protected:
     virtual T&       at(size_t index) noexcept final;
     virtual const T& at(size_t index) const noexcept final;
     virtual void     print()          const noexcept final;
-
-    QueueBase(const QueueBase&)      = delete;
-    void operator=(const QueueBase&) = delete;
 };
 
 } // namespace detail
@@ -88,7 +88,7 @@ public:
     T&         tail()                 noexcept;
     const T&   tail()                 const noexcept;
     size_t     getTotalEnqueueItems() const noexcept;
-    virtual T& extract()              noexcept final;
+    virtual T& extract()              noexcept final;                   //NOLINT
 
     using detail::QueueBase<T>::init;
     using detail::QueueBase<T>::free;
@@ -140,6 +140,9 @@ namespace detail {
 
 template<typename T, size_t SIZE>
 class QueueStackBase {
+public:
+    QueueStackBase(const QueueStackBase&) = delete;
+    void operator=(const QueueStackBase&) = delete;
 protected:
     size_t _left  { 0 };
     size_t _right { 0 };
@@ -150,7 +153,6 @@ protected:
     void             clear()         noexcept;
     void             insert(T value) noexcept;
     virtual T&       extract()       noexcept = 0;
-    virtual const T& extract()       const noexcept = 0;
     void             sort()          noexcept;
 
     bool     empty()          const noexcept;
@@ -158,9 +160,6 @@ protected:
     T&       at(size_t index) noexcept;
     const T& at(size_t index) const noexcept;
     void     print()          const noexcept;
-
-    QueueStackBase(const QueueStackBase&) = delete;
-    void operator=(const QueueStackBase&) = delete;
 };
 
 } // namespace detail
@@ -178,7 +177,7 @@ public:
     const T& head()    const noexcept;
     T&       tail()    noexcept;
     const T& tail()    const noexcept;
-    T&       extract() noexcept override;
+    T&       extract() noexcept final;                                  //NOLINT
 private:
     using detail::QueueStackBase<T, SIZE>::_left;
     using detail::QueueStackBase<T, SIZE>::_array;
@@ -196,7 +195,7 @@ public:
     T&       top()     noexcept;
     const T& top()     const noexcept;
     T&       pop()     noexcept;
-    T&       extract() noexcept override;
+    T&       extract() noexcept final;                                  //NOLINT
 private:
     using detail::QueueStackBase<T, SIZE>::_array;
     using detail::QueueStackBase<T, SIZE>::_left;

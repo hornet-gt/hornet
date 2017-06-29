@@ -38,12 +38,12 @@
 namespace graph {
 
 template<typename vid_t, typename eoff_t>
-BFS<vid_t, eoff_t>::BFS(const GraphStd<vid_t, eoff_t>& _graph) noexcept :
-                                            _graph(_graph),
-                                            _bitmask(_graph.nV()),
-                                            _queue(_graph.nV()) {
-    _distances = new int[_graph.nV()];
-    std::fill(_distances, _distances + _graph.nV(), INF);
+BFS<vid_t, eoff_t>::BFS(const GraphStd<vid_t, eoff_t>& graph) noexcept :
+                                            _graph(graph),
+                                            _bitmask(graph.nV()),
+                                            _queue(graph.nV()) {
+    _distances = new int[graph.nV()];
+    std::fill(_distances, _distances + graph.nV(), INF);
 }
 
 template<typename vid_t, typename eoff_t>

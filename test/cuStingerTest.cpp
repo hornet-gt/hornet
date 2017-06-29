@@ -28,11 +28,13 @@ int main(int argc, char* argv[]) {
 }
 
 void exec(int argc, char* argv[]) {
+    using namespace graph::structure_prop;
+    using namespace graph::parsing_prop;
     xlib::deviceInfo();
     //Param param(argc, argv);
 
-    graph::GraphStd<custinger::vid_t, custinger::eoff_t> graph(graph::Structure::UNDIRECTED);
-    graph.read(argv[1], graph::Property(static_cast<graph::Property::Enum>(6)));
+    graph::GraphStd<custinger::vid_t, custinger::eoff_t> graph(UNDIRECTED);
+    graph.read(argv[1], SORT | PRINT);
     graph.print();
     //graph.print_raw();
 
@@ -61,13 +63,16 @@ void exec(int argc, char* argv[]) {
                                  graph.out_offsets(),
                                  graph.out_edges());
 
-    auto weights = new int[graph.nE()]();
-    weights[0] = 0;
-    weights[1] = 1;
-    weights[2] = 2;
-    weights[3] = 3;
+    int batch_size = 2;
+    auto   weights = new int[graph.nE()]();
+    auto batch_src = new vid_t[batch_size];
+    auto batch_dst = new vid_t[batch_size];
+
     //custinger_init.insertVertexData(labels);
     custinger_init.insertEdgeData(weights);
+
+    generateBatch(graph, batch_size, batch_src, batch_dst, BatchType::REMOVE,
+                  batch_property::UNIQUE | batch_property::PRINT);
 
     cuStinger custiger_graph(custinger_init);
     //custiger_graph.check_consistency(custinger_init);
@@ -76,7 +81,7 @@ void exec(int argc, char* argv[]) {
     //delete[] time_stamp;
     delete[] weights;
 
-    custiger_graph.print();
+    //custiger_graph.print();
     //--------------------------------------------------------------------------
     /*int batch_size = 10;
     auto batch_src = new vid_t[batch_size];
@@ -84,9 +89,9 @@ void exec(int argc, char* argv[]) {
     generateInsertBatch(batch_src, batch_dst, batch_size, graph);*/
                         //batch_property::PRINT);
 
-    vid_t  batch_src[] = { 0, 2 };
-    vid_t  batch_dst[] = { 2, 3 };
-    int batch_size = sizeof(batch_src) / sizeof(vid_t);
+    //vid_t  batch_src[] = { 0, 0, 2 };
+    //vid_t  batch_dst[] = { 2, 2, 3 };
+    //int batch_size = sizeof(batch_src) / sizeof(vid_t);
 
     BatchInit batch_init(batch_src, batch_dst, batch_size);
     //BatchUpdate batch_update(batch_init);
@@ -100,7 +105,8 @@ void exec(int argc, char* argv[]) {
     std::cout << "\n\n";
     custiger_graph.print();
 
-
+    delete[] batch_src;
+    delete[] batch_dst;
     //Timer<DEVICE> TM;
 
     // Testing the scalablity of edge insertions and deletions for

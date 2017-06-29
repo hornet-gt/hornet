@@ -102,23 +102,48 @@ inline bool is_integer(const std::string& str) {
 
 //------------------------------------------------------------------------------
 
-template<typename Enum>
-PropertyClass<Enum>::PropertyClass(const Enum& value) noexcept :
-                        value(static_cast<int>(value)) {}
+template<typename Enum, typename CRTP>
+PropertyClass<Enum, CRTP>::PropertyClass(const Enum& value) noexcept :
+                        _state(static_cast<int>(value)) {}
 
-template<typename Enum>
-PropertyClass<Enum>::PropertyClass(int value) noexcept : value(value) {}
-
-template<typename Enum>
-PropertyClass<Enum>
-PropertyClass<Enum>::operator|(const PropertyClass<Enum>& obj) const noexcept {
-    return PropertyClass<Enum>(value | obj.value);
+template<typename Enum, typename CRTP>
+CRTP PropertyClass<Enum, CRTP>::operator| (const CRTP& obj) const noexcept {
+    CRTP crtp;
+    crtp._state = _state | obj._state;
+    return crtp;
 }
 
-template<typename Enum>
-bool PropertyClass<Enum>
-::operator&(const PropertyClass<Enum>& obj) const noexcept {
-    return value & obj.value;
+template<typename Enum, typename CRTP>
+bool PropertyClass<Enum, CRTP>::operator& (const CRTP& obj)
+                                     const noexcept {
+    return _state & obj._state;
+}
+
+template<typename Enum, typename CRTP>
+bool PropertyClass<Enum, CRTP>::operator== (const CRTP& obj)
+                                      const noexcept {
+    return _state & obj._state;
+}
+
+template<typename Enum, typename CRTP>
+bool PropertyClass<Enum, CRTP>::is_undefined() const noexcept {
+    return _state == 0;
+}
+
+template<typename Enum, typename CRTP>
+void PropertyClass<Enum, CRTP>::operator+= (const CRTP& obj) noexcept {
+    _state |= obj._state;
+}
+
+template<typename Enum, typename CRTP>
+void PropertyClass<Enum, CRTP>::operator-= (const CRTP& obj) noexcept {
+    _state &= ~obj._state;
+}
+
+template<typename Enum, typename CRTP>
+CRTP& PropertyClass<Enum, CRTP>::operator= (const CRTP& obj) noexcept {
+    _state = obj._state;
+    return *this;
 }
 
 } // namespace xlib

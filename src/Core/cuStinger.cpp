@@ -220,7 +220,7 @@ void cuStinger::store_snapshot(const std::string& filename) const noexcept {
     auto csr_edges   = new vid_t[_nE];
     convert_to_csr(csr_offsets, csr_edges);
 
-    graph::Structure structure(graph::Structure::DIRECTED);
+    graph::StructureProp structure(graph::structure_prop::DIRECTED);
     size_t  base_size = sizeof(_nV) + sizeof(_nE) + sizeof(structure);
     size_t file_size1 = (static_cast<size_t>(_nV) + 1) * sizeof(eoff_t) +
                         (static_cast<size_t>(_nE)) * sizeof(vid_t);

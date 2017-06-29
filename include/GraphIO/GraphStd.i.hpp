@@ -64,6 +64,20 @@ GraphStd<vid_t, eoff_t>::Vertex::in_degree() const noexcept {
 }
 
 template<typename vid_t, typename eoff_t>
+inline typename GraphStd<vid_t, eoff_t>::Edge
+GraphStd<vid_t, eoff_t>::Vertex::edge(int index) const noexcept {
+    assert(index < out_degree());
+    return Edge(_graph._out_offsets[_id] + index, _graph);
+}
+
+template<typename vid_t, typename eoff_t>
+inline vid_t
+GraphStd<vid_t, eoff_t>::Vertex::neighbor_id(int index) const noexcept {
+    assert(index < out_degree());
+    return _graph._out_edges[_graph._out_offsets[_id] + index];
+}
+
+template<typename vid_t, typename eoff_t>
 inline typename GraphStd<vid_t, eoff_t>::EdgeIt
 GraphStd<vid_t, eoff_t>::Vertex::begin() const noexcept {
     return EdgeIt(_graph._out_edges + _graph._out_offsets[_id], _graph);
@@ -267,7 +281,7 @@ GraphStd<vid_t, eoff_t>::in_degree(vid_t index) const noexcept {
 
 template<typename vid_t, typename eoff_t>
 inline typename GraphStd<vid_t, eoff_t>::Vertex
-GraphStd<vid_t, eoff_t>::get_vertex(vid_t index) const noexcept {
+GraphStd<vid_t, eoff_t>::vertex(vid_t index) const noexcept {
     return Vertex(index, *this);
 }
 

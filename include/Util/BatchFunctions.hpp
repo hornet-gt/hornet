@@ -39,32 +39,27 @@
 
 #include "Core/RawTypes.hpp"
 #include "GraphIO/GraphStd.hpp"
-/*
-class BatchProperty {
+
+namespace detail {
+    enum class BatchEnum { WEIGHTED = 1, PRINT = 2, UNIQUE = 4 };
+} // namespace detail
+
+class BatchProperty : public xlib::PropertyClass<detail::BatchEnum,
+                                                 BatchProperty> {
 public:
-    BatchProperty(bool weighted = false, bool print = false) noexcept;
-
-    bool is_weighted() const noexcept;
-    bool is_print()    const noexcept;
-private:
-    bool _print, _weighted;
-};*/
-
-enum class BatchEnum { WEIGHTED = 1, PRINT = 2 };
-
-struct BatchProperty : xlib::PropertyClass<BatchEnum> {
-    explicit BatchProperty() : xlib::PropertyClass<BatchEnum>() {}
-
-    explicit BatchProperty(const BatchEnum& obj) :
-                               xlib::PropertyClass<BatchEnum>(obj) {}
+    explicit BatchProperty() noexcept = default;
+    explicit BatchProperty(const detail::BatchEnum& obj) noexcept;
 };
 
 namespace batch_property {
-    const BatchProperty WEIGHTED (BatchEnum::WEIGHTED);
-    const BatchProperty PRINT    (BatchEnum::PRINT);
+    const BatchProperty WEIGHTED (detail::BatchEnum::WEIGHTED);
+    const BatchProperty PRINT    (detail::BatchEnum::PRINT);
+    const BatchProperty UNIQUE   (detail::BatchEnum::UNIQUE);
 }
 
-void generateInsertBatch(custinger::vid_t* batch_src,
-                         custinger::vid_t* batch_dest,
-                         int batch_size, const graph::GraphStd<>& graph,
-                         BatchProperty prop = BatchProperty());
+enum class BatchType { INSERT, REMOVE };
+
+void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
+                   custinger::vid_t* batch_src, custinger::vid_t* batch_dest,
+                   const BatchType& batch_type,
+                   const BatchProperty& prop = BatchProperty());

@@ -2,7 +2,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date June, 2017
  * @version v1.3
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -42,8 +42,77 @@
 
 namespace graph {
 
+ParsingProp::ParsingProp(const detail::ParsingEnum& value) noexcept :
+                 xlib::PropertyClass<detail::ParsingEnum, ParsingProp>(value) {}
+
+bool ParsingProp::is_sort() const noexcept {
+    return *this & parsing_prop::SORT;
+}
+
+bool ParsingProp::is_randomize() const noexcept {
+    return *this & parsing_prop::RANDOMIZE;
+}
+
+bool ParsingProp::is_print() const noexcept {
+    return *this & parsing_prop::PRINT;
+}
+//------------------------------------------------------------------------------
+
+StructureProp::StructureProp(const detail::StructureEnum& value) noexcept :
+             xlib::PropertyClass<detail::StructureEnum, StructureProp>(value) {}
+
+bool StructureProp::is_directed() const noexcept {
+    return *this & structure_prop::DIRECTED;
+}
+
+bool StructureProp::is_undirected() const noexcept {
+    return *this & structure_prop::UNDIRECTED;
+}
+
+bool StructureProp::is_reverse() const noexcept {
+    return *this & structure_prop::REVERSE;
+}
+
+bool StructureProp::is_coo() const noexcept {
+    return *this & structure_prop::COO;
+}
+
+bool StructureProp::is_direction_set() const noexcept {
+    return is_directed() || is_undirected();
+}
+
+/*
+inline bool StructureProp::is_weighted() const noexcept {
+    using namespace detail;
+    return _wtype != NONE;
+}*/
+//==============================================================================
+
 template<typename vid_t, typename eoff_t>
-void GraphBase<vid_t, eoff_t>::read(const char* filename, Property prop) {
+inline GraphBase<vid_t, eoff_t>::
+GraphBase(vid_t nV, eoff_t nE, const StructureProp& structure) noexcept :
+        _nV(nV), _nE(nE), _structure(structure) {}
+
+template<typename vid_t, typename eoff_t>
+inline GraphBase<vid_t, eoff_t>::GraphBase(StructureProp structure) noexcept :
+                                                    _structure(structure) {}
+
+template<typename vid_t, typename eoff_t>
+inline const std::string& GraphBase<vid_t, eoff_t>::name() const noexcept {
+    return _graph_name;
+}
+
+template<typename vid_t, typename eoff_t>
+inline void GraphBase<vid_t, eoff_t>
+::set_structure(const StructureProp& structure) noexcept {
+    _structure = structure;
+}
+
+//==============================================================================
+
+template<typename vid_t, typename eoff_t>
+void GraphBase<vid_t, eoff_t>::read(const char* filename,
+                                    const ParsingProp& prop) {
     xlib::check_regular_file(filename);
     size_t size = xlib::file_size(filename);
     _graph_name = xlib::extract_filename(filename);
@@ -51,13 +120,13 @@ void GraphBase<vid_t, eoff_t>::read(const char* filename, Property prop) {
 
     if (prop.is_print()) {
         std::cout << "\nGraph File:\t" << _graph_name
-                  << "       Size: "   <<  xlib::format(size >> 20) << " MB";
+                  << "       Size: " <<  xlib::format(size / xlib::MB) << " MB";
     }
 
     std::string file_ext = xlib::extract_file_extension(filename);
     if (file_ext == ".bin") {
         if (prop.is_print())
-            std::cout << "            (Binary)\n";
+            std::cout << "            (Binary)Reading...   \n";
         if (prop.is_print() && (prop.is_randomize() || prop.is_sort()))
             std::cerr << "#input sort/randomize ignored on binary format\n";
         readBinary(filename, prop.is_print());
@@ -79,12 +148,12 @@ void GraphBase<vid_t, eoff_t>::read(const char* filename, Property prop) {
 
     if (file_ext == ".mtx" && first_str == "%%MatrixMarket") {
         if (prop.is_print())
-            std::cout << "      (MatrixMarket)\n";
+            std::cout << "      (MatrixMarket)\nReading...   ";
         readMarket(fin, prop.is_print());
     }
     else if (file_ext == ".graph") {
         if (prop.is_print())
-            std::cout << "        (Dimacs10th)\n";
+            std::cout << "        (Dimacs10th)\nReading...   ";
         if (prop.is_randomize() || prop.is_sort()) {
             std::cerr << "#input sort/randomize ignored on Dimacs10th format"
                       << std::endl;
@@ -93,22 +162,22 @@ void GraphBase<vid_t, eoff_t>::read(const char* filename, Property prop) {
     }
     else if (file_ext == ".gr" && (first_str == "c"|| first_str == "p")) {
         if (prop.is_print())
-            std::cout << "         (Dimacs9th)\n";
+            std::cout << "         (Dimacs9th)\nReading...   ";
         readDimacs9(fin, prop.is_print());
     }
     else if (file_ext == ".txt" && first_str == "#") {
         if (prop.is_print())
-            std::cout << "              (SNAP)\n";
+            std::cout << "              (SNAP)\nReading...   ";
         readSnap(fin, prop.is_print());
     }
     else if (file_ext == ".edges") {
         if (prop.is_print())
-            std::cout << "    (Net Repository)\n";
+            std::cout << "    (Net Repository)\nReading...   ";
         readNetRepo(fin, prop.is_print());
     }
     else if (first_str == "%") {
         if (prop.is_print())
-            std::cout << "            (Konect)\n";
+            std::cout << "            (Konect)\nReading...   ";
         readKonect(fin, prop.is_print());
     } else
         ERROR("Graph type not recognized");
@@ -122,24 +191,26 @@ template<typename vid_t, typename eoff_t>
 GInfo GraphBase<vid_t, eoff_t>::getMarketHeader(std::ifstream& fin) {
     std::string header_lines;
     std::getline(fin, header_lines);
-    _store_inverse = true;
     auto direction = header_lines.find("symmetric") != std::string::npos ?
-                        Structure::UNDIRECTED : Structure::DIRECTED;
+                        structure_prop::UNDIRECTED : structure_prop::DIRECTED;
+    _directed_to_undirected = direction == structure_prop::UNDIRECTED;
 
-    if (header_lines.find("integer") != std::string::npos)
+    /*if (header_lines.find("integer") != std::string::npos)
         _structure._wtype = Structure::INTEGER;
     if (header_lines.find("real") != std::string::npos)
-        _structure._wtype = Structure::REAL;
+        _structure._wtype = Structure::REAL;*/
 
     while (fin.peek() == '%')
         xlib::skip_lines(fin);
 
-    size_t num_lines, rows, columns;
+    size_t rows, columns, num_lines;
     fin >> rows >> columns >> num_lines;
     if (rows != columns)
         WARNING("Rectangular matrix");
     xlib::skip_lines(fin);
-    return { std::max(rows, columns), num_lines, direction };
+    size_t num_edges = direction == structure_prop::UNDIRECTED ? num_lines * 2
+                                                               : num_lines;
+    return { std::max(rows, columns), num_edges, num_lines, direction };
 }
 
 //------------------------------------------------------------------------------
@@ -150,9 +221,9 @@ GInfo GraphBase<vid_t, eoff_t>::getDimacs9Header(std::ifstream& fin) {
         xlib::skip_lines(fin);
 
     xlib::skip_words(fin, 2);
-    size_t num_lines, num_vertices;
-    fin >> num_vertices >> num_lines;
-    return { num_vertices, num_lines, Structure::UNDIRECTED };
+    size_t num_vertices, num_edges;
+    fin >> num_vertices >> num_edges;
+    return { num_vertices, num_edges, num_edges, structure_prop::UNDIRECTED };
 }
 
 //------------------------------------------------------------------------------
@@ -162,22 +233,23 @@ GInfo GraphBase<vid_t, eoff_t>::getDimacs10Header(std::ifstream& fin) {
     while (fin.peek() == '%')
         xlib::skip_lines(fin);
 
-    size_t num_lines, num_vertices;
-    fin >> num_vertices >> num_lines;
-    Structure::Enum direction;
-    _store_inverse = false;
+    size_t num_vertices, num_edges;
+    fin >> num_vertices >> num_edges;
+    StructureProp direction;
 
     if (fin.peek() == '\n')
-        direction = Structure::UNDIRECTED;
+        direction = structure_prop::UNDIRECTED;
     else {
         std::string flag;
         fin >> flag;
-        direction = flag == "100" ? Structure::DIRECTED : Structure::UNDIRECTED;
+        direction = flag == "100" ? structure_prop::DIRECTED
+                                  : structure_prop::UNDIRECTED;
         xlib::skip_lines(fin);
     }
-    if (direction == Structure::UNDIRECTED)
-        num_lines *= 2;
-    return { num_vertices, num_lines, direction };
+    _directed_to_undirected = direction == structure_prop::UNDIRECTED;
+    if (direction == structure_prop::UNDIRECTED)
+        num_edges *= 2;
+    return { num_vertices, num_edges, num_vertices, direction };
 }
 
 //------------------------------------------------------------------------------
@@ -187,13 +259,14 @@ GInfo GraphBase<vid_t, eoff_t>::getKonectHeader(std::ifstream& fin) {
     std::string str;
     fin >> str >> str;
     auto direction = (str == "asym") || (str == "bip") ?
-                        Structure::DIRECTED : Structure::UNDIRECTED;
+                        structure_prop::DIRECTED : structure_prop::UNDIRECTED;
     size_t num_edges, value1, value2;
     fin >> str >> num_edges >> value1 >> value2;
     xlib::skip_lines(fin);
     if (str != "%")
         ERROR("Wrong file format")
-    return { std::max(value1, value2), num_edges, direction };
+    _directed_to_undirected = direction == structure_prop::UNDIRECTED;
+    return { std::max(value1, value2), num_edges, num_edges, direction };
 }
 
 //------------------------------------------------------------------------------
@@ -213,8 +286,8 @@ template<typename vid_t, typename eoff_t>
 GInfo GraphBase<vid_t, eoff_t>::getSnapHeader(std::ifstream& fin) {
     std::string tmp;
     fin >> tmp >> tmp;
-    Structure::Enum direction = (tmp == "Undirected") ? Structure::UNDIRECTED
-                                                      : Structure::DIRECTED;
+    StructureProp direction = (tmp == "Undirected") ? structure_prop::UNDIRECTED
+                                                    : structure_prop::DIRECTED;
     xlib::skip_lines(fin);
 
     size_t num_lines = 0, num_vertices = 0;
@@ -227,7 +300,8 @@ GInfo GraphBase<vid_t, eoff_t>::getSnapHeader(std::ifstream& fin) {
         }
     }
     xlib::skip_lines(fin);
-    return { num_vertices, num_lines, direction };
+    _directed_to_undirected = direction == structure_prop::UNDIRECTED;
+    return { num_vertices, num_lines, num_lines, direction };
 }
 
 //------------------------------------------------------------------------------

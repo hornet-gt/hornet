@@ -2,7 +2,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date June, 2017
  * @version v1.3
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -46,11 +46,9 @@ template<typename vid_t, typename eoff_t>
 void GraphStd<vid_t, eoff_t>::readMarket(std::ifstream& fin, bool print) {
     auto ginfo = GraphBase<vid_t, eoff_t>::getMarketHeader(fin);
     allocate(ginfo);
-    xlib::Progress progress(ginfo.num_edges);
-    if (print)
-        std::cout << "Reading...   ";
+    xlib::Progress progress(ginfo.num_lines);
 
-    for (size_t lines = 0; lines < ginfo.num_edges; lines++) {
+    for (size_t lines = 0; lines < ginfo.num_lines; lines++) {
         vid_t index1, index2;
         fin >> index1 >> index2;
         _coo_edges[lines] = { index1 - 1, index2 - 1 };
@@ -67,9 +65,7 @@ template<typename vid_t, typename eoff_t>
 void GraphStd<vid_t, eoff_t>::readDimacs9(std::ifstream& fin, bool print) {
     auto ginfo = GraphBase<vid_t, eoff_t>::getDimacs9Header(fin);
     allocate(ginfo);
-    xlib::Progress progress(ginfo.num_edges);
-    if (print)
-        std::cout << "Reading...   ";
+    xlib::Progress progress(ginfo.num_lines);
 
     int c;
     size_t lines = 0;
@@ -94,11 +90,9 @@ template<typename vid_t, typename eoff_t>
 void GraphStd<vid_t, eoff_t>::readKonect(std::ifstream& fin, bool print) {
     auto ginfo = GraphBase<vid_t, eoff_t>::getKonectHeader(fin);
     allocate(ginfo);
-    if (print)
-        std::cout << "Reading...   ";
-    xlib::Progress progress(ginfo.num_edges);
+    xlib::Progress progress(ginfo.num_lines);
 
-    for (size_t lines = 0; lines < ginfo.num_edges; lines++) {
+    for (size_t lines = 0; lines < ginfo.num_lines; lines++) {
         vid_t index1, index2;
         fin >> index1 >> index2;
         _coo_edges[lines] = { index1 - 1, index2 - 1 };
@@ -114,8 +108,6 @@ void GraphStd<vid_t, eoff_t>::readNetRepo(std::ifstream& fin, bool print) {
     GraphBase<vid_t, eoff_t>::getNetRepoHeader(fin);
     xlib::UniqueMap<vid_t> unique_map;
     std::vector<coo_t> coo_edges_vect(32768);
-    if (print)
-        std::cout << "Reading...   ";
 
     size_t num_lines = 0;
     while (!fin.eof()) {
@@ -129,7 +121,8 @@ void GraphStd<vid_t, eoff_t>::readNetRepo(std::ifstream& fin, bool print) {
         coo_edges_vect.push_back( { index1 - 1, index2 - 1 } );
         num_lines++;
     }
-    allocate( { unique_map.size(), num_lines, Structure::DIRECTED } );
+    allocate( { unique_map.size(), num_lines, num_lines,
+                structure_prop::DIRECTED } );
     std::copy(coo_edges_vect.begin(), coo_edges_vect.end(), _coo_edges);
 }
 
@@ -139,12 +132,10 @@ template<typename vid_t, typename eoff_t>
 void GraphStd<vid_t, eoff_t>::readDimacs10(std::ifstream& fin, bool print){
     auto ginfo = GraphBase<vid_t, eoff_t>::getDimacs10Header(fin);
     allocate(ginfo);
-    xlib::Progress progress(static_cast<size_t>(ginfo.num_vertices));
-    if (print)
-        std::cout << "Reading...   ";
+    xlib::Progress progress(static_cast<size_t>(ginfo.num_lines));
 
     size_t count_edges = 0;
-    for (size_t lines = 0; lines < ginfo.num_vertices; lines++) {
+    for (size_t lines = 0; lines < ginfo.num_lines; lines++) {
         std::string str;
         std::getline(fin, str);
 
@@ -167,15 +158,13 @@ template<typename vid_t, typename eoff_t>
 void GraphStd<vid_t, eoff_t>::readSnap(std::ifstream& fin, bool print) {
     auto ginfo = GraphBase<vid_t, eoff_t>::getSnapHeader(fin);
     allocate(ginfo);
-    if (print)
-        std::cout << "Reading...   ";
 
-    xlib::Progress progress(ginfo.num_edges);
+    xlib::Progress progress(ginfo.num_lines);
     while (fin.peek() == '#')
         xlib::skip_lines(fin);
 
     xlib::UniqueMap<vid_t, vid_t> map;
-    for (size_t lines = 0; lines < ginfo.num_edges; lines++) {
+    for (size_t lines = 0; lines < ginfo.num_lines; lines++) {
         vid_t v1, v2;
         fin >> v1 >> v2;
         _coo_edges[lines] = { map.insert(v1), map.insert(v2) };
@@ -205,9 +194,10 @@ void GraphStd<vid_t, eoff_t>::readBinary(const char* filename, bool print){
     delete[] tmp;
 
     memory_mapped.read(&_nV, 1, &_nE, 1, &_structure, 1);
-    auto direction = _structure.is_directed() ? Structure::DIRECTED
-                                              : Structure::UNDIRECTED;
-    allocate({static_cast<size_t>(_nV), static_cast<size_t>(_nE), direction});
+    auto direction = _structure.is_directed() ? structure_prop::DIRECTED
+                                              : structure_prop::UNDIRECTED;
+    allocate({static_cast<size_t>(_nV), static_cast<size_t>(_nE),
+              static_cast<size_t>(_nE), direction});
 
     if (_structure.is_directed() && _structure.is_reverse()) {
         memory_mapped.read(_out_offsets, _nV + 1, _in_offsets, _nV + 1, //NOLINT

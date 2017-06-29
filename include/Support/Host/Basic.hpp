@@ -152,18 +152,25 @@ bool is_integer(const std::string& str);
 
 //------------------------------------------------------------------------------
 
-template<typename Enum>
+//strongly typed + operator "|", "&", etc..
+//CRTP - curiously recurring template pattern
+template<typename Enum, typename CRTP>
 class PropertyClass {
 public:
-    explicit PropertyClass() noexcept = default;
-    explicit PropertyClass(const Enum& value) noexcept;
+     PropertyClass() noexcept = default;
+     PropertyClass(const Enum& value) noexcept;
 
-    PropertyClass operator|(const PropertyClass& obj) const noexcept;
-    bool          operator&(const PropertyClass& obj) const noexcept;
+    virtual CRTP  operator|  (const CRTP& obj) const noexcept final;
+    virtual bool  operator&  (const CRTP& obj) const noexcept final;
+    virtual bool  operator== (const CRTP& obj) const noexcept final;
+
+            CRTP& operator=  (const CRTP& obj) noexcept ;
+    virtual void  operator+= (const CRTP& obj) noexcept final;
+    virtual void  operator-= (const CRTP& obj) noexcept final;
+    virtual bool  is_undefined() const noexcept final;
 protected:
-   explicit PropertyClass(int value) noexcept;
-private:
-    const int value { 0 };
+    int _state { 0 };
+    PropertyClass(int value) noexcept;
 };
 
 } // namespace xlib

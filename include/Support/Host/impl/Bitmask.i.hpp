@@ -80,6 +80,10 @@ inline bool Bitmask::operator[](size_t index) const noexcept {
 inline void Bitmask::randomize() noexcept {
     auto seed = std::chrono::high_resolution_clock::now().time_since_epoch()
                 .count();
+    randomize(seed);
+}
+
+inline void Bitmask::randomize(uint64_t seed) noexcept {
     auto    generator = std::mt19937_64(seed);
     auto distribution = std::uniform_int_distribution<unsigned>(
                             std::numeric_limits<unsigned>::lowest(),
@@ -87,7 +91,6 @@ inline void Bitmask::randomize() noexcept {
     const auto lambda = [&]{ return distribution(generator); };
     std::generate(_array, _array + _num_word, lambda);
     xlib::delete_bits(_array, _size, _num_word * 32);
-
 }
 
 inline void Bitmask::clear() noexcept {

@@ -474,5 +474,7 @@ template class CubArgMax<int>;
 template class CubSelect<int>;
 template class CubSelect<int2>;
 template class CubSelectFlagged<int2>;
+template class CubSelectFlagged<int>;
+
 
 } //namespace xlib

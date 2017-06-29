@@ -1,5 +1,4 @@
 /**
- * @internal
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
@@ -33,31 +32,9 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
- *
- * @file
  */
-#include <cuda_runtime.h>
+namespace graph {
 
- #if defined(__NVCC__)
-     #define ALIGN(bytes) __align__(bytes)
-     #define HOST_DEVICE  __host__ __device__ __forceinline__
 
-     #define CONST_EXPR
-     #define CONST_EXPR_ASSERT(a) assert(a)
- #else
-     #define ALIGN(bytes) alignas(bytes)
-     #define HOST_DEVICE inline
 
-     #define CONST_EXPR // constexpr
-     #define ENABLE_CONST_EXPR
-     #define CONST_EXPR_ASSERT(a)
- #endif
-
- #if defined(__NVCC__) || defined(__GNUG__) || defined(__CLANG__)
-     #define RESTRICT __restrict__
- #elif defined(_MSC_VER)
-     #define RESTRICT __restrict
- #else
-     #define RESTRICT
-     #pragma message("RESTRICT not defined")
- #endif
+} // namespace graph

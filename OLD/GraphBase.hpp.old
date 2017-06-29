@@ -3,7 +3,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date June, 2017
+ * @date April, 2017
  * @version v1.3
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -89,7 +89,6 @@ private:
 struct GInfo {
     size_t          num_vertices;
     size_t          num_edges;
-    size_t          num_lines;
     Structure::Enum direction;
 };
 
@@ -113,8 +112,7 @@ protected:
     eoff_t      _nE            { 0 };
     Structure   _structure     { Structure::UNDEF };
     Property    _prop;
-    bool        _directed_to_undirected { false };
-    bool        _undirected_to_directed { false };
+    bool        _store_inverse { false };
 
     explicit GraphBase()                          noexcept;
     explicit GraphBase(Structure::Enum structure) noexcept;

@@ -46,7 +46,7 @@ template<typename T, typename R>
 CommandLineParam::CommandLineParam(graph::GraphStd<T, R>& graph,
                                   int argc, char* argv[], bool check_unknown)
                                   noexcept {
-    graph::Property prop(graph::Property::PRINT);
+    graph::ParsingProp prop(graph::parsing_prop::PRINT);
     bool write_binary = false;
     if (argc == 1) {
 L1:     std::ifstream syntax_file("../docs/Syntax.txt");
@@ -57,15 +57,15 @@ L1:     std::ifstream syntax_file("../docs/Syntax.txt");
     for (int i = 2; i < argc; i++) {
         std::string str(argv[i]);
         if (str == "--undirected")
-            graph.set_structure(graph::Structure::UNDIRECTED);
+            graph.set_structure(graph::structure_prop::UNDIRECTED);
         else if (str == "--directed")
-            graph.set_structure(graph::Structure::DIRECTED);
+            graph.set_structure(graph::structure_prop::DIRECTED);
         else if (str == "--sort-adj")
-            prop += graph::Property::SORT;
+            prop += graph::parsing_prop::SORT;
         else if (str == "--randomize-id")
-            prop += graph::Property::RANDOMIZE;
+            prop += graph::parsing_prop::RANDOMIZE;
         else if (str == "--no-info")
-            prop -= graph::Property::PRINT;
+            prop -= graph::parsing_prop::PRINT;
         else if (str == "--write-binary")
             write_binary = true;
         else if (str == "--device-info")

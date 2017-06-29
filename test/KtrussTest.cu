@@ -59,6 +59,8 @@ void runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
     const int    blocksToTest = sizeof(arrayBlocks) / sizeof(int);
     const int blockSizeToTest = sizeof(arrayBlockSize) / sizeof(int);
     const int       tSPToTest = sizeof(arrayThreadPerIntersection) /sizeof(int);
+    BatchUpdate batch_update(nv);
+
     Timer<DEVICE> TM;
 
     for (int b = 0; b < blocksToTest; b++) {
@@ -71,7 +73,7 @@ void runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
                 int     nbl = sps / tsp;
 
                 cuStinger custiger_graph(custinger_init);
-                KTruss kt(custiger_graph);
+                KTruss kt(custiger_graph, batch_update);
 
                 if (alg & 1) {
                     kt.setInitParameters(nv,ne, tsp, nbl, shifter, blocks, sps);

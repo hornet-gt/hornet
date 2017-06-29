@@ -16,8 +16,10 @@ void kTrussOneIteration(cuStinger& custinger,
                         int blockdim,
                         KTrussData* __restrict__ devData);
 
-KTruss::KTruss(cuStinger& custinger) : StaticAlgorithm(custinger),
-                                        hostKTrussData(custinger) {}
+KTruss::KTruss(cuStinger& custinger, custinger::BatchUpdate& batch_update) :
+                                        StaticAlgorithm(custinger),
+                                        hostKTrussData(custinger),
+                                        batch_update(batch_update) {}
 
 KTruss::~KTruss() {
     release();
@@ -179,8 +181,8 @@ bool KTruss::findTrussOfK(bool& stop) {
                                   hostKTrussData.counter, sizeof(int));*/
             custinger::BatchInit batch_init(src_array, dst_array,
                                             hostKTrussData.counter);
-            custinger::BatchUpdate batch_update(batch_init);
-
+            //custinger::BatchUpdate batch_update(batch_init);
+            batch_update.insert(batch_init);
             custinger.edgeDeletionsSorted(batch_update);    ///???
 
             //batch_update->sortDeviceBUD(hostKTrussData.sps);
@@ -257,7 +259,7 @@ bool KTruss::findTrussOfKDynamic(bool& stop) {
     hostKTrussData.counter = 0;
     syncDeviceWithHost();
 
-    hostKTrussData.activeQueue.clear();
+    //hostKTrussData.activeQueue.clear();
     syncDeviceWithHost();
 
     forAllVertices<ktruss_operators::queueActive>(custinger, deviceKTrussData);
@@ -278,8 +280,10 @@ bool KTruss::findTrussOfKDynamic(bool& stop) {
         //    (custinger, deviceKTrussData, hostKTrussData.activeQueue.getQueue(),
         //     activeThisIteration);
         CHECK_CUDA_ERROR
+        //forAllVertices<ktruss_operators::findUnderKDynamic>
+        //    (custinger, hostKTrussData.activeQueue, deviceKTrussData);    //???
         forAllVertices<ktruss_operators::findUnderKDynamic>
-            (custinger, hostKTrussData.activeQueue, deviceKTrussData);    //???
+            (custinger, deviceKTrussData);    //???
         CHECK_CUDA_ERROR
 
         syncHostWithDevice();
@@ -305,9 +309,10 @@ bool KTruss::findTrussOfKDynamic(bool& stop) {
             //                      hostKTrussData.counter, sizeof(int));
             custinger::BatchInit batch_init(src_array, dst_array,
                                             hostKTrussData.counter);
-            custinger::BatchUpdate batch_update(batch_init);
+            //custinger::BatchUpdate batch_update(batch_init);
+            batch_update.insert(batch_init);
 
-            custinger.edgeDeletionsSorted(batch_update);    ///???
+            custinger.edgeDeletionsSorted(batch_update);
             //custinger::BatchUpdate batch_update(*bud);
             //batch_update->sortDeviceBUD(hostKTrussData.sps);
             //custinger.edgeDeletionsSorted(*batch_update);
@@ -333,8 +338,10 @@ CHECK_CUDA_ERROR
         //allVinA_TraverseVertices<ktruss_operators::countActive>
         //    (custinger, deviceKTrussData, hostKTrussData.activeQueue.getQueue(),
         //     activeThisIteration);
+        //forAllVertices<ktruss_operators::countActive>
+        //    (custinger, hostKTrussData.activeQueue, deviceKTrussData);  //???
         forAllVertices<ktruss_operators::countActive>
-            (custinger, hostKTrussData.activeQueue, deviceKTrussData);  //???
+            (custinger, deviceKTrussData);  //???
 CHECK_CUDA_ERROR
         syncHostWithDevice();
         stop = false;

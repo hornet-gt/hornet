@@ -40,7 +40,7 @@ struct KTrussData {
 // Label propogation is based on the values from the previous iteration.
 class KTruss : public StaticAlgorithm {
 public:
-    KTruss(cuStinger& custinger);
+    KTruss(cuStinger& custinger, custinger::BatchUpdate& batch_update);
     ~KTruss();
 
     void reset()    override;
@@ -71,6 +71,7 @@ public:
 private:
     KTrussData hostKTrussData;
     KTrussData* deviceKTrussData;
+    custinger::BatchUpdate& batch_update;
 };
 
 //==============================================================================

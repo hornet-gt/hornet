@@ -98,6 +98,7 @@ void forAll(int num_items, void* optional_data) noexcept {
     detail::forAllKernel<Operator>
         <<< xlib::ceil_div<BLOCK_SIZE_OP1>(num_items), BLOCK_SIZE_OP1 >>>
         (num_items, optional_data);
+    CHECK_CUDA_ERROR
 }
 
 //------------------------------------------------------------------------------
@@ -109,6 +110,7 @@ void forAllnumV(const custinger::cuStinger& custinger, void* optional_data)
     detail::forAllnumVKernel<Operator>
         <<< xlib::ceil_div<BLOCK_SIZE_OP1>(custinger.nV()), BLOCK_SIZE_OP1 >>>
         (custinger.nV(), optional_data);
+    CHECK_CUDA_ERROR
 }
 
 //------------------------------------------------------------------------------
@@ -120,6 +122,7 @@ void forAllnumE(const custinger::cuStinger& custinger, void* optional_data)
     detail::forAllnumEKernel<Operator>
         <<< xlib::ceil_div<BLOCK_SIZE_OP1>(custinger.nE()), BLOCK_SIZE_OP1 >>>
         (custinger.nE(), optional_data);
+    CHECK_CUDA_ERROR
 }
 
 //==============================================================================
@@ -131,6 +134,7 @@ void forAllVertices(const custinger::cuStinger& custinger, void* optional_data)
     detail::forAllVerticesKernel<Operator>
         <<< xlib::ceil_div<BLOCK_SIZE_OP1>(custinger.nV()), BLOCK_SIZE_OP1 >>>
         (custinger.device_data(), optional_data);
+    CHECK_CUDA_ERROR
 }
 
 template<void (*Operator)(const custinger::Vertex&, void*)>
@@ -141,6 +145,7 @@ void forAllVertices(const custinger::cuStinger& custinger,
     detail::forAllVerticesKernel<Operator>
         <<< xlib::ceil_div<BLOCK_SIZE_OP1>(queue.size()), BLOCK_SIZE_OP1 >>>
         (custinger.device_data(), queue.device_ptr_q1(), optional_data);
+    CHECK_CUDA_ERROR
 }
 
 //------------------------------------------------------------------------------
@@ -158,6 +163,7 @@ void forAllEdges(custinger::cuStinger& custinger, void* optional_data)
     detail::forAllEdgesKernel<BLOCK_SIZE_OP1, PARTITION_SIZE, Operator>
        <<< num_partitions, BLOCK_SIZE_OP1 >>>
        (custinger.device_csr_offsets(), custinger.device_data(), optional_data);
+    CHECK_CUDA_ERROR
 }
 
 //==============================================================================

@@ -9,15 +9,14 @@ void runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
               const std::string& graphName);
 
 int main(int argc, char* argv[]) {
-    graph::GraphStd<vid_t, eoff_t> graph(graph::Structure::UNDIRECTED);
-    graph.read(argv[1], graph::Property(static_cast<graph::Property::Enum>(6)));
+    using namespace graph::structure_prop;
+    using namespace graph::parsing_prop;
+
+    graph::GraphStd<vid_t, eoff_t> graph(UNDIRECTED);
+    graph.read(argv[1], SORT | PRINT);
 
     cuStingerInit custinger_init(graph.nV(), graph.nE(), graph.out_offsets(),
                                  graph.out_edges());
-
-    const auto tmp = graph.get_vertex(3328);
-    for (const auto& it : tmp)
-        std::cout << it.dest() << " ";
 
     int alg = 3, maxk = 3;
     if (argc >= 3)
@@ -43,11 +42,14 @@ void runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
 
     int nv = custinger_init.nV();
     int ne = custinger_init.nE();
+    std::cout << "nv " << nv << " ne " << ne << std::endl;
 
     triangle_t* d_triangles;
     cudaMalloc(&d_triangles, (nv + 1) * sizeof(triangle_t));
     vid_t* d_off;
     cudaMalloc(&d_off, (nv + 1) * sizeof(vid_t));
+    cuMemcpyToDevice(custinger_init.csr_offsets(), nv + 1, d_off);
+
 
     auto              triNE = new int[ne];
     auto        h_triangles = new triangle_t[nv + 1];
@@ -59,7 +61,7 @@ void runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
     const int    blocksToTest = sizeof(arrayBlocks) / sizeof(int);
     const int blockSizeToTest = sizeof(arrayBlockSize) / sizeof(int);
     const int       tSPToTest = sizeof(arrayThreadPerIntersection) /sizeof(int);
-    BatchUpdate batch_update(nv);
+    BatchUpdate batch_update(ne);
 
     Timer<DEVICE> TM;
 
@@ -133,7 +135,7 @@ void runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
             }
         }
     }
-    cuFree(d_triangles);
+    cuFree(d_triangles, d_off);
     delete[] h_triangles;
     delete[] triNE;
 }

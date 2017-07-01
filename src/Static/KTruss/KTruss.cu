@@ -52,18 +52,36 @@ void KTruss::init(){
     reset();
 }
 
+
+void copyArrayHostToHost(void* hostSrc,  void* hostDst, vid_t elements, int32_t eleSize){
+	memcpy(hostDst,hostSrc,elements*eleSize);
+}
+
+void copyArrayHostToDevice(void* hostSrc, void* devDst, vid_t elements, int32_t eleSize){
+	SAFE_CALL (cudaMemcpy(devDst,hostSrc,elements*eleSize,cudaMemcpyHostToDevice));
+}
+
+void copyArrayDeviceToHost(void* devSrc, void* hostDst, vid_t elements, int32_t eleSize){
+	SAFE_CALL (cudaMemcpy(hostDst,devSrc,elements*eleSize,cudaMemcpyDeviceToHost));
+}
+
+void copyArrayDeviceToDevice(void* devSrc, void* devDst, vid_t elements, int32_t eleSize){
+	SAFE_CALL (cudaMemcpy(devDst,devSrc,elements*eleSize,cudaMemcpyDeviceToDevice));
+}
+
+
 void KTruss::copyOffsetArrayHost(vid_t* hostOffsetArray) {
-    //copyArrayHostToDevice(hostOffsetArray, hostKTrussData.offsetArray,
-    //                      hostKTrussData.nv+1, sizeof(length_t));
-    cuMemcpyToDevice(hostOffsetArray, hostKTrussData.nv + 1,
-                     hostKTrussData.offsetArray);
+    copyArrayHostToDevice(hostOffsetArray, hostKTrussData.offsetArray,
+                          hostKTrussData.nv+1, sizeof(vid_t));
+    //cuMemcpyToDevice(hostOffsetArray, hostKTrussData.nv + 1,
+    //                 hostKTrussData.offsetArray);
 }
 
 void KTruss::copyOffsetArrayDevice(vid_t* deviceOffsetArray){
-    //copyArrayDeviceToDevice(deviceOffsetArray, hostKTrussData.offsetArray,
-    //                        hostKTrussData.nv + 1, sizeof(vid_t));
-    cuMemcpyToDevice(deviceOffsetArray, hostKTrussData.nv + 1,
-                     hostKTrussData.offsetArray);
+    copyArrayDeviceToDevice(deviceOffsetArray, hostKTrussData.offsetArray,
+                            hostKTrussData.nv + 1, sizeof(vid_t));
+    //cuMemcpyToDevice(deviceOffsetArray, hostKTrussData.nv + 1,
+    //                 hostKTrussData.offsetArray);
 }
 
 vid_t KTruss::getMaxK() {
@@ -262,9 +280,11 @@ bool KTruss::findTrussOfKDynamic(bool& stop) {
     //hostKTrussData.activeQueue.clear();
     syncDeviceWithHost();
 
-    forAllVertices<ktruss_operators::queueActive>(custinger, deviceKTrussData);
-    forAllVertices<ktruss_operators::countActive>(custinger, deviceKTrussData);
     CHECK_CUDA_ERROR
+
+    //forAllVertices<ktruss_operators::queueActive>(custinger, deviceKTrussData);///???
+    forAllVertices<ktruss_operators::countActive>(custinger, deviceKTrussData);
+
     //allVinG_TraverseVertices<ktruss_operators::queueActive>
     //    (custinger, deviceKTrussData);
     //allVinG_TraverseVertices<ktruss_operators::countActive>

@@ -44,7 +44,6 @@ inline StaticAlgorithm::StaticAlgorithm(custinger::cuStinger& custinger_)
 
 inline StaticAlgorithm::~StaticAlgorithm() noexcept {
     cuFree(_d_ptr);
-    delete[] reinterpret_cast<char*>(_h_ptr);
 }
 
 template<typename T>

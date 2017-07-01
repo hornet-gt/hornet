@@ -227,6 +227,7 @@ public:
     void writeBinary(const std::string& filename, bool print = true) const;
     void writeMarket(const std::string& filename) const;
 private:
+    xlib::Bitmask _bitmask;
     eoff_t*   _out_offsets { nullptr };
     eoff_t*   _in_offsets  { nullptr };
     vid_t*    _out_edges   { nullptr };

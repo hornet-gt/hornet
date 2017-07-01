@@ -60,22 +60,26 @@ inline const byte_t* BatchInit::edge_ptrs(int index) const noexcept {
 //==============================================================================
 inline BatchUpdate::BatchUpdate(size_t size) noexcept :
                               _batch_pitch(xlib::upper_approx<512>(size) * 2) {
-    SAFE_CALL( cudaMallocHost(&_pinned_ptr, _batch_pitch * sizeof(vid_t) * 2 ) )
+    //SAFE_CALL( cudaMallocHost(&_pinned_ptr, _batch_pitch * sizeof(vid_t) * 2 ) )
+    SAFE_CALL( cudaMalloc(&_pinned_ptr, _batch_pitch * sizeof(vid_t) * 2 ) )
+
     //UNDIRECTED
 }
 
 //UNDIRECTED
 inline void BatchUpdate::insert(const BatchInit& batch_init) noexcept {
+    CHECK_CUDA_ERROR
     size_t batch_size = batch_init.size();
     _d_edge_ptrs[0]   = _pinned_ptr;
     _d_edge_ptrs[1]   = _pinned_ptr + _batch_pitch * sizeof(vid_t);
-    cuMemcpyToDeviceAsync(batch_init.edge_ptrs(0), batch_size * sizeof(vid_t),
+    cuMemcpyToDevice(batch_init.edge_ptrs(0), batch_size * sizeof(vid_t),
                           _d_edge_ptrs[0]);
-    cuMemcpyToDeviceAsync(batch_init.edge_ptrs(1), batch_size * sizeof(vid_t),
+    cuMemcpyToDevice(batch_init.edge_ptrs(1), batch_size * sizeof(vid_t),
                           _d_edge_ptrs[0] + batch_size * sizeof(vid_t));
-    cuMemcpyToDeviceAsync(batch_init.edge_ptrs(1), batch_size * sizeof(vid_t),
+
+    cuMemcpyToDevice(batch_init.edge_ptrs(1), batch_size * sizeof(vid_t),
                           _d_edge_ptrs[1]);
-    cuMemcpyToDeviceAsync(batch_init.edge_ptrs(0), batch_size * sizeof(vid_t),
+    cuMemcpyToDevice(batch_init.edge_ptrs(0), batch_size * sizeof(vid_t),
                           _d_edge_ptrs[1] + batch_size * sizeof(vid_t));
     _batch_size = batch_size * 2;
     /*for (int i = 0; i < NUM_ETYPES; i++) {

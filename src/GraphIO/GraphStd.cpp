@@ -83,25 +83,40 @@ void GraphStd<vid_t, eoff_t>::allocate(const GInfo& ginfo) noexcept {
     assert(ginfo.num_vertices > 0 && ginfo.num_edges > 0);
     if (!_structure.is_direction_set())
         _structure += ginfo.direction;
-    bool user_direction_flag = ginfo.direction == structure_prop::UNDIRECTED &&
+    _undirected_to_directed  = ginfo.direction == structure_prop::UNDIRECTED &&
                                _structure.is_directed();
-    _undirected_to_directed  = user_direction_flag;
     _directed_to_undirected  = ginfo.direction == structure_prop::DIRECTED &&
                                _structure.is_undirected();
-    size_t num_vertices = user_direction_flag ? ginfo.num_vertices * 2
-                                              : ginfo.num_vertices;
+    size_t new_num_edges;
+    if (_directed_to_undirected)
+        new_num_edges = ginfo.num_edges * 2;
+    else {
+        _bitmask.init(ginfo.num_edges);
+        _bitmask.randomize(_seed);
+        new_num_edges = _bitmask.size();
+    }
     xlib::check_overflow<vid_t>(ginfo.num_vertices);
     xlib::check_overflow<eoff_t>(ginfo.num_edges);
     _nV = static_cast<vid_t>(ginfo.num_vertices);
-    _nE = static_cast<eoff_t>(ginfo.num_edges);
+    _nE = static_cast<eoff_t>(new_num_edges);
 
     if (_prop.is_print()) {
-        const char* graph_dir = _structure.is_undirected()
-                                    ? "\tGraph Structure: Undirected"
-                                    : "\tGraph Structure: Directed";
-        std::cout << "\nNodes: " << xlib::format(_nV) << "\tEdges: "
-                  << xlib::format(_nE) << graph_dir << "\tavg. degree: "
-                  << xlib::format(static_cast<double>(_nE) / _nV, 1) << "\n\n";
+        const char* const dir[] = { "\tStructure: Undirected",
+                                    "\tStructure: Directed" };
+        const char* graph_dir = ginfo.direction == structure_prop::UNDIRECTED
+                                    ? dir[0] : dir[1];
+        auto avg = static_cast<double>(ginfo.num_edges) / _nV;
+        std::cout << "\n@File  Nodes: " << xlib::format(_nV) << "\tEdges: "
+                  << xlib::format(ginfo.num_edges) << graph_dir
+                  << "\tavg. degree: " << xlib::format(avg, 1);
+        if (_directed_to_undirected || _undirected_to_directed) {
+            graph_dir =  _structure.is_undirected() ? dir[0] : dir[1];
+            avg = static_cast<double>(new_num_edges) / _nV;
+            std::cout << "\n@User  Nodes: " << xlib::format(_nV) << "\tEdges: "
+                      << xlib::format(new_num_edges) << graph_dir
+                      << "\tavg. degree: " << xlib::format(avg) << "\n";
+        }
+        std::cout << std::endl;
     }
 
     try {
@@ -144,20 +159,25 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
         eoff_t half = _nE / 2;
         for (eoff_t i = 0; i < half; i++)
             _coo_edges[i + half] = {_coo_edges[i].second, _coo_edges[i].first};
-        if (_prop.is_print())
-            std::cout << "Removing duplicated edges...\n" << std::endl;
+        if (_prop.is_print()) {
+            std::cout << "Directed to Undirected: Removing duplicated edges..."
+                      << std::flush;
+        }
         std::sort(_coo_edges, _coo_edges + _nE);
-        auto last = std::unique(_coo_edges, _coo_edges + _nE);
-        _nE       = std::distance(_coo_edges, last);
+        auto   last = std::unique(_coo_edges, _coo_edges + _nE);
+        auto new_nE = std::distance(_coo_edges, last);
+        if (_prop.is_print())
+            std::cout << "(" << _nE - new_nE << " edges removed)" << std::endl;
+        _nE = new_nE;
     }
     else if (_undirected_to_directed) {
-        xlib::Bitmask bitmask(_nE);
-        bitmask.randomize(_seed);
+        std::cout << "Undirected to Directed: Removing random edges..."
+                  << std::endl;
         for (eoff_t i = 0, k = 0; i < _nE; i++) {
-            if (bitmask[i])
+            if (_bitmask[i])
                 _coo_edges[k++] = _coo_edges[i];
         }
-        _nE = bitmask.size();
+        _bitmask.free();
     }
 
     if (_prop.is_randomize()) {

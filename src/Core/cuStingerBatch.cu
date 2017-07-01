@@ -224,7 +224,7 @@ __global__ void flagKernel(bool* flags, int size) {
         flags[i] = true;
 }
 
-#define BATCH_DEBUG
+//#define BATCH_DEBUG
 
 //optimized for KTruss
 void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
@@ -243,7 +243,7 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     vid_t* d_batch_src = batch_update.src_ptr();
     vid_t* d_batch_dst = batch_update.dst_ptr();
 #if defined(BATCH_DEBUG)
-    cu::printArray(d_batch_src, batch_size);
+    cu::printArray(d_batch_src, batch_size, "INPUT:\n");
     cu::printArray(d_batch_dst, batch_size);
 #endif
     /*cuMalloc(d_counts, batch_size);
@@ -256,11 +256,13 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     //////////////
     // CUB INIT //
     //////////////
-    //xlib::CubSortPairs2<vid_t, vid_t> sort_cub(d_batch_src, d_batch_dst,
-    //                                           batch_size, _nV, _nV);
-    xlib::CubSortByKey<vid_t, vid_t> sort_cub(d_batch_src, d_batch_dst,
-                                              batch_size, d_tmp1, d_tmp2,
-                                              _nV);
+    xlib::CubSortPairs2<vid_t, vid_t> sort_cub(d_batch_src, d_batch_dst,
+                                               batch_size, _nV, _nV);
+
+    //xlib::CubSortByKey<vid_t, vid_t> sort_cub(d_batch_src, d_batch_dst,
+    //                                          batch_size, d_tmp1, d_tmp2,
+    //                                          _nV);
+
     xlib::CubSelectFlagged<vid_t> select_src(d_batch_src, batch_size, d_flags);
     xlib::CubSelectFlagged<vid_t> select_dst(d_batch_dst, batch_size, d_flags);
 
@@ -270,6 +272,7 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     markUniqueKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(batch_size), BLOCK_SIZE >>>
         (d_batch_src, d_batch_dst, batch_size, d_flags);
+    CHECK_CUDA_ERROR
 
     batch_size = select_src.run();
     select_dst.run();
@@ -277,29 +280,32 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     xlib::CubRunLengthEncode<vid_t> runlength_cub1(d_batch_src, batch_size,
                                                    d_unique, d_counts);
 #if defined(BATCH_DEBUG)
-    cu::printArray(d_batch_src, batch_size);
+    cu::printArray(d_batch_src, batch_size, "Sorted:\n");
     cu::printArray(d_batch_dst, batch_size);
 #endif
-    batch_update._d_edge_ptrs[0] = reinterpret_cast<byte_t*>(d_tmp1);
-    batch_update._d_edge_ptrs[1] = reinterpret_cast<byte_t*>(d_tmp2);
+    batch_update._d_edge_ptrs[0] = reinterpret_cast<byte_t*>(d_batch_src);
+    batch_update._d_edge_ptrs[1] = reinterpret_cast<byte_t*>(d_batch_dst);
 
     int num_uniques = runlength_cub1.run();
 
     collectOldDegreeKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
         (device_data(), d_unique, num_uniques, d_degree_old, d_inverse_pos);
+    CHECK_CUDA_ERROR
 
 #if defined(BATCH_DEBUG)
+    std::cout << "num_uniques " << num_uniques << std::endl;
     cu::printArray(d_degree_old, num_uniques, "d_degree_old\n");
 #endif
     xlib::CubExclusiveSum<degree_t> prefixsum1(d_degree_old, num_uniques + 1);
     prefixsum1.run();
     //--------------------------------------------------------------------------
     degree_t total_degree_old;                //get the total
-    cuMemcpyToHostAsync(d_degree_old + num_uniques, total_degree_old);
+    cuMemcpyToHost(d_degree_old + num_uniques, total_degree_old);
 
     flagKernel <<< xlib::ceil_div<BLOCK_SIZE>(total_degree_old), BLOCK_SIZE >>>
             (d_flags, total_degree_old);
+    CHECK_CUDA_ERROR
 
     deleteEdgesKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(batch_size), BLOCK_SIZE >>>
@@ -310,20 +316,21 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
         <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
         (device_data(), d_unique, d_counts, num_uniques,
          d_degree_new, d_ptrs_array);
+    CHECK_CUDA_ERROR
 
-//#if defined(BATCH_DEBUG)
+#if defined(BATCH_DEBUG)
     cu::printArray(d_degree_new, num_uniques, "d_degree_new\n");
-//#endif
+#endif
 
     xlib::CubExclusiveSum<degree_t> prefixsum2(d_degree_new, num_uniques + 1);
     prefixsum2.run();
 
-//#if defined(BATCH_DEBUG)
-//    cu::printArray(d_degree_old, num_uniques + 1, "d_degree_old_prefix\n");
+#if defined(BATCH_DEBUG)
+    cu::printArray(d_degree_old, num_uniques + 1, "d_degree_old_prefix\n");
     cu::printArray(d_degree_new, num_uniques + 1, "d_degree_new_prefix\n");
-//#endif
+#endif
     degree_t total_degree_new;                //get the total
-    cuMemcpyToHostAsync(d_degree_new + num_uniques, total_degree_new);
+    cuMemcpyToHost(d_degree_new + num_uniques, total_degree_new);
 
     const int SMEM = xlib::SMemPerBlock<BLOCK_SIZE, degree_t>::value;
     int num_blocks = xlib::ceil_div<SMEM>(total_degree_old);
@@ -331,6 +338,7 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     moveDataKernel1<BLOCK_SIZE, SMEM>
         <<< num_blocks, BLOCK_SIZE >>>
         (d_degree_old, num_uniques + 1, d_ptrs_array, d_tmp);
+    CHECK_CUDA_ERROR
 
 #if defined(BATCH_DEBUG)
     cu::printArray(d_tmp, total_degree_old, "d_tmp old\n");
@@ -339,19 +347,21 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
 
     xlib::CubSelectFlagged<int2> select(d_tmp, total_degree_old, d_flags);
     int tmp_size_new = select.run();
-/*    if (total_degree_new != tmp_size_new)
-        cu::printArray(d_degree_new, num_uniques + 1, "d_degree_new_prefix\n");*/
-    assert(total_degree_new == tmp_size_new);
+    //if (total_degree_new != tmp_size_new)
+    //    cu::printArray(d_degree_new, num_uniques + 1, "d_degree_new_prefix\n");
+//    assert(total_degree_new == tmp_size_new);
+    std::cout << "----> " <<total_degree_new << " " << tmp_size_new << std::endl;
 
 #if defined(BATCH_DEBUG)
     cu::printArray(d_tmp, total_degree_new, "d_tmp new\n");
 #endif
     num_blocks = xlib::ceil_div<SMEM>(total_degree_new);
-
-    moveDataKernel2<BLOCK_SIZE, SMEM>
-        <<< num_blocks, BLOCK_SIZE >>>
-        (d_degree_new, num_uniques + 1, d_tmp, d_ptrs_array);
-
+    if (num_blocks) {
+            moveDataKernel2<BLOCK_SIZE, SMEM>
+            <<< num_blocks, BLOCK_SIZE >>>
+            (d_degree_new, num_uniques + 1, d_tmp, d_ptrs_array);
+        CHECK_CUDA_ERROR
+    }
     xlib::CubExclusiveSum<int> prefixsum3(d_counts, num_uniques + 1);
     prefixsum3.run();
 

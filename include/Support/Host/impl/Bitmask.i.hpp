@@ -90,7 +90,6 @@ inline void Bitmask::randomize(uint64_t seed) noexcept {
                             std::numeric_limits<unsigned>::max());
     const auto lambda = [&]{ return distribution(generator); };
     std::generate(_array, _array + _num_word, lambda);
-    xlib::delete_bits(_array, _size, _num_word * 32);
 }
 
 inline void Bitmask::clear() noexcept {

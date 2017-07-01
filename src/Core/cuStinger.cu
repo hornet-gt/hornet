@@ -170,4 +170,26 @@ vid_t cuStinger::max_degree_vertex() const noexcept {
     return arg_max.run().first;
 }
 
+
+__global__ void checkSortedKernel(cuStingerDevData data) {
+    int    idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
+
+    for (vid_t i = idx; i < data.nV; i += stride) {
+        auto vertex = Vertex(data, i);
+        auto    ptr = vertex.edge_ptr();
+
+        for (degree_t j = 0; j < vertex.degree() - 1; j++) {
+            if (ptr[j] > ptr[j + 1])
+                printf("Edge %d\t-> %d\t(d: %d)\t(value %d) not sorted \n", i, j, vertex.degree(), ptr[j]);
+            else if (ptr[j] == ptr[j + 1])
+                printf("Edge %d\t-> %d\t(d: %d)\t(value %d) duplicated\n", i, j, vertex.degree(), ptr[j]);
+        }
+    }
+}
+
+void cuStinger::check_sorted_adjs() const noexcept {
+    checkSortedKernel <<< xlib::ceil_div<256>(_nV), 256 >>> (device_data());
+}
+
 } // namespace custinger

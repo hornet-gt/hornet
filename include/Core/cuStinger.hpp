@@ -171,6 +171,9 @@ public:
      */
     void check_consistency(const cuStingerInit& custinger_init) const noexcept;
 
+
+    void check_sorted_adjs() const noexcept;
+
     /**
      * @brief store the actual custinger representation to disk for future use
      * @param[in] filename name of the file where the graph

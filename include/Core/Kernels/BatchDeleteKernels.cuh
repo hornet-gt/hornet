@@ -123,9 +123,9 @@ void moveDataKernel1(const degree_t* __restrict__ d_degree_old_prefix,
                     xlib::SeqDev<ETypeSizePS> ETYPE_SIZE_PS_D;
 
                     int  tmp_offset = d_degree_old_prefix[pos] + offset;
-                    auto ptr_vertex = d_ptrs_array[pos];
+                    auto ptr_vertex = (vid_t*) d_ptrs_array[pos];
                     auto ptr_weight = ptr_vertex +
-                                      EDGES_PER_BLOCKARRAY * ETYPE_SIZE_PS_D[1];
+                                      EDGES_PER_BLOCKARRAY;// * ETYPE_SIZE_PS_D[1];
                     auto adj_vertex = reinterpret_cast<vid_t*>
                                         (ptr_vertex)[offset];
                     auto adj_weight = reinterpret_cast<int*>
@@ -148,9 +148,9 @@ void moveDataKernel2(const degree_t* __restrict__ d_degree_new_prefix,
                     xlib::SeqDev<ETypeSizePS> ETYPE_SIZE_PS_D;
 
                     int  tmp_offset = d_degree_new_prefix[pos] + offset;
-                    auto ptr_vertex = d_ptrs_array[pos];
+                    auto ptr_vertex = (vid_t*) d_ptrs_array[pos];
                     auto ptr_weight = ptr_vertex +
-                                      EDGES_PER_BLOCKARRAY * ETYPE_SIZE_PS_D[1];
+                                      EDGES_PER_BLOCKARRAY;// * ETYPE_SIZE_PS_D[1];
                     auto   tmp_data = d_tmp[tmp_offset];
                     reinterpret_cast<vid_t*>(ptr_vertex)[offset] = tmp_data.x;
                     reinterpret_cast<int*>

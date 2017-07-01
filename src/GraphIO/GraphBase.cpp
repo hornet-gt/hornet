@@ -148,12 +148,12 @@ void GraphBase<vid_t, eoff_t>::read(const char* filename,
 
     if (file_ext == ".mtx" && first_str == "%%MatrixMarket") {
         if (prop.is_print())
-            std::cout << "      (MatrixMarket)\nReading...   ";
+            std::cout << "            (Market)\n";
         readMarket(fin, prop.is_print());
     }
     else if (file_ext == ".graph") {
         if (prop.is_print())
-            std::cout << "        (Dimacs10th)\nReading...   ";
+            std::cout << "        (Dimacs10th)\n";
         if (prop.is_randomize() || prop.is_sort()) {
             std::cerr << "#input sort/randomize ignored on Dimacs10th format"
                       << std::endl;
@@ -162,22 +162,22 @@ void GraphBase<vid_t, eoff_t>::read(const char* filename,
     }
     else if (file_ext == ".gr" && (first_str == "c"|| first_str == "p")) {
         if (prop.is_print())
-            std::cout << "         (Dimacs9th)\nReading...   ";
+            std::cout << "         (Dimacs9th)\n";
         readDimacs9(fin, prop.is_print());
     }
     else if (file_ext == ".txt" && first_str == "#") {
         if (prop.is_print())
-            std::cout << "              (SNAP)\nReading...   ";
+            std::cout << "              (SNAP)\n";
         readSnap(fin, prop.is_print());
     }
     else if (file_ext == ".edges") {
         if (prop.is_print())
-            std::cout << "    (Net Repository)\nReading...   ";
+            std::cout << "    (Net Repository)\n";
         readNetRepo(fin, prop.is_print());
     }
     else if (first_str == "%") {
         if (prop.is_print())
-            std::cout << "            (Konect)\nReading...   ";
+            std::cout << "            (Konect)\n";
         readKonect(fin, prop.is_print());
     } else
         ERROR("Graph type not recognized");

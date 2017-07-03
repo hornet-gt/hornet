@@ -185,7 +185,7 @@ void resetWeights(const Vertex& vertex, void* metadata) {
 
     for (vid_t adj = 0; adj < src_len; adj++)
         //custinger->dVD->adj[src]->ew[adj] = kt->trianglePerEdge[pos + adj];
-        vertex.edge(adj).set_weight(kt->trianglePerEdge[pos + adj]);
+        vertex.edge(adj).set_weight(kt->trianglePerEdge[pos + adj]); //!!!
 }
 
 } // namespace ktruss_operators

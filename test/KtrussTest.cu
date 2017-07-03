@@ -45,8 +45,8 @@ void runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
     std::cout << "nv " << nv << " ne " << ne << std::endl;
 
     triangle_t* d_triangles;
-    cudaMalloc(&d_triangles, (nv + 1) * sizeof(triangle_t));
     vid_t* d_off;
+    cudaMalloc(&d_triangles, (nv + 1) * sizeof(triangle_t));
     cudaMalloc(&d_off, (nv + 1) * sizeof(vid_t));
     cuMemcpyToDevice(custinger_init.csr_offsets(), nv + 1, d_off);
 

@@ -69,7 +69,7 @@ void bSearch(unsigned found,
     vid_t length;
 
     while (!found) {
-        *outUCurr = (*outUMin + *outUMax) / 2u;
+        *outUCurr = (*outUMin + *outUMax) >>1;
         *outVCurr = diagonalId - *outUCurr;
         if (*outVCurr >= *outVMax) {
             length = *outUMax - *outUMin;
@@ -278,12 +278,12 @@ void intersectCount(const custinger::cuStingerDevData& custinger,
 
             *uCurr     += (comp <= 0 && !vmask) || umask;
             *vCurr     += (comp >= 0 && !umask) || vmask;
-            *workIndex += (comp == 0&& !umask && !vmask) + 1;
+            *workIndex += (comp == 0 && !umask && !vmask) + 1;
 
             if (*vCurr == vLength || *uCurr == uLength)
                 break;
         }
-        *triangles -= ((comp == 0) && (*workIndex > *workPerThread) && (found));
+        *triangles -= ((comp == 0) && (*workIndex > *workPerThread) && found);
     }
 }
 
@@ -633,7 +633,7 @@ triangle_t count_trianglesAsymmetric(
                                 u_nodes, v_nodes);
         work_index += sum;
         if (tId > 0)
-            firstFound[tId-1] = sum;
+            firstFound[tId - 1] = sum;
         triangles += sum;
         intersectCountAsymmetric<uMasked, vMasked, subtract, upd3rdV>
             (custinger, u_len, v_len, u_nodes, v_nodes, &u_curr, &v_curr,

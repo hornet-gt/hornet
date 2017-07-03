@@ -57,8 +57,8 @@ GraphStd<vid_t, eoff_t>::GraphStd(const eoff_t* csr_offsets, vid_t nV,
 }
 
 template<typename vid_t, typename eoff_t>
-GraphStd<vid_t, eoff_t>::GraphStd(const StructureProp& structure) noexcept :
-                       GraphBase<vid_t, eoff_t>(structure) {}
+GraphStd<vid_t, eoff_t>::GraphStd(StructureProp structure) noexcept :
+                       GraphBase<vid_t, eoff_t>(std::move(structure)) {}
 
 template<typename vid_t, typename eoff_t>
 GraphStd<vid_t, eoff_t>::GraphStd(const char* filename,
@@ -68,7 +68,7 @@ GraphStd<vid_t, eoff_t>::GraphStd(const char* filename,
 }
 
 template<typename vid_t, typename eoff_t>
-GraphStd<vid_t, eoff_t>::GraphStd(const StructureProp& structure,
+GraphStd<vid_t, eoff_t>::GraphStd(StructureProp structure,
                                   const char* filename,
                                   const ParsingProp& property)
                                   noexcept :

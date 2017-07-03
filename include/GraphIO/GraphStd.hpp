@@ -65,11 +65,11 @@ public:
     class Vertex {
         template<typename T, typename R> friend class GraphStd;
     public:
-        vid_t    id()         const noexcept;
-        degree_t out_degree() const noexcept;
-        degree_t in_degree()  const noexcept;
-        Edge     edge(int index) const noexcept;
+        vid_t    id()                   const noexcept;
         vid_t    neighbor_id(int index) const noexcept;
+        degree_t out_degree()           const noexcept;
+        degree_t in_degree()            const noexcept;
+        Edge     edge(int index)        const noexcept;
 
         friend inline std::ostream& operator<<(std::ostream& os,
                                                const Vertex& vertex) {
@@ -81,7 +81,7 @@ public:
         EdgeIt end()    const noexcept;
     private:
         const GraphStd& _graph;
-        const vid_t      _id;
+        const vid_t     _id;
         explicit Vertex(vid_t id, const GraphStd& graph) noexcept;
     };
 
@@ -112,8 +112,11 @@ public:
     class Edge {
         template<typename T, typename R> friend class GraphStd;
     public:
-        eoff_t id()   const noexcept;
-        Vertex dest() const noexcept;
+        eoff_t id()     const noexcept;
+        Vertex src()    const noexcept;
+        Vertex dst()    const noexcept;
+        vid_t  src_id() const noexcept;
+        vid_t  dst_id() const noexcept;
 
         template<typename>
         friend inline std::ostream& operator<<(std::ostream& os,
@@ -123,7 +126,8 @@ public:
         }
     private:
         const GraphStd& _graph;
-        const eoff_t    _id;
+        const eoff_t    _edge_id;
+        vid_t     _src_id;
 
         explicit Edge(eoff_t id, const GraphStd& graph) noexcept;
     };
@@ -131,8 +135,8 @@ public:
     class EdgeIt : public std::iterator<std::forward_iterator_tag, vid_t> {
         template<typename T, typename R> friend class GraphStd;
     public:
-        EdgeIt& operator++()              noexcept;
-        Edge    operator*()               const noexcept;
+        EdgeIt& operator++()                 noexcept;
+        Edge    operator*()                  const noexcept;
         bool    operator!=(const EdgeIt& it) const noexcept;
     private:
         const GraphStd& _graph;
@@ -186,13 +190,13 @@ public:
 
     explicit GraphStd() = default;
 
-    explicit GraphStd(const StructureProp& structure = StructureProp()) noexcept;
+    explicit GraphStd(StructureProp structure = StructureProp()) noexcept;
 
     explicit GraphStd(const char* filename,
                       const ParsingProp& property
                         = ParsingProp(parsing_prop::PRINT)) noexcept;
 
-    explicit GraphStd(const StructureProp& structure, const char* filename,
+    explicit GraphStd(StructureProp structure, const char* filename,
                       const ParsingProp& property) noexcept;
 
     explicit GraphStd(const eoff_t* csr_offsets, vid_t nV,
@@ -201,31 +205,32 @@ public:
     virtual ~GraphStd() noexcept final;                                 //NOLINT
     //--------------------------------------------------------------------------
 
-    Vertex   vertex(vid_t index)  const noexcept;
-    Edge     get_edge  (eoff_t index) const noexcept;
-    degree_t out_degree(vid_t index)  const noexcept;
-    degree_t in_degree (vid_t index)  const noexcept;
+    Vertex   vertex(vid_t index)     const noexcept;
+    Edge     edge  (eoff_t index)    const noexcept;
+    degree_t out_degree(vid_t index) const noexcept;
+    degree_t in_degree (vid_t index) const noexcept;
 
-    const coo_t*    coo_array()   const noexcept;
-    const eoff_t*   out_offsets() const noexcept;
-    const eoff_t*   in_offsets()  const noexcept;
-    const vid_t*    out_edges()   const noexcept;
-    const vid_t*    in_edges()    const noexcept;
-    const degree_t* out_degrees() const noexcept;
-    const degree_t* in_degrees()  const noexcept;
+    const coo_t*    coo_array()       const noexcept;
+    const eoff_t*   out_offsets_ptr() const noexcept;
+    const eoff_t*   in_offsets_ptr()  const noexcept;
+    const vid_t*    out_edges_ptr()   const noexcept;
+    const vid_t*    in_edges_ptr()    const noexcept;
+    const degree_t* out_degrees_ptr() const noexcept;
+    const degree_t* in_degrees_ptr()  const noexcept;
 
-    degree_t  max_out_degree()        const noexcept;
-    degree_t  max_in_degree()         const noexcept;
-    vid_t     max_out_degree_vertex() const noexcept;
-    vid_t     max_in_degree_vertex()  const noexcept;
+    degree_t  max_out_degree()    const noexcept;
+    degree_t  max_in_degree()     const noexcept;
+    vid_t     max_out_degree_id() const noexcept;
+    vid_t     max_in_degree_id()  const noexcept;
 
-    bool      is_directed()           const noexcept;
-    using GraphBase<vid_t, eoff_t>::set_structure;
+    bool      is_directed()       const noexcept;
 
     void print()     const noexcept override;
     void print_raw() const noexcept override;
     void writeBinary(const std::string& filename, bool print = true) const;
     void writeMarket(const std::string& filename) const;
+
+    using GraphBase<vid_t, eoff_t>::set_structure;
 private:
     xlib::Bitmask _bitmask;
     eoff_t*   _out_offsets { nullptr };
@@ -252,7 +257,7 @@ private:
     void readDimacs10(std::ifstream& fin, bool print)   override;
     void readSnap    (std::ifstream& fin, bool print)   override;
     void readKonect  (std::ifstream& fin, bool print)   override;
-    void readNetRepo (std::ifstream& fin, bool print)   override;
+    void readNetRepo (std::ifstream& fin)               override;
     void readBinary  (const char* filename, bool print) override;
 
     void COOtoCSR() noexcept override;

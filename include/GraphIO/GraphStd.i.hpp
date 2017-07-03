@@ -114,7 +114,7 @@ GraphStd<vid_t, eoff_t>::VertexIt::operator!= (const VertexIt& it)
 template<typename vid_t, typename eoff_t>
 inline typename GraphStd<vid_t, eoff_t>::Vertex
 GraphStd<vid_t, eoff_t>::VertexIt::operator* () const noexcept {
-    return Vertex(static_cast<vid_t>(_current - _graph._out_offsets), _graph);
+    return _graph.vertex(static_cast<vid_t>(_current - _graph._out_offsets));
 }
 //==============================================================================
 ////////////////////////////////
@@ -123,17 +123,33 @@ GraphStd<vid_t, eoff_t>::VertexIt::operator* () const noexcept {
 template<typename vid_t, typename eoff_t>
 inline GraphStd<vid_t, eoff_t>
 ::Edge::Edge(eoff_t id, const GraphStd& graph) noexcept : _graph(graph),
-                                                         _id(id) {};
+                                                         _edge_id(id) {};
 
 template<typename vid_t, typename eoff_t>
 inline eoff_t GraphStd<vid_t, eoff_t>::Edge::id() const noexcept {
-    return _id;
+    return _edge_id;
 }
 
 template<typename vid_t, typename eoff_t>
 inline typename GraphStd<vid_t, eoff_t>::Vertex
-GraphStd<vid_t, eoff_t>::Edge::dest() const noexcept {
-    return Vertex(_graph._out_edges[_id], _graph);
+GraphStd<vid_t, eoff_t>::Edge::src() const noexcept {
+    return _graph.vertex(_src_id);
+}
+
+template<typename vid_t, typename eoff_t>
+inline typename GraphStd<vid_t, eoff_t>::Vertex
+GraphStd<vid_t, eoff_t>::Edge::dst() const noexcept {
+    return _graph.vertex(_graph._out_edges[_edge_id]);
+}
+
+template<typename vid_t, typename eoff_t>
+inline vid_t GraphStd<vid_t, eoff_t>::Edge::src_id() const noexcept {
+    return _src_id;
+}
+
+template<typename vid_t, typename eoff_t>
+inline vid_t GraphStd<vid_t, eoff_t>::Edge::dst_id() const noexcept {
+    return _graph._out_edges[_edge_id];
 }
 //==============================================================================
 ////////////////////////////////
@@ -209,34 +225,34 @@ GraphStd<vid_t, eoff_t>::EdgesContainer::end() const noexcept {
 ////////////////////////////////
 
 template<typename vid_t, typename eoff_t>
-inline const eoff_t* GraphStd<vid_t, eoff_t>::out_offsets() const noexcept {
+inline const eoff_t* GraphStd<vid_t, eoff_t>::out_offsets_ptr() const noexcept {
     return _out_offsets;
 }
 
 template<typename vid_t, typename eoff_t>
-inline const eoff_t* GraphStd<vid_t, eoff_t>::in_offsets() const noexcept {
+inline const eoff_t* GraphStd<vid_t, eoff_t>::in_offsets_ptr() const noexcept {
     return _in_offsets;
 }
 
 template<typename vid_t, typename eoff_t>
-inline const vid_t* GraphStd<vid_t, eoff_t>::out_edges() const noexcept {
+inline const vid_t* GraphStd<vid_t, eoff_t>::out_edges_ptr() const noexcept {
     return _out_edges;
 }
 
 template<typename vid_t, typename eoff_t>
-inline const vid_t* GraphStd<vid_t, eoff_t>::in_edges() const noexcept {
+inline const vid_t* GraphStd<vid_t, eoff_t>::in_edges_ptr() const noexcept {
     return _in_edges;
 }
 
 template<typename vid_t, typename eoff_t>
 inline const typename GraphStd<vid_t, eoff_t>::degree_t*
-GraphStd<vid_t, eoff_t>::out_degrees() const noexcept {
+GraphStd<vid_t, eoff_t>::out_degrees_ptr() const noexcept {
     return _out_degrees;
 }
 
 template<typename vid_t, typename eoff_t>
 inline const typename GraphStd<vid_t, eoff_t>::degree_t*
-GraphStd<vid_t, eoff_t>::in_degrees() const noexcept {
+GraphStd<vid_t, eoff_t>::in_degrees_ptr() const noexcept {
     return _in_degrees;
 }
 
@@ -260,13 +276,13 @@ GraphStd<vid_t, eoff_t>::max_in_degree() const noexcept {
 }
 
 template<typename vid_t, typename eoff_t>
-inline vid_t GraphStd<vid_t, eoff_t>::max_out_degree_vertex() const noexcept {
+inline vid_t GraphStd<vid_t, eoff_t>::max_out_degree_id() const noexcept {
     return std::distance(_out_degrees,
                          std::max_element(_out_degrees, _out_degrees + _nV));
 }
 
 template<typename vid_t, typename eoff_t>
-inline vid_t GraphStd<vid_t, eoff_t>::max_in_degree_vertex() const noexcept {
+inline vid_t GraphStd<vid_t, eoff_t>::max_in_degree_id() const noexcept {
     return std::distance(_in_degrees,
                          std::max_element(_in_degrees, _in_degrees + _nV));
 }

@@ -240,6 +240,8 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     const unsigned BLOCK_SIZE = 256;
     size_t batch_size = batch_update.size();
 
+
+    std::cout << "batch_size " << batch_size << std::endl;
     /*vid_t     *d_unique;
     int       *d_counts;
     degree_t  *d_degree_old, *d_degree_new;
@@ -359,7 +361,7 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     //if (total_degree_new != tmp_size_new)
     //    cu::printArray(d_degree_new, num_uniques + 1, "d_degree_new_prefix\n");
 //    assert(total_degree_new == tmp_size_new);
-    std::cout << "----> " <<total_degree_new << " " << tmp_size_new << std::endl;
+    //std::cout << "----> " <<total_degree_new << " " << tmp_size_new << std::endl;
 
 #if defined(BATCH_DEBUG)
     cu::printArray(d_tmp, total_degree_new, "d_tmp new\n");

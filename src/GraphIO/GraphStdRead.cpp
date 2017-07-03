@@ -104,7 +104,7 @@ void GraphStd<vid_t, eoff_t>::readKonect(std::ifstream& fin, bool print) {
 //------------------------------------------------------------------------------
 
 template<typename vid_t, typename eoff_t>
-void GraphStd<vid_t, eoff_t>::readNetRepo(std::ifstream& fin, bool print) {
+void GraphStd<vid_t, eoff_t>::readNetRepo(std::ifstream& fin) {
     GraphBase<vid_t, eoff_t>::getNetRepoHeader(fin);
     xlib::UniqueMap<vid_t> unique_map;
     std::vector<coo_t> coo_edges_vect(32768);

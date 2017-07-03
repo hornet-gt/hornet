@@ -139,7 +139,7 @@ protected:
 
     explicit GraphBase() = default;
     explicit GraphBase(StructureProp structure) noexcept;
-    explicit GraphBase(vid_t nV, eoff_t nE, const StructureProp& structure)
+    explicit GraphBase(vid_t nV, eoff_t nE, StructureProp structure)
                        noexcept;
     virtual ~GraphBase() noexcept = default;
 
@@ -150,7 +150,7 @@ protected:
     virtual void   readDimacs10 (std::ifstream& fin, bool print)   = 0;
     virtual void   readSnap     (std::ifstream& fin, bool print)   = 0;
     virtual void   readKonect   (std::ifstream& fin, bool print)   = 0;
-    virtual void   readNetRepo  (std::ifstream& fin, bool print)   = 0;
+    virtual void   readNetRepo  (std::ifstream& fin)               = 0;
     virtual void   readBinary   (const char* filename, bool print) = 0;
 
     virtual GInfo  getMarketHeader   (std::ifstream& fin) final;

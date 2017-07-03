@@ -90,12 +90,12 @@ inline bool StructureProp::is_weighted() const noexcept {
 
 template<typename vid_t, typename eoff_t>
 inline GraphBase<vid_t, eoff_t>::
-GraphBase(vid_t nV, eoff_t nE, const StructureProp& structure) noexcept :
-        _nV(nV), _nE(nE), _structure(structure) {}
+GraphBase(vid_t nV, eoff_t nE, StructureProp structure) noexcept :
+        _nV(nV), _nE(nE), _structure(std::move(structure)) {}
 
 template<typename vid_t, typename eoff_t>
 inline GraphBase<vid_t, eoff_t>::GraphBase(StructureProp structure) noexcept :
-                                                    _structure(structure) {}
+                                            _structure(std::move(structure)) {}
 
 template<typename vid_t, typename eoff_t>
 inline const std::string& GraphBase<vid_t, eoff_t>::name() const noexcept {
@@ -111,8 +111,8 @@ inline void GraphBase<vid_t, eoff_t>
 //==============================================================================
 
 template<typename vid_t, typename eoff_t>
-void GraphBase<vid_t, eoff_t>::read(const char* filename,
-                                    const ParsingProp& prop) {
+void GraphBase<vid_t, eoff_t>::read(const char* filename,               //NOLINT
+                                    const ParsingProp& prop) {          //NOLINT
     xlib::check_regular_file(filename);
     size_t size = xlib::file_size(filename);
     _graph_name = xlib::extract_filename(filename);
@@ -173,7 +173,7 @@ void GraphBase<vid_t, eoff_t>::read(const char* filename,
     else if (file_ext == ".edges") {
         if (prop.is_print())
             std::cout << "    (Net Repository)\n";
-        readNetRepo(fin, prop.is_print());
+        readNetRepo(fin);
     }
     else if (first_str == "%") {
         if (prop.is_print())

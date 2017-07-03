@@ -59,8 +59,8 @@ void exec(int argc, char* argv[]) {
     //custinger_init.insertVertexData(labels);
     //--------------------------------------------------------------------------
     cuStingerInit custinger_init(graph.nV(), graph.nE(),
-                                 graph.out_offsets(),
-                                 graph.out_edges());
+                                 graph.out_offsets_ptr(),
+                                 graph.out_edges_ptr());
 
     int batch_size = 2;
     auto   weights = new int[graph.nE()]();

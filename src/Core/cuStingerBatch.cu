@@ -224,6 +224,15 @@ __global__ void flagKernel(bool* flags, int size) {
         flags[i] = true;
 }
 
+
+__global__
+void checkKernel(BatchUpdate batch_update) {
+    printf("@@@@@@@@@@--------\n");
+    for (int i = 0; i < batch_update.offsets_size(); i++) {
+        printf("%d   %d\n", i, batch_update.offsets_ptr()[i]);
+    }
+}
+
 //#define BATCH_DEBUG
 
 //optimized for KTruss
@@ -365,7 +374,11 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     xlib::CubExclusiveSum<int> prefixsum3(d_counts, num_uniques + 1);
     prefixsum3.run();
 
-    batch_update._d_offsets = d_counts;
+    batch_update._d_offsets    = d_counts;
+    batch_update._offsets_size = num_uniques;
+
+    //checkKernel <<< 1, 1 >>> (batch_update);
+    //cudaDeviceSynchronize();
     //cuFree(d_counts, d_unique, d_degree_old, d_degree_new, d_tmp, d_ptrs_array);
 }
 

@@ -77,7 +77,8 @@ cuStinger::~cuStinger() noexcept {
         delete[] _csr_offsets;
         delete[] _csr_edges;
     }
-    cuFree(d_counts, d_unique, d_degree_old, d_degree_new, d_tmp, d_ptrs_array);
+    cuFree(d_counts, d_unique, d_degree_old, d_degree_new, d_tmp, d_ptrs_array,
+            d_flags, d_inverse_pos);
 }
 
 void cuStinger::initialize() noexcept {
@@ -88,8 +89,8 @@ void cuStinger::initialize() noexcept {
     cuMalloc(d_degree_new, _nV + 1);
     cuMalloc(d_tmp, _nE);
     cuMalloc(d_ptrs_array, _nV + 1);
-    cuMalloc(d_tmp1, _nV * 2);  //max batch size
-    cuMalloc(d_tmp2, _nV * 2);  //max batch size
+    //cuMalloc(d_tmp1, _nV * 2);  //max batch size
+    //cuMalloc(d_tmp2, _nV * 2);  //max batch size
     cuMalloc(d_flags, _nE);
     cuMalloc(d_inverse_pos, _nV);
 

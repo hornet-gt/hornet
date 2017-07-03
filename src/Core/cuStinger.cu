@@ -64,6 +64,8 @@ __global__ void printKernel(cuStingerDevData data) {
 
             //printf("%d    ", edge.dst());
             printf("(%d, %d)    ", ptr[j], weight_ptr[j]);
+            printf("[%d, %d]    ", edge.dst(), edge.weight());
+            //edge.set_weight(j);
         //    d_array[j] = edge.dst();
         }
         printf("\n");

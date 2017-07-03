@@ -60,9 +60,8 @@ inline const byte_t* BatchInit::edge_ptrs(int index) const noexcept {
 //==============================================================================
 inline BatchUpdate::BatchUpdate(size_t size) noexcept :
                               _batch_pitch(xlib::upper_approx<512>(size) * 2) {
-    //SAFE_CALL( cudaMallocHost(&_pinned_ptr, _batch_pitch * sizeof(vid_t) * 2 ) )
-    SAFE_CALL( cudaMalloc(&_pinned_ptr, _batch_pitch * sizeof(vid_t) * 2 ) )
-
+    SAFE_CALL( cudaMallocHost(&_pinned_ptr, _batch_pitch * sizeof(vid_t) * 2 ) )
+    //SAFE_CALL( cudaMalloc(&_pinned_ptr, _batch_pitch * sizeof(vid_t) * 2 ) )
     //UNDIRECTED
 }
 
@@ -123,15 +122,16 @@ inline BatchUpdate::BatchUpdate(const BatchUpdate& obj) noexcept :
                                             _d_offsets(obj._d_offsets),
                                             _batch_size(obj._batch_size),
                                             _batch_pitch(obj._batch_pitch),
+                                            _offsets_size(obj._offsets_size),
                                             _enable_delete(false) {
     std::copy(obj._d_edge_ptrs, obj._d_edge_ptrs + NUM_ETYPES + 1,
               _d_edge_ptrs);
 }
 
 inline BatchUpdate::~BatchUpdate() noexcept {
-    /*if (_enable_delete)
-        cuFree(_d_edge_ptrs[0]);
-    SAFE_CALL( cudaFreeHost(_pinned_ptr) )*/
+    //if (_enable_delete)
+    //    cuFree(_d_edge_ptrs[0]);
+    SAFE_CALL( cudaFreeHost(_pinned_ptr) )
 }
 
 #if defined(__NVCC__)
@@ -154,6 +154,11 @@ vid_t BatchUpdate::dst(int index) const noexcept {
 __device__ __forceinline__
 eoff_t* BatchUpdate::offsets_ptr() const noexcept {
     return _d_offsets;
+}
+
+__device__ __forceinline__
+int BatchUpdate::offsets_size() const noexcept {
+    return _offsets_size;
 }
 
 __host__ __device__ __forceinline__

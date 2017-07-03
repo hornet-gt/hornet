@@ -76,7 +76,9 @@ Vertex::field() const {
 
 __device__ __forceinline__
 Edge Vertex::edge(degree_t index) const {
-    return Edge(_edge_ptr, index, _limit);
+    return Edge(reinterpret_cast<byte_t*>
+                (reinterpret_cast<vid_t*>(_edge_ptr) + index), index,
+                EDGES_PER_BLOCKARRAY);
 }
 
 __device__ __forceinline__
@@ -135,14 +137,14 @@ void Vertex::store(const Edge& edge, degree_t index) {
 //==============================================================================
 
 __device__ __forceinline__
-Edge::Edge(byte_t* edge_ptr, degree_t index, degree_t limit) {
+Edge::Edge(byte_t* edge_ptr, degree_t index, int limit) {
     //Edge Type Sizes Prefixsum
     xlib::SeqDev<ETypeSizePS> ETYPE_SIZE_PS_D;
 
-    _dst = reinterpret_cast<vid_t*>(edge_ptr)[index];
+    _dst = *reinterpret_cast<vid_t*>(edge_ptr);
     #pragma unroll
     for (int i = 0; i < NUM_EXTRA_ETYPES; i++)
-        _ptrs[i] = edge_ptr + EDGES_PER_BLOCKARRAY * ETYPE_SIZE_PS_D[i + 1];
+        _ptrs[i] = edge_ptr + limit * ETYPE_SIZE_PS_D[i + 1];
 }
 
 __device__ __forceinline__
@@ -185,7 +187,7 @@ typename Edge::TimeStamp2T Edge::time_stamp2() const {
 template<int INDEX>
 __device__ __forceinline__
 typename std::tuple_element<INDEX, EdgeTypes>::type
-Edge::field() const  {
+Edge::field() const {
     using T = typename std::tuple_element<INDEX, EdgeTypes>::type;
     return *reinterpret_cast<T*>(_ptrs[INDEX]);
 }

@@ -15,8 +15,9 @@ int main(int argc, char* argv[]) {
     graph::GraphStd<vid_t, eoff_t> graph(UNDIRECTED);
     graph.read(argv[1], SORT | PRINT);
 
-    cuStingerInit custinger_init(graph.nV(), graph.nE(), graph.out_offsets(),
-                                 graph.out_edges());
+    cuStingerInit custinger_init(graph.nV(), graph.nE(),
+                                 graph.out_offsets_ptr(),
+                                 graph.out_edges_ptr());
 
     int alg = 3, maxk = 3;
     if (argc >= 3)

@@ -398,8 +398,8 @@ void devicecuStingerKTruss(custinger::cuStingerDevData custinger,
             //int destLen = custinger->dVD->getUsed()[dest];
             int destLen = Vertex(custinger, dest).degree();
 
-            if (dest<src)
-                continue;
+            //if (dest<src) //opt
+            //    continue; //opt
 
             bool avoidCalc = (src == dest) || (destLen < 2) || (srcLen < 2);
             if (avoidCalc)
@@ -425,14 +425,14 @@ void devicecuStingerKTruss(custinger::cuStingerDevData custinger,
             tCount += triFound;
             int pos = devData->offsetArray[src] + k;
             atomicAdd(devData->trianglePerEdge + pos, triFound);
-            pos = -1;
+            /*pos = -1; //opt
             //indexBinarySearch(custinger->dVD->getAdj()[dest]->dst
             //                  destLen, src,pos);
             auto dest_ptr = Vertex(custinger, dest).edge_ptr();
             indexBinarySearch(dest_ptr, destLen, src, pos);
 
             pos = devData->offsetArray[dest] + pos;
-            atomicAdd(devData->trianglePerEdge + pos, triFound);
+            atomicAdd(devData->trianglePerEdge + pos, triFound);*/
         }
     //    s_triangles[tx] = tCount;
     //    blockReduce(&outPutTriangles[src],s_triangles,blockSize);

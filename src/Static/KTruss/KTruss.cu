@@ -127,7 +127,7 @@ void KTruss::run() {
     while (true) {
         if(hostKTrussData.maxK >= 5)
             break;
-        
+
         bool needStop = false;
         bool     more = findTrussOfK(needStop);
         if (more == false && needStop) {
@@ -245,7 +245,13 @@ bool KTruss::findTrussOfK(bool& stop) {
 //==============================================================================
 
 void KTruss::runDynamic(){
-    hostKTrussData.maxK = 3;
+    kTrussOneIteration(custinger, hostKTrussData.trianglePerVertex,
+                           hostKTrussData.tsp, hostKTrussData.nbl,
+                           hostKTrussData.shifter,
+                           hostKTrussData.blocks, hostKTrussData.sps,
+                           deviceKTrussData);   //sub
+
+    //hostKTrussData.maxK = 3;  //sub
     syncDeviceWithHost();
     CHECK_CUDA_ERROR
     forAllVertices<ktruss_operators::init>(custinger, deviceKTrussData);
@@ -274,7 +280,7 @@ void KTruss::runDynamic(){
     while (true) {
         if(hostKTrussData.maxK >= 5)
             break;
-        //cout << "New iteration" << endl;
+        std::cout << "New iteration" << std::endl;
         bool needStop = false;
         bool     more = findTrussOfKDynamic(needStop);
         CHECK_CUDA_ERROR
@@ -380,6 +386,12 @@ CHECK_CUDA_ERROR
         //    (custinger, hostKTrussData.activeQueue, deviceKTrussData);  //???
         forAllVertices<ktruss_operators::countActive>
             (custinger, deviceKTrussData);  //???
+
+        kTrussOneIteration(custinger, hostKTrussData.trianglePerVertex,
+                               hostKTrussData.tsp, hostKTrussData.nbl,
+                               hostKTrussData.shifter,
+                               hostKTrussData.blocks, hostKTrussData.sps,
+                               deviceKTrussData);   //sub
 CHECK_CUDA_ERROR
         syncHostWithDevice();
         stop = false;

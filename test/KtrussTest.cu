@@ -96,7 +96,7 @@ void runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
                 }
                 if (alg & 2) {
                     kt.setInitParameters(nv, ne, tsp, nbl, shifter,
-                                          blocks, sps);
+                                         blocks, sps);
                     kt.init();
                     kt.copyOffsetArrayDevice(d_off);
                     kt.reset();

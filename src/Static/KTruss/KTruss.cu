@@ -122,8 +122,12 @@ void KTruss::release() {
 void KTruss::run() {
     hostKTrussData.maxK = 3;
     syncDeviceWithHost();
+    int iterations = 0;
 
     while (true) {
+        if(hostKTrussData.maxK >= 5)
+            break;
+        
         bool needStop = false;
         bool     more = findTrussOfK(needStop);
         if (more == false && needStop) {
@@ -133,7 +137,10 @@ void KTruss::run() {
         }
         hostKTrussData.maxK++;
         syncDeviceWithHost();
+        iterations++;
     }
+    std::cout << "iterations " << iterations << std::endl;
+
     // cout << "Found the maximal KTruss at : " << hostKTrussData.maxK << endl;
     std::cout << "The number of full triangle counting iterations is  : "
               << hostKTrussData.fullTriangleIterations << std::endl;
@@ -175,7 +182,7 @@ bool KTruss::findTrussOfK(bool& stop) {
         forAllVertices<ktruss_operators::findUnderK>(custinger,deviceKTrussData);
         //allVinG_TraverseVertices<ktruss_operators::findUnderK>(custinger,deviceKTrussData);
         syncHostWithDevice();
-        // cout << "Current number of deleted edges is " << hostKTrussData.counter << endl;
+        std::cout << "Current number of deleted edges is " << hostKTrussData.counter << std::endl;
         sumDeletedEdges += hostKTrussData.counter;
         if (hostKTrussData.counter == hostKTrussData.ne_remaining) {
             stop = true;
@@ -233,6 +240,10 @@ bool KTruss::findTrussOfK(bool& stop) {
     return true;
 }
 
+//==============================================================================
+//==============================================================================
+//==============================================================================
+
 void KTruss::runDynamic(){
     hostKTrussData.maxK = 3;
     syncDeviceWithHost();
@@ -251,14 +262,19 @@ void KTruss::runDynamic(){
     CHECK_CUDA_ERROR
     syncHostWithDevice();
 
+    //auto int weights = new int[custinger.nV()];
+    //cuMemcpyToHost()
+
     forAllVertices<ktruss_operators::resetWeights>(custinger, deviceKTrussData);
     //allVinG_TraverseVertices<ktruss_operators::resetWeights>
     //    (custinger, deviceKTrussData);
+    int iterations = 0;
+
     CHECK_CUDA_ERROR
     while (true) {
-        // if(hostKTrussData.maxK >=5)
-        // break;
-        // cout << "New iteration" << endl;
+        if(hostKTrussData.maxK >= 5)
+            break;
+        //cout << "New iteration" << endl;
         bool needStop = false;
         bool     more = findTrussOfKDynamic(needStop);
         CHECK_CUDA_ERROR
@@ -269,7 +285,9 @@ void KTruss::runDynamic(){
         }
         hostKTrussData.maxK++;
         syncDeviceWithHost();
+        iterations++;
     }
+    std::cout << "iterations " << iterations << std::endl;
     // cout << "Found the maximal KTruss at : " << hostKTrussData.maxK << endl;
 }
 
@@ -307,7 +325,7 @@ bool KTruss::findTrussOfKDynamic(bool& stop) {
         CHECK_CUDA_ERROR
 
         syncHostWithDevice();
-        // cout << "Current number of deleted edges is " << hostKTrussData.counter << endl;
+        std::cout << "Current number of deleted edges is " << hostKTrussData.counter << std::endl;
 
         if (hostKTrussData.counter == hostKTrussData.ne_remaining) {
             stop = true;

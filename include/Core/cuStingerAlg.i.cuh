@@ -52,8 +52,6 @@ inline T* StaticAlgorithm::register_data(T& data) noexcept {
         ERROR("register_data() can be called only one times")
     _is_registered = true;
     _data_size     = sizeof(T);
-    //_h_ptr         = reinterpret_cast<void*>(new char[sizeof(T)]);
-    //std::memcpy(_h_ptr, &data, sizeof(T));
     _h_ptr         = &data;
     SAFE_CALL( cudaMalloc(&_d_ptr, _data_size) )
     return reinterpret_cast<T*>(_d_ptr);

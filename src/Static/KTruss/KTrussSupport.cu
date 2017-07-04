@@ -69,7 +69,7 @@ void bSearch(unsigned found,
     vid_t length;
 
     while (!found) {
-        *outUCurr = (*outUMin + *outUMax) >>1;
+        *outUCurr = (*outUMin + *outUMax) >> 1;
         *outVCurr = diagonalId - *outUCurr;
         if (*outVCurr >= *outVMax) {
             length = *outUMax - *outUMin;
@@ -256,17 +256,17 @@ void intersectCount(const custinger::cuStingerDevData& custinger,
                     if (posu != -1)
                         atomicSub(edge_weight_ptr + posu, 1);
                         //atomicSub(custinger->dVD->adj[common]->ew + posu, 1);
-#if !defined(NDEBUG)
+//#if !defined(NDEBUG)
                     else
                         printf("1");
-#endif
+//#endif
                     if (posv != -1)
                         atomicSub(edge_weight_ptr + posv, 1);
                         //atomicSub(custinger->dVD->adj[common]->ew + posv, 1);
-#if !defined(NDEBUG)
+//#if !defined(NDEBUG)
                     else
                         printf("2");
-#endif
+//#endif
                     Vertex vertex_u(custinger, u);
                     Vertex vertex_v(custinger, v);
                     //atomicSub(custinger->dVD->adj[u]->ew + *uCurr, 1);
@@ -519,7 +519,7 @@ void devicecuStingerNewTriangles(custinger::cuStingerDevData custinger,
 
         triangle_t tCount = count_triangles<false, false, true, true>(
                                 custinger, small, small_ptr, small_len,
-                                large,large_ptr, large_len,
+                                large, large_ptr, large_len,
                                 threads_per_block, firstFoundPos,
                                 tx % threads_per_block, outPutTriangles,
                                 nullptr, nullptr, 2, src, dest);

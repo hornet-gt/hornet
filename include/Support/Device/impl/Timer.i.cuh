@@ -24,7 +24,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * @author Federico Busato
  *         Univerity of Verona, Dept. of Computer Science
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date July, 2017
  * @version v1.3
  */
 #include <cassert>
@@ -33,27 +33,27 @@ namespace timer {
 
 template<typename ChronoPrecision>
 Timer<DEVICE, ChronoPrecision>
-::Timer(int decimals, int space, xlib::Color color) :
+::Timer(int decimals, int space, xlib::Color color) noexcept :
                     TimerBase<DEVICE, ChronoPrecision>(decimals, space, color) {
     cudaEventCreate(&_start_event);
     cudaEventCreate(&_stop_event);
 }
 
 template<typename ChronoPrecision>
-Timer<DEVICE, ChronoPrecision>::~Timer() {
+Timer<DEVICE, ChronoPrecision>::~Timer() noexcept {
     cudaEventDestroy(_start_event);
     cudaEventDestroy(_stop_event);
 }
 
 template<typename ChronoPrecision>
-void Timer<DEVICE, ChronoPrecision>::start() {
+void Timer<DEVICE, ChronoPrecision>::start() noexcept {
     assert(!_start_flag);
     cudaEventRecord(_start_event, 0);
     assert(_start_flag = true);
 }
 
 template<typename ChronoPrecision>
-void Timer<DEVICE, ChronoPrecision>::stop() {
+void Timer<DEVICE, ChronoPrecision>::stop() noexcept {
     assert(_start_flag);
     cudaEventRecord(_stop_event, 0);
     cudaEventSynchronize(_stop_event);

@@ -34,71 +34,68 @@
  * </blockquote>}
  */
 #include "Support/Device/CudaUtil.cuh"
-#include "Support/Host/Basic.hpp"
-#include "Support/Host/PrintExt.hpp"
+#include "Support/Host/Basic.hpp"       //xlib::MB
+#include "Support/Host/PrintExt.hpp"    //Color
 #include <iomanip>
-#include <ostream>
-#include <string>
 
 namespace xlib {
 
-void __getLastCudaError(const char* error_message, const char* file, int line,
-                        const char* func_name) {
+void __getLastCudaError(const char* file, int line, const char* func_name) {
     __cudaErrorHandler(cudaGetLastError(), "", file, line, func_name);
 }
 
-void __safe_call(cudaError_t err, const char* file, int line,
+void __safe_call(cudaError_t error, const char* file, int line,
                  const char* func_name) {
-    __getLastCudaError("", file, line, func_name);
+    __cudaErrorHandler(error, "", file, line, func_name);
 }
 
-void __cudaErrorHandler(cudaError_t err, const char* error_message,
+void __cudaErrorHandler(cudaError_t error, const char* error_message,
                         const char* file, int line, const char* func_name) {
-    if (cudaSuccess != err) {
+    if (cudaSuccess != error) {
         std::cerr << Color::FG_RED << "\nCUDA error\n" << Color::FG_DEFAULT
                   << Emph::SET_UNDERLINE << file
                   << Emph::SET_RESET  << "(" << line << ")"
                   << " [ "
-                  << Color::FG_L_CYAN << func_name  << Color::FG_DEFAULT
+                  << Color::FG_L_CYAN << func_name << Color::FG_DEFAULT
                   << " ] : " << error_message
-                  << " -> " << cudaGetErrorString(err)
-                  << "(" << static_cast<int>(err) << ")\n";
-        if (static_cast<int>(err) == 2) {
+                  << " -> " << cudaGetErrorString(error)
+                  << "(" << static_cast<int>(error) << ")\n";
+        if (error == cudaErrorMemoryAllocation) {
             size_t free, total;
             cudaMemGetInfo(&free, &total);
             std::cerr << "\nActual allocated memory: " << std::setprecision(1)
-                      << std::fixed << (total - free) / (1 << 20) << " MB\n";
+                      << std::fixed << (total - free) / xlib::MB << " MB\n";
         }
         std::cerr << std::endl;
-        assert(false);                                                /*NOLINT*/
+        assert(false);                                                  //NOLINT
         std::atexit(reinterpret_cast<void(*)()>(cudaDeviceReset));
         std::exit(EXIT_FAILURE);
     }
 }
 
-int deviceProperty::NUM_OF_STREAMING_MULTIPROCESSOR = 0;
+int DeviceProperty::NUM_OF_STREAMING_MULTIPROCESSOR = 0;                //NOLINT
 
-int deviceProperty::getNum_of_SMs() {
-    if(NUM_OF_STREAMING_MULTIPROCESSOR == 0) {
-        cudaDeviceProp devProperty;
-        cudaGetDeviceProperties(&devProperty, 0);
-        NUM_OF_STREAMING_MULTIPROCESSOR = devProperty.multiProcessorCount;
+int DeviceProperty::num_SM() {
+    if (NUM_OF_STREAMING_MULTIPROCESSOR == 0) {
+        cudaDeviceProp dev_prop;
+        SAFE_CALL( cudaGetDeviceProperties(&dev_prop, 0) );
+        NUM_OF_STREAMING_MULTIPROCESSOR = dev_prop.multiProcessorCount;
     }
     return NUM_OF_STREAMING_MULTIPROCESSOR;
 }
 
-void deviceInfo() {
-    cudaDeviceProp devProp;
-    SAFE_CALL( cudaGetDeviceProperties(&devProp, 0) )
+void device_info() {
+    cudaDeviceProp dev_prop;
+    SAFE_CALL( cudaGetDeviceProperties(&dev_prop, 0) )
 
-    std::cout << "\n     Graphic Card: " << devProp.name
-              << " (cc: " << devProp.major << "."  << devProp.minor << ")\n"
-              << "     # SM: "  << deviceProperty::getNum_of_SMs()
-              << "    Threads per SM: " << devProp.maxThreadsPerMultiProcessor
-              << "    Resident Threads: " << devProp.multiProcessorCount *
-                                            devProp.maxThreadsPerMultiProcessor
+    std::cout << "\n     Graphic Card: " << dev_prop.name
+              << " (cc: " << dev_prop.major << "."  << dev_prop.minor << ")\n"
+              << "     # SM: "  << dev_prop.multiProcessorCount
+              << "    Threads per SM: " << dev_prop.maxThreadsPerMultiProcessor
+              << "    Resident Threads: " << dev_prop.multiProcessorCount *
+                                            dev_prop.maxThreadsPerMultiProcessor
               << "    Global Mem: "
-              << (std::to_string(devProp.totalGlobalMem >> 20) + " MB\n")
+              << (std::to_string(dev_prop.totalGlobalMem / xlib::MB) + " MB\n")
               << std::endl;
 }
 

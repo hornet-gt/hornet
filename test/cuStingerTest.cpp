@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
 void exec(int argc, char* argv[]) {
     using namespace graph::structure_prop;
     using namespace graph::parsing_prop;
-    xlib::deviceInfo();
+    xlib::device_info();
     //Param param(argc, argv);
 
     graph::GraphStd<custinger::vid_t, custinger::eoff_t> graph(UNDIRECTED);
@@ -79,7 +79,7 @@ void exec(int argc, char* argv[]) {
 
     delete[] weights;
     std::cout << "--------------------------------------------------------"<<std::endl;
-    custiger_graph.print();
+    //custiger_graph.print();
 
     //custiger_graph.check_consistency(custinger_init);
     //delete[] labels;
@@ -114,7 +114,7 @@ void exec(int argc, char* argv[]) {
 
     std::cout << "\n\n";
     std::cout << "--------------------------------------------------------"<<std::endl;
-    custiger_graph.print();
+    //custiger_graph.print();
 
     delete[] batch_src;
     delete[] batch_dst;

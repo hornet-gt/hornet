@@ -2,7 +2,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date July, 2017
  * @version v1.3
  *
  * @copyright Copyright © 2017 by Nicola Bombieri
@@ -45,12 +45,15 @@ public:
     using TimerBase<DEVICE, ChronoPrecision>::total_duration;
     using TimerBase<DEVICE, ChronoPrecision>::average;
     using TimerBase<DEVICE, ChronoPrecision>::std_deviation;
+    using TimerBase<DEVICE, ChronoPrecision>::min;
+    using TimerBase<DEVICE, ChronoPrecision>::max;
+    using TimerBase<DEVICE, ChronoPrecision>::reset;
 
     explicit Timer(int decimals = 1, int space = 15,
-                   xlib::Color color = xlib::Color::FG_DEFAULT);
-    ~Timer();
-    virtual void start() final;
-    virtual void stop()  final;
+                   xlib::Color color = xlib::Color::FG_DEFAULT) noexcept;
+    ~Timer() noexcept;
+    virtual void start() noexcept final;
+    virtual void stop()  noexcept final;
 private:
     using TimerBase<DEVICE, ChronoPrecision>::_time_elapsed;
     using TimerBase<DEVICE, ChronoPrecision>::_time_squared;
@@ -59,6 +62,8 @@ private:
     using TimerBase<DEVICE, ChronoPrecision>::_start_flag;
 
     cudaEvent_t _start_event, _stop_event;
+
+    using TimerBase<DEVICE, ChronoPrecision>::register_time;
 };
 
 } // namespace timer

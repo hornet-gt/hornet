@@ -2,7 +2,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date July, 2017
  * @version v1.3
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -60,37 +60,68 @@ std::ostream& operator<<(std::ostream& os,
 
 template<timer_type type, typename ChronoPrecision>
 TimerBase<type, ChronoPrecision>
-::TimerBase(int decimals, int space, xlib::Color color) :
+::TimerBase(int decimals, int space, xlib::Color color) noexcept :
                    _decimals(decimals),
                    _space(space),
                    _default_color(color) {}
 
 template<timer_type type, typename ChronoPrecision>
-float TimerBase<type, ChronoPrecision>::duration() const {
+float TimerBase<type, ChronoPrecision>::duration() const noexcept {
     return _time_elapsed.count();
 }
 
 template<timer_type type, typename ChronoPrecision>
-float TimerBase<type, ChronoPrecision>::total_duration() const {
+float TimerBase<type, ChronoPrecision>::total_duration() const noexcept {
     return _total_time_elapsed.count();
 }
 
 template<timer_type type, typename ChronoPrecision>
-float TimerBase<type, ChronoPrecision>::average() const {
+float TimerBase<type, ChronoPrecision>::average() const noexcept {
     auto num_executions = static_cast<float>(_num_executions);
     return _total_time_elapsed.count() / num_executions;
 }
 
 template<timer_type type, typename ChronoPrecision>
-float TimerBase<type, ChronoPrecision>::std_deviation() const {
+float TimerBase<type, ChronoPrecision>::std_deviation() const noexcept {
     auto term1 = _num_executions * _time_squared.count();
     auto term2 = _total_time_elapsed.count() * _total_time_elapsed.count();
     return std::sqrt(term1 - term2) / _num_executions;
 }
 
 template<timer_type type, typename ChronoPrecision>
+float TimerBase<type, ChronoPrecision>::min() const noexcept {
+    return _time_min.count();
+}
+
+template<timer_type type, typename ChronoPrecision>
+float TimerBase<type, ChronoPrecision>::max() const noexcept {
+        return _time_max.count();
+}
+
+template<timer_type type, typename ChronoPrecision>
+void TimerBase<type, ChronoPrecision>::reset() noexcept {
+    _time_min           = ChronoPrecision(0);
+    _time_max           = ChronoPrecision(0);
+    _total_time_elapsed = ChronoPrecision(0);
+    _num_executions     = 0;
+}
+
+template<timer_type type, typename ChronoPrecision>
+void TimerBase<type, ChronoPrecision>::register_time() noexcept {
+    assert(_start_flag);
+    _time_squared       += _time_elapsed * _time_elapsed.count();
+    _total_time_elapsed += _time_elapsed;
+    _num_executions++;
+    if (_time_elapsed > _time_max)
+        _time_max = _time_elapsed;
+    else if (_time_elapsed < _time_min)
+        _time_min = _time_elapsed;
+    assert(!(_start_flag = false));
+}
+
+template<timer_type type, typename ChronoPrecision>
 void TimerBase<type, ChronoPrecision>::print(const std::string& str)    //NOLINT
-                                                            const {
+                                             const noexcept {
     xlib::IosFlagSaver tmp;
     std::cout << _default_color
               << std::right << std::setw(_space - 2) << str << "  "
@@ -99,23 +130,28 @@ void TimerBase<type, ChronoPrecision>::print(const std::string& str)    //NOLINT
               << std::endl;
 }
 
+template<timer_type type, typename ChronoPrecision>
+void TimerBase<type, ChronoPrecision>::printAll(const std::string& str) //NOLINT
+                                                const noexcept{
+}
+
 //==============================================================================
 //-----------------------  HOST ------------------------------------------------
 
 template<typename ChronoPrecision>
 inline Timer<HOST, ChronoPrecision>::Timer(int decimals, int space,
-                                           xlib::Color color) :
+                                           xlib::Color color) noexcept :
         TimerBase<HOST, ChronoPrecision>(decimals, space, color) {}
 
 template<typename ChronoPrecision>
-inline void Timer<HOST, ChronoPrecision>::start() {
+inline void Timer<HOST, ChronoPrecision>::start() noexcept {
     assert(!_start_flag);
     _start_time = std::chrono::system_clock::now();
     assert(_start_flag = true);
 }
 
 template<typename ChronoPrecision>
-inline void Timer<HOST, ChronoPrecision>::stop() {
+inline void Timer<HOST, ChronoPrecision>::stop() noexcept {
     assert(_start_flag);
     _stop_time     = std::chrono::system_clock::now();
     _time_elapsed  = ChronoPrecision(_stop_time - _start_time);
@@ -130,18 +166,18 @@ inline void Timer<HOST, ChronoPrecision>::stop() {
 
 template<typename ChronoPrecision>
 inline Timer<CPU, ChronoPrecision>::Timer(int decimals, int space,
-                                          xlib::Color color) :
+                                          xlib::Color color) noexcept :
         TimerBase<CPU, ChronoPrecision>(decimals, space, color) {}
 
 template<typename ChronoPrecision>
-inline void Timer<CPU, ChronoPrecision>::start() {
+inline void Timer<CPU, ChronoPrecision>::start() noexcept {
     assert(!_start_flag);
     _start_clock = std::clock();
     assert(_start_flag = true);
 }
 
 template<typename ChronoPrecision>
-inline void Timer<CPU, ChronoPrecision>::stop() {
+inline void Timer<CPU, ChronoPrecision>::stop() noexcept {
     assert(_start_flag);
     _stop_clock = std::clock();
     auto clock_time_elapsed = static_cast<float>(_stop_clock - _start_clock) /
@@ -161,11 +197,11 @@ inline void Timer<CPU, ChronoPrecision>::stop() {
 
 template<typename ChronoPrecision>
 inline Timer<SYS, ChronoPrecision>::Timer(int decimals, int space,
-                                          xlib::Color color) :
+                                          xlib::Color color) noexcept :
         TimerBase<SYS, ChronoPrecision>(decimals, space, color) {}
 
 template<typename ChronoPrecision>
-inline void Timer<SYS, ChronoPrecision>::start() {
+inline void Timer<SYS, ChronoPrecision>::start() noexcept {
     assert(!_start_flag);
     _start_time = std::chrono::system_clock::now();
     ::times(&_start_TMS);
@@ -173,7 +209,7 @@ inline void Timer<SYS, ChronoPrecision>::start() {
 }
 
 template<typename ChronoPrecision>
-inline void Timer<SYS, ChronoPrecision>::stop() {
+inline void Timer<SYS, ChronoPrecision>::stop() noexcept {
     assert(_start_flag);
     _stop_time = std::chrono::system_clock::now();
     ::times(&_end_TMS);
@@ -182,7 +218,7 @@ inline void Timer<SYS, ChronoPrecision>::stop() {
 
 template<typename ChronoPrecision>
 inline void Timer<SYS, ChronoPrecision>::print(const std::string& str)  //NOLINT
-                                                               const {
+                                               const noexcept {
     xlib::IosFlagSaver tmp;
     auto  wall_time_ms = std::chrono::duration_cast<ChronoPrecision>(
                                              _stop_time - _start_time ).count();

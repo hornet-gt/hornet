@@ -2,7 +2,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date July, 2017
  * @version v1.3
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -48,8 +48,14 @@
 #if defined(COLOR)
     #include "Support/Host/PrintExt.hpp"
 #else
-namespace xlib { struct Color { enum TMP { FG::FG_DEFAULT }; }; }
+
+namespace xlib {
+    struct Color { enum TMP { FG::FG_DEFAULT }; };
+    struct IosFlagSaver {};
+} // namespace xlib
+
 inline std::ostream& operator<<(std::ostream& os, Color mod) { return os; }
+
 #endif
 
 namespace timer {
@@ -92,14 +98,16 @@ class TimerBase {
     static_assert(is_duration<ChronoPrecision>::value,
                   "Wrong type : typename is not std::chrono::duration");
 protected:
-    ChronoPrecision _time_elapsed       {};
-    ChronoPrecision _time_squared       {};
-    ChronoPrecision _total_time_elapsed {};
-    const int _decimals;
-    const int _space;
-    int       _num_executions { 0 };
+    ChronoPrecision   _time_elapsed       {};
+    ChronoPrecision   _time_squared       {};
+    ChronoPrecision   _total_time_elapsed {};
+    ChronoPrecision   _time_min           {};
+    ChronoPrecision   _time_max           {};
+    const int         _decimals;
+    const int         _space;
+    int               _num_executions { 0 };
     const xlib::Color _default_color;
-    bool      _start_flag           { false };
+    bool              _start_flag     { false };
 
     /**
      * @brief Default costructor
@@ -107,52 +115,75 @@ protected:
      * @param[in] space space for the left alignment
      * @param[in] color color of print
      */
-    explicit TimerBase(int decimals = 1, int space = 15,
-                       xlib::Color color = xlib::Color::FG_DEFAULT);
-    virtual ~TimerBase() = default;
+    explicit TimerBase(int decimals, int space, xlib::Color color) noexcept;
+    virtual ~TimerBase() noexcept = default;
 
     /**
      * @brief Start the timer
      */
-    virtual void start() = 0;
+    virtual void start() noexcept = 0;
 
     /**
      * @brief Stop the timer
      */
-    virtual void stop() = 0;
+    virtual void stop() noexcept = 0;
 
     /**
      * @brief Get the time elapsed between start() and stop() calls
      * @return time elapsed specified with the \p ChronoPrecision
      */
-    virtual float duration() const final;
+    virtual float duration() const noexcept final;
 
     /**
      * @brief Get the time elapsed between the first start() and the last stop()
      *        calls
      * @return time elapsed specified with the \p ChronoPrecision
      */
-    virtual float total_duration() const final;
+    virtual float total_duration() const noexcept final;
 
     /**
      * @brief Get the average time elapsed between the first start() and the
      *        last stop() calls
      * @return average duration
      */
-    virtual float average() const final;
+    virtual float average() const noexcept final;
 
     /**
      * @brief Standard deviation
      * @return Standard deviation
      */
-    virtual float std_deviation() const final;
+    virtual float std_deviation() const noexcept final;
+
+    /**
+     * @brief Standard deviation
+     * @return Standard deviation
+     */
+    virtual float min() const noexcept final;
+
+    /**
+     * @brief Standard deviation
+     * @return Standard deviation
+     */
+    virtual float max() const noexcept final;
+
+    /**
+     *
+     */
+    virtual void reset() noexcept final;
+
+    /**
+     *
+     */
+    virtual void register_time() noexcept final;
 
     /**
      * @brief Print the time elapsed between start() and stop() calls
      * @param[in] str print string \p str before the time elapsed
      * @warning if start() and stop() not invoked undefined behavior
      */
-    virtual void print(const std::string& str = "") const;              //NOLINT
+    virtual void print(const std::string& str = "") const noexcept;     //NOLINT
+
+    virtual void printAll(const std::string& str = "") const noexcept;  //NOLINT
 };
 
 //------------------------------------------------------------------------------
@@ -169,11 +200,14 @@ public:
     using TimerBase<HOST, ChronoPrecision>::total_duration;
     using TimerBase<HOST, ChronoPrecision>::average;
     using TimerBase<HOST, ChronoPrecision>::std_deviation;
+    using TimerBase<HOST, ChronoPrecision>::min;
+    using TimerBase<HOST, ChronoPrecision>::max;
+    using TimerBase<HOST, ChronoPrecision>::reset;
 
     explicit Timer(int decimals = 1, int space = 15,
-                   xlib::Color color = xlib::Color::FG_DEFAULT);
-    virtual void start() final;
-    virtual void stop()  final;
+                   xlib::Color color = xlib::Color::FG_DEFAULT) noexcept;
+    virtual void start() noexcept final;
+    virtual void stop()  noexcept final;
 private:
     using TimerBase<HOST, ChronoPrecision>::_time_elapsed;
     using TimerBase<HOST, ChronoPrecision>::_time_squared;
@@ -181,8 +215,10 @@ private:
     using TimerBase<HOST, ChronoPrecision>::_num_executions;
     using TimerBase<HOST, ChronoPrecision>::_start_flag;
 
-    std::chrono::system_clock::time_point  _start_time         {};
-    std::chrono::system_clock::time_point  _stop_time          {};
+    std::chrono::system_clock::time_point  _start_time {};
+    std::chrono::system_clock::time_point  _stop_time  {};
+
+    using TimerBase<HOST, ChronoPrecision>::register_time;
 };
 //------------------------------------------------------------------------------
 
@@ -194,15 +230,18 @@ public:
     using TimerBase<CPU, ChronoPrecision>::duration;
     using TimerBase<CPU, ChronoPrecision>::total_duration;
     using TimerBase<CPU, ChronoPrecision>::average;
-    using TimerBase<HOST, ChronoPrecision>::std_deviation;
+    using TimerBase<CPU, ChronoPrecision>::std_deviation;
+    using TimerBase<CPU, ChronoPrecision>::min;
+    using TimerBase<CPU, ChronoPrecision>::max;
+    using TimerBase<CPU, ChronoPrecision>::reset;
 
     explicit Timer(int decimals = 1, int space = 15,
-                   xlib::Color color = xlib::Color::FG_DEFAULT);
-    virtual void start() final;
-    virtual void stop()  final;
+                   xlib::Color color = xlib::Color::FG_DEFAULT) noexcept;
+    virtual void start() noexcept final;
+    virtual void stop()  noexcept final;
 private:
     using TimerBase<CPU, ChronoPrecision>::_time_elapsed;
-    using TimerBase<HOST, ChronoPrecision>::_time_squared;
+    using TimerBase<CPU, ChronoPrecision>::_time_squared;
     using TimerBase<CPU, ChronoPrecision>::_total_time_elapsed;
     using TimerBase<CPU, ChronoPrecision>::_num_executions;
     using TimerBase<CPU, ChronoPrecision>::_start_time;
@@ -211,6 +250,8 @@ private:
 
     std::clock_t _start_clock { 0 };
     std::clock_t _stop_clock  { 0 };
+
+    using TimerBase<CPU, ChronoPrecision>::register_time;
 };
 //------------------------------------------------------------------------------
 
@@ -221,10 +262,11 @@ class Timer<SYS, ChronoPrecision> final :
             public TimerBase<SYS, ChronoPrecision> {
 public:
     explicit Timer(int decimals = 1, int space = 15,
-                   xlib::Color color = xlib::Color::FG_DEFAULT);
-    virtual void start() final;
-    virtual void stop()  final;
-    virtual void print(const std::string& str = "") const final;        //NOLINT
+                   xlib::Color color = xlib::Color::FG_DEFAULT) noexcept;
+    virtual void start() noexcept final;
+    virtual void stop()  noexcept final;
+    virtual void print(const std::string& str = "")
+                       const noexcept final;                            //NOLINT
 private:
     using TimerBase<SYS, ChronoPrecision>::_start_time;
     using TimerBase<SYS, ChronoPrecision>::_stop_time;

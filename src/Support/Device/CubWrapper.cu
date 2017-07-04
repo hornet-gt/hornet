@@ -25,10 +25,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * Univerity of Verona, Dept. of Computer Science
  * federico.busato@univr.it
  */
-
-
 #include "Support/Device/CubWrapper.cuh"
 #include "Support/Device/SafeCudaAPI.cuh"
+#include "Support/Device/VectorUtil.cuh"
 #include "Support/Host/Numeric.hpp"
 #include <cub.cuh>
 
@@ -475,6 +474,5 @@ template class CubSelect<int>;
 template class CubSelect<int2>;
 template class CubSelectFlagged<int2>;
 template class CubSelectFlagged<int>;
-
 
 } //namespace xlib

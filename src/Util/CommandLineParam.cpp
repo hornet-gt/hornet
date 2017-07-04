@@ -44,32 +44,34 @@ namespace custinger {
 
 template<typename T, typename R>
 CommandLineParam::CommandLineParam(graph::GraphStd<T, R>& graph,
-                                  int argc, char* argv[], bool check_unknown)
-                                  noexcept {
-    graph::ParsingProp prop(graph::parsing_prop::PRINT);
+                                   int argc, char* argv[], bool check_unknown)
+                                   noexcept {
+    using namespace graph::parsing_prop;
+    using namespace graph::structure_prop;
+    graph::ParsingProp prop(PRINT);
     bool write_binary = false;
     if (argc == 1) {
 L1:     std::ifstream syntax_file("../docs/Syntax.txt");
-        std::cout << syntax_file.rdbuf() << "\n\n";
+        std::cout << syntax_file.rdbuf() << "\n" << std::endl;
         syntax_file.close();
         std::exit(EXIT_SUCCESS);
     }
     for (int i = 2; i < argc; i++) {
         std::string str(argv[i]);
         if (str == "--undirected")
-            graph.set_structure(graph::structure_prop::UNDIRECTED);
+            graph.set_structure(UNDIRECTED);
         else if (str == "--directed")
-            graph.set_structure(graph::structure_prop::DIRECTED);
+            graph.set_structure(DIRECTED);
         else if (str == "--sort-adj")
-            prop += graph::parsing_prop::SORT;
+            prop += SORT;
         else if (str == "--randomize-id")
-            prop += graph::parsing_prop::RANDOMIZE;
+            prop += RANDOMIZE;
         else if (str == "--no-info")
-            prop -= graph::parsing_prop::PRINT;
+            prop -= PRINT;
         else if (str == "--write-binary")
             write_binary = true;
         else if (str == "--device-info")
-            xlib::deviceInfo();
+            xlib::device_info();
         else if (str == "--device" && xlib::is_integer(argv[i + 1]))
             SAFE_CALL( cudaSetDevice(std::stoi(argv[++i])) )
         /*if (str == "--insert" && xlib::is_integer(argv[i + 1])) {

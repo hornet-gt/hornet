@@ -38,26 +38,24 @@
  */
 #pragma once
 
-#include "Support/Device/VectorUtil.cuh"
-#include <cuda_runtime.h>
-#include <array>
-#include <limits>
-#include <string>
+#include <cuda_runtime.h>   //cudaError_t, cudaFree
+#include <array>            //std::array
+#include <limits>           //std::numeric_limits
 
 #if !defined(NO_CHECK_CUDA_ERROR)
     #define CHECK_CUDA_ERROR                                                   \
         {                                                                      \
             cudaDeviceSynchronize();                                           \
-            xlib::__getLastCudaError("", __FILE__, __LINE__, __func__);        \
+            xlib::__getLastCudaError(__FILE__, __LINE__, __func__);            \
         }
-    #define CUDA_ERROR(msg)                                                    \
+    /*#define CUDA_ERROR(msg)                                                  \
         {                                                                      \
             cudaDeviceSynchronize();                                           \
             xlib::__getLastCudaError(msg, __FILE__, __LINE__, __func__);       \
-        }
+        }*/
 #else
-    #define CUDA_ERROR()
-    #define CUDA_ERROR(msg)
+    #define CHECK_CUDA_ERROR
+    //#define CUDA_ERROR(msg)
 #endif
 
 #define SAFE_CALL(function)                                                    \
@@ -78,18 +76,17 @@ struct numeric_limits {         // available in CUDA kernels
 
 //------------------------------------------------------------------------------
 
-void __getLastCudaError(const char* error_message, const char* file, int line,
-                        const char* func_name);
+void __getLastCudaError(const char* file, int line, const char* func_name);
 
-void __cudaErrorHandler(cudaError_t err, const char* error_message,
+void __cudaErrorHandler(cudaError_t error, const char* error_message,
                         const char* file, int line, const char* func_name);
 
-void __safe_call(cudaError_t err, const char* file, int line,
+void __safe_call(cudaError_t error, const char* file, int line,
                  const char* func_name);
 
-class deviceProperty {
+class DeviceProperty {
     public:
-        static int getNum_of_SMs();
+        static int num_SM();
     private:
         static int NUM_OF_STREAMING_MULTIPROCESSOR;
 };
@@ -104,7 +101,7 @@ private:
     const std::array<void*, SIZE> _tmp;
 };
 
-void deviceInfo();
+void device_info();
 
 } // namespace xlib
 

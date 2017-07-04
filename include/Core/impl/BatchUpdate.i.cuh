@@ -131,7 +131,7 @@ inline BatchUpdate::BatchUpdate(const BatchUpdate& obj) noexcept :
 inline BatchUpdate::~BatchUpdate() noexcept {
     //if (_enable_delete)
     //    cuFree(_d_edge_ptrs[0]);
-    SAFE_CALL( cudaFreeHost(_pinned_ptr) )
+    //SAFE_CALL( cudaFreeHost(_pinned_ptr) )
 }
 
 #if defined(__NVCC__)

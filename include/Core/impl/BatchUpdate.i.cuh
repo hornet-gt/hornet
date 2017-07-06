@@ -67,7 +67,6 @@ inline BatchUpdate::BatchUpdate(size_t size) noexcept :
 
 //UNDIRECTED
 inline void BatchUpdate::insert(const BatchInit& batch_init) noexcept {
-    CHECK_CUDA_ERROR
     size_t batch_size = batch_init.size();
     _d_edge_ptrs[0]   = _pinned_ptr;
     _d_edge_ptrs[1]   = _pinned_ptr + _batch_pitch * sizeof(vid_t);
@@ -90,15 +89,15 @@ inline void BatchUpdate::insert(const BatchInit& batch_init) noexcept {
         _pinned_ptr += _batch_pitch * ETYPE_SIZE[i];
     }*/
 }
-
+/*
 inline BatchUpdate::BatchUpdate(const BatchInit& batch_init) noexcept :
                             _batch_size(batch_init.size()),
                             _batch_pitch(xlib::upper_approx<512>(_batch_size)) {
 
-    /*for (int i = 0; i < NUM_ETYPES + 1; i++) {
-        if (batch_init.edge_ptrs(i) == nullptr)
-            ERROR("Edge data not initializated");
-    }*/
+    //for (int i = 0; i < NUM_ETYPES + 1; i++) {
+    //    if (batch_init.edge_ptrs(i) == nullptr)
+    //        ERROR("Edge data not initializated");
+    //}
     byte_t* ptr;
     //cuMalloc(ptr, _batch_pitch * (sizeof(vid_t) + sizeof(edge_t)));
     cuMalloc(ptr, _batch_pitch * (sizeof(vid_t) * 4));  //???to check
@@ -116,7 +115,7 @@ inline BatchUpdate::BatchUpdate(const BatchInit& batch_init) noexcept :
                               _batch_size * ETYPE_SIZE[i], _d_edge_ptrs[i + 1]);
         ptr += _batch_pitch * ETYPE_SIZE[i];
     }
-}
+}*/
 
 inline BatchUpdate::BatchUpdate(const BatchUpdate& obj) noexcept :
                                             _d_offsets(obj._d_offsets),

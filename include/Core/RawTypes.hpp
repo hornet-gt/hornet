@@ -69,12 +69,12 @@ HOST_DEVICE degree_t limit(degree_t degree) noexcept {
 } //namespace detail
 
 struct ALIGN(16) VertexBasicData {
-    byte_t* __restrict__ edge_ptr;
+    byte_t* __restrict__ neighbor_ptr;
     degree_t             degree;
 
     HOST_DEVICE
-    VertexBasicData(degree_t degree, byte_t* edge_ptr) :
-        degree(degree), edge_ptr(edge_ptr) {}
+    VertexBasicData(degree_t degree, byte_t* neighbor_ptr) :
+        degree(degree), neighbor_ptr(neighbor_ptr) {}
 
     HOST_DEVICE degree_t limit() {
         return detail::limit(degree);

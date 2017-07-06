@@ -81,6 +81,25 @@ cuStinger::~cuStinger() noexcept {
             d_flags, d_inverse_pos);
 }
 
+void cuStinger::allocateBatch(size_t max_allocated_edges) noexcept {
+    if (_batch_allocated)
+        ERROR("Batch already allocated")
+    _batch_allocated     = true;
+    _max_allocated_edges = max_allocated_edges == 0 ? _nE : max_allocated_edges;
+
+    cuMalloc(d_counts, _nV + 1,
+             d_unique, _nV,
+             d_degree_old, _nV + 1,
+             d_degree_new, _nV + 1,
+             d_tmp, _nE,
+             d_ptrs_array, _nV + 1,
+             d_flags, _nE,
+             d_inverse_pos, _nV);
+
+    //_batch_pitch = xlib::upper_approx<512>(max_allocated_edges * 2);
+    //cuMallocHost(_pinned_ptr, _batch_pitch * 2);
+}
+
 void cuStinger::initialize() noexcept {
     //! KTRUSS !
     cuMalloc(d_counts, _nV + 1);
@@ -89,8 +108,6 @@ void cuStinger::initialize() noexcept {
     cuMalloc(d_degree_new, _nV + 1);
     cuMalloc(d_tmp, _nE);
     cuMalloc(d_ptrs_array, _nV + 1);
-    //cuMalloc(d_tmp1, _nV * 2);  //max batch size
-    //cuMalloc(d_tmp2, _nV * 2);  //max batch size
     cuMalloc(d_flags, _nE);
     cuMalloc(d_inverse_pos, _nV);
 
@@ -209,8 +226,8 @@ void cuStinger::check_consistency(const cuStingerInit& custinger_init)
     if (!offsets_check)
         ERROR("Vertex Array not consistent")
     auto edge_ref = custinger_init._edge_data_ptrs[0];
-    auto edge_ptr = reinterpret_cast<const vid_t*>(edge_ref);
-    if (!std::equal(csr_edges, csr_edges + _nE, edge_ptr))
+    auto neighbor_ptr = reinterpret_cast<const vid_t*>(edge_ref);
+    if (!std::equal(csr_edges, csr_edges + _nE, neighbor_ptr))
         ERROR("Edge Array not consistent")
     delete[] csr_offsets;
     delete[] csr_edges;

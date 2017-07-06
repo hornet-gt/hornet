@@ -40,7 +40,7 @@
 namespace custinger {
 
 __global__
-void collectOldDegreeKernel(cuStingerDevData          data,
+void collectOldDegreeKernel(cuStingerDevice          data,
                             const vid_t* __restrict__ d_unique,
                             int                       num_uniques,
                             degree_t*    __restrict__ d_degree_old,
@@ -59,7 +59,7 @@ void collectOldDegreeKernel(cuStingerDevData          data,
 }
 
 __global__
-void deleteEdgesKernel(cuStingerDevData              data,
+void deleteEdgesKernel(cuStingerDevice              data,
                        BatchUpdate                   batch_update,
                        const degree_t*  __restrict__ d_degree_old_prefix,
                        bool*            __restrict__ d_flags,
@@ -72,7 +72,7 @@ void deleteEdgesKernel(cuStingerDevData              data,
         vid_t dst = batch_update.dst(i);
 
         Vertex src_vertex(data, src);
-        auto adj_ptr = src_vertex.edge_ptr();
+        auto adj_ptr = src_vertex.neighbor_ptr();
 
         auto pos = xlib::binary_search(adj_ptr, src_vertex.degree(), dst);
         int inverse_pos = d_inverse_pos[src];
@@ -84,7 +84,7 @@ void deleteEdgesKernel(cuStingerDevData              data,
 }
 
 __global__
-void collectDataKernel(cuStingerDevData          data,
+void collectDataKernel(cuStingerDevice          data,
                        const vid_t* __restrict__ d_unique,
                        degree_t*    __restrict__ d_count,
                        int                       num_uniques,
@@ -100,10 +100,10 @@ void collectDataKernel(cuStingerDevData          data,
         auto vertex_data = d_vertex_ptrs[src];
         auto  new_degree = vertex_data.degree - d_count[i];
 
-        d_ptrs_array[i] = vertex_data.edge_ptr;
+        d_ptrs_array[i] = vertex_data.neighbor_ptr;
         d_degree_new[i] = new_degree;
 
-        d_vertex_ptrs[src] = VertexBasicData(new_degree, vertex_data.edge_ptr);
+        d_vertex_ptrs[src] = VertexBasicData(new_degree, vertex_data.neighbor_ptr);
     }
     if (id == 1)
         d_degree_new[num_uniques] = 0;

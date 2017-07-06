@@ -38,7 +38,7 @@
  */
 #pragma once
 
-#include "Core/cuStingerDeviceData.cuh" //cuStingerDevData
+#include "Core/cuStingerDeviceData.cuh" //cuStingerDevice
 #include "Core/RawTypes.hpp"
 
 namespace custinger {
@@ -58,7 +58,7 @@ public:
      * @param[in] data cuStinger device data
      */
     __device__ __forceinline__
-    Vertex(cuStingerDevData data, vid_t index);
+    Vertex(cuStingerDevice data, vid_t index);
 
     /**
      * @brief id of the vertex
@@ -127,7 +127,7 @@ public:
     void store(const Edge& edge, degree_t pos);
 
     __device__ __forceinline__
-    vid_t* edge_ptr() const;
+    vid_t* neighbor_ptr() const;
 
     template<typename T = WeightT>
     __device__ __forceinline__

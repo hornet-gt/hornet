@@ -38,7 +38,7 @@
  */
 #pragma once
 
-#include "Core/cuStingerDeviceData.cuh" //cuStingerDevData
+#include "Core/cuStingerDeviceData.cuh" //cuStingerDevice
 #include "Core/BatchUpdate.cuh"         //BatchUpdate
 #include "Core/MemoryManager.hpp"
 #include "Core/RawTypes.hpp"
@@ -221,9 +221,12 @@ public:
      * @brief device data to used the cuStinger data structure on the device
      * @return device data associeted to the cuStinger instance
      */
-    cuStingerDevData device_data() const noexcept;
+    cuStingerDevice device_side() const noexcept;
 
     vid_t max_degree_vertex() const noexcept;
+
+
+    void allocateBatch(size_t max_allocated_edges = 0) noexcept;
 
     void insertEdgeBatch(BatchUpdate& batch_update) noexcept;
 
@@ -256,16 +259,18 @@ private:
     bool          _internal_csr_data { false };
     vid_t         _max_degree_vertex { -1 };
 
-    ///! KTRUSS !
-    vid_t     *d_unique;
-    int       *d_counts;
-    degree_t  *d_degree_old, *d_degree_new;
-    byte_t    **d_ptrs_array;
-    int2      *d_tmp;
-    vid_t*    d_tmp1;
-    vid_t*    d_tmp2;
-    bool*     d_flags;
-    int*      d_inverse_pos;
+    bool   _batch_allocated;
+    size_t _max_allocated_edges;
+
+    ///Batch delete tmp variables
+    vid_t*    d_unique      { nullptr };
+    int*      d_counts      { nullptr };
+    degree_t* d_degree_old  { nullptr };
+    degree_t* d_degree_new  { nullptr };
+    byte_t*   *d_ptrs_array { nullptr };
+    int2 *    d_tmp         { nullptr };
+    bool*     d_flags       { nullptr };
+    int*      d_inverse_pos { nullptr };
 
     void initialize() noexcept;
 
@@ -282,6 +287,8 @@ private:
      * @param[out] csr_offsets csr edges to build
      */
     void convert_to_csr(eoff_t* csr_offsets, vid_t* csr_edges) const noexcept;
+
+    void build_batch_csr(int num_uniques);
 };
 
 } // namespace custinger

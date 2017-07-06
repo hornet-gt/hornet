@@ -42,7 +42,7 @@ namespace custinger {
 
 template<typename EqualOp>
 __global__
-void findDuplicateKernel(cuStingerDevData   data,
+void findDuplicateKernel(cuStingerDevice   data,
                          BatchUpdate        batch_update,
                          EqualOp            equal_op,
                          bool* __restrict__ d_flags) {
@@ -132,7 +132,7 @@ void findSpaceRequest(VertexBasicData* __restrict__ d_vertex,
             if (new_degree >= vnode.limit())
                 queue.insert(UpdateStr(src, vnode.degree, new_degree));
             else
-                d_vertex[src] = VertexBasicData(new_degree, vnode.edge_ptr);
+                d_vertex[src] = VertexBasicData(new_degree, vnode.neighbor_ptr);
             //if (...)
                 d_degrees_changed[i] = vnode.degree;
         }
@@ -154,10 +154,10 @@ void collectInfoForHost(const VertexBasicData* __restrict__ d_vertex,
         UpdateStr    str = d_queue[i];
         auto       vnode = d_vertex[str.src];
         d_old_degrees[i] = vnode.degree;
-        d_old_ptrs[i]    = reinterpret_cast<edge_t*>(vnode.edge_ptr);
-        //if (vnode.edge_ptr != nullptr)
+        d_old_ptrs[i]    = reinterpret_cast<edge_t*>(vnode.neighbor_ptr);
+        //if (vnode.neighbor_ptr != nullptr)
         //printf("%d  ptr %llX  %d\n", str.src, d_old_ptrs[i],
-        //        reinterpret_cast<vid_t*>(vnode.edge_ptr)[0]);
+        //        reinterpret_cast<vid_t*>(vnode.neighbor_ptr)[0]);
     }
 }
 
@@ -194,7 +194,7 @@ void bulkCopyAdjLists(const degree_t* __restrict__ d_prefixsum,
 }
 
 __global__
-void mergeAdjListKernel(cuStingerDevData             data,
+void mergeAdjListKernel(cuStingerDevice             data,
                         const degree_t* __restrict__ d_degrees_changed,
                         BatchUpdate                  batch_update,
                         const vid_t* __restrict__    d_unique_src,
@@ -205,7 +205,7 @@ void mergeAdjListKernel(cuStingerDevData             data,
 
     for (int i = id; i < num_uniques; i += stride) {
         auto    vertex = Vertex(data, d_unique_src[i]);
-        auto      left = vertex.edge_ptr();
+        auto      left = vertex.neighbor_ptr();
         auto left_size = d_degrees_changed[i];
 
         int      start = d_counts_ps[i];

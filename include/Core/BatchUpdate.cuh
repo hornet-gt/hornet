@@ -81,6 +81,48 @@ private:
     const int     _batch_size { 0 };
 };
 
+/**
+ * @brief Batch Property
+ */
+class Batch {
+protected:
+    /**
+     * @brief default costructor
+     * @param[in]
+     * @param[in]
+     * @param[in]
+     */
+    explicit Batch(const vid_t* src_array, const vid_t* dst_array,
+                   int batch_size) noexcept;
+
+    int size() const noexcept;
+
+    const vid_t* src_array() const noexcept;
+    const vid_t* dst_array() const noexcept;
+
+    const vid_t* _src_array;
+    const vid_t* _dst_array;
+    const int    _batch_size;
+};
+
+class BatchHost : public Batch {
+public:
+    explicit BatchHost(const vid_t* src_array, const vid_t* dst_array,
+                       int batch_size) noexcept;
+    using Batch::size;
+    using Batch::src_array;
+    using Batch::dst_array;
+};
+
+class BatchDevice : public Batch {
+public:
+    explicit BatchDevice(const vid_t* src_array, const vid_t* dst_array,
+                         int batch_size) noexcept;
+    using Batch::size;
+    using Batch::src_array;
+    using Batch::dst_array;
+};
+
 //-----------------------------------------------------------------------------
 
 /**

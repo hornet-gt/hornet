@@ -2,7 +2,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date May, 2017
+ * @date July, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -105,7 +105,7 @@ void cuStinger::insertEdgeBatch(BatchUpdate& batch_update,
 
     findDuplicateKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(batch_update.size()), BLOCK_SIZE >>>
-        (device_data(), batch_update, equal_op, d_flags);
+        (device_side(), batch_update, equal_op, d_flags);
     CHECK_CUDA_ERROR
 
     int num_noduplicate = partition_cub1.run();//remove dublicate from batch_src
@@ -191,7 +191,7 @@ void cuStinger::insertEdgeBatch(BatchUpdate& batch_update,
 
         mergeAdjListKernel
             <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
-            (device_data(), d_degree_changed, batch_update,
+            (device_side(), d_degree_changed, batch_update,
              d_unique, d_counts, num_uniques);
         CHECK_CUDA_ERROR
     }
@@ -241,7 +241,6 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     size_t batch_size = batch_update.size();
 
 
-    std::cout << "batch_size " << batch_size << std::endl;
     /*vid_t     *d_unique;
     int       *d_counts;
     degree_t  *d_degree_old, *d_degree_new;
@@ -301,7 +300,7 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
 
     collectOldDegreeKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
-        (device_data(), d_unique, num_uniques, d_degree_old, d_inverse_pos);
+        (device_side(), d_unique, num_uniques, d_degree_old, d_inverse_pos);
     CHECK_CUDA_ERROR
 
 #if defined(BATCH_DEBUG)
@@ -320,12 +319,12 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
 
     deleteEdgesKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(batch_size), BLOCK_SIZE >>>
-        (device_data(), batch_update, d_degree_old, d_flags, d_inverse_pos);
+        (device_side(), batch_update, d_degree_old, d_flags, d_inverse_pos);
     CHECK_CUDA_ERROR
 
     collectDataKernel   //modify also the vertices degree
         <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
-        (device_data(), d_unique, d_counts, num_uniques,
+        (device_side(), d_unique, d_counts, num_uniques,
          d_degree_new, d_ptrs_array);
     CHECK_CUDA_ERROR
 
@@ -369,8 +368,8 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     num_blocks = xlib::ceil_div<SMEM>(total_degree_new);
     if (num_blocks) {
             moveDataKernel2<BLOCK_SIZE, SMEM>
-            <<< num_blocks, BLOCK_SIZE >>>
-            (d_degree_new, num_uniques + 1, d_tmp, d_ptrs_array);
+                <<< num_blocks, BLOCK_SIZE >>>
+                (d_degree_new, num_uniques + 1, d_tmp, d_ptrs_array);
         CHECK_CUDA_ERROR
     }
     xlib::CubExclusiveSum<int> prefixsum3(d_counts, num_uniques + 1);
@@ -378,10 +377,23 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
 
     batch_update._d_offsets    = d_counts;
     batch_update._offsets_size = num_uniques;
-    batch_update._batch_size /= 2;
+
+    //batch_update._batch_size /= 2;
+    batch_update._batch_size = batch_size;
+
+    std::cout << "batch_size " << batch_update._batch_size << std::endl;
+
     //checkKernel <<< 1, 1 >>> (batch_update);
     //cudaDeviceSynchronize();
     //cuFree(d_counts, d_unique, d_degree_old, d_degree_new, d_tmp, d_ptrs_array);
 }
+
+/*void cuStinger::build_batch_csr(int num_uniques) {
+    xlib::CubExclusiveSum<int> prefixsum3(d_counts, num_uniques + 1);
+    prefixsum3.run();
+
+    batch_update._d_offsets    = d_counts;
+    batch_update._offsets_size = num_uniques;
+}*/
 
 } // namespace custinger

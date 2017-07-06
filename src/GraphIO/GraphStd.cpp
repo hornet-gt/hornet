@@ -166,8 +166,10 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
         std::sort(_coo_edges, _coo_edges + _nE);
         auto   last = std::unique(_coo_edges, _coo_edges + _nE);
         auto new_nE = std::distance(_coo_edges, last);
-        if (_prop.is_print())
-            std::cout << "(" << _nE - new_nE << " edges removed)" << std::endl;
+        if (_prop.is_print()) {
+            std::cout << "(" << xlib::format(_nE - new_nE) << " edges removed)"
+                      << std::endl;
+        }
         _nE = new_nE;
     }
     else if (_undirected_to_directed) {

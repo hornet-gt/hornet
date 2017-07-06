@@ -38,7 +38,7 @@
 namespace custinger {
 
 __device__ __forceinline__
-Vertex::Vertex(cuStingerDevData data, vid_t index) : _id(index) {
+Vertex::Vertex(cuStingerDevice data, vid_t index) : _id(index) {
     assert(index < data.nV);
     xlib::SeqDev<VTypeSize> VTYPE_SIZE_D;
     _vertex_ptr = reinterpret_cast<VertexBasicData*>(data.d_vertex_ptrs[0]) +
@@ -47,7 +47,7 @@ Vertex::Vertex(cuStingerDevData data, vid_t index) : _id(index) {
 
     _degree   = basic_data.degree;
     _limit    = detail::limit(_degree);
-    _edge_ptr = basic_data.edge_ptr;
+    _edge_ptr = basic_data.neighbor_ptr;
     #pragma unroll
     for (int i = 0; i < NUM_EXTRA_VTYPES; i++)
         _ptrs[i] = data.d_vertex_ptrs[i] + index * VTYPE_SIZE_D[i + 1];
@@ -82,7 +82,7 @@ Edge Vertex::edge(degree_t index) const {
 }
 
 __device__ __forceinline__
-vid_t* Vertex::edge_ptr() const {
+vid_t* Vertex::neighbor_ptr() const {
     return reinterpret_cast<vid_t*>(_edge_ptr);
 }
 
@@ -137,14 +137,14 @@ void Vertex::store(const Edge& edge, degree_t index) {
 //==============================================================================
 
 __device__ __forceinline__
-Edge::Edge(byte_t* edge_ptr, degree_t index, int limit) {
+Edge::Edge(byte_t* neighbor_ptr, degree_t index, int limit) {
     //Edge Type Sizes Prefixsum
     xlib::SeqDev<ETypeSizePS> ETYPE_SIZE_PS_D;
 
-    _dst = *reinterpret_cast<vid_t*>(edge_ptr);
+    _dst = *reinterpret_cast<vid_t*>(neighbor_ptr);
     #pragma unroll
     for (int i = 0; i < NUM_EXTRA_ETYPES; i++)
-        _ptrs[i] = edge_ptr + limit * ETYPE_SIZE_PS_D[i + 1];
+        _ptrs[i] = neighbor_ptr + limit * ETYPE_SIZE_PS_D[i + 1];
 }
 
 __device__ __forceinline__

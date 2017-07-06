@@ -45,15 +45,15 @@ namespace custinger {
 
 __device__ int d_array[10];
 
-__global__ void printKernel(cuStingerDevData data) {
+__global__ void printKernel(cuStingerDevice data) {
     for (vid_t i = 0; i < data.nV; i++) {
         auto vertex = Vertex(data, i);
         auto degree = vertex.degree();
         //auto field0 = vertex.field<0>();
         printf("%d [%d, %d, 0x%llX]:    ", i, vertex.degree(), vertex.limit(),
-                                        vertex.edge_ptr());
+                                        vertex.neighbor_ptr());
 
-        auto ptr = vertex.edge_ptr();
+        auto ptr = vertex.neighbor_ptr();
         auto weight_ptr = vertex.edge_weight_ptr();
         for (degree_t j = 0; j < vertex.degree(); j++) {
             auto   edge = vertex.edge(j);
@@ -85,7 +85,7 @@ __global__ void printKernel(cuStingerDevData data) {
 
 void cuStinger::print() noexcept {
     if (sizeof(degree_t) == 4 && sizeof(vid_t) == 4) {
-        printKernel<<<1, 1>>>(device_data());
+        printKernel<<<1, 1>>>(device_side());
         CHECK_CUDA_ERROR
     }
     else {
@@ -161,7 +161,7 @@ vid_t cuStinger::max_degree_vertex() const noexcept {
     const unsigned BLOCK_SIZE = 256;
     degree_t* d_tmp;
     cuMalloc(d_tmp, _nV);
-    auto dev_data = device_data();
+    auto dev_data = device_side();
 
     buildDegreeKernel <<< xlib::ceil_div<BLOCK_SIZE>(_nV), BLOCK_SIZE >>>
         (reinterpret_cast<VertexBasicData*>(dev_data.d_vertex_ptrs[0]),
@@ -173,13 +173,13 @@ vid_t cuStinger::max_degree_vertex() const noexcept {
 }
 
 
-__global__ void checkSortedKernel(cuStingerDevData data) {
+__global__ void checkSortedKernel(cuStingerDevice data) {
     int    idx = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
 
     for (vid_t i = idx; i < data.nV; i += stride) {
         auto vertex = Vertex(data, i);
-        auto    ptr = vertex.edge_ptr();
+        auto    ptr = vertex.neighbor_ptr();
 
         for (degree_t j = 0; j < vertex.degree() - 1; j++) {
             if (ptr[j] > ptr[j + 1])
@@ -191,7 +191,7 @@ __global__ void checkSortedKernel(cuStingerDevData data) {
 }
 
 void cuStinger::check_sorted_adjs() const noexcept {
-    checkSortedKernel <<< xlib::ceil_div<256>(_nV), 256 >>> (device_data());
+    checkSortedKernel <<< xlib::ceil_div<256>(_nV), 256 >>> (device_side());
 }
 
 } // namespace custinger

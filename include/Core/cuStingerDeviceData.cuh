@@ -47,7 +47,7 @@ namespace custinger {
  * @brief The structure contanins all information to use the cuStinger data
  *        structure in the device
  */
-struct cuStingerDevData {
+struct cuStingerDevice {
     /**
      * @brief array of pointers to vertex data
      * @detail the first element points to the structure that contanins the

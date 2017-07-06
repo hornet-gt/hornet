@@ -118,7 +118,8 @@ namespace std {
 
 namespace xlib {
 
-using byte_t = uint8_t;
+//using byte_t = uint8_t;
+enum class byte_t : std::uint8_t {};
 
 #if !defined(__NVCC__)
 
@@ -176,3 +177,6 @@ protected:
 } // namespace xlib
 
 #include "impl/Basic.i.hpp"
+
+//std::array<void*, sizeof...(ptrs)> array =
+// {{ reinterpret_cast<void*>(const_cast<TArgs*>(ptrs))... }};

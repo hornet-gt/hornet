@@ -20,7 +20,7 @@ cuda_add_library(cuStingerAlg ${CU_SRCS})
 #cuda_add_executable(bfs++ test/BFSTest++.cu)
 #cuda_add_executable(bfs   test/BFSTest.cu)
 #cuda_add_executable(CC    test/CCTest.cu)
-cuda_add_executable(KTruss test/KTrussTest.cu)
+cuda_add_executable(KTruss test/KtrussTest.cu)
 
 #target_link_libraries(bfs++ cuStingerAlg cuStinger)
 #target_link_libraries(bfs   cuStingerAlg cuStinger)

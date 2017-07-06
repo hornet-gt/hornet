@@ -703,7 +703,7 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevice custinger,
         vid_t src  = batch_update.src(edge);
         vid_t dest = batch_update.dst(edge);
 
-        assert(src < batch_update.offsets_size());
+        //assert(src < batch_update.offsets_size());
         //vid_t  srcLen = d_off[src + 1] - d_off[src];
         //vid_t destLen = custinger->dVD->getUsed()[dest];
         vid_t  srcLen = d_off[src + 1] - d_off[src];
@@ -723,10 +723,9 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevice custinger,
         //if (threadIdx.x == 0 && blockIdx.x == 0) {
         //    for (int i = 0; i < srcLen; i++)
         //        d_value[threadIdx.x % 32] = src_ptr[i];
-            for (int i = 0; i < destLen; i++)
-                d_value[threadIdx.x % 32] = dst_ptr[i];
+        //    for (int i = 0; i < destLen; i++)
+        //        d_value[threadIdx.x % 32] = dst_ptr[i];
         //}
-
 
         bool sourceSmaller = srcLen < destLen;
         vid_t        small = sourceSmaller ? src : dest;

@@ -657,6 +657,8 @@ triangle_t count_trianglesAsymmetric(
 
 //==============================================================================
 
+__device__ int d_value[32];
+
 __global__
 void deviceBUTwoCUOneTriangles(custinger::cuStingerDevice custinger,
                                 custinger::BatchUpdate batch_update,
@@ -696,12 +698,14 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevice custinger,
 
         //vid_t src = batch_update->getSrc()[edge];
         //vid_t dest= batch_update->getDst()[edge];
+        assert(edge < batch_update.size());
+
         vid_t src  = batch_update.src(edge);
         vid_t dest = batch_update.dst(edge);
 
+        assert(src < batch_update.offsets_size());
         //vid_t  srcLen = d_off[src + 1] - d_off[src];
         //vid_t destLen = custinger->dVD->getUsed()[dest];
-        //vid_t  srcLen = Vertex(custinger, src).degree(); ///???
         vid_t  srcLen = d_off[src + 1] - d_off[src];
         vid_t destLen = Vertex(custinger, dest).degree();///???
 
@@ -714,6 +718,15 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevice custinger,
         const vid_t* src_mask_ptr = nullptr;
         //const vid_t*      dst_ptr = custinger->dVD->getAdj()[dest]->dst;
         const vid_t*      dst_ptr = Vertex(custinger, dest).neighbor_ptr();
+
+        assert(d_off[src] < batch_update.size());
+        //if (threadIdx.x == 0 && blockIdx.x == 0) {
+        //    for (int i = 0; i < srcLen; i++)
+        //        d_value[threadIdx.x % 32] = src_ptr[i];
+            for (int i = 0; i < destLen; i++)
+                d_value[threadIdx.x % 32] = dst_ptr[i];
+        //}
+
 
         bool sourceSmaller = srcLen < destLen;
         vid_t        small = sourceSmaller ? src : dest;
@@ -728,18 +741,18 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevice custinger,
 
         // triangle_t tCount=0;
         triangle_t tCount = sourceSmaller ?
-                            count_trianglesAsymmetric<false,false,true,true>
+                            count_trianglesAsymmetric<false, false, true, true>
                                 (custinger, small, small_ptr, small_len,
                                   large, large_ptr, large_len,
                                  threads_per_block, firstFoundPos,
                                  tx % threads_per_block, outPutTriangles,
                                    small_mask_ptr, large_mask_ptr, 1,src,dest) :
-                            count_trianglesAsymmetric<false,false,true,true>
+                            count_trianglesAsymmetric<false, false, true, true>
                                 (custinger, small, small_ptr, small_len,
                                  large, large_ptr, large_len,
                                    threads_per_block, firstFoundPos,
                                  tx % threads_per_block, outPutTriangles,
-                                 small_mask_ptr, large_mask_ptr, 1,src,dest);
+                                 small_mask_ptr, large_mask_ptr, 1, src, dest);
 
         // atomicSub(outPutTriangles + src, tCount * 1);
         // atomicSub(outPutTriangles + dest, tCount * 1);

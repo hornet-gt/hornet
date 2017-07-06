@@ -43,7 +43,6 @@ void runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
 
     int nv = custinger_init.nV();
     int ne = custinger_init.nE();
-    std::cout << "nv " << nv << " ne " << ne << std::endl;
 
     triangle_t* d_triangles;
     vid_t* d_off;
@@ -64,7 +63,7 @@ void runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
     const int       tSPToTest = sizeof(arrayThreadPerIntersection) /sizeof(int);
     BatchUpdate batch_update(ne);
 
-    Timer<DEVICE> TM;
+    Timer<DEVICE, seconds> TM;
 
     for (int b = 0; b < blocksToTest; b++) {
         int blocks = arrayBlocks[b];

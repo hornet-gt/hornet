@@ -259,17 +259,17 @@ void intersectCount(const custinger::cuStingerDevice& custinger,
                     if (posu != -1)
                         atomicSub(edge_weight_ptr + posu, 1);
                         //atomicSub(custinger->dVD->adj[common]->ew + posu, 1);
-//#if !defined(NDEBUG)
+#if !defined(NDEBUG)
                     else
                         printf("1");
-//#endif
+#endif
                     if (posv != -1)
                         atomicSub(edge_weight_ptr + posv, 1);
                         //atomicSub(custinger->dVD->adj[common]->ew + posv, 1);
-//#if !defined(NDEBUG)
+#if !defined(NDEBUG)
                     else
                         printf("2");
-//#endif
+#endif
                     Vertex vertex_u(custinger, u);
                     Vertex vertex_v(custinger, v);
                     //atomicSub(custinger->dVD->adj[u]->ew + *uCurr, 1);
@@ -401,8 +401,8 @@ void devicecuStingerKTruss(custinger::cuStingerDevice custinger,
             //int destLen = custinger->dVD->getUsed()[dest];
             int destLen = Vertex(custinger, dest).degree();
 
-            if (dest<src) //opt
-               continue; //opt
+            if (dest < src) //opt
+                continue;   //opt
 
             bool avoidCalc = (src == dest) || (destLen < 2) || (srcLen < 2);
             if (avoidCalc)

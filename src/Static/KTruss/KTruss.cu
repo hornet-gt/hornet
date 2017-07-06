@@ -1,7 +1,3 @@
-/*#include "update.hpp"
-#include "cuStinger.hpp"
-#include "operators.cuh"
-#include "static_k_truss/k_truss.cuh"*/
 #include "Static/KTruss/KTruss.cuh"
 #include "Support/Device/CudaUtil.cuh"
 
@@ -44,6 +40,7 @@ void KTruss::init(){
     cuMalloc(hostKTrussData.src, hostKTrussData.ne);
     cuMalloc(hostKTrussData.dst, hostKTrussData.ne);
     //cuMalloc(deviceKTrussData, 1);
+
     deviceKTrussData = register_data(hostKTrussData);
 
     //hostKTrussData.activeQueue.init(hostKTrussData.nv + 1);
@@ -127,7 +124,6 @@ void KTruss::run() {
     while (true) {
         // if(hostKTrussData.maxK >= 5)
         //     break;
-
         bool needStop = false;
         bool     more = findTrussOfK(needStop);
         if (more == false && needStop) {
@@ -139,11 +135,10 @@ void KTruss::run() {
         syncDeviceWithHost();
         iterations++;
     }
-    std::cout << "iterations " << iterations << std::endl;
-
+    //std::cout << "iterations " << iterations << std::endl;
     // cout << "Found the maximal KTruss at : " << hostKTrussData.maxK << endl;
-    std::cout << "The number of full triangle counting iterations is  : "
-              << hostKTrussData.fullTriangleIterations << std::endl;
+    //std::cout << "The number of full triangle counting iterations is  : "
+    //          << hostKTrussData.fullTriangleIterations << std::endl;
 }
 
 void KTruss::runForK(int maxK) {
@@ -182,7 +177,9 @@ bool KTruss::findTrussOfK(bool& stop) {
         forAllVertices<ktruss_operators::findUnderK>(custinger,deviceKTrussData);
         //allVinG_TraverseVertices<ktruss_operators::findUnderK>(custinger,deviceKTrussData);
         syncHostWithDevice();
-        std::cout << "Current number of deleted edges is " << hostKTrussData.counter << std::endl;
+
+        //std::cout << "Current number of deleted edges is " << hostKTrussData.counter << std::endl;
+
         sumDeletedEdges += hostKTrussData.counter;
         if (hostKTrussData.counter == hostKTrussData.ne_remaining) {
             stop = true;
@@ -288,11 +285,12 @@ void KTruss::runDynamic(){
     while (true) {
         //if(hostKTrussData.maxK >= 5)
         //    break;
-        std::cout << "New iteration" << std::endl;
+        //std::cout << "New iteration" << std::endl;
         bool needStop = false;
         bool     more = findTrussOfKDynamic(needStop);
         CHECK_CUDA_ERROR
-        if (more == false && needStop) {
+        //if (more == false && needStop) {
+        if (!hostKTrussData.ne_remaining) {
             hostKTrussData.maxK--;
             syncDeviceWithHost();
             break;
@@ -301,7 +299,7 @@ void KTruss::runDynamic(){
         syncDeviceWithHost();
         iterations++;
     }
-    std::cout << "iterations " << iterations << std::endl;
+    //std::cout << "iterations " << iterations << std::endl;
     // cout << "Found the maximal KTruss at : " << hostKTrussData.maxK << endl;
 }
 
@@ -339,7 +337,7 @@ bool KTruss::findTrussOfKDynamic(bool& stop) {
         CHECK_CUDA_ERROR
 
         syncHostWithDevice();
-        std::cout << "Current number of deleted edges is " << hostKTrussData.counter << std::endl;
+        //std::cout << "Current number of deleted edges is " << hostKTrussData.counter << std::endl;
 
         if (hostKTrussData.counter == hostKTrussData.ne_remaining) {
             stop = true;
@@ -394,7 +392,7 @@ bool KTruss::findTrussOfKDynamic(bool& stop) {
         }
         else
             return false;
-CHECK_CUDA_ERROR
+
         hostKTrussData.ne_remaining  -= hostKTrussData.counter;
         hostKTrussData.activeVertices = 0;
         hostKTrussData.counter        = 0;
@@ -413,9 +411,6 @@ CHECK_CUDA_ERROR
     //                            hostKTrussData.shifter,
     //                            hostKTrussData.blocks, hostKTrussData.sps,
     //                            deviceKTrussData);   //sub
-
-
-CHECK_CUDA_ERROR
         syncHostWithDevice();
         stop = false;
     }
@@ -447,4 +442,4 @@ void KTruss::runForKDynamic(int maxK) {
     // cout << "Found the maximal KTruss at : " << hostKTrussData.maxK << endl;
 }
 
-}// custinger_alg namespace
+} // custinger_alg namespace

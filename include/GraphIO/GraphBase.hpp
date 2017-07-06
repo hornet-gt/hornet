@@ -129,13 +129,14 @@ public:
     GraphBase(const GraphBase&)      = delete;
     void operator=(const GraphBase&) = delete;
 protected:
+    StructureProp _structure;
+    ParsingProp   _prop;
     std::string   _graph_name { "" };
     vid_t         _nV         { 0 };
     eoff_t        _nE         { 0 };
-    StructureProp _structure;
-    ParsingProp   _prop;
     bool          _directed_to_undirected { false };
     bool          _undirected_to_directed { false };
+    bool          _stored_undirected     { false };
 
     explicit GraphBase() = default;
     explicit GraphBase(StructureProp structure) noexcept;

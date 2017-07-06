@@ -210,6 +210,7 @@ GInfo GraphBase<vid_t, eoff_t>::getMarketHeader(std::ifstream& fin) {
     xlib::skip_lines(fin);
     size_t num_edges = direction == structure_prop::UNDIRECTED ? num_lines * 2
                                                                : num_lines;
+    _stored_undirected = true;
     return { std::max(rows, columns), num_edges, num_lines, direction };
 }
 

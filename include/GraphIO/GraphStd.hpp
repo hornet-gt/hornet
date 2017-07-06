@@ -243,12 +243,14 @@ private:
     size_t    _coo_size    { 0 };
     const uint64_t _seed   { 0xA599AC3F0FD21B92 };
 
-    using GraphBase<vid_t, eoff_t>::_nE;
-    using GraphBase<vid_t, eoff_t>::_nV;
     using GraphBase<vid_t, eoff_t>::_structure;
     using GraphBase<vid_t, eoff_t>::_prop;
+    using GraphBase<vid_t, eoff_t>::_graph_name;
+    using GraphBase<vid_t, eoff_t>::_nE;
+    using GraphBase<vid_t, eoff_t>::_nV;
     using GraphBase<vid_t, eoff_t>::_directed_to_undirected;
     using GraphBase<vid_t, eoff_t>::_undirected_to_directed;
+    using GraphBase<vid_t, eoff_t>::_stored_undirected;
 
     void allocate(const GInfo& ginfo) noexcept;
 

@@ -95,6 +95,7 @@ void GraphStd<vid_t, eoff_t>::allocate(const GInfo& ginfo) noexcept {
         _bitmask.randomize(_seed);
         new_num_edges = _bitmask.size();
     }
+
     xlib::check_overflow<vid_t>(ginfo.num_vertices);
     xlib::check_overflow<eoff_t>(new_num_edges);
     _nV = static_cast<vid_t>(ginfo.num_vertices);
@@ -106,21 +107,21 @@ void GraphStd<vid_t, eoff_t>::allocate(const GInfo& ginfo) noexcept {
         const char* graph_dir = ginfo.direction == structure_prop::UNDIRECTED
                                     ? dir[0] : dir[1];
         auto avg = static_cast<double>(ginfo.num_edges) / _nV;
-        std::cout << "\n@File  Nodes: " << xlib::format(_nV) << "\tEdges: "
+        std::cout << "\n@File  Nodes: " << xlib::format(_nV) << "     Edges: "
                   << xlib::format(ginfo.num_edges) << graph_dir
-                  << "\tavg. degree: " << xlib::format(avg, 1);
+                  << "     avg. degree: " << xlib::format(avg, 1);
         if (_directed_to_undirected || _undirected_to_directed) {
             graph_dir =  _structure.is_undirected() ? dir[0] : dir[1];
             avg = static_cast<double>(new_num_edges) / _nV;
-            std::cout << "\n@User  Nodes: " << xlib::format(_nV) << "\tEdges: "
-                      << xlib::format(new_num_edges) << graph_dir
-                      << "\tavg. degree: " << xlib::format(avg) << "\n";
+            std::cout << "\n@User  Nodes: " << xlib::format(_nV)
+                      << "     Edges: " << xlib::format(new_num_edges)
+                      << graph_dir << "     avg. degree: " << xlib::format(avg)
+                      << "\n";
         }
         else
             assert(new_num_edges == ginfo.num_edges);
         std::cout << std::endl;
     }
-    _directed_to_undirected = ginfo.num_lines != ginfo.num_edges;
 
     try {
         _out_offsets = new eoff_t[ _nV + 1 ];
@@ -158,22 +159,24 @@ GraphStd<vid_t, eoff_t>::~GraphStd() noexcept {
 
 template<typename vid_t, typename eoff_t>
 void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
-    if (_directed_to_undirected) {
+    if (_directed_to_undirected || _stored_undirected) {
         eoff_t half = _nE / 2;
         for (eoff_t i = 0; i < half; i++)
             _coo_edges[i + half] = {_coo_edges[i].second, _coo_edges[i].first};
-        if (_prop.is_print()) {
-            std::cout << "Directed to Undirected: Removing duplicated edges..."
-                      << std::flush;
+        if (_directed_to_undirected) {
+            if (_prop.is_print()) {
+                std::cout << "Directed to Undirected: Removing duplicated"
+                             "edges..." << std::flush;
+            }
+            std::sort(_coo_edges, _coo_edges + _nE);
+            auto   last = std::unique(_coo_edges, _coo_edges + _nE);
+            auto new_nE = std::distance(_coo_edges, last);
+            if (_prop.is_print() && new_nE != _nE) {
+                std::cout << "(" << xlib::format(_nE - new_nE)
+                          << " edges removed)" << std::endl;
+            }
+            _nE = new_nE;
         }
-        std::sort(_coo_edges, _coo_edges + _nE);
-        auto   last = std::unique(_coo_edges, _coo_edges + _nE);
-        auto new_nE = std::distance(_coo_edges, last);
-        if (_prop.is_print() && new_nE != _nE) {
-            std::cout << "(" << xlib::format(_nE - new_nE) << " edges removed)"
-                      << std::endl;
-        }
-        _nE = new_nE;
     }
     else if (_undirected_to_directed) {
         std::cout << "Undirected to Directed: Removing random edges..."

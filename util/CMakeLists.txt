@@ -256,9 +256,11 @@ elseif (CMAKE_BUILD_TYPE STREQUAL "ReleaseEx")
 elseif (CMAKE_BUILD_TYPE STREQUAL "Info")
     file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/build/TMP)
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-lineinfo" "-keep" "--use_fast_math"
-        "-DNDEBUG" "--resource-usage"
+        #"-DNDEBUG"
+         "--resource-usage"
         "-keep-dir" "${PROJECT_SOURCE_DIR}/build/TMP"
-        "-Xcompiler=-DNDEBUG")
+    #"-Xcompiler=-DNDEBUG"
+)
 
 elseif (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-g" "-G")
@@ -308,7 +310,7 @@ if (ARCH_FLAG)
 endif()
 
 set(CMAKE_CXX_FLAGS_INFO "-O3 ${H_MARCH} -mtune=native ${FLTO} \
--funroll-loops -DNDEBUG")
+-funroll-loops") # -DNDEBUG")
 #Not all compilers support -march=native for all architecuteres -> -mtune
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 ${H_MARCH} -mtune=native ${FLTO} \

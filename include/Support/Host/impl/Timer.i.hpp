@@ -33,6 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
+#include <cassert>          //assert
 #include <cmath>            //std::sqrt
 #include <ctime>            //std::clock
 #include <iomanip>          //std::setprecision

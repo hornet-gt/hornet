@@ -397,7 +397,7 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     batch_update._d_offsets    = d_degree_old;
     batch_update._offsets_size = num_uniques;
     batch_update._batch_size   = batch_size;
-    std::cout << "batch_size " << batch_update._batch_size << std::endl;
+    //std::cout << "batch_size " << batch_update._batch_size << std::endl;
 
     //checkKernel <<< 1, 1 >>> (batch_update);
     //cudaDeviceSynchronize();

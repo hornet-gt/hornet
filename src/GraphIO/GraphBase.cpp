@@ -193,7 +193,7 @@ GInfo GraphBase<vid_t, eoff_t>::getMarketHeader(std::ifstream& fin) {
     std::getline(fin, header_lines);
     auto direction = header_lines.find("symmetric") != std::string::npos ?
                         structure_prop::UNDIRECTED : structure_prop::DIRECTED;
-    _directed_to_undirected = direction == structure_prop::UNDIRECTED;
+    //_directed_to_undirected = direction == structure_prop::UNDIRECTED;
 
     /*if (header_lines.find("integer") != std::string::npos)
         _structure._wtype = Structure::INTEGER;
@@ -210,7 +210,7 @@ GInfo GraphBase<vid_t, eoff_t>::getMarketHeader(std::ifstream& fin) {
     xlib::skip_lines(fin);
     size_t num_edges = direction == structure_prop::UNDIRECTED ? num_lines * 2
                                                                : num_lines;
-    _stored_undirected = true;
+    _stored_undirected = direction == structure_prop::UNDIRECTED;
     return { std::max(rows, columns), num_edges, num_lines, direction };
 }
 
@@ -266,7 +266,8 @@ GInfo GraphBase<vid_t, eoff_t>::getKonectHeader(std::ifstream& fin) {
     xlib::skip_lines(fin);
     if (str != "%")
         ERROR("Wrong file format")
-    _directed_to_undirected = direction == structure_prop::UNDIRECTED;
+    //_directed_to_undirected = direction == structure_prop::UNDIRECTED;
+    _stored_undirected = direction == structure_prop::UNDIRECTED;
     return { std::max(value1, value2), num_edges, num_edges, direction };
 }
 
@@ -301,7 +302,8 @@ GInfo GraphBase<vid_t, eoff_t>::getSnapHeader(std::ifstream& fin) {
         }
     }
     xlib::skip_lines(fin);
-    _directed_to_undirected = direction == structure_prop::UNDIRECTED;
+    //_directed_to_undirected = direction == structure_prop::UNDIRECTED;
+    _stored_undirected = direction == structure_prop::UNDIRECTED;
     return { num_vertices, num_lines, num_lines, direction };
 }
 

@@ -102,21 +102,23 @@ void GraphStd<vid_t, eoff_t>::allocate(const GInfo& ginfo) noexcept {
     _nE = static_cast<eoff_t>(new_num_edges);
 
     if (_prop.is_print()) {
-        const char* const dir[] = { "\tStructure: Undirected",
-                                    "\tStructure: Directed" };
+        const char* const dir[] = { "Structure: Undirected   ",
+                                    "Structure: Directed     " };
         const char* graph_dir = ginfo.direction == structure_prop::UNDIRECTED
                                     ? dir[0] : dir[1];
         auto avg = static_cast<double>(ginfo.num_edges) / _nV;
-        std::cout << "\n@File  Nodes: " << xlib::format(_nV) << "     Edges: "
+        std::cout << "\n@File   Nodes: " << std::left << std::setw(10)
+                  << xlib::format(_nV)  << "Edges: " << std::setw(13)
                   << xlib::format(ginfo.num_edges) << graph_dir
-                  << "     avg. degree: " << xlib::format(avg, 1);
+                  << "avg. degree: " << xlib::format(avg, 1) << std::right;
         if (_directed_to_undirected || _undirected_to_directed) {
             graph_dir =  _structure.is_undirected() ? dir[0] : dir[1];
             avg = static_cast<double>(new_num_edges) / _nV;
-            std::cout << "\n@User  Nodes: " << xlib::format(_nV)
-                      << "     Edges: " << xlib::format(new_num_edges)
-                      << graph_dir << "     avg. degree: " << xlib::format(avg)
-                      << "\n";
+            std::cout << "\n@User   Nodes: "  << std::left << std::setw(10)
+                      << xlib::format(_nV) << "Edges: " << std::setw(13)
+                      << xlib::format(new_num_edges) << graph_dir
+                      << "avg. degree: " << xlib::format(avg) << "\n"
+                      << std::right;
         }
         else
             assert(new_num_edges == ginfo.num_edges);
@@ -165,7 +167,7 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
             _coo_edges[i + half] = {_coo_edges[i].second, _coo_edges[i].first};
         if (_directed_to_undirected) {
             if (_prop.is_print()) {
-                std::cout << "Directed to Undirected: Removing duplicated"
+                std::cout << "Directed to Undirected: Removing duplicated "
                              "edges..." << std::flush;
             }
             std::sort(_coo_edges, _coo_edges + _nE);

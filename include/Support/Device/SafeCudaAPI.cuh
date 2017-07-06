@@ -78,6 +78,10 @@
     xlib::detail::cuFreeAux(__FILE__, __LINE__, __func__, __VA_ARGS__)         \
 //------------------------------------------------------------------------------
 
+#define cuMemcpyDeviceToDevice(...)                                            \
+    xlib::detail::cuMemcpyDeviceToDeviceAux(__FILE__, __LINE__,__func__,       \
+                                            __VA_ARGS__)                       \
+
 #define cuMemcpyToDevice(...)                                                  \
     xlib::detail::cuMemcpyToDeviceAux(__FILE__, __LINE__,__func__, __VA_ARGS__)\
 
@@ -225,7 +229,7 @@ void cuMemset0xFFAux(const char* file, int line, const char* func_name,
 template<typename T>
 void cuMemcpyToDeviceAux(const char* file, int line, const char* func_name,
                          const T* input, size_t num_items, T* output) {
-    assert(num_items > 0 && input != nullptr && output != nullptr);
+    assert(input != nullptr && output != nullptr);
     xlib::__cudaErrorHandler(cudaMemcpy(output, input, num_items * sizeof(T),
                                         cudaMemcpyHostToDevice),
                             "cudaMemcpy(ToDevice)", file, line, func_name);
@@ -251,6 +255,43 @@ void cuMemcpyToDeviceAux(const char* file, int line,
                                         cudaMemcpyHostToDevice),
                             "cudaMemcpy(ToDevice)", file, line, func_name);
 }
+
+//==============================================================================
+//////////////////////////////
+//  cuMemcpyDeviceToDevice  //
+//////////////////////////////
+
+//Pointer to Pointer
+template<typename T>
+void cuMemcpyDeviceToDeviceAux(const char* file, int line,
+                               const char* func_name, const T* input,
+                               size_t num_items, T* output) {
+    assert(input != nullptr && output != nullptr);
+    xlib::__cudaErrorHandler(cudaMemcpy(output, input, num_items * sizeof(T),
+                                        cudaMemcpyDeviceToDevice),
+                            "cudaMemcpyDeviceToDevice)", file, line, func_name);
+}
+/*
+//Reference to Pointer
+template<typename T>
+void cuMemcpyDeviceToDeviceAux(const char* file, int line, const char* func_name,
+                         const T& input, T* output) {
+    assert(output != nullptr);
+    xlib::__cudaErrorHandler(cudaMemcpy(output, &input, sizeof(T),
+                                        cudaMemcpyHostToDevice),
+                            "cudaMemcpy(ToDevice)", file, line, func_name);
+}
+
+//Fixed Array to Pointer
+template<typename T, int SIZE>
+void cuMemcpyDeviceToDeviceAux(const char* file, int line,
+                                const char* func_name,
+                                const T (&input)[SIZE], T* output) {
+    assert(output != nullptr);
+    xlib::__cudaErrorHandler(cudaMemcpy(output, &input, SIZE * sizeof(T),
+                                        cudaMemcpyHostToDevice),
+                            "cudaMemcpy(ToDevice)", file, line, func_name);
+}*/
 
 //------------------------------------------------------------------------------
 

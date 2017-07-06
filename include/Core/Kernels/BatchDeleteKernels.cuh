@@ -54,8 +54,8 @@ void collectOldDegreeKernel(cuStingerDevice          data,
         d_degree_old[i] = Vertex(data, src).degree();
         d_inverse_pos[src] = i;
     }
-    if (id == 0)
-        d_degree_old[num_uniques] = 0;
+    //if (id == 0)
+    //    d_degree_old[num_uniques] = 0;
 }
 
 __global__
@@ -105,10 +105,10 @@ void collectDataKernel(cuStingerDevice          data,
 
         d_vertex_ptrs[src] = VertexBasicData(new_degree, vertex_data.neighbor_ptr);
     }
-    if (id == 1)
-        d_degree_new[num_uniques] = 0;
-    if (id == 2)
-        d_count[num_uniques] = 0;
+    //if (id == 1)
+    //    d_degree_new[num_uniques] = 0;
+    //if (id == 2)
+    //    d_count[num_uniques] = 0;
 }
 
 template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK>
@@ -120,7 +120,7 @@ void moveDataKernel1(const degree_t* __restrict__ d_degree_old_prefix,
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
 
     auto lambda = [&] (int pos, degree_t offset) {
-                    xlib::SeqDev<ETypeSizePS> ETYPE_SIZE_PS_D;
+                    //xlib::SeqDev<ETypeSizePS> ETYPE_SIZE_PS_D;
 
                     int  tmp_offset = d_degree_old_prefix[pos] + offset;
                     auto ptr_vertex = (vid_t*) d_ptrs_array[pos];
@@ -145,7 +145,7 @@ void moveDataKernel2(const degree_t* __restrict__ d_degree_new_prefix,
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
 
     auto lambda = [&] (int pos, degree_t offset) {
-                    xlib::SeqDev<ETypeSizePS> ETYPE_SIZE_PS_D;
+                    //xlib::SeqDev<ETypeSizePS> ETYPE_SIZE_PS_D;
 
                     int  tmp_offset = d_degree_new_prefix[pos] + offset;
                     auto ptr_vertex = (vid_t*) d_ptrs_array[pos];

@@ -10,10 +10,11 @@ using byte_t = char;
 int main() {
     size_t size = 1024;
     Timer<DEVICE> TM;
-    Timer<DEVICE> TM2;
 
     std::vector<float> malloc_time;
     std::vector<float> mallochost_time;
+    std::vector<float> dev2dev_time;
+    std::vector<float> memset_time;
 
     while (true) {
         byte_t* d_array;
@@ -70,8 +71,25 @@ int main() {
         TM.stop();
         cudaFreeHost(h_array_pinned);
         mallochost_HtD_time.push_back(TM.duration());
+        //----------------------------------------------------------------------
+        TM.start();
 
-        cuFree(d_array);
+        cudaMemset(d_array, 0x00, size);
+
+        TM.stop();
+        memset_time.push_back(TM.duration());
+
+        //----------------------------------------------------------------------
+        byte_t* d_array2;
+        cudaMalloc(&d_array2, size);
+        TM.start();
+
+        cudaMemcpy(d_array2, d_array, size,  cudaMemcpyDeviceToDevice);
+
+        TM.stop();
+        dev2dev_time.push_back(TM.duration());
+
+        cuFree(d_array, d_array2);
         size *= 2;
     }
 
@@ -82,7 +100,8 @@ int main() {
                   << std::setw(11) << size << "\t"
                   << malloc_HtD_time[i] << "\t" << mallochost_HtD_time[i]
                    << "\t" << malloc_time[i] << "\t" << mallochost_time[i]
-                  << "\n";
+                  << "\t" << dev2dev_time[i]
+                  << "\t" << memset_time[i] << "\n";
         size *= 2;
     }
 }

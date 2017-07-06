@@ -138,6 +138,8 @@ private:
 
 //==============================================================================
 
+enum class BatchProperty { PLAIN = 1, GENERATE_INVERSE = 2 };
+
 /**
  * @brief Main cuStinger class
  */
@@ -203,13 +205,13 @@ public:
      * @brief **actual** csr offsets of the graph
      * @return pointer to csr offsets
      */
-    const eoff_t* csr_offsets() const noexcept;
+    const eoff_t* csr_offsets() noexcept;
 
     /**
      * @brief **actual** csr edges of the graph
      * @return pointer to csr edges
      */
-    const vid_t* csr_edges() const noexcept;
+    const vid_t* csr_edges() noexcept;
 
     /**
      * @brief **actual** device csr offsets of the graph
@@ -225,8 +227,12 @@ public:
 
     vid_t max_degree_vertex() const noexcept;
 
+    //--------------------------------------------------------------------------
 
-    void allocateBatch(size_t max_allocated_edges = 0) noexcept;
+    void allocateBatch(const BatchProperty& batch_prop,
+                       size_t max_allocated_edges = 0) noexcept;
+
+    void copyBatchToDevice(BatchHost& batch_host) noexcept;
 
     void insertEdgeBatch(BatchUpdate& batch_update) noexcept;
 
@@ -235,6 +241,8 @@ public:
                          noexcept;
 
     void edgeDeletionsSorted(BatchUpdate& batch_update) noexcept;
+
+    void edgeDeletionsSortedInPlace(BatchUpdate& batch_update) noexcept;
 
 private:
     static int global_id;
@@ -259,18 +267,21 @@ private:
     bool          _internal_csr_data { false };
     vid_t         _max_degree_vertex { -1 };
 
-    bool   _batch_allocated;
-    size_t _max_allocated_edges;
-
     ///Batch delete tmp variables
     vid_t*    d_unique      { nullptr };
     int*      d_counts      { nullptr };
     degree_t* d_degree_old  { nullptr };
     degree_t* d_degree_new  { nullptr };
     byte_t*   *d_ptrs_array { nullptr };
-    int2 *    d_tmp         { nullptr };
+    int2*     d_tmp         { nullptr };
     bool*     d_flags       { nullptr };
     int*      d_inverse_pos { nullptr };
+
+    byte_t*    _pinned_ptr          { nullptr };
+     //the number of bytes to the next field
+    size_t     _batch_pitch         { 0 };
+    size_t     _max_allocated_edges { 0 };
+    bool       _batch_allocated     { false };
 
     void initialize() noexcept;
 

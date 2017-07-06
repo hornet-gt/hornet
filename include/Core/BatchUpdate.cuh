@@ -86,6 +86,16 @@ private:
  */
 class Batch {
 protected:
+    const vid_t* _src_array  { nullptr };
+    const vid_t* _dst_array  { nullptr };
+    const int    _init_size  { 0 };
+
+    vid_t*  _d_src_array  { nullptr };
+    vid_t*  _d_dst_array  { nullptr };
+    eoff_t* _d_offsets    { nullptr };
+    int     _offsets_size { 0 };
+    int     _batch_size   { 0 };
+
     /**
      * @brief default costructor
      * @param[in]
@@ -95,14 +105,33 @@ protected:
     explicit Batch(const vid_t* src_array, const vid_t* dst_array,
                    int batch_size) noexcept;
 
-    int size() const noexcept;
+    explicit Batch(const Batch& batch) noexcept;
 
-    const vid_t* src_array() const noexcept;
-    const vid_t* dst_array() const noexcept;
+    int init_size() const noexcept;
 
-    const vid_t* _src_array;
-    const vid_t* _dst_array;
-    const int    _batch_size;
+    bool ready_to_insert() const noexcept;
+
+    HOST_DEVICE int size() const noexcept;
+
+    HOST_DEVICE vid_t* src_ptr() const noexcept;
+
+    HOST_DEVICE vid_t* dst_ptr() const noexcept;
+
+    HOST_DEVICE eoff_t* offsets_ptr() const noexcept;
+
+    HOST_DEVICE int offsets_size() const noexcept;
+
+    virtual vid_t* host_src_ptr() const noexcept = 0;
+    virtual vid_t* host_dst_ptr() const noexcept = 0;
+    virtual void   print()        const noexcept = 0;
+
+#if defined(__NVCC__)
+    __device__ __forceinline__
+    vid_t src(int index) const noexcept;
+
+    __device__ __forceinline__
+    vid_t dst(int index) const noexcept;
+#endif
 };
 
 class BatchHost : public Batch {
@@ -110,8 +139,13 @@ public:
     explicit BatchHost(const vid_t* src_array, const vid_t* dst_array,
                        int batch_size) noexcept;
     using Batch::size;
-    using Batch::src_array;
-    using Batch::dst_array;
+    using Batch::src_ptr;
+    using Batch::dst_ptr;
+    using Batch::offsets_ptr;
+    using Batch::offsets_size;
+    using Batch::host_src_ptr;
+    using Batch::host_dst_ptr;
+    using Batch::print;
 };
 
 class BatchDevice : public Batch {
@@ -119,8 +153,13 @@ public:
     explicit BatchDevice(const vid_t* src_array, const vid_t* dst_array,
                          int batch_size) noexcept;
     using Batch::size;
-    using Batch::src_array;
-    using Batch::dst_array;
+    using Batch::src_ptr;
+    using Batch::dst_ptr;
+    using Batch::offsets_ptr;
+    using Batch::offsets_size;
+    using Batch::host_src_ptr;
+    using Batch::host_dst_ptr;
+    using Batch::print;
 };
 
 //-----------------------------------------------------------------------------

@@ -56,7 +56,6 @@ const size_t MIN_EDGES_PER_BLOCK = 2;
  */
 const size_t EDGES_PER_BLOCKARRAY = 262144;
 
-
 static_assert(xlib::IsPower2<MIN_EDGES_PER_BLOCK>::value  &&
               xlib::IsPower2<EDGES_PER_BLOCKARRAY>::value &&
               MIN_EDGES_PER_BLOCK <= EDGES_PER_BLOCKARRAY,

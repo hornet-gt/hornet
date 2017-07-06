@@ -81,7 +81,8 @@ cuStinger::~cuStinger() noexcept {
             d_flags, d_inverse_pos);
 }
 
-void cuStinger::allocateBatch(size_t max_allocated_edges) noexcept {
+void cuStinger::allocateBatch(const BatchProperty& batch_prop,
+                              size_t max_allocated_edges) noexcept {
     if (_batch_allocated)
         ERROR("Batch already allocated")
     _batch_allocated     = true;
@@ -96,8 +97,9 @@ void cuStinger::allocateBatch(size_t max_allocated_edges) noexcept {
              d_flags, _nE,
              d_inverse_pos, _nV);
 
-    //_batch_pitch = xlib::upper_approx<512>(max_allocated_edges * 2);
-    //cuMallocHost(_pinned_ptr, _batch_pitch * 2);
+    _batch_pitch = xlib::upper_approx<512>(max_allocated_edges * sizeof(vid_t) *
+                                           static_cast<int>(batch_prop));
+    cuMallocHost(_pinned_ptr, _batch_pitch * 2);
 }
 
 void cuStinger::initialize() noexcept {
@@ -144,6 +146,8 @@ void cuStinger::initialize() noexcept {
         if (degree > max_degree) {
             _max_degree_vertex = i;
             max_degree = degree;
+            if (degree >= EDGES_PER_BLOCKARRAY)
+                ERROR("degree >= EDGES_PER_BLOCKARRAY, (", degree, ")")
         }
         const auto&   mem_data = mem_manager.insert(degree);
         h_vertex_basic_data[i] = pair_t(reinterpret_cast<edge_t*>

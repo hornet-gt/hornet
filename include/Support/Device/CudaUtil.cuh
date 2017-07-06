@@ -63,6 +63,12 @@
         xlib::__safe_call(function, __FILE__, __LINE__, __func__);             \
     }
 
+#define CHECK_CUDA_ERROR2                                                      \
+    {                                                                          \
+        cudaDeviceSynchronize();                                               \
+        xlib::__getLastCudaError(__FILE__, __LINE__, __func__);                \
+    }
+
 namespace xlib {
 
 enum THREAD_GROUP { VOID = 0, WARP, BLOCK };
@@ -78,12 +84,12 @@ struct numeric_limits {         // available in CUDA kernels
 
 void __getLastCudaError(const char* file, int line, const char* func_name);
 
-void __cudaErrorHandler(cudaError_t error, const char* error_message,
-                        const char* file, int line, const char* func_name);
-
 void __safe_call(cudaError_t error, const char* file, int line,
                  const char* func_name);
 
+void __cudaErrorHandler(cudaError_t error, const char* error_message,
+                        const char* file, int line, const char* func_name);
+                        
 class DeviceProperty {
     public:
         static int num_SM();

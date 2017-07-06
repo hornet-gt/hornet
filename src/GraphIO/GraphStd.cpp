@@ -83,20 +83,20 @@ void GraphStd<vid_t, eoff_t>::allocate(const GInfo& ginfo) noexcept {
     assert(ginfo.num_vertices > 0 && ginfo.num_edges > 0);
     if (!_structure.is_direction_set())
         _structure += ginfo.direction;
-    _undirected_to_directed  = ginfo.direction == structure_prop::UNDIRECTED &&
-                               _structure.is_directed();
-    _directed_to_undirected  = ginfo.direction == structure_prop::DIRECTED &&
-                               _structure.is_undirected();
-    size_t new_num_edges;
+    _undirected_to_directed = ginfo.direction == structure_prop::UNDIRECTED &&
+                              _structure.is_directed();
+    _directed_to_undirected = ginfo.direction == structure_prop::DIRECTED &&
+                              _structure.is_undirected();
+    size_t new_num_edges = ginfo.num_edges;
     if (_directed_to_undirected)
         new_num_edges = ginfo.num_edges * 2;
-    else {
+    else if (_undirected_to_directed) {
         _bitmask.init(ginfo.num_edges);
         _bitmask.randomize(_seed);
         new_num_edges = _bitmask.size();
     }
     xlib::check_overflow<vid_t>(ginfo.num_vertices);
-    xlib::check_overflow<eoff_t>(ginfo.num_edges);
+    xlib::check_overflow<eoff_t>(new_num_edges);
     _nV = static_cast<vid_t>(ginfo.num_vertices);
     _nE = static_cast<eoff_t>(new_num_edges);
 
@@ -116,8 +116,11 @@ void GraphStd<vid_t, eoff_t>::allocate(const GInfo& ginfo) noexcept {
                       << xlib::format(new_num_edges) << graph_dir
                       << "\tavg. degree: " << xlib::format(avg) << "\n";
         }
+        else
+            assert(new_num_edges == ginfo.num_edges);
         std::cout << std::endl;
     }
+    _directed_to_undirected = ginfo.num_lines != ginfo.num_edges;
 
     try {
         _out_offsets = new eoff_t[ _nV + 1 ];
@@ -166,7 +169,7 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
         std::sort(_coo_edges, _coo_edges + _nE);
         auto   last = std::unique(_coo_edges, _coo_edges + _nE);
         auto new_nE = std::distance(_coo_edges, last);
-        if (_prop.is_print()) {
+        if (_prop.is_print() && new_nE != _nE) {
             std::cout << "(" << xlib::format(_nE - new_nE) << " edges removed)"
                       << std::endl;
         }

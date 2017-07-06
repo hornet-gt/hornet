@@ -92,12 +92,12 @@ inline size_t cuStinger::nE() const noexcept {
 }
 
 // TO CHECK !!!!
-inline const eoff_t* cuStinger::csr_offsets() const noexcept {
+inline const eoff_t* cuStinger::csr_offsets() noexcept {
     return _custinger_init.csr_offsets();
 }
 
 // TO CHECK !!!!
-inline const vid_t* cuStinger::csr_edges() const noexcept {
+inline const vid_t* cuStinger::csr_edges() noexcept {
     return _custinger_init.csr_edges();
 }
 

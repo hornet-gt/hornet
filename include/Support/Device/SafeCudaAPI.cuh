@@ -58,7 +58,8 @@
 #pragma once
 
 #include "Support/Device/CudaUtil.cuh"  //__cudaErrorHandler
-#include "Support/Host/Basic.hpp"       //byte_t
+#include "Support/Host/Basic.hpp"       //xlib::byte_t
+#include "Support/Host/Numeric.hpp"     //xlib::upper_approx
 #include <cassert>                      //std::assert
 #include <utility>                      //std::forward
 
@@ -69,6 +70,9 @@
 ///@cond
 #define cuMalloc(...)                                                          \
     xlib::detail::cuMallocAux(__FILE__, __LINE__, __func__, __VA_ARGS__)       \
+
+#define cuMallocHost(...)                                                      \
+    xlib::detail::cuMallocHostAux(__FILE__, __LINE__, __func__, __VA_ARGS__)   \
 
 #define cuFree(...)                                                            \
     xlib::detail::cuFreeAux(__FILE__, __LINE__, __func__, __VA_ARGS__)         \
@@ -133,7 +137,7 @@ size_t byte_size(T* ptr, size_t num_items) {
 
 template<typename T, typename... TArgs>
 size_t byte_size(T* ptr, size_t num_items, TArgs... args) {
-    return num_items * sizeof(T) + byte_size(args...);
+    return xlib::upper_approx<512>(num_items * sizeof(T)) + byte_size(args...);
 }
 
 template<typename T>
@@ -144,7 +148,7 @@ void set_ptr(xlib::byte_t* base_ptr, T*& ptr, size_t) {
 template<typename T, typename... TArgs>
 void set_ptr(xlib::byte_t* base_ptr, T*& ptr, size_t num_items, TArgs... args) {
     ptr = reinterpret_cast<T*>(base_ptr);
-    set_ptr(base_ptr + num_items * sizeof(T), args...);
+    set_ptr(base_ptr + xlib::upper_approx<512>(num_items * sizeof(T)), args...);
 }
 
 template<typename... TArgs>
@@ -154,6 +158,17 @@ void cuMallocAux(const char* file, int line, const char* func_name,
     assert(num_bytes > 0);
     xlib::byte_t* base_ptr;
     xlib::__cudaErrorHandler(cudaMalloc(&base_ptr, num_bytes), "cudaMalloc",
+                             file, line, func_name);
+    set_ptr(base_ptr, std::forward<TArgs>(args)...);
+}
+
+template<typename... TArgs>
+void cuMallocHostAux(const char* file, int line, const char* func_name,
+                     TArgs&&... args) {
+    size_t num_bytes = byte_size(args...);
+    assert(num_bytes > 0);
+    xlib::byte_t* base_ptr;
+    xlib::__cudaErrorHandler(cudaMallocHost(&base_ptr, num_bytes), "cudaMalloc",
                              file, line, func_name);
     set_ptr(base_ptr, std::forward<TArgs>(args)...);
 }

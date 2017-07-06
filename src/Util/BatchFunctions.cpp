@@ -39,14 +39,14 @@
 #include <random>
 #include <utility>
 
-BatchProperty::BatchProperty(const detail::BatchEnum& obj) noexcept :
-                   xlib::PropertyClass<detail::BatchEnum, BatchProperty>(obj) {}
+BatchGenProperty::BatchGenProperty(const detail::BatchEnum& obj) noexcept :
+                   xlib::PropertyClass<detail::BatchEnum, BatchGenProperty>(obj) {}
 
 //------------------------------------------------------------------------------
 
 void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
                    custinger::vid_t* batch_src, custinger::vid_t* batch_dest,
-                   const BatchType& batch_type, const BatchProperty& prop) {
+                   const BatchType& batch_type, const BatchGenProperty& prop) {
     using custinger::vid_t;
     using vid_distribution = std::uniform_int_distribution<vid_t>;
 

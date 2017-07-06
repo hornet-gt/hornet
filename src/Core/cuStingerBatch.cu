@@ -224,6 +224,17 @@ __global__ void flagKernel(bool* flags, int size) {
         flags[i] = true;
 }
 
+__global__ void scatterDegreeKernel(cuStingerDevice custinger,
+                                    const vid_t* __restrict__ d_unique,
+                                    const int*   __restrict__ d_counts,
+                                    int                       num_uniques,
+                                    int*         __restrict__ d_batch_offsets) {
+    int     id = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = gridDim.x * blockDim.x;
+
+    for (int i = id; i < num_uniques; i += stride)
+        d_batch_offsets[d_unique[i]] = d_counts[i];
+}
 
 __global__
 void checkKernel(BatchUpdate batch_update) {
@@ -239,7 +250,6 @@ void checkKernel(BatchUpdate batch_update) {
 void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     const unsigned BLOCK_SIZE = 256;
     size_t batch_size = batch_update.size();
-
 
     /*vid_t     *d_unique;
     int       *d_counts;
@@ -277,8 +287,8 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     xlib::CubSelectFlagged<vid_t> select_dst(d_batch_dst, batch_size, d_flags);
 
     //==========================================================================
-    sort_cub.run();
-                     // batch sorting
+    sort_cub.run(); // batch sorting
+
     markUniqueKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(batch_size), BLOCK_SIZE >>>
         (d_batch_src, d_batch_dst, batch_size, d_flags);
@@ -367,20 +377,26 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
 #endif
     num_blocks = xlib::ceil_div<SMEM>(total_degree_new);
     if (num_blocks) {
-            moveDataKernel2<BLOCK_SIZE, SMEM>
-                <<< num_blocks, BLOCK_SIZE >>>
-                (d_degree_new, num_uniques + 1, d_tmp, d_ptrs_array);
+        moveDataKernel2<BLOCK_SIZE, SMEM>
+            <<< num_blocks, BLOCK_SIZE >>>
+            (d_degree_new, num_uniques + 1, d_tmp, d_ptrs_array);
         CHECK_CUDA_ERROR
     }
-    xlib::CubExclusiveSum<int> prefixsum3(d_counts, num_uniques + 1);
+    //xlib::CubExclusiveSum<int> prefixsum3(d_counts, num_uniques + 1);
+    //prefixsum3.run();
+
+    cuMemset0x00(d_degree_old, _nV + 1);
+
+    scatterDegreeKernel
+        <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
+        (device_side(), d_unique, d_counts, num_uniques, d_degree_old);
+
+    xlib::CubExclusiveSum<int> prefixsum3(d_degree_old, _nV + 1);
     prefixsum3.run();
 
-    batch_update._d_offsets    = d_counts;
+    batch_update._d_offsets    = d_degree_old;
     batch_update._offsets_size = num_uniques;
-
-    //batch_update._batch_size /= 2;
-    batch_update._batch_size = batch_size;
-
+    batch_update._batch_size   = batch_size;
     std::cout << "batch_size " << batch_update._batch_size << std::endl;
 
     //checkKernel <<< 1, 1 >>> (batch_update);

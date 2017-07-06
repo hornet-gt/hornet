@@ -44,17 +44,17 @@ namespace detail {
     enum class BatchEnum { WEIGHTED = 1, PRINT = 2, UNIQUE = 4 };
 } // namespace detail
 
-class BatchProperty : public xlib::PropertyClass<detail::BatchEnum,
-                                                 BatchProperty> {
+class BatchGenProperty : public xlib::PropertyClass<detail::BatchEnum,
+                                                 BatchGenProperty> {
 public:
-    explicit BatchProperty() noexcept = default;
-    explicit BatchProperty(const detail::BatchEnum& obj) noexcept;
+    explicit BatchGenProperty() noexcept = default;
+    explicit BatchGenProperty(const detail::BatchEnum& obj) noexcept;
 };
 
 namespace batch_property {
-    const BatchProperty WEIGHTED (detail::BatchEnum::WEIGHTED);
-    const BatchProperty PRINT    (detail::BatchEnum::PRINT);
-    const BatchProperty UNIQUE   (detail::BatchEnum::UNIQUE);
+    const BatchGenProperty WEIGHTED (detail::BatchEnum::WEIGHTED);
+    const BatchGenProperty PRINT    (detail::BatchEnum::PRINT);
+    const BatchGenProperty UNIQUE   (detail::BatchEnum::UNIQUE);
 }
 
 enum class BatchType { INSERT, REMOVE };
@@ -62,4 +62,4 @@ enum class BatchType { INSERT, REMOVE };
 void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
                    custinger::vid_t* batch_src, custinger::vid_t* batch_dest,
                    const BatchType& batch_type,
-                   const BatchProperty& prop = BatchProperty());
+                   const BatchGenProperty& prop = BatchGenProperty());

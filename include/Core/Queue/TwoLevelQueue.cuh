@@ -75,10 +75,10 @@ public:
      *            level of the queue. Default value: V * 2
      */
     explicit TwoLevelQueue(const custinger::cuStinger& custinger,
-                           bool   enable_traverse     = false,
                            size_t max_allocated_items = 0) noexcept;
 
     TwoLevelQueue(const TwoLevelQueue<T>& obj) noexcept;
+
     /**
      * @brief Default Decostructor
      */
@@ -166,8 +166,8 @@ public:
      *          otherwise
      * @remark the method is enabled only if the queue type is `vid_t`
      */
-    template<typename Operator>
-    __host__ void traverse_edges(Operator op) noexcept;
+    //template<typename Operator>
+    //__host__ void traverse_edges(Operator op) noexcept;
 
 private:
     ///@internal @brief if `true` check for kernel errors in `traverse_edges()
@@ -204,8 +204,8 @@ private:
      * @param[in] number of vertices in the array
      * @remark the method is enabled only if the queue type is `vid_t`
      */
-    __host__ void
-    work_evaluate(const custinger::vid_t* items_array, int num_items) noexcept;
+    //__host__ void
+    //work_evaluate(const custinger::vid_t* items_array, int num_items) noexcept;
 };
 
 } // namespace custinger_alg

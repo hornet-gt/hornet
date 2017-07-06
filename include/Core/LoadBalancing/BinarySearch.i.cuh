@@ -56,7 +56,7 @@ void computeWorkKernel(const custinger::vid_t*    __restrict__ d_input,
 
 } // namespace detail
 //------------------------------------------------------------------------------
-
+/*
 inline BinarySearch::BinarySearch(const custinger::cuStinger& custinger)
                                   noexcept :
                                     _custinger(custinger){
@@ -99,7 +99,7 @@ void BinarySearch::traverse_edges(const custinger::vid_t* d_input,
     unsigned grid_size = xlib::ceil_div<ITEMS_PER_BLOCK>(total_work);
 
     binarySearchKernel<BLOCK_SIZE, ITEMS_PER_BLOCK, Operator>
-        <<< grid_size, BLOCK_SIZE >>>(_custinger.device_data(), d_input,
+        <<< grid_size, BLOCK_SIZE >>>(_custinger.device_side(), d_input,
                                      _d_work, num_vertices + 1, optional_field);
     if (CHECK_CUDA_ERROR1)
         CHECK_CUDA_ERROR
@@ -112,6 +112,6 @@ void BinarySearch::traverse_edges(const
                           void* optional_field) noexcept {
     //traverse_edges<Operator>(queue.device_ptr_q1(), queue.size(),
     //                         optional_field);
-}
+}*/
 
 } // namespace load_balacing

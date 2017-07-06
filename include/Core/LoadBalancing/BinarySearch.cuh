@@ -56,12 +56,12 @@ public:
      * @brief Default costructor
      * @param[in] custinger cuStinger instance
      */
-    explicit BinarySearch(const custinger::cuStinger& custinger) noexcept;
+    //explicit BinarySearch(const custinger::cuStinger& custinger) noexcept;
 
     /**
      * @brief Decostructor
      */
-    ~BinarySearch() noexcept;
+    //~BinarySearch() noexcept;
 
     /**
      * @brief Traverse the edges in a vertex queue (C-Style API)
@@ -69,11 +69,11 @@ public:
      * @param[in] queue input vertex queue
      * @param[in] optional_field algorithm-dependent data
      */
-    template<void (*Operator)(const custinger::Vertex&, const custinger::Edge&,
+    /*template<void (*Operator)(const custinger::Vertex&, const custinger::Edge&,
                               void*)>
     void traverse_edges(const
                         custinger_alg::TwoLevelQueue<custinger::vid_t>& queue,
-                        void* optional_field) noexcept;
+                        void* optional_field) noexcept;*/
 
     /**
      * @brief Traverse the edges in a device vertex array (C-Style API)
@@ -82,10 +82,10 @@ public:
      * @param[in] num_vertices number of vertices in the input array
      * @param[in] optional_field algorithm-dependent data
      */
-    template<void (*Operator)(const custinger::Vertex&, const custinger::Edge&,
+    /*template<void (*Operator)(const custinger::Vertex&, const custinger::Edge&,
                               void*)>
     void traverse_edges(const custinger::vid_t* d_input, int num_vertices,
-                        void* optional_field) noexcept;
+                        void* optional_field) noexcept;*/
 
     /**
      * @brief Traverse the edges in a vertex queue (C++11-Style API)
@@ -97,10 +97,13 @@ public:
      *            `void operator()(Vertex, Edge)` or the lambda expression
      *            `[=](Vertex, Edge){}`
      */
+     template<typename Operator>
+     void apply(custinger::cuStinger& custinger,
+                const custinger::vid_t* d_input, int num_vertices,
+                const Operator& op) noexcept;
+
     template<typename Operator>
-    void traverse_edges(const
-                        custinger_alg::TwoLevelQueue<custinger::vid_t>& queue,
-                        Operator op) noexcept;
+    void apply(custinger::cuStinger& custinger, const Operator& op) noexcept;
 
     /**
      * @brief Traverse the edges in a vertex array (C++11-Style API)
@@ -113,14 +116,14 @@ public:
      *            `void operator()(Vertex, Edge)` or the lambda expression
      *            `[=](Vertex, Edge){}`
      */
-    template<typename Operator>
-    void traverse_edges(const custinger::vid_t* d_input, int num_vertices,
-                        Operator op) noexcept;
+    //template<typename Operator>
+    //void traverse_edges(const custinger::vid_t* d_input, int num_vertices,
+    //                    Operator op) noexcept;
 
 private:
     static const int         BLOCK_SIZE = 256;
     static const bool CHECK_CUDA_ERROR1 = 1;
-    const custinger::cuStinger& _custinger;
+    //const custinger::cuStinger& _custinger;
     int* _d_work    { nullptr };
     int* _d_degrees { nullptr };
 };

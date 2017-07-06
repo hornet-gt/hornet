@@ -47,7 +47,7 @@ namespace custinger_alg {
  */
 const int BLOCK_SIZE_OP2 = 256;
 
-enum class LoadBalancing { SIMPLE, BINARY_SEARCH, NODE_BASED, SCAN_BASED };
+//enum class LoadBalancing { SIMPLE, BINARY_SEARCH, NODE_BASED, SCAN_BASED };
 
 /**
  * @brief apply the `Operator` a fixed number of times
@@ -95,7 +95,7 @@ void forAllnumE(const custinger::cuStinger& custinger, const Operator& op);
  *            `[=](Vertex){}`
  */
 template<typename Operator>
-void forAllVertices(const custinger::cuStinger& custinger, const Operator& op);
+void forAllVertices(custinger::cuStinger& custinger, const Operator& op);
 
 /**
  * @brief apply the `Operator` to all edges in the graph
@@ -107,11 +107,16 @@ void forAllVertices(const custinger::cuStinger& custinger, const Operator& op);
  *            `void operator()(Vertex, Edge)` or the lambda expression
  *            `[=](Vertex, Edge){}`
  */
-template<typename Operator>
-void forAllEdges(const custinger::cuStinger& custinger, const Operator& op,
-                 LoadBalancing LB = LoadBalancing::BINARY_SEARCH);
+template<typename Operator, typename LoadBalancing>
+void forAllEdges(custinger::cuStinger& custinger, const Operator& op,
+                 LoadBalancing& LB);
 
 //------------------------------------------------------------------------------
+
+template<typename Operator>
+void forAllVertices(custinger::cuStinger& custinger,
+                    TwoLevelQueue<custinger::vid_t>& queue,
+                    const Operator& op);
 
 /**
  * @brief apply the `Operator` to all vertices in the graph
@@ -123,11 +128,10 @@ void forAllEdges(const custinger::cuStinger& custinger, const Operator& op,
  *            `void operator()(Vertex)` or the lambda expression
  *            `[=](Vertex){}`
  */
-template<typename Operator>
-void forAllTraverseEdges(const custinger::cuStinger& custinger,
-                         TwoLevelQueue<custinger::vid_t>& queue,
-                         const Operator& op,
-                         LoadBalancing LB = LoadBalancing::BINARY_SEARCH);
+template<typename Operator, typename LoadBalancing>
+void forAllEdges(custinger::cuStinger& custinger,
+                 TwoLevelQueue<custinger::vid_t>& queue,
+                 const Operator& op, LoadBalancing& LB);
 
 //------------------------------------------------------------------------------
 

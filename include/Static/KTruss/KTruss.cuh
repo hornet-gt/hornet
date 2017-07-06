@@ -146,6 +146,13 @@ void findUnderKDynamic(const Vertex& vertex, void* metadata) {
             //kt->dst[spot] = dst;
             kt->dst[spot] = edge.dst();
         }
+
+        // if(src==111 && edge.dst()==322143){
+        //     printf("%d %d %d\n", src,edge.dst(),edge.weight());
+        // }
+        // if(src==322143 && edge.dst()==111){
+        //     printf("%d %d %d\n", src,edge.dst(),edge.weight());
+        // }
     }
 }
 

@@ -49,7 +49,7 @@ namespace load_balacing {
 template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
       void (*Operator)(const custinger::Vertex&, const custinger::Edge&, void*)>
 __global__
-void binarySearchKernel(custinger::cuStingerDevData          data,
+void binarySearchKernel(custinger::cuStingerDevice          data,
                         const custinger::vid_t* __restrict__ d_input,
                         const int*              __restrict__ d_work,
                         int                                  work_size,

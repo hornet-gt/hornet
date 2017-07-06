@@ -115,7 +115,7 @@ public:
      *         the `syncDeviceWithHost()` and `syncHostWithDevice()` methods
      */
     template<typename T>
-    T* register_data(T& data) noexcept;
+    T* register_data(T& data) noexcept final;
 
     /**
      * @brief Synchronize the Device with the Host
@@ -139,13 +139,6 @@ public:
 
 protected:
     /**
-     * @brief Load balancing class
-     * @details provide the load balancing fucntionalities to efficiently
-     *          traverse the graph
-     */
-    load_balacing::BinarySearch load_balacing;
-
-    /**
      * @brief custinger reference
      */
     custinger::cuStinger& custinger;
@@ -158,7 +151,7 @@ private:
 };
 
 //==============================================================================
-
+/*
 class Allocate {
 public:
     template<typename T>
@@ -167,7 +160,7 @@ public:
     ~Allocate() noexcept;
 private:
     void* _pointer;
-};
+};*/
 
 } // namespace custinger_alg
 

@@ -125,8 +125,8 @@ void KTruss::run() {
     int iterations = 0;
 
     while (true) {
-        if(hostKTrussData.maxK >= 5)
-            break;
+        // if(hostKTrussData.maxK >= 5)
+        //     break;
 
         bool needStop = false;
         bool     more = findTrussOfK(needStop);
@@ -208,6 +208,7 @@ bool KTruss::findTrussOfK(bool& stop) {
                                             hostKTrussData.counter);
             //custinger::BatchUpdate batch_update(batch_init);
             batch_update.insert(batch_init);
+
             custinger.edgeDeletionsSorted(batch_update);    ///???
 
             //batch_update->sortDeviceBUD(hostKTrussData.sps);
@@ -245,13 +246,13 @@ bool KTruss::findTrussOfK(bool& stop) {
 //==============================================================================
 
 void KTruss::runDynamic(){
-    kTrussOneIteration(custinger, hostKTrussData.trianglePerVertex,
-                           hostKTrussData.tsp, hostKTrussData.nbl,
-                           hostKTrussData.shifter,
-                           hostKTrussData.blocks, hostKTrussData.sps,
-                           deviceKTrussData);   //sub
+    // kTrussOneIteration(custinger, hostKTrussData.trianglePerVertex,
+    //                        hostKTrussData.tsp, hostKTrussData.nbl,
+    //                        hostKTrussData.shifter,
+    //                        hostKTrussData.blocks, hostKTrussData.sps,
+    //                        deviceKTrussData);   //sub
 
-    //hostKTrussData.maxK = 3;  //sub
+    hostKTrussData.maxK = 3;  //sub
     syncDeviceWithHost();
     CHECK_CUDA_ERROR
     forAllVertices<ktruss_operators::init>(custinger, deviceKTrussData);
@@ -262,9 +263,16 @@ void KTruss::runDynamic(){
     resetVertexArray();
     syncDeviceWithHost();
 
-    kTrussOneIteration(custinger, hostKTrussData.trianglePerVertex, 4,
-                       hostKTrussData.sps / 4, 2, hostKTrussData.blocks,
-                       hostKTrussData.sps, deviceKTrussData);
+    kTrussOneIteration(custinger, hostKTrussData.trianglePerVertex,
+                           hostKTrussData.tsp, hostKTrussData.nbl,
+                           hostKTrussData.shifter,
+                           hostKTrussData.blocks, hostKTrussData.sps,
+                           deviceKTrussData);   //sub
+
+
+    // kTrussOneIteration(custinger, hostKTrussData.trianglePerVertex, 4,
+    //                    hostKTrussData.sps / 4, 2, hostKTrussData.blocks,
+    //                    hostKTrussData.sps, deviceKTrussData);
     CHECK_CUDA_ERROR
     syncHostWithDevice();
 
@@ -278,8 +286,8 @@ void KTruss::runDynamic(){
 
     CHECK_CUDA_ERROR
     while (true) {
-        if(hostKTrussData.maxK >= 5)
-            break;
+        //if(hostKTrussData.maxK >= 5)
+        //    break;
         std::cout << "New iteration" << std::endl;
         bool needStop = false;
         bool     more = findTrussOfKDynamic(needStop);
@@ -361,6 +369,7 @@ bool KTruss::findTrussOfKDynamic(bool& stop) {
             //batch_update->sortDeviceBUD(hostKTrussData.sps);
             //custinger.edgeDeletionsSorted(*batch_update);
 
+
             callDeviceDifferenceTriangles(custinger, batch_update,
                                           hostKTrussData.trianglePerVertex,
                                           hostKTrussData.tsp,
@@ -368,6 +377,18 @@ bool KTruss::findTrussOfKDynamic(bool& stop) {
                                           hostKTrussData.shifter,
                                           hostKTrussData.blocks,
                                           hostKTrussData.sps, true);
+
+   //      resetEdgeArray();
+
+
+   //      kTrussOneIteration(custinger, hostKTrussData.trianglePerVertex,
+   //                             hostKTrussData.tsp, hostKTrussData.nbl,
+   //                             hostKTrussData.shifter,
+   //                             hostKTrussData.blocks, hostKTrussData.sps,
+   //                             deviceKTrussData);   //sub
+   //  syncHostWithDevice();
+   // forAllVertices<ktruss_operators::resetWeights>(custinger, deviceKTrussData);
+
             delete[] src_array;
             delete[] dst_array;
         }
@@ -387,11 +408,13 @@ CHECK_CUDA_ERROR
         forAllVertices<ktruss_operators::countActive>
             (custinger, deviceKTrussData);  //???
 
-        kTrussOneIteration(custinger, hostKTrussData.trianglePerVertex,
-                               hostKTrussData.tsp, hostKTrussData.nbl,
-                               hostKTrussData.shifter,
-                               hostKTrussData.blocks, hostKTrussData.sps,
-                               deviceKTrussData);   //sub
+    //     kTrussOneIteration(custinger, hostKTrussData.trianglePerVertex,
+    //                            hostKTrussData.tsp, hostKTrussData.nbl,
+    //                            hostKTrussData.shifter,
+    //                            hostKTrussData.blocks, hostKTrussData.sps,
+    //                            deviceKTrussData);   //sub
+
+
 CHECK_CUDA_ERROR
         syncHostWithDevice();
         stop = false;

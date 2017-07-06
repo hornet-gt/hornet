@@ -34,7 +34,7 @@ __global__ void forAllnumEKernel(custinger::eoff_t d_nE, void* optional_data) {
 
 //------------------------------------------------------------------------------
 template<void (*Operator)(const custinger::Vertex&, void*)>
-__global__ void forAllVerticesKernel(custinger::cuStingerDevData data,
+__global__ void forAllVerticesKernel(custinger::cuStingerDevice data,
                                      void* optional_data) {
     using custinger::vid_t;
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -46,7 +46,7 @@ __global__ void forAllVerticesKernel(custinger::cuStingerDevData data,
 
 template<void (*Operator)(const custinger::Vertex&, void*)>
 __global__
-void forAllVerticesKernel(custinger::cuStingerDevData data,
+void forAllVerticesKernel(custinger::cuStingerDevice data,
                           const custinger::vid_t* __restrict__ d_array,
                           void*  __restrict__ optional_data) {
     using custinger::vid_t;
@@ -63,7 +63,7 @@ template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
       void (*Operator)(const custinger::Vertex&, const custinger::Edge&, void*)>
 __global__
 void forAllEdgesKernel(const custinger::eoff_t* __restrict__ csr_offsets,
-                       custinger::cuStingerDevData           data,
+                       custinger::cuStingerDevice           data,
                        void*                    __restrict__ optional_data) {
 
     __shared__ custinger::degree_t smem[ITEMS_PER_BLOCK];
@@ -133,7 +133,7 @@ void forAllVertices(const custinger::cuStinger& custinger, void* optional_data)
 
     detail::forAllVerticesKernel<Operator>
         <<< xlib::ceil_div<BLOCK_SIZE_OP1>(custinger.nV()), BLOCK_SIZE_OP1 >>>
-        (custinger.device_data(), optional_data);
+        (custinger.device_side(), optional_data);
     CHECK_CUDA_ERROR
 }
 
@@ -144,7 +144,7 @@ void forAllVertices(const custinger::cuStinger& custinger,
 
     detail::forAllVerticesKernel<Operator>
         <<< xlib::ceil_div<BLOCK_SIZE_OP1>(queue.size()), BLOCK_SIZE_OP1 >>>
-        (custinger.device_data(), queue.device_ptr_q1(), optional_data);
+        (custinger.device_side(), queue.device_ptr_q1(), optional_data);
     CHECK_CUDA_ERROR
 }
 
@@ -162,7 +162,7 @@ void forAllEdges(custinger::cuStinger& custinger, void* optional_data)
 
     detail::forAllEdgesKernel<BLOCK_SIZE_OP1, PARTITION_SIZE, Operator>
        <<< num_partitions, BLOCK_SIZE_OP1 >>>
-       (custinger.device_csr_offsets(), custinger.device_data(), optional_data);
+       (custinger.device_csr_offsets(), custinger.device_side(), optional_data);
     CHECK_CUDA_ERROR
 }
 

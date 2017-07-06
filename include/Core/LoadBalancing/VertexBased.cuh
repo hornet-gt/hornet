@@ -55,16 +55,23 @@ public:
     template<typename Operator>
     void traverse_edges(const custinger::vid_t* d_input, int num_vertices,
                         Operator op) noexcept;*/
-    void preprocessing(const vid_t* vertex_array, size_t num_items) noexcept;
 
     template<typename Operator>
+    void apply(custinger::cuStinger& custinger,
+               const custinger::vid_t* d_input, int num_vertices,
+               const Operator& op) noexcept;
+
+    template<typename Operator>
+    void apply(custinger::cuStinger& custinger, const Operator& op) noexcept;
+
+    /*template<typename Operator>
     __device__ __forceinline__
     apply(const vid_t* neightbor_ptr, degree_t degree, const Operator& op);
 
     template<typename Operator>
     __device__ __forceinline__
     apply(vid_t src_id, const vid_t* neightbor_ptr, degree_t degree,
-          const Operator& op);
+          const Operator& op);*/
 
 private:
     static const int         BLOCK_SIZE = 256;

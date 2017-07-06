@@ -174,7 +174,7 @@ void findIndexOfTwoVerticesBinary(const Vertex& vertex,
     //vid_t* adj_src = custinger->dVD->adj[src]->dst;
     //vid_t   srcLen = custinger->dVD->used[src];
     vid_t   srcLen = vertex.degree();
-    vid_t* adj_src = vertex.edge_ptr();
+    vid_t* adj_src = vertex.neighbor_ptr();
 
     pos_v1 = -1;
     pos_v2 = -1;
@@ -189,7 +189,7 @@ void findIndexOfTwoVertices(const Vertex& vertex, vid_t v1, vid_t v2,
     //vid_t   srcLen = custinger->dVD->used[src];
     //vid_t* adj_src = custinger->dVD->adj[src]->dst;
     vid_t   srcLen = vertex.degree();
-    vid_t* adj_src = vertex.edge_ptr();
+    vid_t* adj_src = vertex.neighbor_ptr();
 
     pos_v1 = -1;
     pos_v2 = -1;
@@ -209,7 +209,7 @@ void findIndexOfTwoVertices(const Vertex& vertex, vid_t v1, vid_t v2,
 
 template<bool uMasked, bool vMasked, bool subtract, bool upd3rdV>
 __device__ __forceinline__
-void intersectCount(const custinger::cuStingerDevData& custinger,
+void intersectCount(const custinger::cuStingerDevice& custinger,
                     vid_t uLength, vid_t vLength,
                     const vid_t*  __restrict__ uNodes,
                     const vid_t*  __restrict__ vNodes,
@@ -231,13 +231,16 @@ void intersectCount(const custinger::cuStingerDevData& custinger,
         int vmask;
         int umask;
         while (*workIndex < *workPerThread) {
-            vmask = vMasked ? vMask[*vCurr] : 0;
-            umask = uMasked ? uMask[*uCurr] : 0;
+            // vmask = vMasked ? vMask[*vCurr] : 0;
+            // umask = uMasked ? uMask[*uCurr] : 0;
+          vmask=umask=0;
             comp  = uNodes[*uCurr] - vNodes[*vCurr];
 
-            *triangles += (comp == 0 && !umask && !vmask);
+            // *triangles += (comp == 0 && !umask && !vmask);
+            *triangles += (comp == 0);
 
-            if (upd3rdV && comp == 0 && !umask && !vmask) {
+            // if (upd3rdV && comp == 0 && !umask && !vmask) {
+            if (upd3rdV && comp == 0) {
                 if (subtract) {
                     // atomicSub(outPutTriangles + uNodes[*uCurr], multiplier);
 
@@ -280,7 +283,7 @@ void intersectCount(const custinger::cuStingerDevData& custinger,
             *vCurr     += (comp >= 0 && !umask) || vmask;
             *workIndex += (comp == 0 && !umask && !vmask) + 1;
 
-            if (*vCurr == vLength || *uCurr == uLength)
+            if (*vCurr >= vLength || *uCurr >= uLength)
                 break;
         }
         *triangles -= ((comp == 0) && (*workIndex > *workPerThread) && found);
@@ -290,7 +293,7 @@ void intersectCount(const custinger::cuStingerDevData& custinger,
 // u_len < v_len
 template <bool uMasked, bool vMasked, bool subtract, bool upd3rdV>
 __device__ __forceinline__
-triangle_t count_triangles(const custinger::cuStingerDevData& custinger,
+triangle_t count_triangles(const custinger::cuStingerDevice& custinger,
                            vid_t u,
                            const vid_t* __restrict__ u_nodes,
                            vid_t u_len,
@@ -365,7 +368,7 @@ void workPerBlock(vid_t numVertices,
 //==============================================================================
 
 __global__
-void devicecuStingerKTruss(custinger::cuStingerDevData custinger,
+void devicecuStingerKTruss(custinger::cuStingerDevice custinger,
                            const triangle_t* __restrict__ outPutTriangles,
                            int threads_per_block,
                            int number_blocks,
@@ -398,8 +401,8 @@ void devicecuStingerKTruss(custinger::cuStingerDevData custinger,
             //int destLen = custinger->dVD->getUsed()[dest];
             int destLen = Vertex(custinger, dest).degree();
 
-            //if (dest<src) //opt
-            //    continue; //opt
+            if (dest<src) //opt
+               continue; //opt
 
             bool avoidCalc = (src == dest) || (destLen < 2) || (srcLen < 2);
             if (avoidCalc)
@@ -413,8 +416,8 @@ void devicecuStingerKTruss(custinger::cuStingerDevData custinger,
 
             //const vid_t* small_ptr = custinger->dVD->getAdj()[small]->dst;
             //const vid_t* large_ptr = custinger->dVD->getAdj()[large]->dst;
-            const vid_t* small_ptr = Vertex(custinger, small).edge_ptr();
-            const vid_t* large_ptr = Vertex(custinger, large).edge_ptr();
+            const vid_t* small_ptr = Vertex(custinger, small).neighbor_ptr();
+            const vid_t* large_ptr = Vertex(custinger, large).neighbor_ptr();
 
             // triangle_t triFound = count_triangles<false,false,false,true>
             triangle_t triFound = count_triangles<false, false, false, false>
@@ -425,14 +428,14 @@ void devicecuStingerKTruss(custinger::cuStingerDevData custinger,
             tCount += triFound;
             int pos = devData->offsetArray[src] + k;
             atomicAdd(devData->trianglePerEdge + pos, triFound);
-            /*pos = -1; //opt
+            pos = -1; //opt
             //indexBinarySearch(custinger->dVD->getAdj()[dest]->dst
             //                  destLen, src,pos);
-            auto dest_ptr = Vertex(custinger, dest).edge_ptr();
+            auto dest_ptr = Vertex(custinger, dest).neighbor_ptr();
             indexBinarySearch(dest_ptr, destLen, src, pos);
 
             pos = devData->offsetArray[dest] + pos;
-            atomicAdd(devData->trianglePerEdge + pos, triFound);*/
+            atomicAdd(devData->trianglePerEdge + pos, triFound);
         }
     //    s_triangles[tx] = tCount;
     //    blockReduce(&outPutTriangles[src],s_triangles,blockSize);
@@ -452,12 +455,12 @@ void kTrussOneIteration(cuStinger& custinger,
     //    (custinger.devicePtr(), outPutTriangles, threads_per_block,
     //     number_blocks, shifter, devData);
     devicecuStingerKTruss <<< thread_blocks, blockdim >>>
-        (custinger.device_data(), outPutTriangles, threads_per_block,
+        (custinger.device_side(), outPutTriangles, threads_per_block,
          number_blocks, shifter, devData);
 }
 
 __global__
-void devicecuStingerNewTriangles(custinger::cuStingerDevData custinger,
+void devicecuStingerNewTriangles(custinger::cuStingerDevice custinger,
                                  custinger::BatchUpdate batch_update,
                                  const triangle_t* __restrict__ outPutTriangles,
                                  int threads_per_block,
@@ -474,8 +477,8 @@ void devicecuStingerNewTriangles(custinger::cuStingerDevData custinger,
 
     //vid_t* d_ind = batch_update->getDst();
     //vid_t* d_seg = batch_update->getSrc();
-    vid_t* d_ind = batch_update.src_ptr();
-    vid_t* d_seg = batch_update.dst_ptr();
+    vid_t* d_ind = batch_update.dst_ptr();
+    vid_t* d_seg = batch_update.src_ptr();
 
     workPerBlock(batchSize, &this_mp_start, &this_mp_stop, blockDim.x);
 
@@ -508,14 +511,11 @@ void devicecuStingerNewTriangles(custinger::cuStingerDevData custinger,
         vid_t        large = sourceSmaller ? dest : src;
         vid_t    small_len = sourceSmaller ? srcLen : destLen;
         vid_t    large_len = sourceSmaller ? destLen : srcLen;
-#if !defined(NDEBUG)
-        if (small_len == 0)
-            printf("hello oded\n");
-#endif
+
         //const vid_t* small_ptr = custinger->dVD->getAdj()[small]->dst;
         //const vid_t* large_ptr = custinger->dVD->getAdj()[large]->dst;
-        const vid_t* small_ptr = Vertex(custinger, small).edge_ptr();
-        const vid_t* large_ptr = Vertex(custinger, large).edge_ptr();
+        const vid_t* small_ptr = Vertex(custinger, small).neighbor_ptr();
+        const vid_t* large_ptr = Vertex(custinger, large).neighbor_ptr();
 
         triangle_t tCount = count_triangles<false, false, true, true>(
                                 custinger, small, small_ptr, small_len,
@@ -531,7 +531,7 @@ void devicecuStingerNewTriangles(custinger::cuStingerDevData custinger,
 
 template <bool uMasked, bool vMasked, bool subtract, bool upd3rdV>
 __device__ __forceinline__
-void intersectCountAsymmetric(const custinger::cuStingerDevData& custinger,
+void intersectCountAsymmetric(const custinger::cuStingerDevice& custinger,
                               vid_t uLength, vid_t vLength,
                               const vid_t* __restrict__ uNodes,
                               const vid_t* __restrict__ vNodes,
@@ -548,18 +548,30 @@ void intersectCountAsymmetric(const custinger::cuStingerDevData& custinger,
                               vid_t src, vid_t dest,
                               vid_t u, vid_t v) {
 
+    // if(u==0)
+    //   printf("|u|=%d\n",uLength);
+    // if(v==0)
+    //   printf("|v|=%d\n",vLength);
+
+    // printf("%d %d\n",u,v);
+
     if (*uCurr < uLength && *vCurr < vLength) {
         int comp, vmask, umask;
         while (*workIndex < *workPerThread) {
-            vmask = vMasked ? vMask[*vCurr] : 0;
-            umask = uMasked ? uMask[*uCurr] : 0;
+            // vmask = vMasked ? vMask[*vCurr] : 0;
+            // umask = uMasked ? uMask[*uCurr] : 0;
+            umask=vmask=0;
             comp  = uNodes[*uCurr] - vNodes[*vCurr];
 
-            *triangles += (comp == 0 && !umask && !vmask);
+            // *triangles += (comp == 0 && !umask && !vmask);
+            *triangles += (comp == 0);
 
-            if (upd3rdV && comp == 0 && !umask && !vmask) {
+            // if (upd3rdV && comp == 0 && !umask && !vmask) {
+            if (upd3rdV && comp == 0) {
                 if (subtract) {
-                    atomicSub(outPutTriangles + uNodes[*uCurr], multiplier);
+                    // atomicSub(outPutTriangles + uNodes[*uCurr], multiplier);
+                    // if(blockIdx.x<=10)
+                    //   printf("!!! %d %d", u,v);
 
                     // Ktruss
                     //vid_t common = uNodes[*uCurr];
@@ -591,7 +603,7 @@ void intersectCountAsymmetric(const custinger::cuStingerDevData& custinger,
 template <bool uMasked, bool vMasked, bool subtract, bool upd3rdV>
 __device__ __forceinline__
 triangle_t count_trianglesAsymmetric(
-                                 const custinger::cuStingerDevData& custinger,
+                                 const custinger::cuStingerDevice& custinger,
                                  vid_t u,
                                  const vid_t* __restrict__ u_nodes,
                                  vid_t u_len,
@@ -646,7 +658,7 @@ triangle_t count_trianglesAsymmetric(
 //==============================================================================
 
 __global__
-void deviceBUTwoCUOneTriangles(custinger::cuStingerDevData custinger,
+void deviceBUTwoCUOneTriangles(custinger::cuStingerDevice custinger,
                                 custinger::BatchUpdate batch_update,
                                 triangle_t* __restrict__ outPutTriangles,
                                 int  threads_per_block,
@@ -667,8 +679,8 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevData custinger,
 
     //vid_t* d_ind = batch_update->getDst();
     //vid_t* d_seg = batch_update->getSrc();
-    vid_t* d_ind = batch_update.src_ptr();
-    vid_t* d_seg = batch_update.dst_ptr();
+    vid_t* d_ind = batch_update.dst_ptr();
+    vid_t* d_seg = batch_update.src_ptr();
 
     int blockSize = blockDim.x;
     workPerBlock(batchsize, &this_mp_start, &this_mp_stop, blockSize);
@@ -684,8 +696,8 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevData custinger,
 
         //vid_t src = batch_update->getSrc()[edge];
         //vid_t dest= batch_update->getDst()[edge];
-        vid_t src = batch_update.src(edge);
-        vid_t dest= batch_update.dst(edge);
+        vid_t src  = batch_update.src(edge);
+        vid_t dest = batch_update.dst(edge);
 
         //vid_t  srcLen = d_off[src + 1] - d_off[src];
         //vid_t destLen = custinger->dVD->getUsed()[dest];
@@ -701,7 +713,7 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevData custinger,
         //const vid_t* src_mask_ptr = batch_update->getIndDuplicate() + d_off[src];//???
         const vid_t* src_mask_ptr = nullptr;
         //const vid_t*      dst_ptr = custinger->dVD->getAdj()[dest]->dst;
-        const vid_t*      dst_ptr = Vertex(custinger, dest).edge_ptr();
+        const vid_t*      dst_ptr = Vertex(custinger, dest).neighbor_ptr();
 
         bool sourceSmaller = srcLen < destLen;
         vid_t        small = sourceSmaller ? src : dest;
@@ -719,7 +731,7 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevData custinger,
                             count_trianglesAsymmetric<false,false,true,true>
                                 (custinger, small, small_ptr, small_len,
                                   large, large_ptr, large_len,
-                                 threads_per_block,firstFoundPos,
+                                 threads_per_block, firstFoundPos,
                                  tx % threads_per_block, outPutTriangles,
                                    small_mask_ptr, large_mask_ptr, 1,src,dest) :
                             count_trianglesAsymmetric<false,false,true,true>
@@ -729,8 +741,8 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevData custinger,
                                  tx % threads_per_block, outPutTriangles,
                                  small_mask_ptr, large_mask_ptr, 1,src,dest);
 
-        atomicSub(outPutTriangles + src, tCount * 1);
-        atomicSub(outPutTriangles + dest, tCount * 1);
+        // atomicSub(outPutTriangles + src, tCount * 1);
+        // atomicSub(outPutTriangles + dest, tCount * 1);
         __syncthreads();
     }
 }
@@ -764,7 +776,7 @@ void callDeviceDifferenceTriangles(
     //<< numBlocks.x << endl;
     // Calculate all new traingles regardless of repetition
     devicecuStingerNewTriangles <<< numBlocks, blockdim >>>
-        (custinger.device_data(), batch_update,
+        (custinger.device_side(), batch_update,
          outPutTriangles, threads_per_intersection, num_intersec_perblock,
          shifter, deletion);
 
@@ -775,7 +787,7 @@ void callDeviceDifferenceTriangles(
 
     // Calculate triangles formed by two new edges
     deviceBUTwoCUOneTriangles <<< numBlocks, blockdim >>>
-        (custinger.device_data(), batch_update,
+        (custinger.device_side(), batch_update,
         outPutTriangles, threads_per_intersection, num_intersec_perblock,
         shifter, deletion);
 }

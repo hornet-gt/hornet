@@ -42,6 +42,26 @@
 
 namespace load_balacing {
 
+template<typename Operator>
+void VertexBased::apply(custinger::cuStinger& custinger,
+                        const custinger::vid_t* d_input, int num_vertices,
+                        const Operator& op) noexcept {
+
+    detail::vertexBasedKernel
+        <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
+        (custinger, d_input, num_vertices, op);
+}
+
+template<typename Operator>
+void VertexBased::apply(custinger::cuStinger& custinger,
+                        const Operator& op) noexcept {
+
+    detail::vertexBasedKernel
+        <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
+        (custinger, op);
+}
+
+/*
 template<void (*Operator)(custinger::Vertex, custinger::Edge, void*)>
 inline void VertexBased::traverse_edges(const custinger::vid_t* d_input,
                                          int num_vertices,
@@ -64,6 +84,6 @@ inline void VertexBased::traverse_edges(const custinger::vid_t* d_input,
 
     if (CHECK_CUDA_ERROR1)
         CHECK_CUDA_ERROR
-}
+}*/
 
 } // namespace load_balacing

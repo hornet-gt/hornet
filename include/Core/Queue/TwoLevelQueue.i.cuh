@@ -33,7 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Core/Queue/ExpandContractKernel.cuh"  //cuMemcpyToDeviceAsync
+//#include "Core/Queue/ExpandContractKernel.cuh"  //cuMemcpyToDeviceAsync
 #include <Support/Device/Definition.cuh>        //xlib::SMemPerBlock
 #include <Support/Device/PrintExt.cuh>          //cu::printArray
 #include <Support/Device/SafeCudaAPI.cuh>       //cuMemcpyToDeviceAsync
@@ -49,10 +49,8 @@ inline void ptr2_t<T>::swap() noexcept {
 
 template<typename T>
 TwoLevelQueue<T>::TwoLevelQueue(const custinger::cuStinger& custinger,
-                                bool enable_traverse,
                                 size_t max_allocated_items) noexcept :
              _custinger(custinger),
-             _enable_traverse(enable_traverse),
              _max_allocated_items(max_allocated_items == 0 ?
                                   custinger.nV() * 2 : max_allocated_items) {
 
@@ -60,13 +58,13 @@ TwoLevelQueue<T>::TwoLevelQueue(const custinger::cuStinger& custinger,
     cuMalloc(_d_queue_ptrs.second, _max_allocated_items);
     cuMalloc(_d_queue_counter, 1);
     cuMemcpyToDevice(0, _d_queue_counter);
-    if (enable_traverse) {
+    /*if (enable_traverse) {
         cuMalloc(_d_work_ptrs.first,  _max_allocated_items);
         cuMalloc(_d_work_ptrs.second, _max_allocated_items);
         cuMalloc(_d_queue2_counter, 1);
         cuMemcpyToDevice(0, const_cast<int*>(_d_work_ptrs.first));
         cuMemcpyToDevice(make_int2(0, 0), _d_queue2_counter);
-    }
+    }*/
 }
 
 template<typename T>
@@ -184,7 +182,7 @@ __host__ void TwoLevelQueue<T>::print2() noexcept {
 }
 
 //------------------------------------------------------------------------------
-
+/*
 template<typename T>
 __host__ void
 TwoLevelQueue<T>
@@ -227,7 +225,7 @@ __host__ void TwoLevelQueue<custinger::vid_t>
         cu::printArray(_d_queue_ptrs.first, _num_queue_vertices);
 
     ExpandContractLBKernel<BLOCK_SIZE, ITEMS_PER_BLOCK>
-        <<< grid_size, BLOCK_SIZE >>> (_custinger.device_data(),
+        <<< grid_size, BLOCK_SIZE >>> (_custinger.device_side(),
                                        _d_queue_ptrs, _d_work_ptrs,
                                        _d_queue2_counter,
                                        _num_queue_vertices + 1, op);
@@ -244,6 +242,6 @@ __host__ void TwoLevelQueue<custinger::vid_t>
                                             _num_queue_vertices);
     _d_queue_ptrs.swap();
     _d_work_ptrs.swap();
-}
+}*/
 
 } // namespace custinger_alg

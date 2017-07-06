@@ -38,43 +38,40 @@
 #include "Core/cuStingerTypes.cuh"
 
 namespace load_balacing {
-
+namespace detail {
 /**
  * @brief
  */
-template<unsigned BLOCK_SIZE,
-         void (*Operator)(custinger::Vertex, custinger::Edge, void*)>
+template<typename Operator>
 __global__
-void VertexBasedKernel(const custinger::vid_t* __restrict__ d_input,
-                       int num_vertices,
-                       void* __restrict__ optional_field) {
-    int     id = blockIdx.x * BLOCK_SIZE + threadIdx.x;
-    int stride = gridDim.x * BLOCK_SIZE;
-
-    for (int i = 0; i < stride; i += stride) {
-        Vertex vertex(d_input[i]);
-        auto degree = vertex.degree();
-        for (int j = 0; j < degree; j++)
-            Operator(vertex, vertex.edge(j), optional_field);
-    }
-}
-
-/**
- * @brief
- */
-template<unsigned BLOCK_SIZE, typename Operator>
-__global__
-void VertexBasedKernel(const custinger::vid_t* __restrict__ d_input,
+void vertexBasedKernel(custinger::cuStingerDevice custinger,
+                       const custinger::vid_t* __restrict__ d_input,
                        int num_vertices, Operator op) {
-    int     id = blockIdx.x * BLOCK_SIZE + threadIdx.x;
-    int stride = gridDim.x * BLOCK_SIZE;
+    int     id = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = gridDim.x * blockDim.x;
 
-    for (int i = 0; i < stride; i += stride) {
-        Vertex vertex(d_input[i]);
-        auto degree = vertex.degree();
-        for (int j = 0; j < degree; j++)
-            op(vertex, vertex.edge(j));
+    for (int i = id; i < stride; i += stride) {
+        auto vertex = custinger.vertex(d_input[i]);
+        for (int j = 0; j < vertex.degree(); j++)
+            Operator(vertex.edge(j));
     }
 }
 
+/**
+ * @brief
+ */
+template<typename Operator>
+__global__
+void vertexBasedKernel(custinger::cuStingerDevice custinger, Operator op) {
+    int     id = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = gridDim.x * blockDim.x;
+
+    for (int i = id; i < stride; i += stride) {
+        auto vertex = custinger.vertex(i);
+        for (int j = 0; j < vertex.degree(); j++)
+            Operator(vertex.edge(j));
+    }
+}
+
+} // detail
 } // namespace load_balacing

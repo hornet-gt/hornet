@@ -112,6 +112,9 @@ void cuStinger::initialize() noexcept {
     cuMalloc(d_ptrs_array, _nV + 1);
     cuMalloc(d_flags, _nE);
     cuMalloc(d_inverse_pos, _nV);
+    //cuMalloc(d_tmp1, _nE);
+    //cuMalloc(d_tmp2, _nE);
+
 
     auto edge_data_ptrs = _custinger_init._edge_data_ptrs;
     auto    vertex_data = _custinger_init._vertex_data_ptrs;

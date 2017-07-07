@@ -83,6 +83,7 @@ inline void BatchUpdate::bind(const BatchInit& batch_init) noexcept {
                            _d_edge_ptrs[0] + batch_size * sizeof(vid_t));
 
     _batch_size = batch_size * 2;
+    //_batch_size = batch_size;
 }
 
 //UNDIRECTED
@@ -95,12 +96,14 @@ inline void BatchUpdate::sendToDevice(const BatchInit& batch_init) noexcept {
     cuMemcpyToDevice(batch_init.edge_ptrs(1), batch_size * sizeof(vid_t),
                      _d_edge_ptrs[1]);
 
-    cuMemcpyDeviceToDevice(_d_edge_ptrs[0], batch_size * sizeof(vid_t),
+    /*cuMemcpyDeviceToDevice(_d_edge_ptrs[0], batch_size * sizeof(vid_t),
                            _d_edge_ptrs[1] + batch_size * sizeof(vid_t));
     cuMemcpyDeviceToDevice(_d_edge_ptrs[1], batch_size * sizeof(vid_t),
                            _d_edge_ptrs[0] + batch_size * sizeof(vid_t));
 
-    _batch_size = batch_size * 2;
+    _batch_size = batch_size * 2;*/
+    _batch_size = batch_size;
+
     /*for (int i = 0; i < NUM_ETYPES; i++) {
         if (batch_init.edge_ptrs(i + 1) == nullptr)
             continue;

@@ -260,9 +260,10 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     cu::printArray(d_batch_src, batch_size, "INPUT:\n");
     cu::printArray(d_batch_dst, batch_size);
 #endif
-    //xlib::CubSortByKey<vid_t, vid_t> sort_cub(d_batch_src, d_batch_dst,
-    //                                          batch_size, d_tmp1, d_tmp2,
-    //                                          _nV);
+    /*xlib::CubSortByKey<vid_t, vid_t> sort_cub(d_batch_src, d_batch_dst,
+                                              batch_size, d_tmp1, d_tmp2, _nV);
+    cuMemcpyDeviceToDevice(d_tmp1, batch_size, d_batch_src);
+    cuMemcpyDeviceToDevice(d_tmp2, batch_size, d_batch_dst);*/
     //--------------------------------------------------------------------------
     //////////////
     // CUB INIT //
@@ -290,6 +291,8 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     xlib::CubRunLengthEncode<vid_t> runlength_cub1(d_batch_src, batch_size,
                                                    d_unique, d_counts);
 #if defined(BATCH_DEBUG)
+    cu::printArray(d_tmp1, batch_size, "Sorted tmp:\n");
+    cu::printArray(d_tmp2, batch_size);
     cu::printArray(d_batch_src, batch_size, "Sorted:\n");
     cu::printArray(d_batch_dst, batch_size);
 #endif
@@ -297,6 +300,8 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     batch_update._d_edge_ptrs[1] = reinterpret_cast<byte_t*>(d_batch_dst);
 
     int num_uniques = runlength_cub1.run();
+    //std::cout << "batch_size  " <<  batch_size << std::endl;
+    //std::cout << "num_uniques  " <<  num_uniques << std::endl;
 
     collectOldDegreeKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
@@ -351,7 +356,7 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     CHECK_CUDA_ERROR
 
 #if defined(BATCH_DEBUG)
-    cu::printArray(d_tmp, total_degree_old, "d_tmp old\n");
+    //cu::printArray(d_tmp, total_degree_old, "d_tmp old\n");
     cu::printArray(d_flags, total_degree_old, "flag\n");
 #endif
 
@@ -363,7 +368,7 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     //std::cout << "----> " <<total_degree_new << " " << tmp_size_new << std::endl;
 
 #if defined(BATCH_DEBUG)
-    cu::printArray(d_tmp, total_degree_new, "d_tmp new\n");
+    //cu::printArray(d_tmp, total_degree_new, "d_tmp new\n");
 #endif
     num_blocks = xlib::ceil_div<SMEM>(total_degree_new);
     if (num_blocks) {

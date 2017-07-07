@@ -276,6 +276,9 @@ private:
     int2*     d_tmp         { nullptr };
     bool*     d_flags       { nullptr };
     int*      d_inverse_pos { nullptr };
+    int*      d_tmp1        { nullptr };
+    int*      d_tmp2        { nullptr };
+
 
     byte_t*    _pinned_ptr          { nullptr };
      //the number of bytes to the next field

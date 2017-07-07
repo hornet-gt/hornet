@@ -59,7 +59,8 @@ void Timer<DEVICE, ChronoPrecision>::stop() noexcept {
     cudaEventSynchronize(_stop_event);
     float cuda_time_elapsed;
     cudaEventElapsedTime(&cuda_time_elapsed, _start_event, _stop_event);
-    _time_elapsed  = ChronoPrecision(cuda_time_elapsed);
+    auto   time_ms = timer::milli(cuda_time_elapsed);
+    _time_elapsed  = std::chrono::duration_cast<ChronoPrecision>(time_ms);
     _time_squared += _time_elapsed * _time_elapsed.count();
     _total_time_elapsed += _time_elapsed;
     _num_executions++;

@@ -263,22 +263,18 @@ void KTruss::runDynamic(){
     //std::cout << "iterations " << iterations << std::endl;
 }
 
+static int ccc = 0;
+
 bool KTruss::findTrussOfKDynamic(bool& stop) {
     hostKTrussData.counter = 0;
-    //hostKTrussData.activeQueue.clear();  //queue
+    hostKTrussData.activeQueue.clear();  //queue
     syncDeviceWithHost();
 
-    //forAllVertices<ktruss_operators::queueActive>(custinger, deviceKTrussData); //queue
+    forAllVertices<ktruss_operators::queueActive>(custinger, deviceKTrussData); //queue
     forAllVertices<ktruss_operators::countActive>(custinger, deviceKTrussData);
     syncHostWithDevice();
-
-    //hostKTrussData.activeQueue.swap();//queue
-    //int activeThisIteration = hostKTrussData.activeQueue.getQueueEnd();
-    //int activeThisIteration = hostKTrussData.activeQueue.input_size();
-
-    //std::cout << "queue_size "       << activeThisIteration
-    //          << "\tactiveVertices " << hostKTrussData.activeVertices
-    //          << std::endl;
+    hostKTrussData.activeQueue.swap();//queue
+    syncDeviceWithHost();   //very important but not intuitive!!!
 
     stop = true;
     while (hostKTrussData.activeVertices > 0) {
@@ -286,10 +282,10 @@ bool KTruss::findTrussOfKDynamic(bool& stop) {
         //    (custinger, deviceKTrussData, hostKTrussData.activeQueue.getQueue(),
         //     activeThisIteration);
 
-        //forAllVertices<ktruss_operators::findUnderKDynamic>
-        //    (custinger, hostKTrussData.activeQueue, deviceKTrussData);    //queue
         forAllVertices<ktruss_operators::findUnderKDynamic>
-            (custinger, deviceKTrussData);
+            (custinger, hostKTrussData.activeQueue, deviceKTrussData);    //queue
+        //forAllVertices<ktruss_operators::findUnderKDynamic>
+        //    (custinger, deviceKTrussData);
 
         syncHostWithDevice();
         //std::cout << "Current number of deleted edges is " << hostKTrussData.counter << std::endl;
@@ -337,10 +333,10 @@ bool KTruss::findTrussOfKDynamic(bool& stop) {
         //    (custinger, deviceKTrussData, hostKTrussData.activeQueue.getQueue(),
         //     activeThisIteration);
 
-        //forAllVertices<ktruss_operators::countActive>
-        //    (custinger, hostKTrussData.activeQueue, deviceKTrussData);  //queue
         forAllVertices<ktruss_operators::countActive>
-            (custinger, deviceKTrussData);
+            (custinger, hostKTrussData.activeQueue, deviceKTrussData);  //queue
+        //forAllVertices<ktruss_operators::countActive>
+        //    (custinger, deviceKTrussData);
 
         syncHostWithDevice();
         stop = false;

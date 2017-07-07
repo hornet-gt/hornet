@@ -250,12 +250,6 @@ void checkKernel(BatchUpdate batch_update) {
 void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     const unsigned BLOCK_SIZE = 256;
     size_t batch_size = batch_update.size();
-
-    /*vid_t     *d_unique;
-    int       *d_counts;
-    degree_t  *d_degree_old, *d_degree_new;
-    byte_t    **d_ptrs_array;
-    int2      *d_tmp;*/
     //--------------------------------------------------------------------------
     ////////////////
     // ALLOCATION //
@@ -266,22 +260,15 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
     cu::printArray(d_batch_src, batch_size, "INPUT:\n");
     cu::printArray(d_batch_dst, batch_size);
 #endif
-    /*cuMalloc(d_counts, batch_size);
-    cuMalloc(d_unique, batch_size);
-    cuMalloc(d_degree_old, batch_size + 1);
-    cuMalloc(d_degree_new, batch_size + 1);
-    cuMalloc(d_tmp, _nE);
-    cuMalloc(d_ptrs_array, batch_size);*/
+    //xlib::CubSortByKey<vid_t, vid_t> sort_cub(d_batch_src, d_batch_dst,
+    //                                          batch_size, d_tmp1, d_tmp2,
+    //                                          _nV);
     //--------------------------------------------------------------------------
     //////////////
     // CUB INIT //
     //////////////
     xlib::CubSortPairs2<vid_t, vid_t> sort_cub(d_batch_src, d_batch_dst,
                                                batch_size, _nV, _nV);
-
-    //xlib::CubSortByKey<vid_t, vid_t> sort_cub(d_batch_src, d_batch_dst,
-    //                                          batch_size, d_tmp1, d_tmp2,
-    //                                          _nV);
 
     xlib::CubSelectFlagged<vid_t> select_src(d_batch_src, batch_size, d_flags);
     xlib::CubSelectFlagged<vid_t> select_dst(d_batch_dst, batch_size, d_flags);
@@ -294,8 +281,11 @@ void cuStinger::edgeDeletionsSorted(BatchUpdate& batch_update) noexcept {
         (d_batch_src, d_batch_dst, batch_size, d_flags);
     CHECK_CUDA_ERROR
 
+    size_t old_batch_size = batch_size;
     batch_size = select_src.run();
     select_dst.run();
+
+    //std::cout << "-->" << (old_batch_size == batch_size * 2) << std::endl;
     //==========================================================================
     xlib::CubRunLengthEncode<vid_t> runlength_cub1(d_batch_src, batch_size,
                                                    d_unique, d_counts);

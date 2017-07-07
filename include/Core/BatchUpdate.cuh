@@ -183,7 +183,9 @@ public:
 
     ~BatchUpdate() noexcept;
 
-    void insert(const BatchInit& batch_init) noexcept;
+    void sendToDevice(const BatchInit& batch_init) noexcept;
+
+    void bind(const BatchInit& batch_init) noexcept;
 
 #if defined(__NVCC__)
 

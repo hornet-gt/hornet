@@ -105,7 +105,7 @@ void exec(int argc, char* argv[]) {
     std::cout << "--------------------------------------------------------"<<std::endl;
     BatchInit batch_init(batch_src, batch_dst, batch_size);
     BatchUpdate batch_update(custiger_graph.nV());
-    batch_update.insert(batch_init);
+    batch_update.sendToDevice(batch_init);
 
     custiger_graph.edgeDeletionsSorted(batch_update);
 

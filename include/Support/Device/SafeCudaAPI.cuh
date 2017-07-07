@@ -213,11 +213,24 @@ void cuMemset0x00Aux(const char* file, int line, const char* func_name,
     xlib::__cudaErrorHandler(cudaMemset(ptr, 0x00, num_items * sizeof(T)),
                              "cudaMemset(0x00)", file, line, func_name);
 }
+
+template<typename T>
+void cuMemset0x00Aux(const char* file, int line, const char* func_name,T& ref) {
+    xlib::__cudaErrorHandler(cudaMemset(ref, 0x00, sizeof(T)),
+                             "cudaMemset(0x00)", file, line, func_name);
+}
+
 template<typename T>
 void cuMemset0xFFAux(const char* file, int line, const char* func_name,
                      T* ptr, size_t num_items = 1) {
     assert(num_items > 0 && ptr != nullptr);
     xlib::__cudaErrorHandler(cudaMemset(ptr, 0xFF, num_items * sizeof(T)),
+                             "cudaMemset(0xFF)", file, line, func_name);
+}
+
+template<typename T>
+void cuMemset0xFFAux(const char* file, int line, const char* func_name,T& ref) {
+    xlib::__cudaErrorHandler(cudaMemset(ref, 0xFF, sizeof(T)),
                              "cudaMemset(0xFF)", file, line, func_name);
 }
 //==============================================================================

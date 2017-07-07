@@ -65,8 +65,28 @@ inline BatchUpdate::BatchUpdate(size_t size) noexcept :
     //UNDIRECTED
 }
 
+inline void BatchUpdate::bind(const BatchInit& batch_init) noexcept {
+    /*_d_edge_ptrs[0] = const_cast<byte_t*>(batch_init.edge_ptrs(0));
+    _d_edge_ptrs[1] = const_cast<byte_t*>(batch_init.edge_ptrs(1));
+    _batch_size = batch_init.size() * 2;*/
+    size_t batch_size = batch_init.size();
+    _d_edge_ptrs[0]   = _pinned_ptr;
+    _d_edge_ptrs[1]   = _pinned_ptr + _batch_pitch * sizeof(vid_t);
+    cuMemcpyDeviceToDevice(batch_init.edge_ptrs(0), batch_size * sizeof(vid_t),
+                           _d_edge_ptrs[0]);
+    cuMemcpyDeviceToDevice(batch_init.edge_ptrs(1), batch_size * sizeof(vid_t),
+                           _d_edge_ptrs[1]);
+
+    cuMemcpyDeviceToDevice(_d_edge_ptrs[0], batch_size * sizeof(vid_t),
+                           _d_edge_ptrs[1] + batch_size * sizeof(vid_t));
+    cuMemcpyDeviceToDevice(_d_edge_ptrs[1], batch_size * sizeof(vid_t),
+                           _d_edge_ptrs[0] + batch_size * sizeof(vid_t));
+
+    _batch_size = batch_size * 2;
+}
+
 //UNDIRECTED
-inline void BatchUpdate::insert(const BatchInit& batch_init) noexcept {
+inline void BatchUpdate::sendToDevice(const BatchInit& batch_init) noexcept {
     size_t batch_size = batch_init.size();
     _d_edge_ptrs[0]   = _pinned_ptr;
     _d_edge_ptrs[1]   = _pinned_ptr + _batch_pitch * sizeof(vid_t);
@@ -75,10 +95,6 @@ inline void BatchUpdate::insert(const BatchInit& batch_init) noexcept {
     cuMemcpyToDevice(batch_init.edge_ptrs(1), batch_size * sizeof(vid_t),
                      _d_edge_ptrs[1]);
 
-    /*cuMemcpyToDevice(batch_init.edge_ptrs(1), batch_size * sizeof(vid_t),
-                          _d_edge_ptrs[0] + batch_size * sizeof(vid_t));
-    cuMemcpyToDevice(batch_init.edge_ptrs(0), batch_size * sizeof(vid_t),
-                          _d_edge_ptrs[1] + batch_size * sizeof(vid_t));*/
     cuMemcpyDeviceToDevice(_d_edge_ptrs[0], batch_size * sizeof(vid_t),
                            _d_edge_ptrs[1] + batch_size * sizeof(vid_t));
     cuMemcpyDeviceToDevice(_d_edge_ptrs[1], batch_size * sizeof(vid_t),

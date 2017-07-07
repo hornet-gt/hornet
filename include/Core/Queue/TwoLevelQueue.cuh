@@ -120,21 +120,23 @@ public:
      * @return actual number of queue items at the input queue
      * @remark the method is cheap
      */
-    __host__ int size() noexcept;
+    //__host__ int size() noexcept;
+    __host__ int input_size() noexcept;
+    __host__ int output_size() noexcept;
 
     /**
      * @brief device pointer of the input queue
      * @return constant device pointer to the start of the input queue
      * @remark the method is cheap
      */
-    __host__ const T* device_ptr_q1() const noexcept;
+    __host__ const T* device_input_queue() const noexcept;
 
     /**
      * @brief device pointer of the output queue
      * @return constant device pointer to the start of the output queue
      * @remark the method is cheap
      */
-    __host__ const T* device_ptr_q2() const noexcept;
+    __host__ const T* device_output_queue() const noexcept;
 
     /**
      * @brief host pointer of the data stored in the output device queue
@@ -147,13 +149,13 @@ public:
      * @brief print the items stored at the output queue
      * @remark the method may be expensive
      */
-    __host__ void print1() noexcept;
+    //__host__ void print1() noexcept;
 
     /**
      * @brief print the items stored at the output queue
      * @remark the method may be expensive
      */
-    __host__ void print2() noexcept;
+    //__host__ void print2() noexcept;
 
     /**
      * @brief traverse the edges of queue vertices
@@ -190,7 +192,7 @@ private:
     T*           _host_data           { nullptr };
     const size_t _max_allocated_items;
     ///@internal @brief device counter of the queue for `traverse_edges()`
-    int2*        _d_queue2_counter    { nullptr };
+    int2*        _d_counters          { nullptr };
     ///@internal @brief size of queue maintained on the host
     int          _num_queue_vertices  { 0 };
     ///@internal @brief number of edges in the queue for `traverse_edges()`

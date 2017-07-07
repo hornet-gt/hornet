@@ -69,8 +69,8 @@ public:
     vid_t           getMaxK();
 
 private:
-    KTrussData hostKTrussData;
-    KTrussData* deviceKTrussData;
+    KTrussData              hostKTrussData;
+    KTrussData*             deviceKTrussData;
     custinger::BatchUpdate& batch_update;
 };
 

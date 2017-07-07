@@ -39,6 +39,19 @@ __global__ void forAllVerticesKernel(custinger::cuStingerDevice custinger,
         op(custinger::Vertex(custinger, i));
 }
 
+template<typename Operator>
+__global__
+void forAllVerticesKernel(custinger::cuStingerDevice            custinger,
+                          const custinger::vid_t* __restrict__  vertices_array,
+                          int                                   num_items,
+                          Operator                              op) {
+    int     id = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = gridDim.x * blockDim.x;
+
+    for (custinger::vid_t i = id; i < num_items; i += stride)
+        op(custinger::Vertex(custinger, vertices_array[i]));
+}
+
 template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK, typename Operator>
 __global__
 void forAllEdgesKernel(const custinger::eoff_t* __restrict__ csr_offsets,
@@ -112,7 +125,10 @@ template<typename Operator>
 void forAllVertices(custinger::cuStinger& custinger,
                    TwoLevelQueue<custinger::vid_t>& queue,
                    const Operator& op) {
-
+    unsigned size = queue.input_size();
+    detail::forAllVerticesKernel
+        <<< xlib::ceil_div<BLOCK_SIZE_OP2>(size), BLOCK_SIZE_OP2 >>>
+        (custinger, queue.device_input_queue(), size, op);
 }
 
 template<typename Operator, typename LoadBalancing>

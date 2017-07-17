@@ -101,10 +101,12 @@ private:
 };
 
 template<typename T>
-inline std::string format(T num, unsigned precision = 1) noexcept;
+std::string format(T num, unsigned precision = 1) noexcept;
 
-void fixedFloat();
-void scientificFloat();
+std::string human_readable(size_t size) noexcept;
+
+void fixed_float() noexcept;
+void scientific_float() noexcept;
 
 class IosFlagSaver {
 public:
@@ -118,7 +120,7 @@ private:
 };
 //------------------------------------------------------------------------------
 
-void charSequence(char c, int sequence_length = 80) noexcept;
+void char_sequence(char c, int sequence_length = 80) noexcept;
 
 void printTitle(const std::string& str, char c = '-',
                 int sequence_length = 80) noexcept;
@@ -150,23 +152,7 @@ void printfArray(T (&array)[SIZE]) ;
 template<typename T>
 HOST_DEVICE void
 printBits(T* array, int size);
-//------------------------------------------------------------------------------
-/*
-#if defined(__NVCC__)
 
-template<class T>
-void printCudaArray(const T* d_array, size_t size, const std::string& str = "",
-                    char sep = ' ');
-
-template<class T>
-void printCudaSymbol(const T& d_array, size_t size, const std::string& str = "",
-                     char sep = ' ');
-
-template<class T, int SIZE>
-void printCudaSymbol(const T (&d_array)[SIZE], const std::string& str = "",
-                     char sep = ' ');
-
-#endif*/
 } // namespace xlib
 
 #include "impl/PrintExt.i.hpp"

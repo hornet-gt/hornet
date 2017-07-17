@@ -45,9 +45,9 @@ namespace custinger {
 
 __device__ int d_array[10];
 
-__global__ void printKernel(cuStingerDevice data) {
-    for (vid_t i = 0; i < data.nV; i++) {
-        auto vertex = Vertex(data, i);
+__global__ void printKernel(cuStingerDevice custinger) {
+    for (vid_t i = 0; i < custinger.nV; i++) {
+        auto vertex = Vertex(custinger, i);
         auto degree = vertex.degree();
         //auto field0 = vertex.field<0>();
         printf("%d [%d, %d, 0x%llX]:    ", i, vertex.degree(), vertex.limit(),
@@ -63,9 +63,9 @@ __global__ void printKernel(cuStingerDevice data) {
             auto field1 = edge.field<1>();*/
 
             //printf("%d    ", edge.dst());
-            printf("(%d, %d)    ", ptr[j], weight_ptr[j]);
-            printf("[%d, %d]    ", edge.dst(), edge.weight());
-            edge.set_weight(-edge.weight());
+            //printf("(%d, %d)    ", ptr[j], weight_ptr[j]);
+            //printf("[%d, %d]    ", edge.dst(), edge.weight());
+            //edge.set_weight(-edge.weight());
         //    d_array[j] = edge.dst();
         }
         printf("\n");
@@ -173,12 +173,12 @@ vid_t cuStinger::max_degree_vertex() const noexcept {
 }
 
 
-__global__ void checkSortedKernel(cuStingerDevice data) {
+__global__ void checkSortedKernel(cuStingerDevice custinger) {
     int    idx = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
 
-    for (vid_t i = idx; i < data.nV; i += stride) {
-        auto vertex = Vertex(data, i);
+    for (vid_t i = idx; i < custinger.nV; i += stride) {
+        auto vertex = Vertex(custinger, i);
         auto    ptr = vertex.neighbor_ptr();
 
         for (degree_t j = 0; j < vertex.degree() - 1; j++) {

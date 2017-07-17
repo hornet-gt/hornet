@@ -2,7 +2,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date July, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -39,13 +39,13 @@
 #include <random>
 #include <utility>
 
-BatchGenProperty::BatchGenProperty(const detail::BatchEnum& obj) noexcept :
-                   xlib::PropertyClass<detail::BatchEnum, BatchGenProperty>(obj) {}
+BatchGenProperty::BatchGenProperty(const detail::BatchGenEnum& obj) noexcept :
+             xlib::PropertyClass<detail::BatchGenEnum, BatchGenProperty>(obj) {}
 
 //------------------------------------------------------------------------------
 
 void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
-                   custinger::vid_t* batch_src, custinger::vid_t* batch_dest,
+                   custinger::vid_t* batch_src, custinger::vid_t* batch_dst,
                    const BatchType& batch_type, const BatchGenProperty& prop) {
     using custinger::vid_t;
     using vid_distribution = std::uniform_int_distribution<vid_t>;
@@ -64,15 +64,15 @@ void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
             vid_distribution distribution_dst(0, graph.out_degree(src) - 1);
             auto    index = distribution_dst(gen);
             batch_src[i]  = src;
-            batch_dest[i] = graph.vertex(src).neighbor_id(index);
+            batch_dst[i] = graph.vertex(src).neighbor_id(index);
         }
     }
-    else if (prop == batch_property::WEIGHTED) {
+    else if (prop == batch_gen_property::WEIGHTED) {
         xlib::WeightedRandomGenerator<vid_t>
             weighted_gen(graph.out_degrees_ptr(), graph.nV());
         for (int i = 0; i < batch_size; i++) {
             batch_src[i]  = weighted_gen.get();
-            batch_dest[i] = weighted_gen.get();
+            batch_dst[i] = weighted_gen.get();
         }
     }
     else {
@@ -82,25 +82,25 @@ void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
         std::uniform_int_distribution<vid_t> distribution(0, graph.nV() - 1);
         for (int i = 0; i < batch_size; i++) {
             batch_src[i]  = distribution(gen);
-            batch_dest[i] = distribution(gen);
+            batch_dst[i] = distribution(gen);
         }
     }
 
-    if (prop == batch_property::PRINT || prop == batch_property::UNIQUE) {
+    if (prop == batch_gen_property::PRINT || prop == batch_gen_property::UNIQUE) {
         auto tmp_batch = new std::pair<vid_t, vid_t>[batch_size];
         for (int i = 0; i < batch_size; i++)
-            tmp_batch[i] = std::make_pair(batch_src[i], batch_dest[i]);
+            tmp_batch[i] = std::make_pair(batch_src[i], batch_dst[i]);
 
         std::sort(tmp_batch, tmp_batch + batch_size);
-        if (prop == batch_property::UNIQUE) {
+        if (prop == batch_gen_property::UNIQUE) {
             auto    it = std::unique(tmp_batch, tmp_batch + batch_size);
             batch_size = std::distance(tmp_batch, it);
             for (int i = 0; i < batch_size; i++) {
                 batch_src[i]  = tmp_batch[i].first;
-                batch_dest[i] = tmp_batch[i].second;
+                batch_dst[i] = tmp_batch[i].second;
             }
         }
-        if (prop == batch_property::PRINT) {
+        if (prop == batch_gen_property::PRINT) {
             std::cout << "Batch:\n";
             for (int i = 0; i < batch_size; i++) {
                 std::cout << "(" << tmp_batch[i].first << ","

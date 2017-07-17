@@ -129,6 +129,9 @@ public:
     __device__ __forceinline__
     vid_t* neighbor_ptr() const;
 
+    __device__ __forceinline__
+    vid_t neighbor_id(degree_t index) const;
+
     template<typename T = WeightT>
     __device__ __forceinline__
     WeightT* edge_weight_ptr() const;
@@ -148,19 +151,6 @@ private:
 
 class Edge {
     friend class Vertex;
-    using     WeightT = typename std::tuple_element<(NUM_ETYPES > 1 ? 1 : 0),
-                                                     edge_t>::type;
-    using TimeStamp1T = typename std::tuple_element<(NUM_ETYPES > 2 ? 2 : 0),
-                                                     edge_t>::type;
-    using TimeStamp2T = typename std::tuple_element<(NUM_ETYPES > 3 ? 3 : 0),
-                                                     edge_t>::type;
-
-    using     EnableWeight = typename std::conditional<(NUM_ETYPES > 1),
-                                                        int, void>::type;
-    using EnableTimeStamp1 = typename std::conditional<(NUM_ETYPES > 2),
-                                                        int, void>::type;
-    using EnableTimeStamp2 = typename std::conditional<(NUM_ETYPES > 3),
-                                                        int, void>::type;
 
     static_assert(std::is_same<WeightT, int>::value, "T error");//???
 public:
@@ -169,28 +159,28 @@ public:
      * @return source of the edge
      */
     __device__ __forceinline__
-    vid_t src() const;
+    vid_t src_id() const;
 
     /**
      * @brief destination of the edge
      * @return destination of the edge
      */
     __device__ __forceinline__
-    vid_t dst() const;
+    vid_t dst_id() const;
 
     /**
      * @brief Source vertex of the edge
      * @return Source vertex
      */
-    //__device__ __forceinline__
-    //Vertex src() const;
+    __device__ __forceinline__
+    Vertex src() const;
 
     /**
      * @brief Destination vertex of the edge
      * @return Destination vertex
      */
-    //__device__ __forceinline__
-    //Vertex dst() const;
+    __device__ __forceinline__
+    Vertex dst() const;
 
     /**
      * @brief weight of the edge (if it exists)

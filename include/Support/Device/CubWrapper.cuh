@@ -79,8 +79,8 @@ public:
                   T d_in1_max = std::numeric_limits<T>::max(),
                   R d_in2_max = std::numeric_limits<R>::max());
 
-    CubSortPairs2(const T* d_in1, const R* d_in2, size_t num_items,
-                  T* d_out1, R* d_out2,
+    CubSortPairs2(T* d_in1, R* d_in2, size_t num_items,
+                  T* d_in1_tmp, R* d_in2_tmp,
                   T d_in1_max = std::numeric_limits<T>::max(),
                   R d_in2_max = std::numeric_limits<R>::max());
 
@@ -89,8 +89,8 @@ public:
     void run() noexcept;
 
 private:
-    T*       _d_in1, *_d_out1, *_d_in1_tmp { nullptr };
-    R*       _d_in2, *_d_out2, *_d_in2_tmp { nullptr };
+    T*       _d_in1, *_d_in1_tmp { nullptr };
+    R*       _d_in2, *_d_in2_tmp { nullptr };
     T        _d_in1_max;
     R        _d_in2_max;
     bool     _internal_alloc { false };

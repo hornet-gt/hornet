@@ -36,86 +36,113 @@
  *
  * @file
  */
+#include "Support/Device/Definition.cuh"
+#include "Support/Host/Numeric.hpp"
+
 namespace cu {
 namespace detail {
 
-template<unsigned UNROLL_STEPS = 1, typename T>
+template<unsigned UNROLL_STEPS = 1, typename SizeT, typename T>
 __global__
-void memsetKernel(T* d_out, size_t num_items, T init_value) {
+void memsetKernel(T* d_out, SizeT num_items, T init_value) {
     static_assert(sizeof(T) <= sizeof(int4), "sizeof(T) <= sizeof(int4)");
 
     const unsigned        RATIO = sizeof(int4) / sizeof(T);
     const unsigned THREAD_ITEMS = UNROLL_STEPS * RATIO;
 
-    int         idx = blockIdx.x * blockDim.x + threadIdx.x;
-    int      stride = gridDim.x * blockDim.x;
-    int approx_size = xlib::lower_approx<WARP_SIZE>(num_items / THREAD_ITEMS);
+    SizeT           idx = blockIdx.x * blockDim.x + threadIdx.x;
+    SizeT        stride = gridDim.x * blockDim.x;
+    SizeT stride_unroll = stride * UNROLL_STEPS;
+    SizeT         limit = num_items / THREAD_ITEMS;
 
     T storage[RATIO];
     #pragma unroll
-    for (int K = 0; K < RATIO; K++)
+    for (SizeT K = 0; K < RATIO; K++)
         storage[K] = init_value;
     const auto& to_write = reinterpret_cast<int4&>(storage);
 
-    auto d_tmp = reinterpret_cast<int4*>(d_out) + idx;
-    for (int i = idx; i < approx_size; i += stride * THREAD_ITEMS) {
+    auto d_out4 = reinterpret_cast<int4*>(d_out);
+    for (SizeT i = idx; i < limit; i += stride_unroll) {
         #pragma unroll
-        for (int K = 0; K < UNROLL_STEPS; K++)
-            d_tmp[i + stride * K] = to_write;
+        for (int K = 0; K < UNROLL_STEPS; K++) {
+            SizeT index = i + stride * K;
+            if (index < limit)
+                d_out4[index] = to_write;
+        }
     }
-    for (int i = approx_size * THREAD_ITEMS + idx; i < num_items; i += stride)
-        d_tmp[i] = init_value;
+    for (SizeT i = limit * THREAD_ITEMS + idx; i < num_items; i += stride)
+        d_out[i] = init_value;
 }
 
-template<unsigned UNROLL_STEPS = 1, typename T>
+template<unsigned UNROLL_STEPS = 1, typename SizeT, typename T>
 __global__
-void memcpyKernel(const T* __restrict__ d_in, size_t num_items,
+void memcpyKernel(const T* __restrict__ d_in, SizeT num_items,
                   T* __restrict__ d_out) {
     static_assert(sizeof(T) <= sizeof(int4), "sizeof(T) <= sizeof(int4)");
 
     const unsigned        RATIO = sizeof(int4) / sizeof(T);
     const unsigned THREAD_ITEMS = UNROLL_STEPS * RATIO;
 
-    int         idx = blockIdx.x * blockDim.x + threadIdx.x;
-    int      stride = gridDim.x * blockDim.x;
-    int approx_size = xlib::lower_approx<WARP_SIZE>(num_items / THREAD_ITEMS);
+    SizeT           idx = blockIdx.x * blockDim.x + threadIdx.x;
+    SizeT        stride = gridDim.x * blockDim.x;
+    SizeT stride_unroll = stride * UNROLL_STEPS;
+    SizeT         limit = num_items / THREAD_ITEMS;
 
-    auto  d_tmp_in = reinterpret_cast<const int4*>(d_in) + idx;
-    auto d_tmp_out = reinterpret_cast<int4*>(d_out) + idx;
+    auto  d_in4 = reinterpret_cast<const int4*>(d_in);
+    auto d_out4 = reinterpret_cast<int4*>(d_out);
 
-    for (int i = idx; i < approx_size; i += stride * UNROLL_STEPS) {
+    for (SizeT i = idx; i < limit; i += stride_unroll) {
         #pragma unroll
-        for (int K = 0; K < UNROLL_STEPS; K++)
-            d_tmp_out[i + stride * K] = d_tmp_in[i + stride * K];
+        for (int K = 0; K < UNROLL_STEPS; K++) {
+            SizeT index = i + stride * K;
+            if (index < limit)
+                d_out4[index] = d_in4[index];
+        }
     }
-    for (int i = approx_size * THREAD_ITEMS + idx; i < num_items; i += stride)
+    for (SizeT i = limit * THREAD_ITEMS + idx; i < num_items; i += stride)
         d_out[i] = d_in[i];
 }
 
 } // namespace detail
 
+const unsigned BLOCK_SIZE = 256;
+
 template<typename T>
 void memset(T* d_out, size_t num_items, const T& init_value) {
-    static_assert(sizeof(T) % sizeof(int4) == 0 && sizeof(T) <= sizeof(int4),
+    static_assert(sizeof(int4) % sizeof(T) == 0 && sizeof(T) <= sizeof(int4),
                   "T not aligned");
 
-    const unsigned RATIO = sizeof(int4) / sizeof(T);
-    unsigned  num_blocks = xlib::ceil_div<RATIO * BLOCK_SIZE>(num_items);
+    const unsigned UNROLL_STEPS = 16;
+    const unsigned        RATIO = sizeof(int4) / sizeof(T);
+    unsigned         num_blocks = xlib::ceil_div<RATIO * BLOCK_SIZE>(num_items);
 
-    detail::memsetKernel <<< num_blocks, BLOCK_SIZE >>>
-        (d_out, num_items, init_value);
+    if ((num_items * UNROLL_STEPS) / RATIO < std::numeric_limits<int>::max()) {
+        detail::memsetKernel<UNROLL_STEPS, int>
+            <<< num_blocks, BLOCK_SIZE >>> (d_out, num_items, init_value);
+    }
+    else {
+        detail::memsetKernel<UNROLL_STEPS, int64_t>
+            <<< num_blocks, BLOCK_SIZE >>>  (d_out, num_items, init_value);
+    }
 }
 
 template<typename T>
 void memcpy(const T* d_in, size_t num_items, T* d_out) {
-    static_assert(sizeof(T) % sizeof(int4) == 0 && sizeof(T) <= sizeof(int4),
+    static_assert(sizeof(int4) % sizeof(T) == 0 && sizeof(T) <= sizeof(int4),
                   "T not aligned");
 
-    const unsigned RATIO = sizeof(int4) / sizeof(T);
-    unsigned  num_blocks = xlib::ceil_div<RATIO * BLOCK_SIZE>(num_items);
+    const unsigned UNROLL_STEPS = 16;
+    const unsigned        RATIO = sizeof(int4) / sizeof(T);
+    unsigned         num_blocks = xlib::ceil_div<RATIO * BLOCK_SIZE>(num_items);
 
-    detail::memcpyKernel <<< num_blocks, BLOCK_SIZE >>>
-        (d_in, num_items, d_out);
+    if ((num_items * UNROLL_STEPS) / RATIO < std::numeric_limits<int>::max()) {
+        detail::memcpyKernel<UNROLL_STEPS, int>
+            <<< num_blocks, BLOCK_SIZE >>> (d_in, num_items, d_out);
+    }
+    else {
+        detail::memcpyKernel<UNROLL_STEPS, int64_t>
+            <<< num_blocks, BLOCK_SIZE >>> (d_in, num_items, d_out);
+    }
 }
 
 } // namespace cu

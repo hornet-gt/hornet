@@ -52,9 +52,6 @@ Vertex::Vertex(cuStingerDevice data, vid_t index) : _id(index) {
     for (int i = 0; i < NUM_EXTRA_VTYPES; i++)
         _ptrs[i] = data.d_vertex_ptrs[i] + index * VTYPE_SIZE_D[i + 1];
 }
-/*
-__device__ __forceinline__
-Vertex::Vertex() {}*/
 
 __device__ __forceinline__
 vid_t Vertex::id() const {
@@ -84,6 +81,12 @@ Edge Vertex::edge(degree_t index) const {
 __device__ __forceinline__
 vid_t* Vertex::neighbor_ptr() const {
     return reinterpret_cast<vid_t*>(_edge_ptr);
+}
+
+__device__ __forceinline__
+vid_t Vertex::neighbor_id(degree_t index) const {
+    assert(index < _degree);
+    return reinterpret_cast<vid_t*>(_edge_ptr)[index];
 }
 
 template<typename T>
@@ -127,10 +130,10 @@ void store_edge<NUM_EXTRA_ETYPES>(byte_t* const (&)[NUM_EXTRA_ETYPES],
 
 __device__ __forceinline__
 void Vertex::store(const Edge& edge, degree_t index) {
-    Edge to_replace(_edge_ptr, index, _limit);
+    /*Edge to_replace(_edge_ptr, index, _limit);
 
     reinterpret_cast<vid_t*>(_edge_ptr)[index] = edge.dst();
-    detail::store_edge(edge._ptrs, to_replace._ptrs);
+    detail::store_edge(edge._ptrs, to_replace._ptrs);*/
 }
 
 //==============================================================================
@@ -148,13 +151,18 @@ Edge::Edge(byte_t* neighbor_ptr, degree_t index, int limit) {
 }
 
 __device__ __forceinline__
-vid_t Edge::dst() const {
+vid_t Edge::src_id() const {
+    return 0;
+}
+
+__device__ __forceinline__
+vid_t Edge::dst_id() const {
     return _dst;
 }
 
 template<typename T>
 __device__ __forceinline__
-typename Edge::WeightT Edge::weight() const {
+WeightT Edge::weight() const {
     static_assert(!std::is_same<T, void>::value,
                   "weight is not part of edge type list");
     return *reinterpret_cast<WeightT*>(_ptrs[0]);
@@ -170,7 +178,7 @@ void Edge::set_weight(WeightT weight) {
 
 template<typename T>
 __device__ __forceinline__
-typename Edge::TimeStamp1T Edge::time_stamp1() const {
+TimeStamp1T Edge::time_stamp1() const {
     static_assert(!std::is_same<T, void>::value,
                   "time_stamp1 is not part of edge type list");
     return *reinterpret_cast<TimeStamp1T*>(_ptrs[1]);
@@ -178,7 +186,7 @@ typename Edge::TimeStamp1T Edge::time_stamp1() const {
 
 template<typename T>
 __device__ __forceinline__
-typename Edge::TimeStamp2T Edge::time_stamp2() const {
+TimeStamp2T Edge::time_stamp2() const {
     static_assert(!std::is_same<T, void>::value,
                   "time_stamp2 is not part of edge type list");
     return *reinterpret_cast<TimeStamp2T*>(_ptrs[2]);

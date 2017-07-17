@@ -188,7 +188,7 @@ public:
     VerticesContainer V { *this };
     EdgesContainer    E { *this };
 
-    explicit GraphStd() = default;
+    //explicit GraphStd() = default;
 
     explicit GraphStd(StructureProp structure = StructureProp()) noexcept;
 

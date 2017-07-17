@@ -117,7 +117,7 @@ void TimerBase<type, ChronoPrecision>::register_time() noexcept {
         _time_max = _time_elapsed;
     else if (_time_elapsed < _time_min)
         _time_min = _time_elapsed;
-    assert(!(_start_flag = false));
+    _start_flag = false;
 }
 
 template<timer_type type, typename ChronoPrecision>
@@ -147,19 +147,15 @@ inline Timer<HOST, ChronoPrecision>::Timer(int decimals, int space,
 template<typename ChronoPrecision>
 inline void Timer<HOST, ChronoPrecision>::start() noexcept {
     assert(!_start_flag);
+    _start_flag = true;
     _start_time = std::chrono::system_clock::now();
-    assert(_start_flag = true);
 }
 
 template<typename ChronoPrecision>
 inline void Timer<HOST, ChronoPrecision>::stop() noexcept {
-    assert(_start_flag);
     _stop_time     = std::chrono::system_clock::now();
     _time_elapsed  = ChronoPrecision(_stop_time - _start_time);
-    _time_squared += _time_elapsed * _time_elapsed.count();
-    _total_time_elapsed += _time_elapsed;
-    _num_executions++;
-    assert(!(_start_flag = false));
+    register_time();
 }
 
 //==============================================================================
@@ -173,22 +169,18 @@ inline Timer<CPU, ChronoPrecision>::Timer(int decimals, int space,
 template<typename ChronoPrecision>
 inline void Timer<CPU, ChronoPrecision>::start() noexcept {
     assert(!_start_flag);
+    _start_flag = false;
     _start_clock = std::clock();
-    assert(_start_flag = true);
 }
 
 template<typename ChronoPrecision>
 inline void Timer<CPU, ChronoPrecision>::stop() noexcept {
-    assert(_start_flag);
     _stop_clock = std::clock();
     auto clock_time_elapsed = static_cast<float>(_stop_clock - _start_clock) /
                               static_cast<float>(CLOCKS_PER_SEC);
     auto time_seconds = seconds(clock_time_elapsed);
     _time_elapsed  = std::chrono::duration_cast<ChronoPrecision>(time_seconds);
-    _time_squared += _time_elapsed * _time_elapsed.count();
-    _total_time_elapsed += _time_elapsed;
-    _num_executions++;
-    assert(!(_start_flag = false));
+    register_time();
 }
 
 //==============================================================================
@@ -204,9 +196,9 @@ inline Timer<SYS, ChronoPrecision>::Timer(int decimals, int space,
 template<typename ChronoPrecision>
 inline void Timer<SYS, ChronoPrecision>::start() noexcept {
     assert(!_start_flag);
+    _start_flag = false;
     _start_time = std::chrono::system_clock::now();
     ::times(&_start_TMS);
-    assert(_start_flag = true);
 }
 
 template<typename ChronoPrecision>
@@ -214,7 +206,7 @@ inline void Timer<SYS, ChronoPrecision>::stop() noexcept {
     assert(_start_flag);
     _stop_time = std::chrono::system_clock::now();
     ::times(&_end_TMS);
-    assert(!(_start_flag = false));
+    _start_flag = false;
 }
 
 template<typename ChronoPrecision>
@@ -244,47 +236,5 @@ inline void Timer<SYS, ChronoPrecision>::print(const std::string& str)  //NOLINT
               << xlib::Color::FG_DEFAULT << std::endl;
 }
 #endif
-
-//==============================================================================
-//-------------------------- CUDA ----------------------------------------------
-
-//#if defined(__NVCC__)
-/*
-template<typename ChronoPrecision>
-Timer<DEVICE, ChronoPrecision>
-::Timer(int decimals, int space, xlib::Color color) :
-                    TimerBase<DEVICE, ChronoPrecision>(decimals, space, color) {
-    cudaEventCreate(&_start_event);
-    cudaEventCreate(&_stop_event);
-}
-
-template<typename ChronoPrecision>
-Timer<DEVICE, ChronoPrecision>::~Timer() {
-    cudaEventDestroy(_start_event);
-    cudaEventDestroy(_stop_event);
-}
-
-template<typename ChronoPrecision>
-void Timer<DEVICE, ChronoPrecision>::start() {
-    assert(!_start_flag);
-    cudaEventRecord(_start_event, 0);
-    assert(_start_flag = true);
-}
-
-template<typename ChronoPrecision>
-void Timer<DEVICE, ChronoPrecision>::stop() {
-    assert(_start_flag);
-    cudaEventRecord(_stop_event, 0);
-    cudaEventSynchronize(_stop_event);
-    float cuda_time_elapsed;
-    cudaEventElapsedTime(&cuda_time_elapsed, _start_event, _stop_event);
-    _time_elapsed  = ChronoPrecision(cuda_time_elapsed);
-    _time_squared += _time_elapsed * _time_elapsed.count();
-    _total_time_elapsed += _time_elapsed;
-    _num_executions++;
-    assert(!(_start_flag = false));
-}*/
-
-//#endif
 
 } // namespace timer

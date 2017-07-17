@@ -81,3 +81,18 @@ const unsigned       NUM_ETYPES = std::tuple_size<edge_t>::value;
 const unsigned NUM_EXTRA_VTYPES = std::tuple_size<VertexTypes>::value;
 ///@internal @brief Number of extra vertex fields (types)
 const unsigned NUM_EXTRA_ETYPES = std::tuple_size<EdgeTypes>::value;
+
+
+using     WeightT = typename std::tuple_element<(NUM_ETYPES > 1 ? 1 : 0),
+                                                 edge_t>::type;
+using TimeStamp1T = typename std::tuple_element<(NUM_ETYPES > 2 ? 2 : 0),
+                                                 edge_t>::type;
+using TimeStamp2T = typename std::tuple_element<(NUM_ETYPES > 3 ? 3 : 0),
+                                                 edge_t>::type;
+
+using     EnableWeight = typename std::conditional<(NUM_ETYPES > 1),
+                                                    int, void>::type;
+using EnableTimeStamp1 = typename std::conditional<(NUM_ETYPES > 2),
+                                                    int, void>::type;
+using EnableTimeStamp2 = typename std::conditional<(NUM_ETYPES > 3),
+                                                    int, void>::type;

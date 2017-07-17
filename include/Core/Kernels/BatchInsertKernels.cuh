@@ -42,7 +42,7 @@ namespace custinger {
 
 template<typename EqualOp>
 __global__
-void findDuplicateKernel(cuStingerDevice   data,
+void findDuplicateKernel(cuStingerDevice   custinger,
                          BatchUpdate        batch_update,
                          EqualOp            equal_op,
                          bool* __restrict__ d_flags) {
@@ -51,22 +51,22 @@ void findDuplicateKernel(cuStingerDevice   data,
 
     for (int i = id; i < batch_update.size(); i += stride) {
         auto        src = batch_update.src(i);
-        auto batch_edge = batch_update.edge(i);
+        auto batch_edge = batch_update.dst(i);
 
         bool flag;
         if (i + 1 != batch_update.size() //&& src == batch_update.src(i)
-                 && equal_op(batch_edge, batch_update.edge(i + 1))) {
+                 && equal_op(batch_edge, batch_update.dst(i + 1))) {
             flag = false;
         }
         else {
-            auto vertex_src = Vertex(data, src);
+            auto vertex_src = Vertex(custinger, src);
             auto     degree = vertex_src.degree();
             flag = true;
             for (degree_t j = 0; j < degree; j++) {
                 /*printf("i %d\t b (%d, %d)\t edge %d -> %d\n",
                         i, src, batch_edge.dst(), vertex_src.edge(j).dst(),
                        equal_op(batch_edge, vertex_src.edge(j)));*/
-                if (equal_op(batch_edge, vertex_src.edge(j))) {
+                if (equal_op(batch_edge, vertex_src.neighbor_id(j))) {
                     flag = false;
                     break;
                 }
@@ -187,14 +187,14 @@ void bulkCopyAdjLists(const degree_t* __restrict__ d_prefixsum,
     auto lambda = [&] (int pos, degree_t offset) {
                     auto    old_ptr = reinterpret_cast<vid_t*>(d_old_ptrs[pos]);
                     auto    new_ptr = reinterpret_cast<vid_t*>(d_new_ptrs[pos]);
-                    //printf("p: %d    %d \t\t%llX\n", pos, old_ptr[offset], old_ptr);
                     new_ptr[offset] = old_ptr[offset];
+                    //printf("p: %d    %d \t\t%llX\n", pos, old_ptr[offset], old_ptr);
                 };
     xlib::binarySearchLB<BLOCK_SIZE>(d_prefixsum, work_size, smem, lambda);
 }
 
 __global__
-void mergeAdjListKernel(cuStingerDevice             data,
+void mergeAdjListKernel(cuStingerDevice              custinger,
                         const degree_t* __restrict__ d_degrees_changed,
                         BatchUpdate                  batch_update,
                         const vid_t* __restrict__    d_unique_src,
@@ -204,16 +204,16 @@ void mergeAdjListKernel(cuStingerDevice             data,
     int stride = gridDim.x * blockDim.x;
 
     for (int i = id; i < num_uniques; i += stride) {
-        auto    vertex = Vertex(data, d_unique_src[i]);
-        auto      left = vertex.neighbor_ptr();
+        auto    vertex = Vertex(custinger, d_unique_src[i]);
+        auto  left_ptr = vertex.neighbor_ptr();
         auto left_size = d_degrees_changed[i];
 
         int      start = d_counts_ps[i];
         int        end = d_counts_ps[i + 1];
         int right_size = end - start;
-        auto     right = batch_update.dst_ptr() + start;
+        auto right_ptr = batch_update.dst_ptr() + start;
 
-        xlib::inplace_merge(left, left_size, right, right_size);
+        xlib::inplace_merge(left_ptr, left_size, right_ptr, right_size);
     }
 }
 

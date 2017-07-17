@@ -2,7 +2,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date July, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -77,45 +77,11 @@ cuStinger::~cuStinger() noexcept {
         delete[] _csr_offsets;
         delete[] _csr_edges;
     }
-    cuFree(d_counts, d_unique, d_degree_old, d_degree_new, d_tmp, d_ptrs_array,
-            d_flags, d_inverse_pos);
-}
-
-void cuStinger::allocateBatch(const BatchProperty& batch_prop,
-                              size_t max_allocated_edges) noexcept {
-    if (_batch_allocated)
-        ERROR("Batch already allocated")
-    _batch_allocated     = true;
-    _max_allocated_edges = max_allocated_edges == 0 ? _nE : max_allocated_edges;
-
-    cuMalloc(d_counts, _nV + 1,
-             d_unique, _nV,
-             d_degree_old, _nV + 1,
-             d_degree_new, _nV + 1,
-             d_tmp, _nE,
-             d_ptrs_array, _nV + 1,
-             d_flags, _nE,
-             d_inverse_pos, _nV);
-
-    _batch_pitch = xlib::upper_approx<512>(max_allocated_edges * sizeof(vid_t) *
-                                           static_cast<int>(batch_prop));
-    cuMallocHost(_pinned_ptr, _batch_pitch * 2);
+    /*cuFree(d_counts, d_unique, d_degree_old, d_degree_new, d_tmp, d_ptrs_array,
+            d_flags, d_inverse_pos);*/
 }
 
 void cuStinger::initialize() noexcept {
-    //! KTRUSS !
-    cuMalloc(d_counts, _nV + 1);
-    cuMalloc(d_unique, _nV);
-    cuMalloc(d_degree_old, _nV + 1);
-    cuMalloc(d_degree_new, _nV + 1);
-    cuMalloc(d_tmp, _nE);
-    cuMalloc(d_ptrs_array, _nV + 1);
-    cuMalloc(d_flags, _nE);
-    cuMalloc(d_inverse_pos, _nV);
-    //cuMalloc(d_tmp1, _nE);
-    //cuMalloc(d_tmp2, _nE);
-
-
     auto edge_data_ptrs = _custinger_init._edge_data_ptrs;
     auto    vertex_data = _custinger_init._vertex_data_ptrs;
     const byte_t* h_vertex_ptrs[NUM_VTYPES];
@@ -229,7 +195,7 @@ void cuStinger::check_consistency(const cuStingerInit& custinger_init)
     convert_to_csr(csr_offsets, csr_edges);
 
     auto offsets_check = std::equal(csr_offsets, csr_offsets + _nV,
-                                   custinger_init.csr_offsets());
+                                    custinger_init.csr_offsets());
     if (!offsets_check)
         ERROR("Vertex Array not consistent")
     auto edge_ref = custinger_init._edge_data_ptrs[0];

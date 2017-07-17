@@ -129,6 +129,11 @@ constexpr size_t operator"" _MB ( long long unsigned value );          // NOLINT
 
 #endif
 
+const size_t KB = 1024llu;
+const size_t MB = 1024llu * 1024llu;
+const size_t GB = 1024llu * 1024llu * 1024llu;
+const size_t TB = 1024llu * 1024llu * 1024llu * 1024llu;
+
 template<typename>
 struct get_arity;
 
@@ -164,11 +169,14 @@ public:
     virtual CRTP  operator|  (const CRTP& obj) const noexcept final;
     virtual bool  operator&  (const CRTP& obj) const noexcept final;
     virtual bool  operator== (const CRTP& obj) const noexcept final;
+    virtual bool  operator!= (const CRTP& obj) const noexcept final;
 
             CRTP& operator=  (const CRTP& obj) noexcept ;
     virtual void  operator+= (const CRTP& obj) noexcept final;
     virtual void  operator-= (const CRTP& obj) noexcept final;
     virtual bool  is_undefined() const noexcept final;
+    virtual bool  not_compatible(const CRTP& obj1, const CRTP& obj2)
+                                 const noexcept ;
 protected:
     int _state { 0 };
     PropertyClass(int value) noexcept;

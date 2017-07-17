@@ -50,11 +50,13 @@
 #else
 
 namespace xlib {
-    struct Color { enum TMP { FG::FG_DEFAULT }; };
+    enum class Color { FG_DEFAULT };
     struct IosFlagSaver {};
 } // namespace xlib
 
-inline std::ostream& operator<<(std::ostream& os, Color mod) { return os; }
+inline std::ostream& operator<<(std::ostream& os, Color mod) noexcept {
+    return os;
+}
 
 #endif
 
@@ -103,11 +105,11 @@ protected:
     ChronoPrecision   _total_time_elapsed {};
     ChronoPrecision   _time_min           {};
     ChronoPrecision   _time_max           {};
-    const int         _decimals;
-    const int         _space;
-    int               _num_executions { 0 };
-    const xlib::Color _default_color;
-    bool              _start_flag     { false };
+    const int         _decimals           { 0 };
+    const int         _space              { 0 };
+    int               _num_executions     { 0 };
+    const xlib::Color _default_color      { xlib::Color::FG_DEFAULT };
+    bool              _start_flag         { false };
 
     /**
      * @brief Default costructor
@@ -116,6 +118,7 @@ protected:
      * @param[in] color color of print
      */
     explicit TimerBase(int decimals, int space, xlib::Color color) noexcept;
+
     virtual ~TimerBase() noexcept = default;
 
     /**
@@ -215,8 +218,8 @@ private:
     using TimerBase<HOST, ChronoPrecision>::_num_executions;
     using TimerBase<HOST, ChronoPrecision>::_start_flag;
 
-    std::chrono::system_clock::time_point  _start_time {};
-    std::chrono::system_clock::time_point  _stop_time  {};
+    std::chrono::system_clock::time_point _start_time {};
+    std::chrono::system_clock::time_point _stop_time  {};
 
     using TimerBase<HOST, ChronoPrecision>::register_time;
 };
@@ -280,35 +283,6 @@ private:
 };
 
 #endif
-//------------------------------------------------------------------------------
-//#if defined(__NVCC__)
-/*
-template<typename ChronoPrecision>
-class Timer<DEVICE, ChronoPrecision> :
-        public TimerBase<DEVICE, ChronoPrecision> {
-public:
-    using TimerBase<DEVICE, ChronoPrecision>::print;
-    using TimerBase<DEVICE, ChronoPrecision>::duration;
-    using TimerBase<DEVICE, ChronoPrecision>::total_duration;
-    using TimerBase<DEVICE, ChronoPrecision>::average;
-    using TimerBase<DEVICE, ChronoPrecision>::std_deviation;
-
-    explicit Timer(int decimals = 1, int space = 15,
-                   xlib::Color color = xlib::Color::FG_DEFAULT);
-    ~Timer();
-    virtual void start() final;
-    virtual void stop()  final;
-private:
-    using TimerBase<DEVICE, ChronoPrecision>::_time_elapsed;
-    using TimerBase<DEVICE, ChronoPrecision>::_time_squared;
-    using TimerBase<DEVICE, ChronoPrecision>::_total_time_elapsed;
-    using TimerBase<DEVICE, ChronoPrecision>::_num_executions;
-    using TimerBase<DEVICE, ChronoPrecision>::_start_flag;
-
-    cudaEvent_t _start_event, _stop_event;
-};*/
-
-//#endif
 
 } // namespace timer
 

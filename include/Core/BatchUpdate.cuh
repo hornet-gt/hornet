@@ -45,85 +45,103 @@
 
 namespace custinger {
 
-/**
- * @brief Batch Property
- */
-class BatchInit {
+namespace detail {
+    enum class BatchPropEnum { GEN_INVERSE = 1, LOW_MEMORY = 2, CSR = 4,
+                               CSR_WIDE = 8, DELETE = 16, INSERT = 32,
+                               HOST = 64, REMOVE_DUPLICATE = 64, COPY = 128 };
+} // namespace detail
+
+class BatchProperty : public xlib::PropertyClass<detail::BatchPropEnum,
+                                                 BatchProperty> {
 public:
-    /**
-     * @brief default costructor
-     * @param[in] sort the edge batch is sorted in lexicographic order
-     *            (source, destination)
-     * @param[in] weighted_distr generate a batch by using a random weighted
-     *            distribution based on the degree of the vertices
-     * @param[in] print print the batch on the standard output
-     */
-    explicit BatchInit(const vid_t* src_array,  const vid_t* dst_array,
-                       int batch_size) noexcept;
-
-    /**
-     * @brief Insert additional edge data
-     * @param[in] edge_data list of edge data. The list must contains atleast
-     *            the source and the destination arrays (vid_t type)
-     * @remark the types of the input arrays must be equal to the type List
-     *         for edges specified in the *config.inc* file
-     * @see ::insertVertexData
-     */
-    template<typename... TArgs>
-    void insertEdgeData(TArgs... edge_data) noexcept;
-
-    int size() const noexcept;
-
-    const byte_t* edge_ptrs(int index) const noexcept;
-
-private:
-    const byte_t* _edge_ptrs[ NUM_ETYPES + 1 ] = {};
-    const int     _batch_size { 0 };
+    explicit BatchProperty() noexcept = default;
+    explicit BatchProperty(const detail::BatchPropEnum& obj) noexcept;
 };
 
-/**
- * @brief Batch Property
- */
-class Batch {
+namespace batch_property {
+    const BatchProperty GEN_INVERSE (detail::BatchPropEnum::GEN_INVERSE);
+    const BatchProperty LOW_MEMORY  (detail::BatchPropEnum::LOW_MEMORY);
+    const BatchProperty CSR         (detail::BatchPropEnum::CSR);
+    const BatchProperty CSR_WIDE    (detail::BatchPropEnum::CSR_WIDE);
+    const BatchProperty DELETE      (detail::BatchPropEnum::DELETE);
+    const BatchProperty INSERT      (detail::BatchPropEnum::INSERT);
+    const BatchProperty HOST        (detail::BatchPropEnum::HOST);
+    const BatchProperty COPY        (detail::BatchPropEnum::COPY);
+    const BatchProperty REMOVE_DUPLICATE
+                                    (detail::BatchPropEnum::REMOVE_DUPLICATE);
+}
+
+//==============================================================================
+
+class BatchHost {
+public:
+    explicit BatchHost(vid_t* src_array, vid_t* dst_array, int batch_size)
+                       noexcept;
+
+    vid_t* original_src_ptr() const noexcept;
+    vid_t* original_dst_ptr() const noexcept;
+    int    original_size()    const noexcept;
+
+    virtual void print() const noexcept;
+
 protected:
-    const vid_t* _src_array  { nullptr };
-    const vid_t* _dst_array  { nullptr };
-    const int    _init_size  { 0 };
+    vid_t* _src_array     { nullptr };
+    vid_t* _dst_array     { nullptr };
+    int    _original_size { 0 };
+};
 
-    vid_t*  _d_src_array  { nullptr };
-    vid_t*  _d_dst_array  { nullptr };
-    eoff_t* _d_offsets    { nullptr };
-    int     _offsets_size { 0 };
-    int     _batch_size   { 0 };
+//==============================================================================
 
-    /**
-     * @brief default costructor
-     * @param[in]
-     * @param[in]
-     * @param[in]
-     */
-    explicit Batch(const vid_t* src_array, const vid_t* dst_array,
-                   int batch_size) noexcept;
+class BatchDevice : public BatchHost {
+public:
+    explicit BatchDevice(vid_t* src_array, vid_t* dst_array, int batch_size)
+                         noexcept;
 
-    explicit Batch(const Batch& batch) noexcept;
+    void print() const noexcept override;
+};
 
-    int init_size() const noexcept;
+//==============================================================================
 
-    bool ready_to_insert() const noexcept;
+class BatchUpdate {
+    friend class cuStinger;
+public:
+    explicit BatchUpdate(vid_t max_batch_size,
+                         size_t total_graph_edges,
+                         vid_t num_vertices,
+                         const BatchProperty& batch_prop) noexcept;
+
+    BatchUpdate(const BatchUpdate& batch_update) noexcept;
+
+    explicit BatchUpdate(const BatchHost&     batch_host,
+                         const BatchProperty& batch_prop      = BatchProperty(),
+                         size_t               total_graph_edges = 0,
+                         vid_t                num_vertices      = 0) noexcept;
+
+    explicit BatchUpdate(const BatchDevice&   batch_host,
+                         const BatchProperty& batch_prop      = BatchProperty(),
+                         size_t               total_graph_edges = 0,
+                         vid_t                num_vertices      = 0) noexcept;
+
+    ~BatchUpdate() noexcept;
+
+    void bind(const BatchHost& batch_host) noexcept;
+    void bind(BatchDevice& batch_device) noexcept;
+
+    bool ready_for_device() const noexcept;
 
     HOST_DEVICE int size() const noexcept;
+
+    HOST_DEVICE int csr_size() const noexcept;
 
     HOST_DEVICE vid_t* src_ptr() const noexcept;
 
     HOST_DEVICE vid_t* dst_ptr() const noexcept;
 
-    HOST_DEVICE eoff_t* offsets_ptr() const noexcept;
+    HOST_DEVICE const eoff_t* offsets_ptr() const noexcept;
 
-    HOST_DEVICE int offsets_size() const noexcept;
+    HOST_DEVICE int  offsets_size() const noexcept;
 
-    virtual vid_t* host_src_ptr() const noexcept = 0;
-    virtual vid_t* host_dst_ptr() const noexcept = 0;
-    virtual void   print()        const noexcept = 0;
+    void print() const noexcept;
 
 #if defined(__NVCC__)
     __device__ __forceinline__
@@ -131,102 +149,55 @@ protected:
 
     __device__ __forceinline__
     vid_t dst(int index) const noexcept;
-#endif
-};
-
-class BatchHost : public Batch {
-public:
-    explicit BatchHost(const vid_t* src_array, const vid_t* dst_array,
-                       int batch_size) noexcept;
-    using Batch::size;
-    using Batch::src_ptr;
-    using Batch::dst_ptr;
-    using Batch::offsets_ptr;
-    using Batch::offsets_size;
-    using Batch::host_src_ptr;
-    using Batch::host_dst_ptr;
-    using Batch::print;
-};
-
-class BatchDevice : public Batch {
-public:
-    explicit BatchDevice(const vid_t* src_array, const vid_t* dst_array,
-                         int batch_size) noexcept;
-    using Batch::size;
-    using Batch::src_ptr;
-    using Batch::dst_ptr;
-    using Batch::offsets_ptr;
-    using Batch::offsets_size;
-    using Batch::host_src_ptr;
-    using Batch::host_dst_ptr;
-    using Batch::print;
-};
-
-//-----------------------------------------------------------------------------
-
-/**
- * @brief Batch update class
- */
-class BatchUpdate {
-    friend class cuStinger;
-public:
-    /**
-     * @brief default costructor
-     * @param[in] batch_size number of edges of the batch
-     */
-    explicit BatchUpdate(const BatchInit& batch_init) noexcept;
-
-    explicit BatchUpdate(size_t size) noexcept;
-
-    //copy costructor to copy the batch to the kernel
-    BatchUpdate(const BatchUpdate& obj) noexcept;
-
-    ~BatchUpdate() noexcept;
-
-    void sendToDevice(const BatchInit& batch_init) noexcept;
-
-    void bind(const BatchInit& batch_init) noexcept;
-
-#if defined(__NVCC__)
-
-    __host__ __device__ __forceinline__
-    int size() const noexcept;
 
     __device__ __forceinline__
-    vid_t src(int index) const noexcept;
+    int csr_src_pos(int vertex_id) const noexcept;
 
     __device__ __forceinline__
-    vid_t dst(int index) const noexcept;
-
-    __device__ __forceinline__
-    Edge edge(int index) const noexcept;
-
-    template<int INDEX>
-    __device__ __forceinline__
-    typename std::tuple_element<INDEX, VertexTypes>::type
-    field(int index) const noexcept;
-
-    __device__ __forceinline__
-    eoff_t* offsets_ptr() const noexcept;
-
-    __device__ __forceinline__
-    int offsets_size() const noexcept;
-
-    __host__ __device__ __forceinline__
-    vid_t* src_ptr() const noexcept;
-
-    __host__ __device__ __forceinline__
-    vid_t* dst_ptr() const noexcept;
+    vid_t csr_src(int index) const noexcept;
 #endif
 
 private:
-    byte_t*    _pinned_ptr    { nullptr };
-    byte_t*    _d_edge_ptrs[ NUM_ETYPES + 1 ] = {};
-    eoff_t*    _d_offsets     { nullptr };
-    int        _batch_size    { 0 };
-    int        _offsets_size  { 0 };
-    const int  _batch_pitch   { 0 }; //number of edges to the next field
-    const bool _enable_delete { true };
+    const BatchProperty& _prop;
+
+    vid_t* _d_src_array { nullptr };
+    vid_t* _d_dst_array { nullptr };
+    int    _batch_size  { 0 };
+
+    const eoff_t* _d_offsets    { nullptr };
+    int           _offsets_size { 0 };
+
+    ///Batch delete tmp variables
+    vid_t*    _d_unique       { nullptr };
+    int*      _d_counts       { nullptr };
+    degree_t* _d_degree_old   { nullptr };
+    degree_t* _d_degree_new   { nullptr };
+    byte_t*   *_d_ptrs_array  { nullptr };
+    edge_t*   _d_tmp          { nullptr };
+    bool*     _d_flags        { nullptr };
+    eoff_t*   _d_inverse_pos  { nullptr };
+    vid_t*    _d_tmp_sort_src { nullptr };
+    vid_t*    _d_tmp_sort_dst { nullptr };
+
+    byte_t*    _batch_ptr   { nullptr };
+    size_t     _batch_pitch { 0 };  //bytes to the next field
+
+    bool       _pinned           { false };
+    bool       _ready_for_device { false };
+
+    // 8 * BatchSize + 2E
+    void allocate(vid_t max_batch_size, size_t total_graph_edges,
+                  vid_t num_vertices, const BatchProperty& batch_prop) noexcept;
+
+    void allocate_batch(vid_t max_batch_size, const BatchProperty& batch_prop,
+                        bool pinned) noexcept;
+    //--------------------------------------------------------------------------
+
+    void change_ptrs(vid_t* d_src_array, vid_t* d_dst_array, int d_batch_size)
+                     noexcept;
+
+    void set_csr(const eoff_t* d_offsets, int offsets_size,
+                 eoff_t* d_inverse_pos = nullptr) noexcept;
 };
 
 } // namespace custinger

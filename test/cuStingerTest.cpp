@@ -71,7 +71,7 @@ void exec(int argc, char* argv[]) {
     weights[3] = 4;
     weights[4] = 5;
 
-    custinger_init.insertEdgeData(weights);
+    //custinger_init.insertEdgeData(weights);
 
 
     cuStinger custiger_graph(custinger_init);
@@ -96,18 +96,18 @@ void exec(int argc, char* argv[]) {
     //int batch_size = sizeof(batch_src) / sizeof(vid_t);
     //BatchUpdate batch_update(batch_init);
     //custiger_graph.insertEdgeBatch(batch_update);
-
+    using namespace batch_gen_property;
     auto batch_src = new vid_t[batch_size];
     auto batch_dst = new vid_t[batch_size];
     generateBatch(graph, batch_size, batch_src, batch_dst, BatchType::REMOVE,
-                  batch_property::UNIQUE | batch_property::PRINT);
+                  UNIQUE | batch_gen_property::PRINT);
 
     std::cout << "--------------------------------------------------------"<<std::endl;
-    BatchInit batch_init(batch_src, batch_dst, batch_size);
-    BatchUpdate batch_update(custiger_graph.nV());
-    batch_update.sendToDevice(batch_init);
+    BatchHost batch_host(batch_src, batch_dst, batch_size);
+    //BatchUpdate batch_update(batch_host);
+    //batch_update.sendToDevice(batch_init);
 
-    custiger_graph.edgeDeletionsSorted(batch_update);
+    //custiger_graph.edgeDeletionsSorted(batch_host);
 
     custiger_graph.check_sorted_adjs();
 

@@ -41,20 +41,20 @@
 #include "GraphIO/GraphStd.hpp"
 
 namespace detail {
-    enum class BatchEnum { WEIGHTED = 1, PRINT = 2, UNIQUE = 4 };
+    enum class BatchGenEnum { WEIGHTED = 1, PRINT = 2, UNIQUE = 4 };
 } // namespace detail
 
-class BatchGenProperty : public xlib::PropertyClass<detail::BatchEnum,
-                                                 BatchGenProperty> {
+class BatchGenProperty : public xlib::PropertyClass<detail::BatchGenEnum,
+                                                     BatchGenProperty> {
 public:
     explicit BatchGenProperty() noexcept = default;
-    explicit BatchGenProperty(const detail::BatchEnum& obj) noexcept;
+    explicit BatchGenProperty(const detail::BatchGenEnum& obj) noexcept;
 };
 
-namespace batch_property {
-    const BatchGenProperty WEIGHTED (detail::BatchEnum::WEIGHTED);
-    const BatchGenProperty PRINT    (detail::BatchEnum::PRINT);
-    const BatchGenProperty UNIQUE   (detail::BatchEnum::UNIQUE);
+namespace batch_gen_property {
+    const BatchGenProperty WEIGHTED (detail::BatchGenEnum::WEIGHTED);
+    const BatchGenProperty PRINT    (detail::BatchGenEnum::PRINT);
+    const BatchGenProperty UNIQUE   (detail::BatchGenEnum::UNIQUE);
 }
 
 enum class BatchType { INSERT, REMOVE };

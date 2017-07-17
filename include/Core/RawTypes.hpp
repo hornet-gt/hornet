@@ -41,6 +41,7 @@
  */
 #pragma once
 
+#include "Support/Host/Basic.hpp"            //xlib::byte_t
 #include "Support/Host/Metaprogramming.hpp"  //xlib::TupleToTypeSize
 #include "Support/Host/Numeric.hpp"          //xlib::roundup_pow2
 #include <limits>
@@ -50,7 +51,7 @@ namespace custinger {
 template<typename... TArgs>
 using TypeList = std::tuple<TArgs...>;
 
-using   byte_t = char;
+using xlib::byte_t;
 using degree_t = int;
 
 namespace detail {
@@ -82,7 +83,8 @@ struct ALIGN(16) VertexBasicData {
 };
 
 //User configuration
-#include "configWeight.inc"
+//#include "configWeight.inc"
+#include "config.inc"
 
 using vertex_t = typename xlib::TupleConcat<TypeList<VertexBasicData>,
                                             VertexTypes>::type;
@@ -108,8 +110,3 @@ void bind(const byte_t* (&data_ptrs)[SIZE], const T* data, TArgs... args)
 }
 
 } // namespace custinger
-
-        /*    static constexpr custinger::degree_t Lowest() {
-                return std::numeric_limits<custinger::degree_t>::lowest();
-            }
-    };*/

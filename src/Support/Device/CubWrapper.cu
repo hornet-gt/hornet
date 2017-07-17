@@ -92,8 +92,8 @@ template<typename T, typename R>
 CubSortPairs2<T, R>::CubSortPairs2(T* d_in1, R* d_in2, size_t num_items,
                                    T d_in1_max, R d_in2_max) :
                            CubWrapper(num_items), _d_in1(d_in1), _d_in2(d_in2),
-                           _d_out1(d_in1), _d_out2(d_in2),
-                           _d_in1_max(d_in1_max), _d_in2_max(d_in2_max) {
+                           _d_in1_max(d_in1_max), _d_in2_max(d_in2_max),
+                           _internal_alloc(true) {
 
     cuMalloc(_d_in1_tmp, _num_items);
     cuMalloc(_d_in2_tmp, _num_items);
@@ -102,20 +102,17 @@ CubSortPairs2<T, R>::CubSortPairs2(T* d_in1, R* d_in2, size_t num_items,
                                     _d_in2, _d_in2_tmp, _d_in1, _d_in1_tmp,
                                     _num_items, 0, xlib::ceil_log2(max));
     SAFE_CALL( cudaMalloc(&_d_temp_storage, _temp_storage_bytes) )
-    _internal_alloc = true;
 }
 
 template<typename T, typename R>
-CubSortPairs2<T, R>::CubSortPairs2(const T* d_in1, const R* d_in2,
-                                   size_t num_items, T* d_out1, R* d_out2,
+CubSortPairs2<T, R>::CubSortPairs2(T* d_in1, R* d_in2, size_t num_items,
+                                   T* d_in1_tmp, R* d_in2_tmp,
                                    T d_in1_max, R d_in2_max) :
                            CubWrapper(num_items), _d_in1(const_cast<T*>(d_in1)),
                            _d_in2(const_cast<R*>(d_in2)),
-                           _d_out1(d_out1), _d_out2(d_out2),
+                           _d_in1_tmp(d_in1_tmp), _d_in2_tmp(d_in2_tmp),
                            _d_in1_max(d_in1_max), _d_in2_max(d_in2_max) {
 
-    cuMalloc(_d_in1_tmp, _num_items);
-    cuMalloc(_d_in2_tmp, _num_items);
     auto max = std::max(_d_in1_max, d_in2_max);
     cub::DeviceRadixSort::SortPairs(_d_temp_storage, _temp_storage_bytes,
                                     _d_in2, _d_in2_tmp, _d_in1, _d_in1_tmp,
@@ -125,7 +122,8 @@ CubSortPairs2<T, R>::CubSortPairs2(const T* d_in1, const R* d_in2,
 
 template<typename T, typename R>
 CubSortPairs2<T, R>::~CubSortPairs2() noexcept {
-    cuFree(_d_in1_tmp, _d_in2_tmp);
+    if (_internal_alloc)
+        cuFree(_d_in1_tmp, _d_in2_tmp);
 }
 
 template<typename T, typename R>
@@ -135,7 +133,7 @@ void CubSortPairs2<T, R>::run() noexcept {
                                     _num_items, 0, xlib::ceil_log2(_d_in2_max));
 
     cub::DeviceRadixSort::SortPairs(_d_temp_storage, _temp_storage_bytes,
-                                    _d_in1_tmp, _d_out1, _d_in2_tmp, _d_out2,
+                                    _d_in1_tmp, _d_in1, _d_in2_tmp, _d_in2,
                                     _num_items, 0, xlib::ceil_log2(_d_in1_max));
 }
 //------------------------------------------------------------------------------

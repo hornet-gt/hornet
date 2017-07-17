@@ -2,7 +2,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date July, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -41,14 +41,9 @@
 namespace custinger {
 
 template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
-BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>::BitTree() noexcept :
-                                              _last_level(nullptr),
-                                              _h_ptr(nullptr),
-                                              _d_ptr(nullptr),
-                                              _size(0) {
+BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>::BitTree() noexcept {
     _h_ptr = new byte_t[BLOCKARRAY_ITEMS * sizeof(edge_t)];
     cuMalloc(_d_ptr, BLOCKARRAY_ITEMS * sizeof(edge_t));
-    //cuMemset0xFF(_d_ptr, BLOCKARRAY_ITEMS);
     const word_t EMPTY = static_cast<word_t>(-1);
     std::fill(_array, _array + NUM_WORDS, EMPTY);
     _last_level = _array + INTERNAL_WORDS;
@@ -89,8 +84,8 @@ BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>
 template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
 BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>::~BitTree() noexcept {
     cuFree(_d_ptr);
-    delete[] _h_ptr;
     _d_ptr = nullptr;
+    delete[] _h_ptr;
 }
 
 template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
@@ -127,8 +122,10 @@ BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>::insert() noexcept {
     }
     int block_index = index - INTERNAL_BITS;
     assert(block_index >= 0 && block_index < BLOCKARRAY_ITEMS);
-    return std::pair<byte_t*, byte_t*>(_h_ptr + block_index * BLOCK_ITEMS * sizeof(vid_t),
-                                       _d_ptr + block_index * BLOCK_ITEMS * sizeof(vid_t));
+
+    auto h_ptr = _h_ptr + block_index * BLOCK_ITEMS * sizeof(vid_t);
+    auto d_ptr = _d_ptr + block_index * BLOCK_ITEMS * sizeof(vid_t);
+    return std::pair<byte_t*, byte_t*>(h_ptr, d_ptr);
 }
 
 //------------------------------------------------------------------------------
@@ -194,7 +191,8 @@ BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>::base_address() const noexcept {
 template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>
 inline bool BitTree<BLOCK_ITEMS, BLOCKARRAY_ITEMS>
 ::belong_to(void* to_check) const noexcept {
-    return to_check >= _d_ptr && to_check < _d_ptr + BLOCKARRAY_ITEMS * sizeof(edge_t);
+    return to_check >= _d_ptr &&
+           to_check < _d_ptr + BLOCKARRAY_ITEMS * sizeof(edge_t);
 }
 
 template<unsigned BLOCK_ITEMS, unsigned BLOCKARRAY_ITEMS>

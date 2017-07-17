@@ -55,10 +55,6 @@ constexpr size_t operator"" _MB ( unsigned long long value ) {         // NOLINT
 
 #endif
 
-const size_t KB = 1024llu;
-const size_t MB = 1024llu * 1024llu;
-const size_t GB = 1024llu * 1024llu * 1024llu;
-
 //------------------------------------------------------------------------------
 
 template <class T>
@@ -116,13 +112,19 @@ CRTP PropertyClass<Enum, CRTP>::operator| (const CRTP& obj) const noexcept {
 template<typename Enum, typename CRTP>
 bool PropertyClass<Enum, CRTP>::operator& (const CRTP& obj)
                                      const noexcept {
-    return _state & obj._state;
+    return static_cast<bool>(_state & obj._state);
 }
 
 template<typename Enum, typename CRTP>
 bool PropertyClass<Enum, CRTP>::operator== (const CRTP& obj)
                                       const noexcept {
-    return _state & obj._state;
+    return static_cast<bool>(_state & obj._state);
+}
+
+template<typename Enum, typename CRTP>
+bool PropertyClass<Enum, CRTP>::operator!= (const CRTP& obj)
+                                            const noexcept {
+    return !static_cast<bool>(_state & obj._state);
 }
 
 template<typename Enum, typename CRTP>
@@ -144,6 +146,13 @@ template<typename Enum, typename CRTP>
 CRTP& PropertyClass<Enum, CRTP>::operator= (const CRTP& obj) noexcept {
     _state = obj._state;
     return *this;
+}
+
+template<typename Enum, typename CRTP>
+bool PropertyClass<Enum, CRTP>::not_compatible(const CRTP& obj1,
+                                               const CRTP& obj2)
+                                               const noexcept {
+    return false;
 }
 
 } // namespace xlib

@@ -34,6 +34,8 @@
  * </blockquote>}
  */
 #include "Support/Host/PrintExt.hpp"
+#include "Support/Host/Basic.hpp"       //xlib::KB
+#include "Support/Host/Numeric.hpp"     //xlib::round_div
 
 namespace xlib {
 
@@ -69,6 +71,7 @@ ThousandSep::ThousandSep() : sep(nullptr) {
 ThousandSep::~ThousandSep() {
     std::cout.imbue(std::locale());
 }
+//------------------------------------------------------------------------------
 
 IosFlagSaver::IosFlagSaver() noexcept : _flags(std::cout.flags()),
                                         _precision(std::cout.precision()) {}
@@ -77,18 +80,28 @@ IosFlagSaver::~IosFlagSaver() noexcept {
     std::cout.flags(_flags);
     std::cout.precision(_precision);
 }
+//------------------------------------------------------------------------------
 
-void fixedFloat() {
+void fixed_float() noexcept {
     std::cout.setf(std::ios::fixed, std::ios::floatfield);
 }
 
-void scientificFloat() {
+void scientific_float() noexcept {
     std::cout.setf(std::ios::scientific, std::ios::floatfield);
 }
 
+std::string human_readable(size_t size) noexcept {
+    if (size >= xlib::GB)
+        return std::to_string(xlib::round_div<xlib::GB>(size)) + " GB";
+    if (size >= xlib::MB)
+        return std::to_string(xlib::round_div<xlib::MB>(size)) + " MB";
+    if (size >= xlib::KB)
+        return std::to_string(xlib::round_div<xlib::KB>(size)) + " KB";
+    return std::to_string(size) + " B";
+}
 //------------------------------------------------------------------------------
 
-void charSequence(char c, int sequence_length) noexcept {
+void char_sequence(char c, int sequence_length) noexcept {
     for (int i = 0; i < sequence_length; i++)
         std::cout << c;
     std::cout << "\n";

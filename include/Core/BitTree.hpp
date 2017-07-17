@@ -4,7 +4,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date July, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -74,6 +74,11 @@ public:
     BitTree() noexcept;
 
     /**
+     * @brief Move constructor
+     */
+    BitTree(BitTree&& obj) noexcept;
+
+    /**
      * @brief Decostructor
      * @details Deallocate HOST and DEVICE *BlockArrays*
      */
@@ -83,6 +88,7 @@ public:
      * @brief Free host *BlockArray* pointer
      */
     void free_host_ptr() noexcept;
+
     /**
      * @brief Insert a new *block*
      * @details Find the first empty *block* within the *BlockArray*
@@ -135,11 +141,6 @@ public:
     void statistics() const noexcept;
 
     /**
-     * @brief Move constructor
-     */
-    BitTree(BitTree&& obj) noexcept;
-
-    /**
      * @brief Assignment operator
      */
     BitTree& operator=(BitTree&& obj) noexcept;
@@ -162,10 +163,10 @@ private:
     static const auto      TOTAL_BITS = NUM_WORDS * WORD_SIZE;
 
     word_t  _array[NUM_WORDS];
-    word_t* _last_level;
-    byte_t* _h_ptr;
-    byte_t* _d_ptr;
-    size_t  _size;
+    word_t* _last_level { nullptr };
+    byte_t* _h_ptr      { nullptr };
+    byte_t* _d_ptr      { nullptr };
+    size_t  _size       { 0 };
 
     int remove_aux(void* device_ptr) noexcept;
 

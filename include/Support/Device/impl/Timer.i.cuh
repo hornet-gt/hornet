@@ -48,23 +48,19 @@ Timer<DEVICE, ChronoPrecision>::~Timer() noexcept {
 template<typename ChronoPrecision>
 void Timer<DEVICE, ChronoPrecision>::start() noexcept {
     assert(!_start_flag);
-    cudaEventRecord(_start_event, 0);
-    assert(_start_flag = true);
+    _start_flag = false;
+    cudaEventRecord(_start_event, 0);    
 }
 
 template<typename ChronoPrecision>
 void Timer<DEVICE, ChronoPrecision>::stop() noexcept {
-    assert(_start_flag);
+    float cuda_time_elapsed;
     cudaEventRecord(_stop_event, 0);
     cudaEventSynchronize(_stop_event);
-    float cuda_time_elapsed;
     cudaEventElapsedTime(&cuda_time_elapsed, _start_event, _stop_event);
-    auto   time_ms = timer::milli(cuda_time_elapsed);
-    _time_elapsed  = std::chrono::duration_cast<ChronoPrecision>(time_ms);
-    _time_squared += _time_elapsed * _time_elapsed.count();
-    _total_time_elapsed += _time_elapsed;
-    _num_executions++;
-    assert(!(_start_flag = false));
+    auto  time_ms = timer::milli(cuda_time_elapsed);
+    _time_elapsed = std::chrono::duration_cast<ChronoPrecision>(time_ms);
+    register_time();
 }
 
 } // namespace timer

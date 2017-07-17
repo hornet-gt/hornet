@@ -52,7 +52,7 @@ CommandLineParam::CommandLineParam(graph::GraphStd<T, R>& graph,
     bool write_binary = false;
     if (argc == 1) {
 L1:     std::ifstream syntax_file("../docs/Syntax.txt");
-        std::cout << syntax_file.rdbuf() << "\n" << std::endl;
+        std::cout << syntax_file.rdbuf() << std::endl;
         syntax_file.close();
         std::exit(EXIT_SUCCESS);
     }

@@ -138,8 +138,6 @@ private:
 
 //==============================================================================
 
-enum class BatchProperty { PLAIN = 1, GENERATE_INVERSE = 2 };
-
 /**
  * @brief Main cuStinger class
  */
@@ -240,9 +238,11 @@ public:
     void insertEdgeBatch(BatchUpdate& batch_update, const EqualOp& equal_op)
                          noexcept;
 
+    void edgeDeletionsSorted(BatchHost& batch_update) noexcept;
+    void edgeDeletionsSorted(BatchDevice& batch_update) noexcept;
     void edgeDeletionsSorted(BatchUpdate& batch_update) noexcept;
 
-    void edgeDeletionsSortedInPlace(BatchUpdate& batch_update) noexcept;
+    //void edgeDeletionsSortedInPlace(BatchUpdate& batch_update) noexcept;
 
 private:
     static int global_id;
@@ -267,24 +267,7 @@ private:
     bool          _internal_csr_data { false };
     vid_t         _max_degree_vertex { -1 };
 
-    ///Batch delete tmp variables
-    vid_t*    d_unique      { nullptr };
-    int*      d_counts      { nullptr };
-    degree_t* d_degree_old  { nullptr };
-    degree_t* d_degree_new  { nullptr };
-    byte_t*   *d_ptrs_array { nullptr };
-    int2*     d_tmp         { nullptr };
-    bool*     d_flags       { nullptr };
-    int*      d_inverse_pos { nullptr };
-    int*      d_tmp1        { nullptr };
-    int*      d_tmp2        { nullptr };
 
-
-    byte_t*    _pinned_ptr          { nullptr };
-     //the number of bytes to the next field
-    size_t     _batch_pitch         { 0 };
-    size_t     _max_allocated_edges { 0 };
-    bool       _batch_allocated     { false };
 
     void initialize() noexcept;
 

@@ -24,7 +24,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 @author Federico Busato
          Univerity of Verona, Dept. of Computer Science
          federico.busato@univr.it
-@date April, 2017
+@date July, 2017
 @version v1.3
 ]]
 
@@ -38,8 +38,10 @@ cmake_minimum_required(VERSION 3.5)
 
 set(UNUSED_COMPILER_OPTIONS OFF)    #unused compiler flags
 set(MARCH_COMPILER_OPTIONS OFF)     #march compiler flag
+#EXTERNAL VARIABLE
 #set(WARNING_FLAGS ON)
-#set(CUB_LIBRARY <PATH>)
+#set(CUB_LIBRARY   <PATH>)
+#set(CUDAHC <PATH>)
 #===============================================================================
 ###################
 # INCLUDE AND SRC #
@@ -54,14 +56,16 @@ endif()
 
 message("\n==> Selected CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE} "\n")
 if (    (NOT CMAKE_BUILD_TYPE STREQUAL "Release")
+    AND (NOT CMAKE_BUILD_TYPE STREQUAL "ReleaseEx")
     AND (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     AND (NOT CMAKE_BUILD_TYPE STREQUAL "Info"))
     message(FATAL_ERROR
-    "\nwrong BUILD_TYPE: \"-DCMAKE_BUILD_TYPE=[ Release | Debug | Info | Info2]\"")
+    "\nwrong BUILD_TYPE: \"-DCMAKE_BUILD_TYPE=[ Release | Debug | Info |"
+    " ReleaseEx]\"")
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
+#include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 
 #===============================================================================
 #######################
@@ -95,9 +99,9 @@ if (WARNING_FLAGS)
         add_compile_options("-Wno-c++98-compat")
         add_compile_options("-Wno-c++98-compat-pedantic")
         add_compile_options("-Wno-padded")
+        add_compile_options("-Wno-undefined-func-template")
         #add_compile_options("-Wno-documentation-unknown-command")
         #add_compile_options("-Wno-weak-template-vtables")
-        add_compile_options("-Wno-undefined-func-template")
         #add_compile_options("-Wno-documentation")
     elseif(CMAKE_COMPILER_IS_GNUCXX)
         add_compile_options("-Wall")
@@ -137,11 +141,12 @@ find_library(
     HINTS  ${CUDA_TOOLKIT_ROOT_DIR}/lib64
 )
 
-if (CUDA_C_COMPILER)
-    message("Cuda CXX compiler: " ${CUDA_CXX_COMPILER})
-    set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-ccbin=${CUDA_C_COMPILER}" )
+if (CUDAHC)
+    message("\nCuda Host compiler: " ${CUDAHC})
+    set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-ccbin=${CUDAHC}" )
 else()
-    message("Cuda CXX compiler: " ${CMAKE_CXX_COMPILER})
+    message("\nCuda Host compiler (-DCUDAHC=<path_to_host_compiler>):")
+    execute_process(COMMAND bash "-c" "gcc --version | head -n 1")
 endif()
 
 if (CUB_LIBRARY)
@@ -170,7 +175,8 @@ endif()
 endif()
 
 set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-std=c++11" "--expt-extended-lambda"
-    "-Xcompiler=-Wno-unknown-pragmas"
+    #"--expt-relaxed-constexpr"
+    "-Xcompiler=-Wno-unknown-pragmas"#,-ftemplate-depth=512
     -Xcudafe \\\"--diag_suppress=initialization_not_reachable\\\"
     -Xcudafe \\\"--diag_suppress=code_is_unreachable\\\"
     -isystem /usr/local/cuda/include
@@ -187,9 +193,9 @@ set(SM "" CACHE STRING "streaming multiprocessor number")
 if(GPU_ARCH STREQUAL "")
     if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/getDeviceInfo)
         execute_process(COMMAND ${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc
-                    -Wno-deprecated-gpu-targets
-                    ${CMAKE_CURRENT_LIST_DIR}/getDeviceInfo.cu
-                -o ${CMAKE_CURRENT_LIST_DIR}/getDeviceInfo)
+                                    -Wno-deprecated-gpu-targets
+                                    ${CMAKE_CURRENT_LIST_DIR}/getDeviceInfo.cu
+                                    -o ${CMAKE_CURRENT_LIST_DIR}/getDeviceInfo)
     endif()
     execute_process(COMMAND ${CMAKE_CURRENT_LIST_DIR}/getDeviceInfo
                     OUTPUT_VARIABLE OUT_VARIABLE)
@@ -250,8 +256,8 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
 
 elseif (CMAKE_BUILD_TYPE STREQUAL "ReleaseEx")
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "--use_fast_math" "-DNDEBUG"
-"-Xcompiler=-O3,${D_QUNUSED}${D_MARCH}-mtune=native,-funroll-loops,-DNDEBUG\
--DNO_CHECK_CUDA_ERROR" "-DNO_CHECK_CUDA_ERROR")
+"-Xcompiler=-O3,${D_QUNUSED}${D_MARCH}-mtune=native,-funroll-loops,-DNDEBUG,\
+-DNO_CHECK_CUDA_ERROR")
 
 elseif (CMAKE_BUILD_TYPE STREQUAL "Info")
     file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/build/TMP)
@@ -259,8 +265,8 @@ elseif (CMAKE_BUILD_TYPE STREQUAL "Info")
         #"-DNDEBUG"
          "--resource-usage"
         "-keep-dir" "${PROJECT_SOURCE_DIR}/build/TMP"
-    #"-Xcompiler=-DNDEBUG"
-)
+        #"-Xcompiler=-DNDEBUG"
+    )
 
 elseif (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-g" "-G")
@@ -326,7 +332,7 @@ ProcessorCount(THREADS)
 if(THREADS EQUAL 0)
     message(FATAL_ERROR "Get Number of CPU threads failed!")
 else()
-    message("Number of CPU threads: " ${THREADS} "\n")
+    message("Number of CPU threads: " ${THREADS})
 endif()
 
 #===============================================================================
@@ -361,6 +367,11 @@ add_custom_target(update_info rm -rf *
                   COMMAND cmake -DCMAKE_BUILD_TYPE=Info ..
                   COMMAND make -j ${THREADS}
                   COMMENT "UPDATE INFO")
+
+add_custom_target(update_ex rm -rf *
+                  COMMAND cmake -DCMAKE_BUILD_TYPE=ReleaseEx ..
+                  COMMAND make -j ${THREADS}
+                  COMMENT "UPDATE ReleaseEx")
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 

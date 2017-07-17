@@ -48,11 +48,9 @@ inline void ptr2_t<T>::swap() noexcept {
 //------------------------------------------------------------------------------
 
 template<typename T>
-TwoLevelQueue<T>::TwoLevelQueue(const custinger::cuStinger& custinger,
-                                size_t max_allocated_items) noexcept :
-             _custinger(custinger),
-             _max_allocated_items(max_allocated_items == 0 ?
-                                  custinger.nV() * 2 : max_allocated_items) {
+TwoLevelQueue<T>::TwoLevelQueue(const custinger::cuStinger& custinger)
+                               noexcept :
+                                  _max_allocated_items(custinger.nV() * 2) {
 
     cuMalloc(_d_queue_ptrs.first, _max_allocated_items);
     cuMalloc(_d_queue_ptrs.second, _max_allocated_items);
@@ -69,11 +67,10 @@ TwoLevelQueue<T>::TwoLevelQueue(const custinger::cuStinger& custinger,
 
 template<typename T>
 TwoLevelQueue<T>::TwoLevelQueue(const TwoLevelQueue<T>& obj) noexcept :
-                            //_custinger(obj._custinger),
-                            //_max_allocated_items(obj._max_allocated_items),
+                            _max_allocated_items(obj._max_allocated_items),
                             _d_queue_ptrs(obj._d_queue_ptrs),
-                            _d_counters(obj._d_counters) {
-    std::cout << "copy" << std::endl;
+                            _d_counters(obj._d_counters),
+                            _kernel_copy(true) {
 }
 
 template<typename T>
@@ -83,7 +80,8 @@ inline TwoLevelQueue<T>::~TwoLevelQueue() noexcept {
     cuFree(_d_queue_ptrs.first, _d_queue_ptrs.second,
            _d_work_ptrs.first, _d_work_ptrs.second, _d_queue_counter);
     delete[] _host_data;*/
-    cuFree(_d_queue_ptrs.first, _d_queue_ptrs.second, _d_counters);
+    if (!_kernel_copy)
+        cuFree(_d_queue_ptrs.first, _d_queue_ptrs.second, _d_counters);
 }
 /*
 template<typename T>
@@ -114,22 +112,22 @@ __host__ void TwoLevelQueue<T>::insert(const T& item) noexcept {
                  __shfl(warp_offset, elected_lane);
     _d_queue_ptrs.second[offset] = item;
 #else
+    cuMemcpyToHost(_d_counters, _h_counters);
     cuMemcpyToDevice(item, const_cast<int*>(_d_queue_ptrs.first) +
-                                            _num_queue_vertices);
-    if (_enable_traverse)
-        work_evaluate(&item, 1);
-    _num_queue_vertices++;
+                                            _h_counters.x);
+    _h_counters.x++;
+    cuMemcpyToDevice(_h_counters, _d_counters);
 #endif
 }
 
 template<typename T>
 __host__ inline
 void TwoLevelQueue<T>::insert(const T* items_array, int num_items) noexcept {
-    cuMemcpyToDeviceAsync(items_array, num_items,
-                          _d_queue_ptrs.first + _num_queue_vertices);
-    if (_enable_traverse)
-        work_evaluate(items_array, num_items);
-    _num_queue_vertices += num_items;
+    cuMemcpyToHost(_d_counters, _h_counters);
+    cuMemcpyToDevice(items_array, num_items,
+                     _d_queue_ptrs.first + _h_counters.x);
+    _h_counters.x += num_items;
+    cuMemcpyToDevice(_h_counters, _d_counters);
 }
 
 template<typename T>
@@ -139,11 +137,10 @@ __host__ void TwoLevelQueue<T>::swap() noexcept {
     _d_queue_ptrs.swap();
     //cuMemcpyToDevice(h_pointers, _d_queue_ptrs);
 
-    int2 h_counters;
-    cuMemcpyToHost(_d_counters, h_counters);
-    h_counters.x = h_counters.y;
-    h_counters.y = 0;
-    cuMemcpyToDevice(h_counters, _d_counters);
+    cuMemcpyToHost(_d_counters, _h_counters);
+    _h_counters.x = _h_counters.y;
+    _h_counters.y = 0;
+    cuMemcpyToDevice(_h_counters, _d_counters);
     //cuMemcpyToHostAsync(_d_queue_counter, _num_queue_vertices);
     //cuMemcpyToDeviceAsync(0, _d_queue_counter);
     //cuMemset0x00(_d_queue_counter);
@@ -160,12 +157,12 @@ __host__ void TwoLevelQueue<T>::clear() noexcept {
 }
 
 template<typename T>
-__host__ const T* TwoLevelQueue<T>::device_input_queue() const noexcept {
+__host__ const T* TwoLevelQueue<T>::device_input_ptr() const noexcept {
     return _d_queue_ptrs.first;
 }
 
 template<typename T>
-__host__ const T* TwoLevelQueue<T>::device_output_queue() const noexcept {
+__host__ const T* TwoLevelQueue<T>::device_output_ptr() const noexcept {
     return _d_queue_ptrs.second;
 }
 /*
@@ -184,30 +181,32 @@ __host__ int TwoLevelQueue<T>::size() noexcept {
 }*/
 
 template<typename T>
-__host__ int TwoLevelQueue<T>::input_size() noexcept {
-    int2 h_counters;
-    cuMemcpyToHost(_d_counters, h_counters);
-    return h_counters.x;
+__host__ int TwoLevelQueue<T>::size() noexcept {
+    int2 _h_counters;
+    cuMemcpyToHost(_d_counters, _h_counters);
+    return _h_counters.x;
 }
 
 template<typename T>
 __host__ int TwoLevelQueue<T>::output_size() noexcept {
-    int2 h_counters;
-    cuMemcpyToHost(_d_counters, h_counters);
-    return h_counters.y;
-}
-/*
-template<typename T>
-__host__ void TwoLevelQueue<T>::print1() noexcept {
-    cuMemcpyToHost(_d_queue_counter, _num_queue_vertices);
-    cu::printArray(_d_queue_ptrs.second, _num_queue_vertices);
+    int2 _h_counters;
+    cuMemcpyToHost(_d_counters, _h_counters);
+    return _h_counters.y;
 }
 
 template<typename T>
-__host__ void TwoLevelQueue<T>::print2() noexcept {
-    cuMemcpyToHost(_d_queue_counter, _num_queue_vertices);
-    cu::printArray(_d_queue_ptrs.second, _num_queue_vertices);
-}*/
+__host__ void TwoLevelQueue<T>::print_input() noexcept {
+    int2 _h_counters;
+    cuMemcpyToHost(_d_counters, _h_counters);
+    cu::printArray(_d_queue_ptrs.first, _h_counters.x);
+}
+
+template<typename T>
+__host__ void TwoLevelQueue<T>::print_output() noexcept {
+    int2 _h_counters;
+    cuMemcpyToHost(_d_counters, _h_counters);
+    cu::printArray(_d_queue_ptrs.second, _h_counters.y);
+}
 
 //------------------------------------------------------------------------------
 /*

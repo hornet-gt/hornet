@@ -129,10 +129,14 @@ void forAllVertices(custinger::cuStinger& custinger,
  *            `[=](Vertex){}`
  */
 template<typename Operator, typename LoadBalancing>
+void forAllEdges(TwoLevelQueue<custinger::vid_t>& queue,
+                 const Operator& op, LoadBalancing& LB);
+/*
+template<typename Operator>
 void forAllEdges(custinger::cuStinger& custinger,
                  TwoLevelQueue<custinger::vid_t>& queue,
-                 const Operator& op, LoadBalancing& LB);
-
+                 const Operator& op);
+*/
 //------------------------------------------------------------------------------
 
 template<typename Operator>

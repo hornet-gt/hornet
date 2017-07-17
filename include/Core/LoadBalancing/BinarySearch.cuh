@@ -56,12 +56,12 @@ public:
      * @brief Default costructor
      * @param[in] custinger cuStinger instance
      */
-    //explicit BinarySearch(const custinger::cuStinger& custinger) noexcept;
+    explicit BinarySearch(custinger::cuStinger& custinger) noexcept;
 
     /**
      * @brief Decostructor
      */
-    //~BinarySearch() noexcept;
+    ~BinarySearch() noexcept;
 
     /**
      * @brief Traverse the edges in a vertex queue (C-Style API)
@@ -98,12 +98,15 @@ public:
      *            `[=](Vertex, Edge){}`
      */
      template<typename Operator>
-     void apply(custinger::cuStinger& custinger,
-                const custinger::vid_t* d_input, int num_vertices,
+     void apply(const custinger::vid_t* d_input, int num_vertices,
                 const Operator& op) noexcept;
 
     template<typename Operator>
-    void apply(custinger::cuStinger& custinger, const Operator& op) noexcept;
+    void apply(const Operator& op) noexcept;
+
+     template<void (*Operator)(custinger::Edge&, void*)>
+     void apply(const custinger::vid_t* d_input, int num_vertices,
+                void* optional_data) noexcept;
 
     /**
      * @brief Traverse the edges in a vertex array (C++11-Style API)
@@ -123,7 +126,7 @@ public:
 private:
     static const int         BLOCK_SIZE = 256;
     static const bool CHECK_CUDA_ERROR1 = 1;
-    //const custinger::cuStinger& _custinger;
+    custinger::cuStinger& _custinger;
     int* _d_work    { nullptr };
     int* _d_degrees { nullptr };
 };

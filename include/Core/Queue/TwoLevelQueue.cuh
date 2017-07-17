@@ -63,9 +63,6 @@ struct ptr2_t {
 template<typename T>
 class TwoLevelQueue {
 public:
-    explicit TwoLevelQueue();
-    explicit TwoLevelQueue(size_t size);
-
     /**
      * @brief Default costructor
      * @param[in] custinger reference to the custinger instance
@@ -74,8 +71,9 @@ public:
      * @param[in] max_allocated_items number of allocated items for a single
      *            level of the queue. Default value: V * 2
      */
-    explicit TwoLevelQueue(const custinger::cuStinger& custinger,
-                           size_t max_allocated_items = 0) noexcept;
+    explicit TwoLevelQueue(const custinger::cuStinger& custinger) noexcept;
+
+    explicit TwoLevelQueue(size_t max_allocated_items) noexcept;
 
     TwoLevelQueue(const TwoLevelQueue<T>& obj) noexcept;
 
@@ -121,7 +119,7 @@ public:
      * @remark the method is cheap
      */
     //__host__ int size() noexcept;
-    __host__ int input_size() noexcept;
+    __host__ int size() noexcept;
     __host__ int output_size() noexcept;
 
     /**
@@ -129,14 +127,14 @@ public:
      * @return constant device pointer to the start of the input queue
      * @remark the method is cheap
      */
-    __host__ const T* device_input_queue() const noexcept;
+    __host__ const T* device_input_ptr() const noexcept;
 
     /**
      * @brief device pointer of the output queue
      * @return constant device pointer to the start of the output queue
      * @remark the method is cheap
      */
-    __host__ const T* device_output_queue() const noexcept;
+    __host__ const T* device_output_ptr() const noexcept;
 
     /**
      * @brief host pointer of the data stored in the output device queue
@@ -149,13 +147,13 @@ public:
      * @brief print the items stored at the output queue
      * @remark the method may be expensive
      */
-    //__host__ void print1() noexcept;
+    __host__ void print_input() noexcept;
 
     /**
      * @brief print the items stored at the output queue
      * @remark the method may be expensive
      */
-    //__host__ void print2() noexcept;
+    __host__ void print_output() noexcept;
 
     /**
      * @brief traverse the edges of queue vertices
@@ -179,26 +177,28 @@ private:
     ///@internal @brief block size for `traverse_edges()` kernels
     static const unsigned        BLOCK_SIZE = 256;
 
-    const custinger::cuStinger& _custinger;
+    //const custinger::cuStinger& _custinger;
     //const custinger::eoff_t* _csr_offsets { nullptr };
 
     ///@internal @brief input and output queue pointers
     ptr2_t<T>    _d_queue_ptrs        { nullptr, nullptr };
     ///@internal @brief input and output workload pointers
-    ptr2_t<int>  _d_work_ptrs         { nullptr, nullptr };
+    //ptr2_t<int>  _d_work_ptrs         { nullptr, nullptr };
     ///@internal @brief device counter of the queue
-    int*         _d_queue_counter     { nullptr };
+    //int*         _d_queue_counter     { nullptr };
     ///@internal @brief host pointer used by `host_data()` method
     T*           _host_data           { nullptr };
-    const size_t _max_allocated_items;
+    const size_t _max_allocated_items { 0 };
     ///@internal @brief device counter of the queue for `traverse_edges()`
     int2*        _d_counters          { nullptr };
+    int2         _h_counters          { 0, 0 };
+    const bool   _kernel_copy         { false };
     ///@internal @brief size of queue maintained on the host
-    int          _num_queue_vertices  { 0 };
+    //int          _num_queue_vertices  { 0 };
     ///@internal @brief number of edges in the queue for `traverse_edges()`
-    int          _num_queue_edges     { 0 };   // traverse_edges
-    bool         _enable_traverse     { false };
-    bool         _enable_delete       { true };
+    //int          _num_queue_edges     { 0 };   // traverse_edges
+    //bool         _enable_traverse     { false };
+    //bool         _enable_delete       { true };
 
     /**
      * @brief evaluate the workload for a set of vertices

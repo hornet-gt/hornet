@@ -16,10 +16,9 @@ void VertexInit(vid_t index, void* optional_field) {
 }
 
 __device__ __forceinline__
-void BFSOperatorAtomic(const Vertex& src, const Edge& edge,
-                       void* optional_field) {
+void BFSOperatorAtomic(Edge& edge, void* optional_field) {
     auto bfs_data = reinterpret_cast<BfsData*>(optional_field);
-    auto dst = edge.dst();
+    auto dst = edge.dst_id();
     auto old = atomicCAS(bfs_data->distances + dst, INF,
                          bfs_data->current_level);
     if (old == INF)
@@ -27,10 +26,9 @@ void BFSOperatorAtomic(const Vertex& src, const Edge& edge,
 }
 
 __device__ __forceinline__
-void BFSOperatorNoAtomic(const Vertex& src, const Edge& edge,
-                         void* optional_field) {
+void BFSOperatorNoAtomic(Edge& edge, void* optional_field) {
     auto bfs_data = reinterpret_cast<BfsData*>(optional_field);
-    auto dst = edge.dst();
+    auto dst = edge.dst_id();
     if (bfs_data->distances[dst] == INF) {
         bfs_data->distances[dst] = bfs_data->current_level;
         bfs_data->queue.insert(dst);         // the vertex dst is active
@@ -43,14 +41,15 @@ void BFSOperatorNoAtomic(const Vertex& src, const Edge& edge,
 
 BfsTopDown::BfsTopDown(custinger::cuStinger& custinger) :
                                        StaticAlgorithm(custinger),
+                                       load_balacing(custinger),
                                        host_bfs_data(custinger) {
-    cuMalloc(host_bfs_data.distances, custinger.nV());
+    gpu::allocate(host_bfs_data.distances, custinger.nV());
     device_bfs_data = register_data(host_bfs_data);
     reset();
 }
 
 BfsTopDown::~BfsTopDown() {
-    cuFree(host_bfs_data.distances);
+    gpu::free(host_bfs_data.distances);
 }
 
 void BfsTopDown::reset() {
@@ -63,14 +62,15 @@ void BfsTopDown::reset() {
 
 void BfsTopDown::set_parameters(vid_t source) {
     bfs_source = source;
-    host_bfs_data.queue.insert(bfs_source);
+    host_bfs_data.queue.insert(bfs_source); // insert bfs source in the frontier
+    //reset source distance
     cuMemcpyToDevice(0, host_bfs_data.distances + bfs_source);
 }
 
 void BfsTopDown::run() {
     while (host_bfs_data.queue.size() > 0) {
-        load_balacing.traverse_edges<BFSOperatorAtomic>(host_bfs_data.queue,
-                                                        device_bfs_data);
+        forAllEdges<BFSOperatorAtomic>(host_bfs_data.queue, device_bfs_data,
+                                       load_balacing);
         syncHostWithDevice();
         host_bfs_data.queue.swap();
         host_bfs_data.current_level++;
@@ -79,7 +79,7 @@ void BfsTopDown::run() {
 }
 
 void BfsTopDown::release() {
-    cuFree(host_bfs_data.distances);
+    gpu::free(host_bfs_data.distances);
     host_bfs_data.distances = nullptr;
 }
 

@@ -8,18 +8,17 @@ int main(int argc, char* argv[]) {
     using namespace timer;
     using namespace custinger;
     using namespace custinger_alg;
-    cudaSetDevice(0);
 
     graph::GraphStd<vid_t, eoff_t> graph;
-    graph.read(argv[1]);
+    CommandLineParam cmd(graph, argc, argv);
 
-    cuStingerInit custinger_init(graph.nV(), graph.nE(), graph.out_offsets(),
-                                 graph.out_edges());
+    cuStingerInit custinger_init(graph.nV(), graph.nE(), graph.out_offsets_ptr(),
+                                 graph.out_edges_ptr());
 
     cuStinger custiger_graph(custinger_init);
 
     BfsTopDown2 bfs_top_down(custiger_graph);
-    bfs_top_down.set_parameters(graph.max_out_degree_vertex());
+    bfs_top_down.set_parameters(graph.max_out_degree_id());
     Timer<DEVICE> TM;
     TM.start();
 

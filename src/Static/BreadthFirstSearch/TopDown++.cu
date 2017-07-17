@@ -44,23 +44,26 @@ const dist_t INF = std::numeric_limits<dist_t>::max();
 // OPERATORS //
 ///////////////
 
-struct BFSOperatorNoAtomic {
+struct BFSOperator {
+    TwoLevelQueue<vid_t> queue;
     dist_t* d_distances;
     dist_t  current_level;
-    BFSOperatorNoAtomic(dist_t* d_distances_, dist_t current_level_) :
+
+    BFSOperator(dist_t* d_distances_, dist_t current_level_,
+                TwoLevelQueue<vid_t>& queue) :
                                 d_distances(d_distances_),
-                                current_level(current_level_) {}
+                                current_level(current_level_),
+                                queue(queue) {}
 
     __device__ __forceinline__
-    bool operator()(const Vertex& src, const Edge& edge) {
-        auto dst = edge.dst();
+    void operator()(Edge& edge) {
+        auto dst = edge.dst_id();
+        //printf("\t%d\n", dst);
         if (d_distances[dst] == INF) {
             d_distances[dst] = current_level;
-            return true;             // the vertex dst is active
+            queue.insert(dst);
         }
-        return false;                // the vertex dst is not active
     }
-
 };
 //------------------------------------------------------------------------------
 /////////////////
@@ -69,13 +72,14 @@ struct BFSOperatorNoAtomic {
 
 BfsTopDown2::BfsTopDown2(custinger::cuStinger& custinger) :
                                  StaticAlgorithm(custinger),
-                                 queue(custinger, true) {
-    cuMalloc(d_distances, custinger.nV());
+                                 queue(custinger),
+                                 load_balacing(custinger) {
+    gpu::allocate(d_distances, custinger.nV());
     reset();
 }
 
 BfsTopDown2::~BfsTopDown2() {
-    cuFree(d_distances);
+    gpu::free(d_distances);
 }
 
 void BfsTopDown2::reset() {
@@ -88,19 +92,43 @@ void BfsTopDown2::reset() {
 
 void BfsTopDown2::set_parameters(vid_t source) {
     bfs_source = source;
-    queue.insert(bfs_source);
-    cuMemcpyToDevice(0, d_distances + bfs_source);
+    queue.insert(bfs_source);               // insert bfs source in the frontier
+    gpu::copyHostToDevice(0, d_distances + bfs_source);  //reset source distance
 }
 
 void BfsTopDown2::run() {
     while (queue.size() > 0) {
-        queue.traverse_edges( BFSOperatorNoAtomic(d_distances, current_level) );
+        //queue.print_input();
+        //for all edges in "queue" applies the operator "BFSOperator" by using
+        //the load balancing algorithm instantiated in "load_balacing"
+        forAllEdges(queue, BFSOperator(d_distances, current_level, queue),
+                    load_balacing);
         current_level++;
+        queue.swap();
+    }
+}
+
+
+//same procedure of run() but it uses lambda expression instead explict
+//structure operator
+void BfsTopDown2::run2() {
+    const auto& BFSOperator = [=] __device__ (Edge& edge) {
+                                        auto dst = edge.dst_id();
+                                        if (d_distances[dst] == INF) {
+                                            d_distances[dst] = current_level;
+                                            queue.insert(dst);
+                                        }
+                                    };
+
+    while (queue.size() > 0) {
+        forAllEdges(queue, BFSOperator, load_balacing);
+        current_level++;
+        queue.swap();
     }
 }
 
 void BfsTopDown2::release() {
-    cuFree(d_distances);
+    gpu::free(d_distances);
     d_distances = nullptr;
 }
 
@@ -112,7 +140,7 @@ bool BfsTopDown2::validate() {
     bfs.run(bfs_source);
 
     auto h_distances = bfs.distances();
-    return cu::equal(h_distances, h_distances + graph.nV(),  d_distances);
+    return cu::equal(h_distances, h_distances + graph.nV(), d_distances);
 }
 
 } // namespace custinger_alg

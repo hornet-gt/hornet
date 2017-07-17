@@ -120,22 +120,21 @@ void forAllEdges(custinger::cuStinger& custinger, const Operator& op,
 }
 
 //------------------------------------------------------------------------------
-
+/*
 template<typename Operator>
 void forAllVertices(custinger::cuStinger& custinger,
                    TwoLevelQueue<custinger::vid_t>& queue,
                    const Operator& op) {
-    unsigned size = queue.input_size();
+    unsigned size = queue.size();
     detail::forAllVerticesKernel
         <<< xlib::ceil_div<BLOCK_SIZE_OP2>(size), BLOCK_SIZE_OP2 >>>
-        (custinger, queue.device_input_queue(), size, op);
-}
+        (custinger, queue.device_input_ptr(), size, op);
+}*/
 
 template<typename Operator, typename LoadBalancing>
-void forAllEdges(custinger::cuStinger& custinger,
-                 TwoLevelQueue<custinger::vid_t>& queue,
+void forAllEdges(TwoLevelQueue<custinger::vid_t>& queue,
                  const Operator& op, LoadBalancing& LB) {
-
+    LB.apply(queue.device_input_ptr(), queue.size(), op);
 }
 
 } // namespace custinger_alg

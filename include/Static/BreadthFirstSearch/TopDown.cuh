@@ -38,7 +38,6 @@
  */
 #pragma once
 
-#include "Static/config.inc"
 #include "cuStingerAlg.hpp"
 
 namespace custinger_alg {
@@ -58,12 +57,14 @@ public:
     explicit BfsTopDown(cuStinger& custinger);
     ~BfsTopDown();
 
-    void set_parameters(vid_t source);
-	void reset()    override;
+    void reset()    override;
 	void run()      override;
 	void release()  override;
     bool validate() override;
+
+    void set_parameters(vid_t source);
 private:
+    load_balacing::BinarySearch load_balacing;
 	BfsData  host_bfs_data;
 	BfsData* device_bfs_data { nullptr };
     vid_t    bfs_source      { 0 };

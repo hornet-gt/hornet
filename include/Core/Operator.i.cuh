@@ -1,3 +1,5 @@
+#include "Core/LoadBalancing/BinarySearch.cuh"
+
 namespace custinger_alg {
 namespace detail {
 
@@ -72,7 +74,8 @@ void forAllEdgesKernel(const custinger::eoff_t* __restrict__ csr_offsets,
                         custinger::Vertex vertex(custinger, pos);
                         Operator(vertex, vertex.edge(offset), optional_data);
                     };
-    xlib::binarySearchLB<BLOCK_SIZE>(csr_offsets, custinger.nV + 1, smem, lambda);
+    xlib::binarySearchLB<BLOCK_SIZE>(csr_offsets, custinger.nV + 1, smem,
+                                     lambda);
 }
 
 //------------------------------------------------------------------------------
@@ -143,10 +146,10 @@ void forAllVertices(const custinger::cuStinger& custinger,
                     TwoLevelQueue<custinger::vid_t>& queue,
                     void* optional_data) noexcept {
 
-    unsigned size = queue.input_size();
+    unsigned size = queue.size();
     detail::forAllVerticesKernel<Operator>
         <<< xlib::ceil_div<BLOCK_SIZE_OP1>(size), BLOCK_SIZE_OP1 >>>
-        (custinger.device_side(), queue.device_input_queue(), size,
+        (custinger.device_side(), queue.device_input_ptr(), size,
          optional_data);
     CHECK_CUDA_ERROR
 }
@@ -170,6 +173,14 @@ void forAllEdges(custinger::cuStinger& custinger, void* optional_data)
 }
 
 //==============================================================================
+
+template<void (*Operator)(custinger::Edge&, void*), typename LoadBalancing>
+void forAllEdges(TwoLevelQueue<custinger::vid_t>& queue,
+                 void* optional_data, LoadBalancing& LB) noexcept {
+
+    LB.template apply<Operator>(queue.device_input_ptr(), queue.size(),
+                                optional_data);
+}
 
 
 /*template<void (*Operator)(custinger::Vertex, custinger::Edge, void*)>

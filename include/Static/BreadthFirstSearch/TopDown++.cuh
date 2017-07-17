@@ -39,7 +39,6 @@
  */
 #pragma once
 
-#include "Static/config.inc"
 #include "cuStingerAlg.hpp"
 
 namespace custinger_alg {
@@ -51,13 +50,16 @@ public:
     explicit BfsTopDown2(cuStinger& custinger);
     ~BfsTopDown2();
 
-    void set_parameters(vid_t source);
 	void reset()    override;
 	void run()      override;
 	void release()  override;
     bool validate() override;
+
+    void set_parameters(vid_t source);
+    void run2();
 private:
-    TwoLevelQueue<vid_t> queue;
+    TwoLevelQueue<vid_t>        queue;
+    load_balacing::BinarySearch load_balacing;
     dist_t* d_distances   { nullptr };
     vid_t   bfs_source    { 0 };
     dist_t  current_level { 0 };

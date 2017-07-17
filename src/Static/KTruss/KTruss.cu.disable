@@ -121,10 +121,11 @@ void KTruss::run() {
     while (true) {
         // if(hostKTrussData.maxK >= 5)
         //     break;
+        std::cout << hostKTrussData.ne_remaining << std::endl;
         bool needStop = false;
         bool     more = findTrussOfK(needStop);
         //if (more == false && needStop) {
-        if (hostKTrussData.ne_remaining != 0) {
+        if (hostKTrussData.ne_remaining <= 0) {
             hostKTrussData.maxK--;
             syncDeviceWithHost();
             break;
@@ -252,7 +253,7 @@ void KTruss::runDynamic(){
         CHECK_CUDA_ERROR
     //    std::cout << hostKTrussData.ne_remaining << std::endl;
         //if (more == false && needStop) {
-        if (!hostKTrussData.ne_remaining != 0) {
+        if (hostKTrussData.ne_remaining <= 0) {
             hostKTrussData.maxK--;
             syncDeviceWithHost();
             break;
@@ -263,8 +264,6 @@ void KTruss::runDynamic(){
     }
     //std::cout << "iterations " << iterations << std::endl;
 }
-
-static int ccc = 0;
 
 bool KTruss::findTrussOfKDynamic(bool& stop) {
     hostKTrussData.counter = 0;

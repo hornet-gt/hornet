@@ -18,14 +18,14 @@ using namespace custinger_alg;
 
 namespace custinger_alg { 
 
-int arrayBlocks[]={16000};
-int arrayBlockSize[]={32,64,96,128,192,256};
-int arrayThreadPerIntersection[]={1,2,4,8,16,32};
-int arrayThreadShift[]={0,1,2,3,4,5};
-// int arrayBlocks[]={64000};
-// int arrayBlockSize[]={256};
-// int arrayThreadPerIntersection[]={32};
-// int arrayThreadShift[]={5};
+// int arrayBlocks[]={16000};
+// int arrayBlockSize[]={32,64,96,128,192,256};
+// int arrayThreadPerIntersection[]={1,2,4,8,16,32};
+// int arrayThreadShift[]={0,1,2,3,4,5};
+int arrayBlocks[]={64000};
+int arrayBlockSize[]={256};
+int arrayThreadPerIntersection[]={32};
+int arrayThreadShift[]={5};
 
 
 void initHostTriangleArray(triangle_t* h_triangles, vid_t nv){	
@@ -42,15 +42,8 @@ int64_t sumTriangleArray(triangle_t* h_triangles, vid_t nv){
 	return sum;
 }
 
-int comparecuStingerAndCSR(cuStinger& custing, vid_t nv,degree_t ne)
+void testTriangleCountingConfigurations(cuStinger& custing, vid_t nv,degree_t ne)
 {
-	int device = 0;
-	int run    = 2;
-		
-	// triangle_t *d_triangles = NULL;  
-
-	triangle_t* h_triangles = (triangle_t *) malloc ( sizeof(triangle_t)*(nv+1)  );		
-
 	float minTime=10e9,time,minTimecuStinger=10e9;
 
 	int blocksToTest=sizeof(arrayBlocks)/sizeof(int);
@@ -62,22 +55,28 @@ int comparecuStingerAndCSR(cuStinger& custing, vid_t nv,degree_t ne)
 			int sps=arrayBlockSize[bs];
 			for(int t=0; t<tSPToTest;t++){
 				int tsp=arrayThreadPerIntersection[t];
-				int shifter=arrayThreadShift[t];
-				int nbl=sps/tsp;
 
 				Timer<DEVICE> TM;
-
-				// cudaMemcpy(d_triangles, h_triangles, sizeof(triangle_t)*(nv+1), cudaMemcpyHostToDevice);
+				TriangleCounting tc(custing);
+				tc.setInitParameters(blocks,sps,tsp);
+				tc.init();
+				tc.reset();
+			
 				TM.start();
+				tc.run();
 					// callDeviceAllTriangles(custing, d_triangles, tsp,nbl,shifter,blocks, sps);
 				TM.stop();
 				time = TM.duration();
 				// cudaMemcpy(h_triangles, d_triangles, sizeof(triangle_t)*(nv+1), cudaMemcpyDeviceToHost);
-
-				triangle_t sumDevice=0;
+				triangle_t sumDevice = 0;
+				sumDevice = tc.countTriangles();
 				if(time<minTimecuStinger) minTimecuStinger=time; 
 				// sumDevice=sumTriangleArray(h_triangles,nv);initHostTriangleArray(h_triangles,nv);
+				tc.release();
 
+				int shifter=arrayThreadShift[t];
+				int nbl=sps/tsp;
+				
 				printf("### %d %d %d %d %d \t\t %ld \t %f\n", blocks,sps, tsp, nbl, shifter,sumDevice, time);
 			}
 		}	
@@ -93,7 +92,7 @@ int main(const int argc, char *argv[]){
     using namespace graph::structure_prop;
     using namespace graph::parsing_prop;
 
-	int device=0;
+	int device=1;
     cudaSetDevice(device);
 	cudaDeviceProp prop;
 	cudaGetDeviceProperties(&prop, device);
@@ -107,7 +106,7 @@ int main(const int argc, char *argv[]){
 
 	cuStinger custiger_graph(custinger_init);
 
-	// comparecuStingerAndCSR(custing,nv,ne,off,adj);
+	testTriangleCountingConfigurations(custiger_graph,graph.nV(),graph.nE());
 
     return 0;	
 }

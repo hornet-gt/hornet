@@ -22,10 +22,14 @@ namespace custinger_alg {
 // int arrayBlockSize[]={32,64,96,128,192,256};
 // int arrayThreadPerIntersection[]={1,2,4,8,16,32};
 // int arrayThreadShift[]={0,1,2,3,4,5};
-int arrayBlocks[]={64000};
-int arrayBlockSize[]={256};
-int arrayThreadPerIntersection[]={32};
-int arrayThreadShift[]={5};
+// int arrayBlocks[]={16000};
+// int arrayBlockSize[]={256};
+// int arrayThreadPerIntersection[]={32};
+// int arrayThreadShift[]={5};
+int arrayBlocks[]={96000};
+int arrayBlockSize[]={128,192,256};
+int arrayThreadPerIntersection[]={8,16,32};
+int arrayThreadShift[]={3,4,5};
 
 
 void initHostTriangleArray(triangle_t* h_triangles, vid_t nv){	
@@ -64,14 +68,12 @@ void testTriangleCountingConfigurations(cuStinger& custing, vid_t nv,degree_t ne
 			
 				TM.start();
 				tc.run();
-					// callDeviceAllTriangles(custing, d_triangles, tsp,nbl,shifter,blocks, sps);
 				TM.stop();
 				time = TM.duration();
-				// cudaMemcpy(h_triangles, d_triangles, sizeof(triangle_t)*(nv+1), cudaMemcpyDeviceToHost);
+				
 				triangle_t sumDevice = 0;
 				sumDevice = tc.countTriangles();
 				if(time<minTimecuStinger) minTimecuStinger=time; 
-				// sumDevice=sumTriangleArray(h_triangles,nv);initHostTriangleArray(h_triangles,nv);
 				tc.release();
 
 				int shifter=arrayThreadShift[t];
@@ -86,19 +88,23 @@ void testTriangleCountingConfigurations(cuStinger& custing, vid_t nv,degree_t ne
 
 }// cuStingerAlgs namespace
 
+void hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
+    const vid_t * ind, int64_t* allTriangles);
 
 int main(const int argc, char *argv[]){
  
     using namespace graph::structure_prop;
     using namespace graph::parsing_prop;
 
-	int device=1;
+	int device=0;
+
     cudaSetDevice(device);
 	cudaDeviceProp prop;
 	cudaGetDeviceProperties(&prop, device);
  
     graph::GraphStd<vid_t, eoff_t> graph(UNDIRECTED);
     graph.read(argv[1], SORT | PRINT);
+
 
 	cuStingerInit custinger_init(graph.nV(), graph.nE(),
                                  graph.out_offsets_ptr(),
@@ -107,7 +113,58 @@ int main(const int argc, char *argv[]){
 	cuStinger custiger_graph(custinger_init);
 
 	testTriangleCountingConfigurations(custiger_graph,graph.nV(),graph.nE());
-
-    return 0;	
+	int64_t hostTris;
+	hostCountTriangles(graph.nV(), graph.nE(),graph.out_offsets_ptr(), graph.out_edges_ptr(),&hostTris);
+    return 0;
 }
 
+
+
+
+
+
+// CPU Version - assume sorted index lists. 
+int hostSingleIntersection (const vid_t ai, const degree_t alen, const vid_t * a,
+						    const vid_t bi, const degree_t blen, const vid_t * b){
+	degree_t ka = 0, kb = 0,out = 0;
+	if (!alen || !blen || a[alen-1] < b[0] || b[blen-1] < a[0])
+    	return 0;
+
+	while (1) {
+    	if (ka >= alen || kb >= blen) break;
+		vid_t va = a[ka],vb = b[kb];
+
+	    if (va == vb) {
+	     	++ka; ++kb; ++out;
+	    }
+	    else if (va < vb) {
+	      ++ka;
+	      while (ka < alen && a[ka] < vb) ++ka;
+	    } else {
+	      ++kb;
+	      while (kb < blen && va > b[kb]) ++kb;
+	    }
+	}
+	return out;
+}
+
+void hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
+    const vid_t * ind, int64_t* allTriangles)
+{
+	int32_t edge=0;
+	int64_t sum=0;
+    for (vid_t src = 0; src < nv; src++)
+    {
+		degree_t srcLen=off[src+1]-off[src];
+		for(int iter=off[src]; iter<off[src+1]; iter++)
+		{
+			vid_t dest=ind[iter];
+			degree_t destLen=off[dest+1]-off[dest];			
+			int64_t tris= hostSingleIntersection (src, srcLen, ind+off[src],
+													dest, destLen, ind+off[dest]);
+			sum+=tris;
+		}
+	}	
+	*allTriangles=sum;
+	printf("Sequential number of triangles %ld\n",sum);
+}

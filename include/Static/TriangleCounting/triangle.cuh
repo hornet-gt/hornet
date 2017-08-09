@@ -14,6 +14,7 @@ struct TriangleData {
     TriangleData(const custinger::cuStinger& custinger){
         nv = custinger.nV();
         ne = custinger.nE();
+        triPerVertex=NULL;
     }
 
     int tsp;

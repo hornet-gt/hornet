@@ -414,16 +414,16 @@ void TriangleCounting::setInitParameters(int threadBlocks, int blockSize, int th
 
 void TriangleCounting::init(){
 	memReleased=false;
-	gpu::allocate(hostTriangleData.triPerVertex, hostTriangleData.nv+2);
-	reset();
+	gpu::allocate(hostTriangleData.triPerVertex, hostTriangleData.nv+10);
 	syncDeviceWithHost();
+	reset();
 }
 
 triangle_t TriangleCounting::countTriangles(){
     triangle_t* outputArray = (triangle_t*)malloc((hostTriangleData.nv+2)*sizeof(triangle_t));
     cudaMemcpy(outputArray,hostTriangleData.triPerVertex,(hostTriangleData.nv+2)*sizeof(triangle_t),cudaMemcpyDeviceToHost);
     triangle_t sum=0;
-    for(int i=0; i<(hostTriangleData.nv+2); i++){
+    for(int i=0; i<(hostTriangleData.nv); i++){
         // printf("%d %ld\n", i,outputArray[i]);
         sum+=outputArray[i];
     }

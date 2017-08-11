@@ -35,50 +35,6 @@
  */
 namespace custinger {
 
-//==============================================================================
-///////////////////
-// cuStingerInit //
-///////////////////
-
-template<typename... TArgs>
-void cuStingerInit::insertVertexData(TArgs... vertex_data) noexcept {
-    static_assert(sizeof...(TArgs) == NUM_EXTRA_VTYPES,
-                  "Number of Vertex data type not correct");
-    using T = typename xlib::tuple_rm_pointers<std::tuple<TArgs...>>::type;
-    static_assert(xlib::tuple_compare<VertexTypes, T>::value,
-                  "Incorrect Vertex data type");
-
-    bind<1>(_vertex_data_ptrs, vertex_data...);
-}
-
-template<typename... TArgs>
-void cuStingerInit::insertEdgeData(TArgs... edge_data) noexcept {
-    static_assert(sizeof...(TArgs) == NUM_EXTRA_ETYPES,
-                  "Number of Edge data type not correct");
-    using T = typename xlib::tuple_rm_pointers<std::tuple<TArgs...>>::type;
-    static_assert(xlib::tuple_compare<EdgeTypes, T>::value,
-                  "Incorrect Edge data type");
-
-    bind<1>(_edge_data_ptrs, edge_data...);
-}
-
-inline size_t cuStingerInit::nV() const noexcept {
-    return _nV;
-}
-
-inline size_t cuStingerInit::nE() const noexcept {
-    return _nE;
-}
-
-inline const eoff_t* cuStingerInit::csr_offsets() const noexcept {
-    return reinterpret_cast<const eoff_t*>(_vertex_data_ptrs[0]);
-}
-
-inline const vid_t* cuStingerInit::csr_edges() const noexcept {
-    return reinterpret_cast<const vid_t*>(_edge_data_ptrs[0]);
-}
-
-//==============================================================================
 ///////////////
 // cuStinger //
 ///////////////
@@ -110,10 +66,7 @@ inline const eoff_t* cuStinger::device_csr_offsets() noexcept {
 }
 
 inline cuStingerDevice cuStinger::device_side() const noexcept {
-    cuStingerDevice data;
-    data.nV = _nV;
-    std::copy(_d_vertex_ptrs, _d_vertex_ptrs + NUM_VTYPES, data.d_vertex_ptrs);
-    return data;
+    return cuStingerDevice(_nV, _nE, _d_vertex_ptrs);
 }
 
 } // namespace custinger

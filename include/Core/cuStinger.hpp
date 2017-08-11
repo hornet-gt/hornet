@@ -3,7 +3,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date August, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -38,9 +38,10 @@
  */
 #pragma once
 
-#include "Core/cuStingerDeviceData.cuh" //cuStingerDevice
+#include "Core/cuStingerDevice.cuh"     //cuStingerDevice
+#include "Core/cuStingerInit.hpp"       //cuStingerInit
 #include "Core/BatchUpdate.cuh"         //BatchUpdate
-#include "Core/MemoryManager.hpp"
+#include "Core/MemoryManager/MemoryManager.hpp"
 #include "Core/RawTypes.hpp"
 #include <cstddef>                      //size_t
 
@@ -49,94 +50,6 @@
  *        cuStinger data structure
  */
 namespace custinger {
-
-class cuStinger;
-
-
-/**
- * @brief cuStinger initialization class
- */
-class cuStingerInit {
-    friend cuStinger;
-public:
-    /**
-     * @brief Default costructor
-     * @param[in] num_vertices number of vertices
-     * @param[in] num_edges number of edges
-     * @param[in] csr_offsets csr offsets array
-     * @param[in] csr_edges csr edges array
-     */
-    explicit cuStingerInit(size_t num_vertices, size_t num_edges,
-                           const eoff_t* csr_offsets, const vid_t* csr_edges)
-                           noexcept;
-
-    /**
-     * @brief Insert additional vertex data
-     * @param[in] vertex_data list of vertex data array
-     * @remark the types of the input arrays must be equal to the type List
-     *         for vertices specified in the *config.inc* file
-     * @details **Example**
-     *         @code{.cpp}
-     *             int* array1 = ...;
-     *             float* array2 = ...;
-     *             cuStingerInit custinger_init(...);
-     *             custinger_init.insertVertexData(array1, array2);
-     *         @endcode
-     */
-    template<typename... TArgs>
-    void insertVertexData(TArgs... vertex_data) noexcept;
-
-    /**
-     * @brief Insert additional edge data
-     * @param[in] edge_data list of vertex data array
-     * @remark the types of the input arrays must be equal to the type List
-     *         for edges specified in the *config.inc* file
-     * @see ::insertVertexData
-     */
-    template<typename... TArgs>
-    void insertEdgeData(TArgs... edge_data) noexcept;
-
-    /**
-     * @brief number of vertices in the graph passed to the costructor
-     * @return number of vertices in the graph
-     */
-    size_t nV() const noexcept;
-
-    /**
-     * @brief number of edges in the graph passed to the costructor
-     * @return number of edges in the graph
-     */
-    size_t nE() const noexcept;
-
-    /**
-     * @brief CSR offsets of the graph passed to the costructor
-     * @return constant pointer to the csr offsets
-     */
-    const eoff_t* csr_offsets() const noexcept;
-
-    /**
-     * @brief CSR edges of the graph passed to the costructor
-     * @return constant pointer to the csr edges
-     */
-    const vid_t* csr_edges() const noexcept;
-
-private:
-    /**
-     * @internal
-     * @brief Array of pointers of the *all* vertex data
-     */
-    const byte_t* _vertex_data_ptrs[ NUM_VTYPES ] = {};
-
-    /**
-     * @internal
-     * @brief Array of pointers of the *all* edge data
-     */
-    const byte_t* _edge_data_ptrs[ NUM_ETYPES ] = {};
-    size_t        _nV;
-    size_t        _nE;
-};
-
-//==============================================================================
 
 /**
  * @brief Main cuStinger class
@@ -223,26 +136,41 @@ public:
      */
     cuStingerDevice device_side() const noexcept;
 
-    vid_t max_degree_vertex() const noexcept;
+    vid_t max_degree_id() noexcept;
+
+    degree_t max_degree() noexcept;
 
     //--------------------------------------------------------------------------
 
-    void allocateBatch(const BatchProperty& batch_prop,
-                       size_t max_allocated_edges = 0) noexcept;
+    //void allocateBatch(const BatchProperty& batch_prop,
+    //                   size_t max_allocated_edges = 0) noexcept;
 
-    void copyBatchToDevice(BatchHost& batch_host) noexcept;
+    //void copyBatchToDevice(BatchHost& batch_host) noexcept;
 
-    void insertEdgeBatch(BatchUpdate& batch_update) noexcept;
+    //void insertEdgeBatch(BatchUpdate& batch_update) noexcept;
 
-    template<typename EqualOp>
+    /*template<typename EqualOp>
     void insertEdgeBatch(BatchUpdate& batch_update, const EqualOp& equal_op)
                          noexcept;
 
-    void edgeDeletionsSorted(BatchHost& batch_update) noexcept;
-    void edgeDeletionsSorted(BatchDevice& batch_update) noexcept;
-    void edgeDeletionsSorted(BatchUpdate& batch_update) noexcept;
+    void edgeDeletionsSorted(BatchUpdate& batch_update) noexcept;*/
 
-    //void edgeDeletionsSortedInPlace(BatchUpdate& batch_update) noexcept;
+    //--------------------------------------------------------------------------
+    void allocateEdgeDeletion(vid_t max_batch_size,
+                              BatchProperty batch_prop) noexcept;
+
+    void allocateEdgeInsertion(vid_t max_batch_size,
+                               BatchProperty batch_prop) noexcept;
+
+    void insertEdgeBatch(BatchUpdate& batch_update,
+                         BatchProperty batch_prop) noexcept;
+
+    template<typename EqualOp>
+    void insertEdgeBatch(BatchUpdate& batch_update, const EqualOp& equal_op,
+                         BatchProperty batch_prop = BatchProperty()) noexcept;
+
+    void deleteEdgeBatch(BatchUpdate& batch_update,
+                         BatchProperty batch_prop = BatchProperty()) noexcept;
 
 private:
     static int global_id;
@@ -254,20 +182,38 @@ private:
      * @brief device pointer for *all* vertex data
      *        (degree and edge pointer included)
      */
-    byte_t* _d_vertex_ptrs[NUM_VTYPES];
+    byte_t* _d_vertex_ptrs[NUM_VTYPES] = {};
+    byte_t* _d_edge_ptrs[NUM_ETYPES]   = {};
 
     const cuStingerInit& _custinger_init;
-    const eoff_t* _csr_offsets;
-    const vid_t*  _csr_edges;
+    const eoff_t* _csr_offsets       { nullptr };
+    const vid_t*  _csr_edges         { nullptr };
     byte_t*       _d_vertices        { nullptr };
+    byte_t*       _d_edges           { nullptr };   //for CSR
+    degree_t*     _d_degrees         { nullptr };
     eoff_t*       _d_csr_offsets     { nullptr };
-    size_t        _nV;
-    size_t        _nE;
-    const int     _id;
+    size_t        _nV                { 0 };
+    size_t        _nE                { 0 };
+    const int     _id                { 0 };
     bool          _internal_csr_data { false };
-    vid_t         _max_degree_vertex { -1 };
+    bool          _is_sorted         { false };
 
+    std::pair<degree_t, vid_t> max_degree_data { -1, -1 };
 
+    //----------------------------------------------------------------------
+    BatchProperty _batch_prop;
+    ///Batch delete tmp variables
+    vid_t*    _d_unique       { nullptr };
+    int*      _d_counts       { nullptr };
+    degree_t* _d_degree_old   { nullptr };
+    degree_t* _d_degree_new   { nullptr };
+    byte_t*   *_d_ptrs_array  { nullptr };
+    edge_t*   _d_tmp          { nullptr };
+    bool*     _d_flags        { nullptr };
+    eoff_t*   _d_inverse_pos  { nullptr };
+    vid_t*    _d_tmp_sort_src { nullptr };
+    vid_t*    _d_tmp_sort_dst { nullptr };
+    size_t    _batch_pitch    { 0 };
 
     void initialize() noexcept;
 
@@ -283,9 +229,15 @@ private:
      * @param[out] csr_offsets csr offsets to build
      * @param[out] csr_offsets csr edges to build
      */
-    void convert_to_csr(eoff_t* csr_offsets, vid_t* csr_edges) const noexcept;
+    void convert_to_csr(eoff_t* csr_offsets, vid_t* csr_edges)
+                        const noexcept;
 
     void build_batch_csr(int num_uniques);
+
+    void send_to_device(BatchUpdate& batch_udate, BatchProperty batch_prop)
+                        noexcept;
+
+    void build_device_degrees() noexcept;
 };
 
 } // namespace custinger

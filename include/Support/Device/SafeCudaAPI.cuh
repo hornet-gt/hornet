@@ -59,7 +59,7 @@
 
 #include "Support/Device/CudaUtil.cuh"  //__cudaErrorHandler
 #include "Support/Host/Basic.hpp"       //xlib::byte_t
-#include "Support/Host/Numeric.hpp"     //gpu::upper_approx
+#include "Support/Host/Numeric.hpp"     //xlib::upper_approx
 #include <cassert>                      //std::assert
 #include <utility>                      //std::forward
 
@@ -69,60 +69,60 @@
 
 ///@cond
 #define cuMalloc(...)                                                          \
-    gpu::detail::cuMallocAux(__FILE__, __LINE__, __func__, __VA_ARGS__)        \
+    xlib::detail::cuMallocAux(__FILE__, __LINE__, __func__, __VA_ARGS__)        \
 
 #define cuMallocHost(...)                                                      \
-    gpu::detail::cuMallocHostAux(__FILE__, __LINE__, __func__, __VA_ARGS__)    \
+    xlib::detail::cuMallocHostAux(__FILE__, __LINE__, __func__, __VA_ARGS__)    \
 
 #define cuFree(...)                                                            \
-    gpu::detail::cuFreeAux(__FILE__, __LINE__, __func__, __VA_ARGS__)          \
+    xlib::detail::cuFreeAux(__FILE__, __LINE__, __func__, __VA_ARGS__)          \
 //------------------------------------------------------------------------------
 
 #define cuMemcpyDeviceToDevice(...)                                            \
-    gpu::detail::cuMemcpyDeviceToDeviceAux(__FILE__, __LINE__,__func__,        \
+    xlib::detail::cuMemcpyDeviceToDeviceAux(__FILE__, __LINE__,__func__,        \
                                             __VA_ARGS__)                       \
 
 #define cuMemcpyToDevice(...)                                                  \
-    gpu::detail::cuMemcpyToDeviceAux(__FILE__, __LINE__,__func__, __VA_ARGS__) \
+    xlib::detail::cuMemcpyToDeviceAux(__FILE__, __LINE__,__func__, __VA_ARGS__) \
 
 #define cuMemcpyToDeviceAsync(...)                                             \
-    gpu::detail::cuMemcpyToDeviceAsyncAux(__FILE__,  __LINE__, __func__,       \
+    xlib::detail::cuMemcpyToDeviceAsyncAux(__FILE__,  __LINE__, __func__,       \
                                            __VA_ARGS__)                        \
 
 #define cuMemcpyToHost(...)                                                    \
-    gpu::detail::cuMemcpyToHostAux(__FILE__, __LINE__, __func__, __VA_ARGS__)  \
+    xlib::detail::cuMemcpyToHostAux(__FILE__, __LINE__, __func__, __VA_ARGS__)  \
 
 #define cuMemcpyToHostAsync(...)                                               \
-    gpu::detail::cuMemcpyToHostAsyncAux(__FILE__, __LINE__, __func__,          \
+    xlib::detail::cuMemcpyToHostAsyncAux(__FILE__, __LINE__, __func__,          \
                                          __VA_ARGS__)                          \
 //------------------------------------------------------------------------------
 
 #define cuMemcpyToSymbol(...)                                                  \
-    gpu::detail::cuMemcpyToSymbolAux(__FILE__, __LINE__,__func__, __VA_ARGS__) \
+    xlib::detail::cuMemcpyToSymbolAux(__FILE__, __LINE__,__func__, __VA_ARGS__) \
 
 #define cuMemcpyToSymbolAsync(...)                                             \
-    gpu::detail::cuMemcpyToSymbolAsyncAux(__FILE__, __LINE__,__func__,         \
+    xlib::detail::cuMemcpyToSymbolAsyncAux(__FILE__, __LINE__,__func__,         \
                                            __VA_ARGS__)                        \
 
 #define cuMemcpyFromSymbol(...)                                                \
-    gpu::detail::cuMemcpyFromSymbolAux(__FILE__, __LINE__,__func__,            \
+    xlib::detail::cuMemcpyFromSymbolAux(__FILE__, __LINE__,__func__,            \
                                         __VA_ARGS__)                           \
 
 #define cuMemcpyFromSymbolAsync(...)                                           \
-    gpu::detail::cuMemcpyFromSymbolAsyncAux(__FILE__, __LINE__,__func__,       \
+    xlib::detail::cuMemcpyFromSymbolAsyncAux(__FILE__, __LINE__,__func__,       \
                                              __VA_ARGS__)                      \
 //------------------------------------------------------------------------------
 
 #define cuMemset0x00(...)                                                      \
-    gpu::detail::cuMemset0x00Aux(__FILE__, __LINE__, __func__, __VA_ARGS__)    \
+    xlib::detail::cuMemset0x00Aux(__FILE__, __LINE__, __func__, __VA_ARGS__)    \
 
 #define cuMemset0xFF(...)                                                      \
-    gpu::detail::cuMemset0xFFAux(__FILE__, __LINE__, __func__, __VA_ARGS__)    \
+    xlib::detail::cuMemset0xFFAux(__FILE__, __LINE__, __func__, __VA_ARGS__)    \
 
 //==============================================================================
 //==============================================================================
 
-namespace gpu {
+namespace xlib {
 namespace detail {
 
 template<typename T>
@@ -200,7 +200,7 @@ void cuFreeAux(const char* file, int line, const char* func_name,
     std::array<const void*, sizeof...(ptrs)> array =
                                    {{ reinterpret_cast<const void*>(ptrs)... }};
     for (const auto& it : array) {
-        gpu::__cudaErrorHandler(cudaFree(it), "cudaFree",
+        xlib::__cudaErrorHandler(cudaFree(it), "cudaFree",
                                  file, line, func_name);
     }
 }*/
@@ -290,7 +290,7 @@ template<typename T>
 void cuMemcpyDeviceToDeviceAux(const char* file, int line, const char* func_name,
                          const T& input, T* output) {
     assert(output != nullptr);
-    gpu::__cudaErrorHandler(cudaMemcpy(output, &input, sizeof(T),
+    xlib::__cudaErrorHandler(cudaMemcpy(output, &input, sizeof(T),
                                         cudaMemcpyHostToDevice),
                             "cudaMemcpy(ToDevice)", file, line, func_name);
 }
@@ -301,7 +301,7 @@ void cuMemcpyDeviceToDeviceAux(const char* file, int line,
                                 const char* func_name,
                                 const T (&input)[SIZE], T* output) {
     assert(output != nullptr);
-    gpu::__cudaErrorHandler(cudaMemcpy(output, &input, SIZE * sizeof(T),
+    xlib::__cudaErrorHandler(cudaMemcpy(output, &input, SIZE * sizeof(T),
                                         cudaMemcpyHostToDevice),
                             "cudaMemcpy(ToDevice)", file, line, func_name);
 }*/
@@ -464,4 +464,4 @@ void cuMemcpyFromSymbolAsyncAux(const char* file, int line,
 ///@endcond
 
 } // namespace detail
-} // namespace gpu
+} // namespace xlib

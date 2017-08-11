@@ -169,7 +169,7 @@ inline Timer<CPU, ChronoPrecision>::Timer(int decimals, int space,
 template<typename ChronoPrecision>
 inline void Timer<CPU, ChronoPrecision>::start() noexcept {
     assert(!_start_flag);
-    _start_flag = false;
+    _start_flag = true;
     _start_clock = std::clock();
 }
 
@@ -196,7 +196,7 @@ inline Timer<SYS, ChronoPrecision>::Timer(int decimals, int space,
 template<typename ChronoPrecision>
 inline void Timer<SYS, ChronoPrecision>::start() noexcept {
     assert(!_start_flag);
-    _start_flag = false;
+    _start_flag = true;
     _start_time = std::chrono::system_clock::now();
     ::times(&_start_TMS);
 }

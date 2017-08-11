@@ -34,54 +34,14 @@
  * </blockquote>}
  */
 #include "Core/cuStinger.hpp"
+#include "Core/Kernels/cuStingerKernels.cuh"
 #include "Core/cuStingerTypes.cuh"              //VertexBasicData
 #include "Support/Device/BinarySearchLB.cuh"    //xlib::binarySearchLB
 #include "Support/Device/CubWrapper.cuh"        //CubSortByValue
 #include "Support/Device/Definition.cuh"        //xlib::SMemPerBlock
-#include "Support/Device/PrintExt.cuh"        //xlib::SMemPerBlock
-
+#include "Support/Device/PrintExt.cuh"          //xlib::SMemPerBlock
 
 namespace custinger {
-
-__device__ int d_array[10];
-
-__global__ void printKernel(cuStingerDevice custinger) {
-    for (vid_t i = 0; i < custinger.nV; i++) {
-        auto vertex = Vertex(custinger, i);
-        auto degree = vertex.degree();
-        //auto field0 = vertex.field<0>();
-        printf("%d [%d, %d, 0x%llX]:    ", i, vertex.degree(), vertex.limit(),
-                                        vertex.neighbor_ptr());
-
-        auto ptr = vertex.neighbor_ptr();
-        auto weight_ptr = vertex.edge_weight_ptr();
-        for (degree_t j = 0; j < vertex.degree(); j++) {
-            auto   edge = vertex.edge(j);
-            //auto weight = edge.weight();
-            /*auto  time1 = edge.time_stamp1();
-            auto field0 = edge.field<0>();
-            auto field1 = edge.field<1>();*/
-
-            //printf("%d    ", edge.dst());
-            //printf("(%d, %d)    ", ptr[j], weight_ptr[j]);
-            //printf("[%d, %d]    ", edge.dst(), edge.weight());
-            //edge.set_weight(-edge.weight());
-        //    d_array[j] = edge.dst();
-        }
-        printf("\n");
-    }
-    //printf("\n");
-    //from RAW:
-    //
-    //for (vid_t i = 0; i < d_nV; i++) {
-    //  for (degree_t j = 0; j < vertex.degrees(); j++) {
-    //       auto edge = vertex.edge(i);
-    //----------------------------------------------------
-    //to PROPOSED:
-    //
-    //for (auto v : VertexSet) {
-    //  for (auto edge : v) {
-}
 
 void cuStinger::print() noexcept {
     if (sizeof(degree_t) == 4 && sizeof(vid_t) == 4) {
@@ -92,19 +52,6 @@ void cuStinger::print() noexcept {
         WARNING("Graph print is enabled only with degree_t/vid_t of size"
                 " 4 bytes")
     }
-}
-
-template<unsigned BLOCK_SIZE>
-__global__ void CSRtoCOOKernel(const eoff_t* __restrict__ csr_offsets,
-                               vid_t nV,
-                               vid_t* __restrict__ coo_src) {
-    __shared__ int smem[xlib::SMemPerBlock<BLOCK_SIZE, int>::value];
-
-    const auto lambda = [&](int pos, eoff_t offset) {
-                            eoff_t index = csr_offsets[pos] + offset;
-                            coo_src[index] = pos;
-                        };
-    xlib::binarySearchLB<BLOCK_SIZE>(csr_offsets, nV, smem, lambda);
 }
 
 /*
@@ -128,7 +75,7 @@ void cuStinger::transpose() noexcept {
     cuMemcpyToDeviceAsync(0, d_counts_out + _nV);
 
     CSRtoCOOKernel<BLOCK_SIZE>
-        <<< xlib::ceil_div<BLOCK_SIZE>(_nV), BLOCK_SIZE >>>
+        <<< xlib::ceil_div(_nV, BLOCK_SIZE), BLOCK_SIZE >>>
         (d_csr_offsets, _nV, d_coo_dst);
 
     xlib::CubSortByKey<vid_t, vid_t>(d_coo_dst, d_coo_src, _nE,
@@ -148,50 +95,31 @@ void cuStinger::transpose() noexcept {
     initialize();
 }
 
-__global__
-void buildDegreeKernel(const VertexBasicData* __restrict__ d_in,  vid_t nV,
-                       degree_t* __restrict__ d_tmp) {
-    int    idx = blockIdx.x * blockDim.x + threadIdx.x;
-    int stride = blockDim.x * gridDim.x;
-    for (int i = idx; i < nV; i += stride)
-        d_tmp[i] = d_in[i].degree;
-}
-
-vid_t cuStinger::max_degree_vertex() const noexcept {
-    const unsigned BLOCK_SIZE = 256;
-    degree_t* d_tmp;
-    cuMalloc(d_tmp, _nV);
-    auto dev_data = device_side();
-
-    buildDegreeKernel <<< xlib::ceil_div<BLOCK_SIZE>(_nV), BLOCK_SIZE >>>
-        (reinterpret_cast<VertexBasicData*>(dev_data.d_vertex_ptrs[0]),
-         dev_data.nV, d_tmp);
-
-    xlib::CubArgMax<degree_t> arg_max(d_tmp, _nV);
-    cuFree(d_tmp);
-    return arg_max.run().first;
-}
-
-
-__global__ void checkSortedKernel(cuStingerDevice custinger) {
-    int    idx = blockIdx.x * blockDim.x + threadIdx.x;
-    int stride = blockDim.x * gridDim.x;
-
-    for (vid_t i = idx; i < custinger.nV; i += stride) {
-        auto vertex = Vertex(custinger, i);
-        auto    ptr = vertex.neighbor_ptr();
-
-        for (degree_t j = 0; j < vertex.degree() - 1; j++) {
-            if (ptr[j] > ptr[j + 1])
-                printf("Edge %d\t-> %d\t(d: %d)\t(value %d) not sorted \n", i, j, vertex.degree(), ptr[j]);
-            else if (ptr[j] == ptr[j + 1])
-                printf("Edge %d\t-> %d\t(d: %d)\t(value %d) duplicated\n", i, j, vertex.degree(), ptr[j]);
-        }
-    }
-}
-
 void cuStinger::check_sorted_adjs() const noexcept {
-    checkSortedKernel <<< xlib::ceil_div<256>(_nV), 256 >>> (device_side());
+    checkSortedKernel <<< xlib::ceil_div(_nV, 256), 256 >>> (device_side());
+}
+//------------------------------------------------------------------------------
+
+void cuStinger::build_device_degrees() noexcept {
+    cuMalloc(_d_degrees, _nV);
+    buildDegreeKernel <<< xlib::ceil_div(_nV, 256), 256 >>>
+        (device_side(), _d_degrees);
+}
+
+vid_t cuStinger::max_degree_id() noexcept {
+    if (max_degree_data.first == -1) {
+        xlib::CubArgMax<degree_t> arg_max(_d_degrees, _nV);
+        max_degree_data = arg_max.run();
+    }
+    return max_degree_data.first;
+}
+
+vid_t cuStinger::max_degree() noexcept {
+    if (max_degree_data.first == -1) {
+        xlib::CubArgMax<degree_t> arg_max(_d_degrees, _nV);
+        max_degree_data = arg_max.run();
+    }
+    return max_degree_data.second;
 }
 
 } // namespace custinger

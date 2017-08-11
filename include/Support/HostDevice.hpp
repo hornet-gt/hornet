@@ -36,28 +36,19 @@
  *
  * @file
  */
-#include <cuda_runtime.h>
+#if defined(__NVCC__)
+    #define ALIGN(bytes) __align__(bytes)
+    #define HOST_DEVICE  __host__ __device__ __forceinline__
+#else
+    #define ALIGN(bytes) alignas(bytes)
+    #define HOST_DEVICE inline
+#endif
 
- #if defined(__NVCC__)
-     #define ALIGN(bytes) __align__(bytes)
-     #define HOST_DEVICE  __host__ __device__ __forceinline__
-
-     #define CONST_EXPR
-     #define CONST_EXPR_ASSERT(a) assert(a)
- #else
-     #define ALIGN(bytes) alignas(bytes)
-     #define HOST_DEVICE inline
-
-     #define CONST_EXPR // constexpr
-     #define ENABLE_CONST_EXPR
-     #define CONST_EXPR_ASSERT(a)
- #endif
-
- #if defined(__NVCC__) || defined(__GNUG__) || defined(__CLANG__)
-     #define RESTRICT __restrict__
- #elif defined(_MSC_VER)
-     #define RESTRICT __restrict
- #else
-     #define RESTRICT
-     #pragma message("RESTRICT not defined")
- #endif
+#if defined(__NVCC__) || defined(__GNUG__) || defined(__CLANG__)
+    #define RESTRICT __restrict__
+#elif defined(_MSC_VER)
+    #define RESTRICT __restrict
+#else
+    #define RESTRICT
+    #pragma message("RESTRICT not defined")
+#endif

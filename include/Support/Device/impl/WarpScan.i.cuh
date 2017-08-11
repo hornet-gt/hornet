@@ -34,22 +34,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
+#include "Support/Device/Definition.cuh"
+
 namespace xlib {
 namespace detail {
 
 #define warpInclusiveScanMACRO(ASM_OP, ASM_T, ASM_CL)                          \
     const int MASK = ((-1 << Log2<WARP_SZ>::value) & 31) << 8;                 \
+    const unsigned member_mask = WARP_SZ == WARP_SIZE ? 0xFFFFFFFF :           \
+              (0xFFFFFFFF >> (32 - WARP_SZ)) << (xlib::lane_id() / WARP_SZ);   \
     _Pragma("unroll")                                                          \
     for (int STEP = 1; STEP <= WARP_SZ / 2; STEP = STEP * 2) {                 \
         asm(                                                                   \
             "{"                                                                \
             ".reg ."#ASM_T" r1;"                                               \
             ".reg .pred p;"                                                    \
-            "shfl.up.b32 r1|p, %1, %2, %3;"                                    \
+            "shfl.sync.up.b32 r1|p, %1, %2, %3, %4;"                           \
             "@p "#ASM_OP"."#ASM_T" r1, r1, %1;"                                \
             "mov."#ASM_T" %0, r1;"                                             \
             "}"                                                                \
-            : "="#ASM_CL(value) : #ASM_CL(value), "r"(STEP), "r"(MASK));       \
+            : "="#ASM_CL(value) : #ASM_CL(value), "r"(STEP), "r"(MASK),        \
+              "r"(member_mask));                                               \
     }
 
 //==============================================================================
@@ -96,9 +101,8 @@ template<int WARP_SZ>
 template<typename T>
 __device__ __forceinline__
 void WarpInclusiveScan<WARP_SZ>::Add(T& value, T* pointer) {
-
     detail::WarpInclusiveScanHelper<WARP_SZ, false, T>::Add(value);
-    if (lane_id() == WARP_SZ - 1)
+    if (xlib::lane_id() == WARP_SZ - 1)
         *pointer = value;
 }
 
@@ -110,13 +114,15 @@ __device__ __forceinline__
 void WarpExclusiveScan<WARP_SZ>::Add(T& value) {
     detail::WarpInclusiveScanHelper<WARP_SZ, false, T>::Add(value);
     const int MASK = ((-1 << Log2<WARP_SZ>::value) & 31) << 8;
+    const unsigned member_mask = WARP_SZ == WARP_SIZE ? 0xFFFFFFFF :
+                (0xFFFFFFFF >> (32 - WARP_SZ)) << (xlib::lane_id() / WARP_SZ);
     asm(
         "{"
         ".reg .pred p;"
-        "shfl.up.b32 %0|p, %1, %2, %3;"
+        "shfl.sync.up.b32 %0|p, %1, %2, %3, %4;"
         "@!p mov.b32 %0, 0;"
         "}"
-        : "=r"(value) : "r"(value), "r"(1), "r"(MASK));
+        : "=r"(value) : "r"(value), "r"(1), "r"(MASK), "r"(member_mask));
 }
 
 
@@ -126,30 +132,35 @@ __device__ __forceinline__
 void WarpExclusiveScan<WARP_SZ>::Add(T& value, T& total) {
     detail::WarpInclusiveScanHelper<WARP_SZ, false, T>::Add(value);
     const int MASK = ((-1 << Log2<WARP_SZ>::value) & 31) << 8;
+    const unsigned member_mask = WARP_SZ == WARP_SIZE ? 0xFFFFFFFF :
+                (0xFFFFFFFF >> (32 - WARP_SZ)) << (xlib::lane_id() / WARP_SZ);
     total = value;
     asm(
         "{"
         ".reg .pred p;"
-        "shfl.up.b32 %0|p, %1, %2, %3;"
+        "shfl.sync.up.b32 %0|p, %1, %2, %3, %4;"
         "@!p mov.b32 %0, 0;"
         "}"
-        : "=r"(value) : "r"(value), "r"(1), "r"(MASK));
+        : "=r"(value) : "r"(value), "r"(1), "r"(MASK), "r"(member_mask));
 }
 
 template<int WARP_SZ>
 template<typename T>
 __device__ __forceinline__
 void WarpExclusiveScan<WARP_SZ>::AddBcast(T& value, T& total) {
+    const unsigned member_mask = WARP_SZ == WARP_SIZE ? 0xFFFFFFFF :
+                (0xFFFFFFFF >> (32 - WARP_SZ)) << (xlib::lane_id() / WARP_SZ);
+
     detail::WarpInclusiveScanHelper<WARP_SZ, false, T>::Add(value);
-    total = __shfl(value, WARP_SZ - 1, WARP_SZ);
+    total = __shfl_sync(member_mask, value, WARP_SZ - 1, WARP_SZ);
     const int MASK = ((-1 << Log2<WARP_SZ>::value) & 31) << 8;
     asm(
         "{"
         ".reg .pred p;"
-        "shfl.up.b32 %0|p, %1, %2, %3;"
+        "shfl.sync.up.b32 %0|p, %1, %2, %3, %4;"
         "@!p mov.b32 %0, 0;"
         "}"
-        : "=r"(value) : "r"(value), "r"(1), "r"(MASK));
+        : "=r"(value) : "r"(value), "r"(1), "r"(MASK), "r"(member_mask));
 }
 
 //------------------------------------------------------------------------------
@@ -160,7 +171,7 @@ __device__ __forceinline__
 void WarpExclusiveScan<WARP_SZ>::Add(T& value, T* total_ptr) {
     T total;
     WarpExclusiveScan<WARP_SZ>::Add(value, total);
-    if (lane_id() == WARP_SZ - 1)
+    if (xlib::lane_id() == WARP_SZ - 1)
         *total_ptr = total;
 }
 
@@ -168,31 +179,35 @@ template<int WARP_SZ>
 template<typename T>
 __device__ __forceinline__
 T WarpExclusiveScan<WARP_SZ>::AtomicAdd(T& value, T* total_ptr) {
+    const unsigned member_mask = WARP_SZ == WARP_SIZE ? 0xFFFFFFFF :
+                (0xFFFFFFFF >> (32 - WARP_SZ)) << (xlib::lane_id() / WARP_SZ);
     T total, old;
     WarpExclusiveScan<WARP_SZ>::Add(value, total);
-    if (lane_id() == WARP_SZ - 1)
+    if (xlib::lane_id() == WARP_SZ - 1)
         old = atomicAdd(total_ptr, total);
-    return __shfl(old, WARP_SZ - 1);
+    return __shfl_sync(member_mask, old, WARP_SZ - 1);
 }
 
 template<int WARP_SZ>
 template<typename T>
 __device__ __forceinline__
 T WarpExclusiveScan<WARP_SZ>::AtomicAdd(T& value, T* total_ptr, T& total) {
+    const unsigned member_mask = WARP_SZ == WARP_SIZE ? 0xFFFFFFFF :
+                (0xFFFFFFFF >> (32 - WARP_SZ)) << (xlib::lane_id() / WARP_SZ);
     T old;
     WarpExclusiveScan<WARP_SZ>::AddBcast(value, total);
-    if (lane_id() == WARP_SZ - 1)
+    if (xlib::lane_id() == WARP_SZ - 1)
         old = atomicAdd(total_ptr, total);
-    return __shfl(old, WARP_SZ - 1);
+    return __shfl_sync(member_mask, old, WARP_SZ - 1);
 }
 
 template<int WARP_SZ>
 template<typename T>
 __device__ __forceinline__
 void WarpExclusiveScan<WARP_SZ>::Add(T* in_ptr, T* total_ptr) {
-    T value = in_ptr[lane_id()];
+    T value = in_ptr[xlib::lane_id()];
     WarpExclusiveScan<WARP_SZ>::Add(value, total_ptr);
-    in_ptr[lane_id()] = value;
+    in_ptr[xlib::lane_id()] = value;
 }
 
 } // namespace xlib

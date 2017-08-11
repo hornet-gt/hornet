@@ -57,9 +57,9 @@ namespace batch_gen_property {
     const BatchGenProperty UNIQUE   (detail::BatchGenEnum::UNIQUE);
 }
 
-enum class BatchType { INSERT, REMOVE };
+enum class BatchGenType { INSERT, REMOVE };
 
 void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
                    custinger::vid_t* batch_src, custinger::vid_t* batch_dest,
-                   const BatchType& batch_type,
+                   const BatchGenType& batch_type,
                    const BatchGenProperty& prop = BatchGenProperty());

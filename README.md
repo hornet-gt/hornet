@@ -16,19 +16,17 @@ The document is organized as follows:
 * [Acknowledgements](#acknowledgements)
 * [License](#licence)
 
-** For cuStinger Graph Algorithms please refer to **
+** For cuStinger Algorithms please refer to **
 
 ### Requirements ###
 
-* [Nvidia Modern GPU](https://developer.nvidia.com/cuda-gpus) (compute capability >= 3.0): Kerpler, Maxwell, Pascal architectures.
-* [CUDA toolkit](https://developer.nvidia.com/cuda-toolkit) v7.5 or greater. (CUDA toolkit v8.0 recommended, CUDA toolkit v7.0 supported but not tested)
-* GCC or [Clang](https://clang.llvm.org) host compiler with support for C++11<sup>*</sup>.
+* [Nvidia Modern GPU](https://developer.nvidia.com/cuda-gpus) (compute capability &ge; 3.0): Kerpler, Maxwell, Pascal, Volta architectures.
+* [CUDA toolkit](https://developer.nvidia.com/cuda-toolkit) 9 or greater.
+* GCC or [Clang](https://clang.llvm.org) host compiler with support for C++14.
   Note: the compiler must be compatible with the related CUDA toolkit version.
-  For more information see [CUDA Installation Guide](http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html)
-* [CMake](https://cmake.org) v3.5 or greater.
+  For more information see [CUDA Installation Guide](http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html).
+* [CMake](https://cmake.org) v3.6 or greater.
 * 64-bit Operating System (Ubuntu tested).
-
-<sup>*The next release will support C++14 (CUDA Toolkit v8.5). </sup>
 
 ### Quick start ###
 
@@ -77,7 +75,7 @@ The documentation is also accessible online [**here**.](https://federicounivr.gi
     * [clang-tidy](http://clang.llvm.org/extra/clang-tidy/): warnings and code styles
 * cuStinger has been tested with the following tools: (see [`CodeCheck`](docs/CodeCheck.md))
     * [cuda-memcheck](http://docs.nvidia.com/cuda/cuda-memcheck/)
-    * [valgrind v3.12](http://valgrind.org/)
+    * [valgrind v3.13](http://valgrind.org/)
     * [clang static analyzer v279](https://clang-analyzer.llvm.org/)
 
 ### Additional Utilities ###
@@ -94,24 +92,26 @@ We are also ready to engage in improving and extending the framework if you requ
 
 * Oded Green, David A. Bader, [*"cuStinger: Supporting dynamic graph algorithms for GPUs"*](https://www.researchgate.net/publication/308174457_cuSTINGER_Supporting_dynamic_graph_algorithms_for_GPUs),
 IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September, 2016, Waltham, MA, USA, pp. 1-6.
-
+* Oded Green, James Fox, Euna Kim, Federico Busato, Nicola Bombieri,
+  Kartik Lakhotia, Shijie Zhou, Shreyas Singapura, Hanqing Zeng,
+  Rajgopal Kannan, Viktor Prasanna, David A. Bader, **"Quickly Finding a Truss in a Haystack"**, IEEE/Amazon/DARPA Graph Challenge, \**Innovation Awards*\*
 
 ---
 ### <center>If you find this software useful in academic work, please acknowledge cuStinger. </center> ###
 ***
 
-## cuStinger Developers ##
+## cuStinger 2.0 Developers ##
 
 ##### Data Structure ######
 
-* `Oded Green`, Researcher, Georgia Institute of Technology
 * `Federico Busato`, Ph.D. Student, University of Verona (Italy)
+* `Oded Green`, Researcher, Georgia Institute of Technology
 
 ##### Algorithms ######
 
-* `Oded Green`, Researcher, Georgia Institute of Technology
 * `Federico Busato`, Ph.D. Student, University of Verona (Italy)
-* `James Fox`, Ph.D. Student, Georgia Institute of Technology : *Temporal Motif Finding*
+* `Oded Green`, Researcher, Georgia Institute of Technology
+* `James Fox`, Ph.D. Student, Georgia Institute of Technology : *Maximal Independent Set*, *Temporal Motif Finding*
 * `Devavret Makkar`, Ph.D. Student, Georgia Institute of Technology : *Triangle Counting*
 * `Elisabetta Bergamini`, Ph.D. Student, Karlsruhe Institute of Technology (Germany) : *Katz Centrality*
 * ...

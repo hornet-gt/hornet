@@ -136,38 +136,7 @@ void CubSortPairs2<T, R>::run() noexcept {
                                     _d_in1_tmp, _d_in1, _d_in2_tmp, _d_in2,
                                     _num_items, 0, xlib::ceil_log2(_d_in1_max));
 }
-//------------------------------------------------------------------------------
-/*
-template<typename T>
-CubUnique<T>::CubUnique(const T* d_in, size_t num_items, T*& d_unique_batch) :
-                           CubWrapper(num_items),
-                           _d_in(d_in), _d_unique_batch(d_unique_batch),
-                           _d_unique_egdes(nullptr) {
 
-    cuMalloc(_d_unique_egdes);
-    cuMalloc(_d_unique_batch, _num_items);
-
-    cub::DeviceSelect::Unique(_d_temp_storage, _temp_storage_bytes,
-                              _d_in, _d_unique_batch, _d_unique_egdes,
-                              _num_items);
-    SAFE_CALL( cudaMalloc(&_d_temp_storage, _temp_storage_bytes) )
-}
-
-template<typename T>
-CubUnique<T>::~CubUnique() noexcept {
-    cuFree(_d_unique_egdes, _d_unique_batch);
-}
-
-template<typename T>
-int CubUnique<T>::run() noexcept {
-    cub::DeviceSelect::Unique(_d_temp_storage, _temp_storage_bytes,
-                              _d_in, _d_unique_batch, _d_unique_egdes,
-                              _num_items);
-    int h_unique_edges;
-    cuMemcpyToHost(_d_unique_egdes, h_unique_edges);
-    return h_unique_edges;
-}
-*/
 //------------------------------------------------------------------------------
 
 template<typename T, typename R>
@@ -310,6 +279,30 @@ int CubSelectFlagged<T>::run() noexcept {
     return h_num_selected_out;
 }
 
+//------------------------------------------------------------------------------
+
+template<typename T>
+CubReduce<T>::CubReduce(const T* d_in, size_t num_items) noexcept :
+                            CubWrapper(num_items), _d_in(d_in) {
+    cuMalloc(_d_out, 1);
+    cub::DeviceReduce::Sum(_d_temp_storage, _temp_storage_bytes,
+                           _d_in, _d_out, _num_items);
+    SAFE_CALL( cudaMalloc(&_d_temp_storage, _temp_storage_bytes) )
+}
+
+template<typename T>
+T CubReduce<T>::run() noexcept {
+    cub::DeviceReduce::Sum(_d_temp_storage, _temp_storage_bytes,
+                           _d_in, _d_out, _num_items);
+    int h_result;
+    cuMemcpyToHostAsync(_d_out, h_result);
+    return h_result;
+}
+
+template<typename T>
+CubReduce<T>::~CubReduce() noexcept {
+    cuFree(_d_out);
+}
 //------------------------------------------------------------------------------
 
 template<typename T>

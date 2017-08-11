@@ -2,7 +2,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date July, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -33,25 +33,23 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Core/MemoryManager.hpp"
+#include "Core/MemoryManager/MemoryManagerConf.hpp"
+#include "Core/cuStingerDevice.cuh" //cuStingerDevice
 
 namespace custinger {
 
 __device__ __forceinline__
-Vertex::Vertex(cuStingerDevice data, vid_t index) : _id(index) {
-    assert(index < data.nV);
-    xlib::SeqDev<VTypeSize> VTYPE_SIZE_D;
-    _vertex_ptr = reinterpret_cast<VertexBasicData*>(data.d_vertex_ptrs[0]) +
-                  index;
-    auto basic_data = *_vertex_ptr;
-
-    _degree   = basic_data.degree;
-    _limit    = detail::limit(_degree);
-    _edge_ptr = basic_data.neighbor_ptr;
-    #pragma unroll
-    for (int i = 0; i < NUM_EXTRA_VTYPES; i++)
-        _ptrs[i] = data.d_vertex_ptrs[i] + index * VTYPE_SIZE_D[i + 1];
+Vertex::Vertex(cuStingerDevice& custinger, vid_t index) :
+                                            _custinger(custinger),
+                                            _id(index) {
+    assert(index < custinger.nV());
+    auto data = custinger.basic_data_ptr()[index];
+    _degree   = data.degree;
+    _edge_ptr = data.neighbor_ptr;
 }
+
+__device__ __forceinline__
+Vertex::Vertex(cuStingerDevice& custinger) : _custinger(custinger) {}
 
 __device__ __forceinline__
 vid_t Vertex::id() const {
@@ -61,21 +59,6 @@ vid_t Vertex::id() const {
 __device__ __forceinline__
 degree_t Vertex::degree() const {
     return _degree;
-}
-
-template<int INDEX>
-__device__ __forceinline__
-typename std::tuple_element<INDEX, VertexTypes>::type
-Vertex::field() const {
-    using T = typename std::tuple_element<INDEX, VertexTypes>::type;
-    return *reinterpret_cast<T*>(_ptrs[INDEX]);
-}
-
-__device__ __forceinline__
-Edge Vertex::edge(degree_t index) const {
-    return Edge(reinterpret_cast<byte_t*>
-                (reinterpret_cast<vid_t*>(_edge_ptr) + index), index,
-                EDGES_PER_BLOCKARRAY);
 }
 
 __device__ __forceinline__
@@ -91,22 +74,35 @@ vid_t Vertex::neighbor_id(degree_t index) const {
 
 template<typename T>
 __device__ __forceinline__
-Vertex::WeightT* Vertex::edge_weight_ptr() const {
+WeightT* Vertex::edge_weight_ptr() const {
     xlib::SeqDev<ETypeSizePS> ETYPE_SIZE_PS_D;
     auto ptr = _edge_ptr + EDGES_PER_BLOCKARRAY * ETYPE_SIZE_PS_D[1];
     return reinterpret_cast<WeightT*>(ptr);
 }
 
-//------------------------------------------------------------------------------
+template<int INDEX>
 __device__ __forceinline__
-degree_t Vertex::limit() const {
-    return _limit;
+typename std::tuple_element<INDEX, VertexTypes>::type
+Vertex::field() const {
+    return _custinger.vertex_field_ptr<INDEX>()[_id];
 }
 
 __device__ __forceinline__
+Edge Vertex::edge(degree_t index) const {
+    auto offset = _edge_ptr + index * sizeof(vid_t);
+    return Edge(_custinger, offset, EDGES_PER_BLOCKARRAY);
+}
+
+//------------------------------------------------------------------------------
+/*__device__ __forceinline__
+degree_t Vertex::limit() const {
+    return _limit;
+}*/
+/*
+__device__ __forceinline__
 degree_t* Vertex::degree_ptr() {
     return reinterpret_cast<degree_t*>(_vertex_ptr + sizeof(byte_t*));
-}
+}*/
 
 //------------------------------------------------------------------------------
 namespace detail {
@@ -140,30 +136,33 @@ void Vertex::store(const Edge& edge, degree_t index) {
 //==============================================================================
 
 __device__ __forceinline__
-Edge::Edge(byte_t* neighbor_ptr, degree_t index, int limit) {
-    //Edge Type Sizes Prefixsum
-    xlib::SeqDev<ETypeSizePS> ETYPE_SIZE_PS_D;
+Edge::Edge(cuStingerDevice& custinger, byte_t* edge_ptr, int pitch) :
+                        _custinger(custinger),
+                        _dst_id(*reinterpret_cast<vid_t*>(edge_ptr)),
+                        _tmp_vertex(custinger),
+                        _src_vertex(_tmp_vertex) {
+    xlib::SeqDev<ETypeSizePS> ETYPE_SIZE_PS_D;  //Edge Type Sizes Prefixsum
 
-    _dst = *reinterpret_cast<vid_t*>(neighbor_ptr);
+    _dst_id = *reinterpret_cast<vid_t*>(edge_ptr);
     #pragma unroll
     for (int i = 0; i < NUM_EXTRA_ETYPES; i++)
-        _ptrs[i] = neighbor_ptr + limit * ETYPE_SIZE_PS_D[i + 1];
+        _ptrs[i] = edge_ptr + pitch * ETYPE_SIZE_PS_D[i + 1];
 }
 
 __device__ __forceinline__
 vid_t Edge::src_id() const {
-    return 0;
+    return _src_id;
 }
 
 __device__ __forceinline__
 vid_t Edge::dst_id() const {
-    return _dst;
+    return _dst_id;
 }
 
 template<typename T>
 __device__ __forceinline__
 WeightT Edge::weight() const {
-    static_assert(!std::is_same<T, void>::value,
+    static_assert(sizeof(T) == sizeof(T) && NUM_ETYPES > 1,
                   "weight is not part of edge type list");
     return *reinterpret_cast<WeightT*>(_ptrs[0]);
 }
@@ -171,7 +170,7 @@ WeightT Edge::weight() const {
 template<typename T>
 __device__ __forceinline__
 void Edge::set_weight(WeightT weight) {
-    static_assert(!std::is_same<T, void>::value,
+    static_assert(sizeof(T) == sizeof(T) && NUM_ETYPES > 1,
                   "weight is not part of edge type list");
     *reinterpret_cast<WeightT*>(_ptrs[0]) = weight;
 }
@@ -179,7 +178,7 @@ void Edge::set_weight(WeightT weight) {
 template<typename T>
 __device__ __forceinline__
 TimeStamp1T Edge::time_stamp1() const {
-    static_assert(!std::is_same<T, void>::value,
+    static_assert(sizeof(T) == sizeof(T) && NUM_ETYPES > 2,
                   "time_stamp1 is not part of edge type list");
     return *reinterpret_cast<TimeStamp1T*>(_ptrs[1]);
 }
@@ -187,7 +186,7 @@ TimeStamp1T Edge::time_stamp1() const {
 template<typename T>
 __device__ __forceinline__
 TimeStamp2T Edge::time_stamp2() const {
-    static_assert(!std::is_same<T, void>::value,
+    static_assert(sizeof(T) == sizeof(T) && NUM_ETYPES > 3,
                   "time_stamp2 is not part of edge type list");
     return *reinterpret_cast<TimeStamp2T*>(_ptrs[2]);
 }

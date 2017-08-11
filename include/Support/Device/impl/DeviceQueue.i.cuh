@@ -82,8 +82,8 @@ void DeviceQueue<T, SIZE>::store() {
 template<typename T, int SIZE>
 __device__ __forceinline__
 void DeviceQueue<T, SIZE>::store_localqueue() {
-    assert(__ballot(true) == static_cast<unsigned>(-1));
-    if (__any(_size >= SIZE))
+    assert(__activemask() == static_cast<unsigned>(-1));
+    if (__any_sync(0xFFFFFFFF, _size >= SIZE))
         store_localqueue_aux();
 }
 
@@ -102,13 +102,13 @@ void DeviceQueue<T, SIZE>::store_localqueue_aux() {
 template<typename T, int SIZE>
 __device__ __forceinline__
 void DeviceQueue<T, SIZE>::store_ballot() {
-    unsigned       ballot = __ballot(_size);
+    unsigned       ballot = __ballot_sync(0xFFFFFFFF, _size);
     unsigned elected_lane = xlib::__msb(ballot);
     int warp_offset;
     if (xlib::lane_id() == elected_lane)
         warp_offset = atomicAdd(_size_ptr, __popc(ballot));
     int offset = __popc(ballot & xlib::LaneMaskLT()) +
-                 __shfl(warp_offset, elected_lane);
+                 __shfl_sync(0xFFFFFFFF, warp_offset, elected_lane);
     if (_size) {
         _queue_ptr[offset] = _queue[0];
         _size = 0;

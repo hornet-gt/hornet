@@ -47,14 +47,17 @@ set(MARCH_COMPILER_OPTIONS OFF)     #march compiler flag
 # INCLUDE AND SRC #
 ###################
 
-message("\n==> Test on cmake v" ${CMAKE_VERSION}
-        "  System: " ${CMAKE_SYSTEM})
 
 if (CMAKE_BUILD_TYPE STREQUAL "")
     set (CMAKE_BUILD_TYPE Release)
 endif()
 
-message("\n==> Selected CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE} "\n")
+if (QUIET_SUBMODULE)
+    message("\n==> Test on cmake v" ${CMAKE_VERSION}
+            "  System: " ${CMAKE_SYSTEM})
+    message("\n==> Selected CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE} "\n")
+endif()
+
 if (    (NOT CMAKE_BUILD_TYPE STREQUAL "Release")
     AND (NOT CMAKE_BUILD_TYPE STREQUAL "ReleaseEx")
     AND (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -65,7 +68,6 @@ if (    (NOT CMAKE_BUILD_TYPE STREQUAL "Release")
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-#include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 
 #===============================================================================
 #######################
@@ -73,15 +75,15 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 #######################
 include(CheckCXXCompilerFlag)
 
-CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+#CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
-#if (COMPILER_SUPPORTS_CXX14)
-#    add_compile_options("-std=c++14")
-#else
-if (COMPILER_SUPPORTS_CXX11)
-    add_compile_options("-std=c++11")
+if (COMPILER_SUPPORTS_CXX14)
+    add_compile_options("-std=c++14")
+#else()
+#if (COMPILER_SUPPORTS_CXX11)
+#    add_compile_options("-std=c++11")
 else()
-    message(FATAL_ERROR "Compiler ${CMAKE_CXX_COMPILER} has no C++11 support.")
+    message(FATAL_ERROR "Compiler ${CMAKE_CXX_COMPILER} has no C++14 support.")
 endif()
 
 CHECK_CXX_COMPILER_FLAG("-Qunused-arguments" UNUSED_FLAG)
@@ -89,9 +91,9 @@ if (UNUSED_FLAG)
     add_compile_options("-Qunused-arguments")
 endif()
 
-if (CMAKE_CXX_COMPILER_ID EQUAL "Clang")
-    add_compile_options("-Wno-c++14-extensions")
-endif()
+#if (CMAKE_CXX_COMPILER_ID EQUAL "Clang")
+#    add_compile_options("-Wno-c++14-extensions")
+#endif()
 
 if (WARNING_FLAGS)
     if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
@@ -130,10 +132,9 @@ if (CUDA_FOUND)
 
 set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 
-if ((${CUDA_VERSION_MAJOR} LESS 8) AND
-    (${CUDA_VERSION_MAJOR} LESS 7 AND ${CUDA_VERSION_MINOR} LESS 5))
-    message(FATAL_ERROR "\nRequired Cuda Toolkit >= v7.5   Founded: Cuda Toolkit
-                          v${CUDA_VERSION_MAJOR}.${CUDA_VERSION_MINOR}")
+if ((${CUDA_VERSION_MAJOR} LESS 9))
+    message(FATAL_ERROR "\nRequired Cuda Toolkit >= 9   Founded: Cuda Toolkit"
+                        " v${CUDA_VERSION_MAJOR}.${CUDA_VERSION_MINOR}")
 endif()
 
 find_library(
@@ -141,12 +142,19 @@ find_library(
     HINTS  ${CUDA_TOOLKIT_ROOT_DIR}/lib64
 )
 
+
 if (CUDAHC)
-    message("\nCuda Host compiler: " ${CUDAHC})
+    if (QUIET_SUBMODULE)
+        message("\n==> Cuda Host compiler: " ${CUDAHC})
+    endif()
     set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-ccbin=${CUDAHC}" )
 else()
-    message("\nCuda Host compiler (-DCUDAHC=<path_to_host_compiler>):")
-    execute_process(COMMAND bash "-c" "gcc --version | head -n 1")
+    execute_process(COMMAND bash "-c" "gcc --version | head -n 1"
+                    OUTPUT_VARIABLE CUDAHC)
+    if (QUIET_SUBMODULE)
+        message("\n==> Cuda Host compiler: ${CUDAHC}"
+                "    (-DCUDAHC=<path_to_host_compiler>)")
+    endif()
 endif()
 
 if (CUB_LIBRARY)
@@ -174,9 +182,9 @@ set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}
 endif()
 endif()
 
-set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-std=c++11" "--expt-extended-lambda"
-    #"--expt-relaxed-constexpr"
-    "-Xcompiler=-Wno-unknown-pragmas"#,-ftemplate-depth=512
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-std=c++14" "--expt-extended-lambda"
+    "--expt-relaxed-constexpr"
+    "-Xcompiler=-Wno-unknown-pragmas"
     -Xcudafe \\\"--diag_suppress=initialization_not_reachable\\\"
     -Xcudafe \\\"--diag_suppress=code_is_unreachable\\\"
     -isystem /usr/local/cuda/include
@@ -203,7 +211,8 @@ if(GPU_ARCH STREQUAL "")
     list(GET OUT_VARIABLE 0 GPU_ARCH)
     list(GET OUT_VARIABLE 1 SM)
 endif()
-
+#-------------------------------------------------------------------------------
+if (QUIET_SUBMODULE)
 if(NOT SM STREQUAL "")
     message("\n==> GPU architecture: CC ${GPU_ARCH}"
             " with ${SM} streaming multiprocessors\n")
@@ -212,6 +221,8 @@ if(NOT SM STREQUAL "")
 else()
     message("\n==> GPU architecture: ${GPU_ARCH}\n")
 endif()
+endif()
+#-------------------------------------------------------------------------------
 
 if (GPU_ARCH STREQUAL "30")
     list(APPEND CUDA_NVCC_FLAGS "-arch=sm_30" "-DARCH=300")
@@ -233,9 +244,11 @@ elseif (GPU_ARCH STREQUAL "61")
     list(APPEND CUDA_NVCC_FLAGS "-arch=sm_61" "-DARCH=610")
 elseif (GPU_ARCH STREQUAL "62")
     list(APPEND CUDA_NVCC_FLAGS "-arch=sm_62" "-DARCH=620")
+elseif (GPU_ARCH STREQUAL "70")
+    list(APPEND CUDA_NVCC_FLAGS "-arch=sm_70" "-DARCH=700")
 else()
     message(FATAL_ERROR "\nplease select GPU architecture:
-    \"cmake -DARCH=[ 30 | 32 | 35 | 37 | 50 | 52 | 53 | 60 | 61 | 62 ]\"")
+    \"cmake -DARCH=[ 30 | 32 | 35 | 37 | 50 | 52 | 53 | 60 | 61 | 62 | 70 ]\"")
 endif()
 
 #===============================================================================
@@ -275,6 +288,39 @@ else()
 endif()
 
 endif() #end cuda
+
+#===============================================================================
+include(ProcessorCount)
+ProcessorCount(THREADS)
+
+if (QUIET_SUBMODULE)
+
+if(THREADS EQUAL 0)
+    message(FATAL_ERROR "==> Get Number of CPU threads failed!\n")
+else()
+    message("\n==> Number of CPU threads: " ${THREADS} "\n")
+endif()
+
+endif()
+
+#===============================================================================
+##########
+# OPENMP #
+##########
+FIND_PACKAGE(OpenMP)
+
+if (OPENMP_FOUND)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}\
+ -DMAX_THREADS=${THREADS}")
+    #message("OPENMP Specification date: " ${OpenMP_CXX_SPEC_DATE})
+
+    if (CUDA_FOUND)
+        set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DMAX_THREADS=${THREADS}"
+            "-Xcompiler=${OpenMP_CXX_FLAGS}")
+    endif()
+
+endif()
 
 #===============================================================================
 ######################
@@ -325,21 +371,11 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 ${H_MARCH} -mtune=native ${FLTO} \
 set(CMAKE_CXX_FLAGS_RELEASE_EX "-O3 ${H_MARCH} -mtune=native ${FLTO} \
 -funroll-loops -DNDEBUG -DNO_CHECK_CUDA_ERROR")
 
-#-------------------------------------------------------------------------------
-
-include(ProcessorCount)
-ProcessorCount(THREADS)
-if(THREADS EQUAL 0)
-    message(FATAL_ERROR "Get Number of CPU threads failed!")
-else()
-    message("Number of CPU threads: " ${THREADS})
-endif()
-
 #===============================================================================
 #################
 # CUSTOM TARGET #
 #################
-if (ENABLE_TARGET)
+if (QUIET_SUBMODULE)
 
 add_custom_target(rm rm -rf * COMMENT "Clear build directory")
 

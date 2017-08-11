@@ -50,26 +50,26 @@ namespace xlib {
  * @tparam B second parameter
  * @tparam ARGS additional parameters
  */
-template<unsigned A, unsigned B, unsigned... ARGS> struct Max;
-template<unsigned A, unsigned B, unsigned... ARGS> struct Min;
-template<unsigned N, unsigned DIV>      struct CeilDiv;
-template<uint64_t N, uint64_t DIV>      struct CeilDivUll;
+//template<unsigned A, unsigned B, unsigned... ARGS> struct Max;
+//template<unsigned A, unsigned B, unsigned... ARGS> struct Min;
+//template<unsigned N, unsigned DIV>      struct CeilDiv;
+//template<uint64_t N, uint64_t DIV>      struct CeilDivUll;
 
 /**
  * @brief compute
  * \f$ \[\left\lfloor {\frac{N}{{\textif{DIV}}} + 0.5} \right\rfloor \] \f$
  */
-template<unsigned N, unsigned DIV>      struct RoundDiv;
-
+//template<unsigned N, unsigned DIV>      struct RoundDiv;
+/*
 template<unsigned N, unsigned MUL>      struct UpperApprox;
 template<uint64_t N, uint64_t MUL>      struct UpperApproxUll;
 template<unsigned N, unsigned MUL>      struct LowerApprox;
-template<uint64_t N, uint64_t MUL>      struct LowerApproxUll;
+template<uint64_t N, uint64_t MUL>      struct LowerApproxUll;*/
 
-template<uint64_t N>                    struct IsPower2;
+//template<uint64_t N>                    struct IsPower2;
 template<unsigned N, unsigned EXP>      struct Pow;
-template<unsigned N>                    struct RoundUpPow2;
-template<uint64_t N>                    struct RoundUpPow2Ull;
+//template<unsigned N>                    struct RoundUpPow2;
+//template<uint64_t N>                    struct RoundUpPow2Ull;
 template<unsigned N>                    struct RoundDownPow2;
 template<uint64_t N>                    struct RoundDownPow2Ull;
 
@@ -79,11 +79,14 @@ template<unsigned N>                    struct CeilLog2;
 template<uint64_t N>                    struct CeilLog2Ull;
 template<unsigned N, unsigned BASE>     struct CeilLog;
 
-template<unsigned N>                    struct Factorail;
+//template<unsigned N>                    struct Factorail;
 template<unsigned N, unsigned K>        struct BinomialCoeff;
 template<unsigned LOW, unsigned HIGH>   struct ProductSequence;
 template<unsigned N, unsigned HIGH>     struct GeometricSerie;
 //------------------------------------------------------------------------------
+
+template<int N, typename... TArgs>
+using NthTypeOf = typename std::tuple_element<N, std::tuple<TArgs...>>::type;
 
 template<typename>
 struct SeqDev;
@@ -92,7 +95,9 @@ template<unsigned... Is>
 struct Seq {
     static constexpr unsigned value[] = { Is... };
     static constexpr unsigned    size = sizeof...(Is);
-    constexpr unsigned operator[](int index) const { return value[index]; }
+    constexpr unsigned operator[](int index) const {
+        return value[index];
+    }
 };
 template<unsigned... Is>
 constexpr unsigned Seq<Is...>::value[];                                //NOTLINT
@@ -101,8 +106,8 @@ constexpr unsigned Seq<Is...>::value[];                                //NOTLINT
 template<unsigned... Is>
 struct SeqDev<Seq<Is...>> {
     HOST_DEVICE unsigned operator[](int index) const {
-         constexpr unsigned value[] = { Is... };
-         return value[index];
+        constexpr unsigned value[] = { Is... };
+        return value[index];
     }
 };
 

@@ -48,8 +48,8 @@ Timer<DEVICE, ChronoPrecision>::~Timer() noexcept {
 template<typename ChronoPrecision>
 void Timer<DEVICE, ChronoPrecision>::start() noexcept {
     assert(!_start_flag);
-    _start_flag = false;
-    cudaEventRecord(_start_event, 0);    
+    _start_flag = true;
+    cudaEventRecord(_start_event, 0);
 }
 
 template<typename ChronoPrecision>

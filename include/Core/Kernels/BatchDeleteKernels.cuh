@@ -66,7 +66,7 @@ void collectOldDegreeKernel(cuStingerDevice           custinger,
 
     for (int i = id; i < num_uniques; i += stride) {
         auto        src = d_unique[i];
-        d_degree_old[i] = Vertex(custinger, src).degree();
+        d_degree_old[i] = custinger.vertex(src).degree();
         d_inverse_pos[src] = i;
     }
 }
@@ -84,7 +84,7 @@ void deleteEdgesKernel(cuStingerDevice              custinger,
         vid_t src = batch_update.src(i);
         vid_t dst = batch_update.dst(i);
 
-        Vertex src_vertex(custinger, src);
+        Vertex src_vertex = custinger.vertex(src);
         auto adj_ptr = src_vertex.neighbor_ptr();
 
         auto pos = xlib::binary_search(adj_ptr, src_vertex.degree(), dst);
@@ -108,8 +108,7 @@ void collectDataKernel(cuStingerDevice           custinger,
     int stride = gridDim.x * blockDim.x;
 
     for (int i = id; i < num_uniques; i += stride) {
-        auto d_vertex_ptrs = reinterpret_cast<VertexBasicData*>
-                                (custinger.d_vertex_ptrs[0]);
+        auto d_vertex_ptrs = custinger.basic_data_ptr();
         auto         src = d_unique[i];
         auto vertex_data = d_vertex_ptrs[src];
         auto  new_degree = vertex_data.degree - d_count[i];
@@ -175,8 +174,7 @@ void moveDataKernel2(const degree_t* __restrict__ d_degree_new_prefix,
 }
 
 __global__
-void scatterDegreeKernel(cuStingerDevice custinger,
-                         const vid_t* __restrict__ d_unique,
+void scatterDegreeKernel(const vid_t* __restrict__ d_unique,
                          const int*   __restrict__ d_counts,
                          int                       num_uniques,
                          int*         __restrict__ d_batch_offsets) {

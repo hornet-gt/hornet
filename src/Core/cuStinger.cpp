@@ -33,27 +33,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
+#if !defined(CSR_GRAPH)
+
 #include "Core/cuStinger.hpp"
-#include "GraphIO/GraphBase.hpp"        //graph::structur
+#include "GraphIO/GraphBase.hpp"        //graph::structure
 #include "Support/Device/Timer.cuh"     //xlib::Timer
-#include "Support/Host/FileUtil.hpp"    //graph::structure
+#include "Support/Host/FileUtil.hpp"    //xlib::MemoryMapped
 #include "Support/Host/Timer.hpp"       //xlib::Timer
 #include <cstring>                      //std::memcpy
 
-using namespace timer;
-
 namespace custinger {
-
-cuStingerInit::cuStingerInit(size_t num_vertices, size_t num_edges,
-                             const eoff_t* csr_offsets, const vid_t* csr_edges)
-                             noexcept :
-                               _nV(num_vertices),
-                               _nE(num_edges) {
-    _vertex_data_ptrs[0] = reinterpret_cast<const byte_t*>(csr_offsets);
-    _edge_data_ptrs[0]   = reinterpret_cast<const byte_t*>(csr_edges);
-}
-
-//==============================================================================
 
 int cuStinger::global_id = 0;
 
@@ -72,16 +61,15 @@ cuStinger::cuStinger(const cuStingerInit& custinger_init,
 }
 
 cuStinger::~cuStinger() noexcept {
-    cuFree(_d_vertices, _d_csr_offsets);
+    cuFree(_d_vertices, _d_csr_offsets, _d_degrees);
     if (_internal_csr_data) {
         delete[] _csr_offsets;
         delete[] _csr_edges;
     }
-    /*cuFree(d_counts, d_unique, d_degree_old, d_degree_new, d_tmp, d_ptrs_array,
-            d_flags, d_inverse_pos);*/
 }
 
 void cuStinger::initialize() noexcept {
+    using namespace timer;
     auto edge_data_ptrs = _custinger_init._edge_data_ptrs;
     auto    vertex_data = _custinger_init._vertex_data_ptrs;
     const byte_t* h_vertex_ptrs[NUM_VTYPES];
@@ -105,6 +93,8 @@ void cuStinger::initialize() noexcept {
     using pair_t = typename std::pair<edge_t*, degree_t>;
     auto h_vertex_basic_data = new pair_t[_nV];
 
+    //mem_manager.statistics();
+
     degree_t max_degree = -1;
     for (vid_t i = 0; i < _nV; i++) {
         auto degree = _csr_offsets[i + 1] - _csr_offsets[i];
@@ -112,12 +102,9 @@ void cuStinger::initialize() noexcept {
             h_vertex_basic_data[i] = pair_t(nullptr, 0);
             continue;
         }
-        if (degree > max_degree) {
-            _max_degree_vertex = i;
-            max_degree = degree;
-            if (degree >= EDGES_PER_BLOCKARRAY)
-                ERROR("degree >= EDGES_PER_BLOCKARRAY, (", degree, ")")
-        }
+        if (degree >= EDGES_PER_BLOCKARRAY)
+            ERROR("degree >= EDGES_PER_BLOCKARRAY, (", degree, ")")
+
         const auto&   mem_data = mem_manager.insert(degree);
         h_vertex_basic_data[i] = pair_t(reinterpret_cast<edge_t*>
                                         (mem_data.second), degree);
@@ -133,11 +120,14 @@ void cuStinger::initialize() noexcept {
                         edge_data_ptrs[j] + offset_bytes, num_bytes);
         }
     }
+    //mem_manager.statistics();
 
     //copy BlockArrays to the device
     int num_blockarrays = mem_manager.num_blockarrays();
     for (int i = 0; i < num_blockarrays; i++) {
         const auto& mem_data = mem_manager.get_blockarray_ptr(i);
+
+        //std::cout << mem_data.first << " ----  " << mem_data.second << std::endl;
         cuMemcpyToDeviceAsync(mem_data.first,
                               EDGES_PER_BLOCKARRAY * sizeof(edge_t),
                               mem_data.second);
@@ -161,6 +151,7 @@ void cuStinger::initialize() noexcept {
     TM.stop();
     TM.print("Initilization Time:");
     //mem_manager.free_host_ptr();
+    build_device_degrees();
 }
 
 void cuStinger::convert_to_csr(eoff_t* csr_offsets, vid_t* csr_edges)
@@ -176,7 +167,7 @@ void cuStinger::convert_to_csr(eoff_t* csr_offsets, vid_t* csr_edges)
     for (vid_t i = 1; i <= _nV; i++)
         csr_offsets[i] = h_vertex_basic_ptr[i - 1].second + csr_offsets[i - 1];
     //--------------------------------------------------------------------------
-    eoff_t   offset = 0;
+    eoff_t offset = 0;
     for (vid_t i = 0; i < _nV; i++) {
         degree_t degree = h_vertex_basic_ptr[i].second;
         if (degree == 0) continue;
@@ -233,4 +224,54 @@ void cuStinger::store_snapshot(const std::string& filename) const noexcept {
     delete[] csr_edges;
 }
 
+//==============================================================================
+
+void cuStinger::allocateEdgeDeletion(vid_t max_batch_size,
+                                     BatchProperty batch_prop) noexcept {
+    assert(_d_counts == nullptr);
+    if (batch_prop == batch_property::LOW_MEMORY)
+        ;
+    else {
+        cuMalloc(_d_counts,       max_batch_size + 1,   //need
+                 _d_unique,       max_batch_size,       //need
+                 _d_degree_old,   max_batch_size + 1,
+                 _d_degree_new,   max_batch_size + 1,
+                 _d_tmp_sort_src, max_batch_size + 1,   //need
+                 _d_tmp_sort_dst, max_batch_size + 1,   //need
+                 _d_tmp,          _nE,
+                 _d_ptrs_array,   max_batch_size + 1,
+                 _d_flags,        _nE,                  //need (V duplicates)
+                 _d_inverse_pos,  _nV);                 //need csr_wide
+    }
+    int  inverse = (batch_prop == batch_property::GEN_INVERSE) + 1;
+    _batch_pitch = xlib::upper_approx<512>(max_batch_size * sizeof(vid_t) *
+                                           inverse);
+
+    /*if (batch_udate._batch_type == BatchType::HOST) {
+        cuMallocHost(_batch_ptr, _batch_pitch * 2);
+        _d_src_array = _batch_ptr;
+        _d_dst_array = _batch_ptr + _batch_pitch;
+    }*/
+}
+
+void cuStinger::send_to_device(BatchUpdate& batch_udate,
+                               BatchProperty batch_prop) noexcept {
+    size_t batch_size = batch_udate.original_size();
+    if (batch_udate._batch_type == BatchType::HOST) {
+        cuMemcpyToDevice(batch_udate.original_src_ptr(), batch_size,
+                         batch_udate.src_ptr());
+        cuMemcpyToDevice(batch_udate.original_dst_ptr(), batch_size,
+                         batch_udate.dst_ptr());
+    }
+    if (batch_prop == batch_property::GEN_INVERSE) {
+        cuMemcpyDeviceToDevice(batch_udate.src_ptr(), batch_size,
+                               batch_udate.dst_ptr() + batch_size);
+        cuMemcpyDeviceToDevice(batch_udate.dst_ptr(), batch_size,
+                               batch_udate.src_ptr() + batch_size);
+        batch_udate._batch_size = batch_size * 2;
+    }
+}
+
 } // namespace custinger
+
+#endif

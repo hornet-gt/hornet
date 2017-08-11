@@ -137,6 +137,17 @@ private:
 };
 
 template<typename T>
+class CubReduce : public CubWrapper {
+public:
+    explicit CubReduce(const T* d_in, size_t size) noexcept;
+    ~CubReduce() noexcept;
+    T run() noexcept;
+private:
+    const T* _d_in  { nullptr };
+    T*       _d_out { nullptr };
+};
+
+template<typename T>
 class CubExclusiveSum : public CubWrapper {
 public:
     explicit CubExclusiveSum(T* d_in_out, size_t size)             noexcept;

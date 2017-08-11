@@ -46,11 +46,12 @@ BatchGenProperty::BatchGenProperty(const detail::BatchGenEnum& obj) noexcept :
 
 void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
                    custinger::vid_t* batch_src, custinger::vid_t* batch_dst,
-                   const BatchType& batch_type, const BatchGenProperty& prop) {
+                   const BatchGenType& batch_type,
+                   const BatchGenProperty& prop) {
     using custinger::vid_t;
     using vid_distribution = std::uniform_int_distribution<vid_t>;
 
-    if (batch_type == BatchType::REMOVE) {
+    if (batch_type == BatchGenType::REMOVE) {
         auto seed = std::chrono::high_resolution_clock::now().time_since_epoch()
                     .count();
         std::mt19937_64 gen(seed);

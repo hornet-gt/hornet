@@ -2,9 +2,6 @@
  * @brief Example of cuStinger configuration
  * @file
  */
-//namespace custinger {
-//namespace detail {
-
 /**
  * @brief vertex id type
  * @remark `id_t` must be *integral* type
@@ -36,6 +33,3 @@ using VertexTypes = TypeList<>;
  */
 using EdgeTypes = TypeList<>;
 //using EdgeTypes = TypeList<uint64_t, float>;
-
-//} // namespace custinger
-//} // namespace detail

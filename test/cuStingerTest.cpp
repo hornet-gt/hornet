@@ -2,8 +2,7 @@
 #include "Core/cuStinger.hpp"
 
 #include "GraphIO/GraphStd.hpp"        //GraphStd
-#include "Util/BatchFunctions.hpp"        //GraphStd
-
+#include "Util/BatchFunctions.hpp"
 //#include "Util/Parameters.hpp"         //Param
 #include "Support/Host/FileUtil.hpp"   //xlib::extract_filepath_noextension
 #include "Support/Device/CudaUtil.cuh" //xlib::deviceInfo
@@ -75,7 +74,7 @@ void exec(int argc, char* argv[]) {
 
 
     cuStinger custiger_graph(custinger_init);
-    custiger_graph.check_sorted_adjs();
+    //custiger_graph.check_sorted_adjs();
 
     delete[] weights;
     std::cout << "--------------------------------------------------------"<<std::endl;
@@ -99,17 +98,17 @@ void exec(int argc, char* argv[]) {
     using namespace batch_gen_property;
     auto batch_src = new vid_t[batch_size];
     auto batch_dst = new vid_t[batch_size];
-    generateBatch(graph, batch_size, batch_src, batch_dst, BatchType::REMOVE,
+    generateBatch(graph, batch_size, batch_src, batch_dst, BatchGenType::REMOVE,
                   UNIQUE | batch_gen_property::PRINT);
 
     std::cout << "--------------------------------------------------------"<<std::endl;
-    BatchHost batch_host(batch_src, batch_dst, batch_size);
+    BatchUpdate BatchUpdate(batch_src, batch_dst, batch_size);
     //BatchUpdate batch_update(batch_host);
     //batch_update.sendToDevice(batch_init);
 
     //custiger_graph.edgeDeletionsSorted(batch_host);
 
-    custiger_graph.check_sorted_adjs();
+    //custiger_graph.check_sorted_adjs();
 
 
     std::cout << "\n\n";

@@ -2,7 +2,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date July, 2017
+ * @date August, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -33,6 +33,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
+#if !defined(CSR_GRAPH)
+
 #include "Core/cuStinger.hpp"
 #include "Core/Kernels/BatchInsertKernels.cuh"
 #include "Support/Device/CubWrapper.cuh"
@@ -40,7 +42,8 @@
 
 namespace custinger {
 
-void cuStinger::insertEdgeBatch(BatchUpdate& batch_update) noexcept {
+void cuStinger::insertEdgeBatch(BatchUpdate& batch_update,
+                                BatchProperty batch_prop) noexcept {
     /*insertEdgeBatch(batch_update, [] __device__ (const Edge& a, const Edge& b) {
                                       return a.dst() == b.dst();
                                   });*/
@@ -51,7 +54,8 @@ void cuStinger::insertEdgeBatch(BatchUpdate& batch_update) noexcept {
 
 template<typename EqualOp>
 void cuStinger::insertEdgeBatch(BatchUpdate& batch_update,
-                                const EqualOp& equal_op) noexcept {
+                                const EqualOp& equal_op,
+                                BatchProperty batch_prop) noexcept {
     const unsigned BLOCK_SIZE = 256;
     size_t batch_size = batch_update.size();
 
@@ -200,3 +204,5 @@ void cuStinger::insertEdgeBatch(BatchUpdate& batch_update,
 }
 
 } // namespace custinger
+
+#endif

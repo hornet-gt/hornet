@@ -41,48 +41,45 @@
  */
 #pragma once
 
-#include "Support/Host/Basic.hpp"            //xlib::byte_t
-#include "Support/Host/Metaprogramming.hpp"  //xlib::TupleToTypeSize
-#include "Support/Host/Numeric.hpp"          //xlib::roundup_pow2
-#include <limits>
+#if defined(CSR_GRAPH)
+    #include "Csr/RawTypes.hpp"
+#else
+
+#include "Support/Host/Basic.hpp"                    //xlib::byte_t
+#include "Support/Host/Metaprogramming.hpp"          //xlib::TupleToTypeSize
+#include "Core/MemoryManager/MemoryManagerConf.hpp"  //MIN_EDGES_PER_BLOCK
+#include "Support/Host/Numeric.hpp"                  //xlib::roundup_pow2
 
 namespace custinger {
-
-template<typename... TArgs>
-using TypeList = std::tuple<TArgs...>;
 
 using xlib::byte_t;
 using degree_t = int;
 
-namespace detail {
-
-HOST_DEVICE degree_t limit(degree_t degree) noexcept {
-    const degree_t MIN_EDGES_PER_BLOCK = 1;
-    #if defined(__CUDACC__)
-        return ::max(static_cast<degree_t>(MIN_EDGES_PER_BLOCK),
-                     xlib::roundup_pow2(degree + 1));
-    #else
-        return std::max(static_cast<degree_t>(MIN_EDGES_PER_BLOCK),
-                        xlib::roundup_pow2(degree + 1));
-    #endif
-}
-
-} //namespace detail
+template<typename... TArgs>
+using TypeList = std::tuple<TArgs...>;
 
 struct ALIGN(16) VertexBasicData {
-    byte_t* __restrict__ neighbor_ptr;
-    degree_t             degree;
+    byte_t*  __restrict__ neighbor_ptr;
+    degree_t              degree;
 
     HOST_DEVICE
     VertexBasicData(degree_t degree, byte_t* neighbor_ptr) :
         degree(degree), neighbor_ptr(neighbor_ptr) {}
 
     HOST_DEVICE degree_t limit() {
-        return detail::limit(degree);
+    #if defined(__CUDACC__)
+        return ::max(static_cast<degree_t>(MIN_EDGES_PER_BLOCK),
+                     PREFER_FASTER_UPDATE ? xlib::roundup_pow2(degree) :
+                                            xlib::roundup_pow2(degree + 1));
+    #else
+        return std::max(static_cast<degree_t>(MIN_EDGES_PER_BLOCK),
+                    PREFER_FASTER_UPDATE ? xlib::roundup_pow2(degree) :
+                                           xlib::roundup_pow2(degree + 1));
+    #endif
     }
 };
 
-//User configuration
+///User configuration
 //#include "configWeight.inc"
 #include "config.inc"
 
@@ -92,21 +89,7 @@ using vertex_t = typename xlib::TupleConcat<TypeList<VertexBasicData>,
 using   edge_t = typename xlib::TupleConcat<TypeList<vid_t>, EdgeTypes>::type;
 
 #include "RawTypesUtil.hpp"
-//------------------------------------------------------------------------------
-
-template<unsigned INDEX = 0, unsigned SIZE, typename T, typename... TArgs>
-void bind(const byte_t* (&data_ptrs)[SIZE], const T* data, TArgs... args)
-          noexcept;
-
-template<unsigned INDEX, unsigned SIZE>
-void bind(const byte_t* (&data_ptrs)[SIZE]) noexcept {}
-
-template<unsigned INDEX, unsigned SIZE, typename T, typename... TArgs>
-void bind(const byte_t* (&data_ptrs)[SIZE], const T* data, TArgs... args)
-          noexcept {
-    static_assert(INDEX < SIZE, "Index out-of-bound");
-    data_ptrs[INDEX] = reinterpret_cast<byte_t*>(const_cast<T*>(data));
-    bind<INDEX + 1>(data_ptrs, args...);
-}
 
 } // namespace custinger
+
+#endif

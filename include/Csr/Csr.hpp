@@ -37,31 +37,30 @@
  */
 #pragma once
 
-#include "Core/cuStinger.hpp"   //custinger::cuStingerInit
-#include "Csr/RawTypes.hpp"     //
-#include "GlobalSpace.cuh"      //byte_t
-#include <cstddef>              //size_t
+#include "Csr/RawTypes.hpp"
+#include <cstddef>                  //size_t
+#include "Core/cuStingerInit.hpp"   //cuStingerInit
 
 /**
  * @brief
  */
-namespace csr {
+namespace custinger {
 
 /**
  * @brief Main cuStinger class
  */
-class Csr {
+class cuStinger {
 public:
     /**
      * @brief default costructor
      * @param[in] custinger_init cuStinger initilialization data structure
      */
-    explicit Csr(const custinger::cuStingerInit& custinger_init) noexcept;
+    explicit cuStinger(const custinger::cuStingerInit& custinger_init) noexcept;
 
     /**
      * @brief decostructor
      */
-    ~Csr() noexcept;
+    ~cuStinger() noexcept;
 
     /**
      * @brief print the graph directly from the device
@@ -69,23 +68,69 @@ public:
      */
     void print() noexcept;
 
+    /**
+     * @brief **actual** number of vertices in the graph
+     * @return actual number of vertices
+     */
+    size_t nV() const noexcept;
+
+    /**
+     * @brief **actual** number of edges in the graph
+     * @return actual number of edges
+     */
+    size_t nE() const noexcept;
+
+    /**
+     * @brief **actual** csr offsets of the graph
+     * @return pointer to csr offsets
+     */
+    const eoff_t* csr_offsets() noexcept;
+
+    /**
+     * @brief **actual** csr edges of the graph
+     * @return pointer to csr edges
+     */
+    const vid_t* csr_edges() noexcept;
+
+    /**
+     * @brief **actual** device csr offsets of the graph
+     * @return device pointer to csr offsets
+     */
+    const eoff_t* device_csr_offsets() noexcept;
+
+    /**
+     * @brief device data to used the cuStinger data structure on the device
+     * @return device data associeted to the cuStinger instance
+     */
+    cuStingerDevice device_side() const noexcept;
+
+    vid_t max_degree_id() const noexcept;
+
+    degree_t max_degree() const noexcept;
+
 private:
+    const cuStingerInit& _custinger_init;
     /**
      * @internal
      * @brief device pointer for *all* vertex data
      *        (degree and edge pointer included)
      */
-    byte_t*      _d_vertices { nullptr };
-    byte_t*      _d_edges    { nullptr };
-    size_t       _nV;
-    size_t       _nE;
+    byte_t* _d_vertex_ptrs[NUM_VTYPES] = {};
 
     /**
      * @internal
-     * @brief copy the vertex data pointers to the __constant__ memory
+     * @brief device pointer for *all* vertex data
+     *        (degree and edge pointer included)
      */
-    void initializeGlobal(byte_t* (&vertex_data_ptrs)[NUM_VTYPES],
-                          byte_t* (&edge_data_ptrs)[NUM_ETYPES]) noexcept;
+    byte_t*      _d_vertices    { nullptr };
+    byte_t*      _d_edges       { nullptr };
+    eoff_t*      _d_csr_offsets { nullptr };
+    size_t       _nV;
+    size_t       _nE;
+
+    void initialize() noexcept;
 };
 
-} // namespace csr
+} // namespace custinger
+
+#include "Core/impl/cuStinger.i.hpp"

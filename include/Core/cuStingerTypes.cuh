@@ -38,28 +38,17 @@
  */
 #pragma once
 
-#include "Core/cuStingerDeviceData.cuh" //cuStingerDevice
 #include "Core/RawTypes.hpp"
 
 namespace custinger {
 
 class Edge;
-
-//==============================================================================
+class cuStingerDevice;
 
 class Vertex {
-    friend class VertexSet;
-    using WeightT = typename std::tuple_element<(NUM_ETYPES > 1 ? 1 : 0),
-                                                 edge_t>::type;
+    friend class Edge;
+    friend class cuStingerDevice;
 public:
-    /**
-     * @internal
-     * @brief Default costructor
-     * @param[in] data cuStinger device data
-     */
-    __device__ __forceinline__
-    Vertex(cuStingerDevice data, vid_t index);
-
     /**
      * @brief id of the vertex
      * @return id of the vertex
@@ -73,23 +62,6 @@ public:
      */
     __device__ __forceinline__
     degree_t degree() const;
-
-    /**
-     * @brief  value of a user-defined vertex field
-     * @tparam INDEX index of the user-defined vertex field to return
-     * @return value of the user-defined vertex field at the index `INDEX`
-     *         (type at the index `INDEX` in the `EdgeTypes` list)
-     * @remark the method does not compile if the `VertexTypes` list does not
-     *         contain atleast `INDEX` fields
-     * @details **Example:**
-     * @code{.cpp}
-     *      auto vertex_label = vertex.field<0>();
-     * @endcode
-     */
-    template<int INDEX>
-    __device__ __forceinline__
-    typename std::tuple_element<INDEX, VertexTypes>::type
-    field() const;
 
     /**
      * @brief Get an edge associeted to the vertex
@@ -106,8 +78,8 @@ public:
      * @brief return the limit (upper approximation) of the degree of the vertex
      * @return number of edges in the actual *block*
      */
-    __device__ __forceinline__
-    degree_t limit() const;
+    //__device__ __forceinline__
+    //degree_t limit() const;
 
     /**
      * @internal
@@ -132,19 +104,44 @@ public:
     __device__ __forceinline__
     vid_t neighbor_id(degree_t index) const;
 
-    template<typename T = WeightT>
+    template<typename = EnableT>
     __device__ __forceinline__
     WeightT* edge_weight_ptr() const;
 
-protected:
-    vid_t    _id;
-    degree_t _degree;
-    byte_t*  _ptrs[NUM_EXTRA_VTYPES];
+    /**
+     * @brief  value of a user-defined vertex field
+     * @tparam INDEX index of the user-defined vertex field to return
+     * @return value of the user-defined vertex field at the index `INDEX`
+     *         (type at the index `INDEX` in the `EdgeTypes` list)
+     * @remark the method does not compile if the `VertexTypes` list does not
+     *         contain atleast `INDEX` fields
+     * @details **Example:**
+     * @code{.cpp}
+     *      auto vertex_label = vertex.field<0>();
+     * @endcode
+     */
+    template<int INDEX>
+    __device__ __forceinline__
+    typename std::tuple_element<INDEX, VertexTypes>::type
+    field() const;
 
 private:
-    VertexBasicData* _vertex_ptr;
+    cuStingerDevice& _custinger;
     byte_t*          _edge_ptr;
-    degree_t         _limit;
+    vid_t            _id;
+    degree_t         _degree;
+    eoff_t           _offset;
+
+    /**
+     * @internal
+     * @brief Default costructor
+     * @param[in] data cuStinger device data
+     */
+    __device__ __forceinline__
+    Vertex(cuStingerDevice& data, vid_t index);
+
+    __device__ __forceinline__
+    Vertex(cuStingerDevice& data);
 };
 
 //==============================================================================
@@ -152,7 +149,7 @@ private:
 class Edge {
     friend class Vertex;
 
-    static_assert(std::is_same<WeightT, int>::value, "T error");//???
+    //static_assert(std::is_same<WeightT, int>::value, "T error");//???
 public:
     /**
      * @brief source of the edge
@@ -173,7 +170,7 @@ public:
      * @return Source vertex
      */
     __device__ __forceinline__
-    Vertex src() const;
+    Vertex& src() const;
 
     /**
      * @brief Destination vertex of the edge
@@ -192,11 +189,11 @@ public:
      *      auto edge_weight = edge.weight();
      * @endcode
      */
-    template<typename T = EnableWeight>
+    template<typename = EnableT>
     __device__ __forceinline__
     WeightT weight() const;
 
-    template<typename T = EnableWeight>
+    template<typename = EnableT>
     __device__ __forceinline__
     void set_weight(WeightT weight);
 
@@ -206,7 +203,7 @@ public:
      * @remark the method is disabled if the `EdgeTypes` list does not contain
      *         atleast two fields
      */
-    template<typename T = EnableTimeStamp1>
+    template<typename = EnableT>
     __device__ __forceinline__
     TimeStamp1T time_stamp1() const;
 
@@ -216,7 +213,7 @@ public:
      * @remark the method is disabled if the `EdgeTypes` list does not contain
      *         atleast three fields
      */
-    template<typename T = EnableTimeStamp2>
+    template<typename = EnableT>
     __device__ __forceinline__
     TimeStamp2T time_stamp2() const;
 
@@ -238,6 +235,15 @@ public:
     typename std::tuple_element<INDEX, EdgeTypes>::type
     field() const;
 
+private:
+    byte_t*          _ptrs[NUM_ETYPES];
+    cuStingerDevice& _custinger;
+    eoff_t           _offset;
+    vid_t            _src_id;
+    vid_t            _dst_id;
+    Vertex&          _src_vertex;
+    Vertex           _tmp_vertex;
+
     /**
      * @internal
      * @brief Default Costrustor
@@ -246,13 +252,22 @@ public:
      * @param[in] size of the *block*
      */
     __device__ __forceinline__
-    Edge(byte_t* block_ptr, degree_t index, degree_t limit);
+    Edge(cuStingerDevice& custinger, eoff_t offset);    //CSR
 
-protected:
-    vid_t   _dst;
-    byte_t* _ptrs[NUM_EXTRA_ETYPES];
+    __device__ __forceinline__
+    Edge(cuStingerDevice& custinger, eoff_t offset, vid_t src_id);  //CSR
+
+    __device__ __forceinline__
+    Edge(cuStingerDevice& custinger, eoff_t offset, Vertex& src_vertex); //CSR
+
+    __device__ __forceinline__
+    Edge(cuStingerDevice& custinger, byte_t* edge_ptr, int pitch);
 };
 
 } // namespace custinger
 
-#include "impl/cuStingerTypes.i.cuh"
+#if defined(CSR_GRAPH)
+    #include "Csr/CsrTypes.i.cuh"
+#else
+    #include "impl/cuStingerTypes.i.cuh"
+#endif

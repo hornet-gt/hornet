@@ -42,7 +42,7 @@ namespace custinger {
 
 template<typename EqualOp>
 __global__
-void findDuplicateKernel(cuStingerDevice   custinger,
+void findDuplicateKernel(cuStingerDevice    custinger,
                          BatchUpdate        batch_update,
                          EqualOp            equal_op,
                          bool* __restrict__ d_flags) {
@@ -59,7 +59,7 @@ void findDuplicateKernel(cuStingerDevice   custinger,
             flag = false;
         }
         else {
-            auto vertex_src = Vertex(custinger, src);
+            auto vertex_src = custinger.vertex(src);
             auto     degree = vertex_src.degree();
             flag = true;
             for (degree_t j = 0; j < degree; j++) {
@@ -204,7 +204,7 @@ void mergeAdjListKernel(cuStingerDevice              custinger,
     int stride = gridDim.x * blockDim.x;
 
     for (int i = id; i < num_uniques; i += stride) {
-        auto    vertex = Vertex(custinger, d_unique_src[i]);
+        auto    vertex = custinger.vertex(d_unique_src[i]);
         auto  left_ptr = vertex.neighbor_ptr();
         auto left_size = d_degrees_changed[i];
 

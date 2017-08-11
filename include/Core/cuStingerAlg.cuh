@@ -122,18 +122,18 @@ public:
      * @details Copy the algorithm-dependent data from the device to the host in
      *         the reference passed to `register_data()`
      * @pre    the user must call `register_data()` before
-     * @remark the user should call this method after the main algorithm
-     *         iteration
+     * @remark the user should call this method after the interaction with the
+     *         device
      */
     virtual void syncDeviceWithHost() noexcept final;
 
     /**
      * @brief Synchronize the Host with the Device
-     * @@details Copy the algorithm-dependent data from the host to the device in
+     * @details Copy the algorithm-dependent data from the host to the device in
      *         the poiter return by `register_data()`
      * @pre    the user must call `register_data()` before
-     * @remark the user should call this method before the main algorithm
-     *         iteration
+     * @remark the user should call this method before the interaction with the
+     *         device
      */
     virtual void syncHostWithDevice() noexcept final;
 
@@ -149,18 +149,6 @@ private:
     void*  _d_ptr         { nullptr };
     bool   _is_registered { false };
 };
-
-//==============================================================================
-/*
-class Allocate {
-public:
-    template<typename T>
-    explicit Allocate(T*& pointer, size_t num_items) noexcept;
-
-    ~Allocate() noexcept;
-private:
-    void* _pointer;
-};*/
 
 } // namespace custinger_alg
 

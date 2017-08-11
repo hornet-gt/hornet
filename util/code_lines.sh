@@ -10,7 +10,11 @@ if [ ! -x "$dir/cloc" ]; then
     chmod +x "$dir/cloc"
 fi
 
-"$dir/cloc" "$dir/../include" "$dir/../src" "$dir/../test"                     \
+"$dir/cloc" --force-lang="CUDA",cu.disable                                     \
+            --force-lang="C++",cpp.disable                                     \
+            --force-lang="C++",inc                                             \
+            --ignored=ignored.txt                                              \
+            "$dir/../include" "$dir/../src" "$dir/../test"                     \
             "$dir/../externals/cuStinger/include"                              \
             "$dir/../externals/cuStinger/src"
 

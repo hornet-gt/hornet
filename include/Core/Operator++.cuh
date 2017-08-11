@@ -82,7 +82,7 @@ void forAllnumV(const custinger::cuStinger& custinger, const Operator& op);
 template<typename Operator>
 void forAllnumE(const custinger::cuStinger& custinger, const Operator& op);
 
-//------------------------------------------------------------------------------
+//==============================================================================
 
 /**
  * @brief apply the `Operator` to all vertices in the graph
@@ -111,12 +111,21 @@ template<typename Operator, typename LoadBalancing>
 void forAllEdges(custinger::cuStinger& custinger, const Operator& op,
                  LoadBalancing& LB);
 
-//------------------------------------------------------------------------------
+//==============================================================================
+
+template<typename Operator, typename T>
+void forAllVertices(custinger::cuStinger& custinger,
+                    const custinger::vid_t* vertex_array,
+                    int size, const Operator& op);
 
 template<typename Operator>
-void forAllVertices(custinger::cuStinger& custinger,
-                    TwoLevelQueue<custinger::vid_t>& queue,
+void forAllVertices(TwoLevelQueue<custinger::vid_t>& queue,
                     const Operator& op);
+
+template<typename Operator, typename LoadBalancing>
+void forAllEdges(custinger::cuStinger& custinger,
+                 const custinger::vid_t* vertex_array, int size, 
+                 const Operator& op, LoadBalancing& LB);
 
 /**
  * @brief apply the `Operator` to all vertices in the graph
@@ -137,13 +146,13 @@ void forAllEdges(custinger::cuStinger& custinger,
                  TwoLevelQueue<custinger::vid_t>& queue,
                  const Operator& op);
 */
-//------------------------------------------------------------------------------
+//==============================================================================
 
 template<typename Operator>
-void forAllBatchEdges(const Operator& op);
+void forAllBatchEdges(const Operator& op);  //TO DO
 
 template<typename Operator>
-void forAllBatchVertices(const Operator& op);
+void forAllBatchVertices(const Operator& op);  //TO DO
 
 } // namespace custinger_alg
 

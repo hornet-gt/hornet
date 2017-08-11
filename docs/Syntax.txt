@@ -2,11 +2,11 @@
 Usage: ./<executable> <graph_file> [ options ]
 
 Options:
-    --directed      Force read the input graph as directed.
+    --directed      Force reading the input graph as directed.
                     If the graph is stored as undirected, each edge is added
                     with probability 0.5.
 
-    --undirected    Force read the input graph as undirected.
+    --undirected    Force reading the input graph as undirected.
                     If the graph is stored as directed, for each edge is added
                     the inverse direction.
 

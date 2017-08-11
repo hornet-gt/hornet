@@ -42,8 +42,8 @@ __global__ void forAllVerticesKernel(custinger::cuStingerDevice custinger,
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
 
-    for (vid_t i = id; i < custinger.nV; i += stride)
-        Operator(custinger::Vertex(custinger, i), optional_data);
+    for (vid_t i = id; i < custinger.nV(); i += stride)
+        Operator(custinger.vertex(i), optional_data);
 }
 
 template<void (*Operator)(const custinger::Vertex&, void*)>
@@ -57,7 +57,7 @@ void forAllVerticesKernel(custinger::cuStingerDevice           custinger,
     int stride = gridDim.x * blockDim.x;
 
     for (vid_t i = id; i < num_items; i += stride)
-        Operator(custinger::Vertex(custinger, d_array[i]), optional_data);
+        Operator(custinger.vertex(d_array[i]), optional_data);
 }
 
 //------------------------------------------------------------------------------
@@ -71,10 +71,10 @@ void forAllEdgesKernel(const custinger::eoff_t* __restrict__ csr_offsets,
 
     __shared__ custinger::degree_t smem[ITEMS_PER_BLOCK];
     const auto lambda = [&](int pos, custinger::degree_t offset) {
-                        custinger::Vertex vertex(custinger, pos);
+                        auto vertex = custinger.vertex(pos);
                         Operator(vertex, vertex.edge(offset), optional_data);
                     };
-    xlib::binarySearchLB<BLOCK_SIZE>(csr_offsets, custinger.nV + 1, smem,
+    xlib::binarySearchLB<BLOCK_SIZE>(csr_offsets, custinger.nV() + 1, smem,
                                      lambda);
 }
 
@@ -142,15 +142,25 @@ void forAllVertices(const custinger::cuStinger& custinger, void* optional_data)
 }
 
 template<void (*Operator)(const custinger::Vertex&, void*)>
-void forAllVertices(const custinger::cuStinger& custinger,
-                    TwoLevelQueue<custinger::vid_t>& queue,
+void forAllVertices(TwoLevelQueue<custinger::vid_t>& queue,
                     void* optional_data) noexcept {
 
     unsigned size = queue.size();
     detail::forAllVerticesKernel<Operator>
         <<< xlib::ceil_div<BLOCK_SIZE_OP1>(size), BLOCK_SIZE_OP1 >>>
-        (custinger.device_side(), queue.device_input_ptr(), size,
+        (queue.custinger.device_side(), queue.device_input_ptr(), size,
          optional_data);
+    CHECK_CUDA_ERROR
+}
+
+template<void (*Operator)(const custinger::Vertex&, void*)>
+void forAllVertices(const custinger::cuStinger& custinger,
+                    const custinger::vid_t* vertex_array, int size,
+                    void* optional_data) noexcept {
+
+    detail::forAllVerticesKernel<Operator>
+        <<< xlib::ceil_div<BLOCK_SIZE_OP1>(size), BLOCK_SIZE_OP1 >>>
+        (custinger.device_side(), vertex_array, size, optional_data);
     CHECK_CUDA_ERROR
 }
 
@@ -181,6 +191,15 @@ void forAllEdges(TwoLevelQueue<custinger::vid_t>& queue,
     LB.template apply<Operator>(queue.device_input_ptr(), queue.size(),
                                 optional_data);
 }
+
+template<void (*Operator)(custinger::Edge&, void*), typename LoadBalancing>
+void forAllEdges(const custinger::cuStinger& custinger,
+                 const custinger::vid_t* vertex_array, int size,
+                 void* optional_data, LoadBalancing& LB) noexcept {
+
+    LB.template apply<Operator>(vertex_array, size, optional_data);
+}
+
 
 
 /*template<void (*Operator)(custinger::Vertex, custinger::Edge, void*)>

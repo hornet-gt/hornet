@@ -14,6 +14,7 @@ The document is organized as follows:
 * [cuStinger Algorithms](#custinger-algorithms)
 * [Performance](#performance)
 * [cuStinger Algorithms Lines of Code](#custinger-algorithms-lines-of-code)
+* [Code Documentation](#code-documentation)
 * [Reporting bugs and contributing](#reporting-bugs-and-contributing)
 * [Publications](#publications)
 * [cuStinger Developers](#custinger-developers)
@@ -53,7 +54,7 @@ make -j
 | (PG) Page Rank                      |     yes       | on-going |
 | (TC) Triangle Counting              |     yes       |   yes    |
 | (KC) Katz Centrality                |     yes       |   yes    |
-| (MIS) Maximal Independent Set       |    to-do      |  to-do   |
+| (MIS) Maximal Independent Set       |   on-going    |  to-do   |
 | (MF) Maximum Flow                   |    to-do      |  to-do   |
 | (CC) Clustering Coeffient           |    to-do      |  to-do   |
 | (ST) St-Connectivity                |    to-do      |  to-do   |
@@ -111,6 +112,12 @@ make -j
 <sup>(A) lines of code required for the algorithm </sup><br>
 <sup>(B) lines of code required for the operators </sup>
 
+### Code Documentation ###
+
+The code documentation is located in the `docs` directory of cuStinger data
+structure directory (*doxygen* html format).
+The documentation is also accessible online [**here**.](https://federicounivr.github.io/cuStinger/)
+
 ### Reporting bugs and contributing ###
 
 If you find any bugs please report them by using the repository (github **issues** panel).
@@ -127,18 +134,18 @@ IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September, 2016
 ### <center>If you find this software useful in academic work, please acknowledge cuStinger. </center> ###
 ***
 
-## cuStinger Developers ##
+## cuStinger 2.0 Developers ##
 
 ##### Data Structure ######
 
-* `Oded Green`, Researcher, Georgia Institute of Technology
 * `Federico Busato`, Ph.D. Student, University of Verona (Italy)
+* `Oded Green`, Researcher, Georgia Institute of Technology
 
 ##### Algorithms ######
 
-* `Oded Green`, Researcher, Georgia Institute of Technology
 * `Federico Busato`, Ph.D. Student, University of Verona (Italy)
-* `James Fox`, Ph.D. Student, Georgia Institute of Technology : *Temporal Motif Finding*
+* `Oded Green`, Researcher, Georgia Institute of Technology
+* `James Fox`, Ph.D. Student, Georgia Institute of Technology : *Maximal Independent Set*, *Temporal Motif Finding*
 * `Devavret Makkar`, Ph.D. Student, Georgia Institute of Technology : *Triangle Counting*
 * `Elisabetta Bergamini`, Ph.D. Student, Karlsruhe Institute of Technology (Germany) : *Katz Centrality*
 * ...

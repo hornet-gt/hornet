@@ -35,7 +35,7 @@ __global__ void forAllVerticesKernel(custinger::cuStingerDevice custinger,
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
 
-    for (custinger::vid_t i = id; i < custinger.nV; i += stride)
+    for (custinger::vid_t i = id; i < custinger.nV(); i += stride)
         op(custinger::Vertex(custinger, i));
 }
 
@@ -49,7 +49,7 @@ void forAllVerticesKernel(custinger::cuStingerDevice            custinger,
     int stride = gridDim.x * blockDim.x;
 
     for (custinger::vid_t i = id; i < num_items; i += stride)
-        op(custinger::Vertex(custinger, vertices_array[i]));
+        op(custinger.vertex(vertices_array[i]));
 }
 
 template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK, typename Operator>
@@ -60,10 +60,10 @@ void forAllEdgesKernel(const custinger::eoff_t* __restrict__ csr_offsets,
 
     __shared__ custinger::degree_t smem[ITEMS_PER_BLOCK];
     const auto lambda = [&](int pos, custinger::degree_t offset) {
-                                custinger::Vertex vertex(custinger, pos);
+                                auto vertex = custinger.vertex(pos);
                                 op(vertex, vertex.edge(offset));
                             };
-    xlib::binarySearchLB<BLOCK_SIZE>(csr_offsets, custinger.nV + 1,
+    xlib::binarySearchLB<BLOCK_SIZE>(csr_offsets, custinger.nV() + 1,
                                      smem, lambda);
 }
 
@@ -96,7 +96,7 @@ void forAllnumE(const custinger::cuStinger& custinger, const Operator& op) {
         (custinger.nE(), op);
 }
 
-//------------------------------------------------------------------------------
+//==============================================================================
 
 template<typename Operator>
 void forAllVertices(custinger::cuStinger& custinger, const Operator& op) {
@@ -119,17 +119,32 @@ void forAllEdges(custinger::cuStinger& custinger, const Operator& op,
        (custinger.device_csr_offsets(), custinger.device_side(), op);
 }
 
-//------------------------------------------------------------------------------
-/*
-template<typename Operator>
+//==============================================================================
+
+template<typename Operator, typename T>
 void forAllVertices(custinger::cuStinger& custinger,
-                   TwoLevelQueue<custinger::vid_t>& queue,
-                   const Operator& op) {
+                    const custinger::vid_t* vertex_array,
+                    int size, const Operator& op) {
+    detail::forAllVerticesKernel
+        <<< xlib::ceil_div<BLOCK_SIZE_OP2>(size), BLOCK_SIZE_OP2 >>>
+        (custinger.device_side(), vertex_array, size, op);
+}
+
+template<typename Operator>
+void forAllVertices(TwoLevelQueue<custinger::vid_t>& queue,
+                    const Operator& op) {
     unsigned size = queue.size();
     detail::forAllVerticesKernel
         <<< xlib::ceil_div<BLOCK_SIZE_OP2>(size), BLOCK_SIZE_OP2 >>>
-        (custinger, queue.device_input_ptr(), size, op);
-}*/
+        (queue.custinger.device_side(), queue.device_input_ptr(), size, op);
+}
+
+template<typename Operator, typename LoadBalancing>
+void forAllEdges(custinger::cuStinger& custinger,
+                 const custinger::vid_t* vertex_array,
+                 int size, const Operator& op, LoadBalancing& LB) {
+    LB.apply(vertex_array, size, op);
+}
 
 template<typename Operator, typename LoadBalancing>
 void forAllEdges(TwoLevelQueue<custinger::vid_t>& queue,

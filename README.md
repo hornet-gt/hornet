@@ -21,17 +21,17 @@ The document is organized as follows:
 * [Acknowledgements](#acknowledgements)
 * [License](#licence)
 
-## Requirements ##
+### Requirements ###
 
-* [Nvidia Modern GPU](https://developer.nvidia.com/cuda-gpus) (compute capability >= 3.0): Kerpler, Maxwell, Pascal architectures.
-* [CUDA toolkit](https://developer.nvidia.com/cuda-toolkit) v7.5 or greater. (CUDA toolkit v8.0 recommended, CUDA toolkit v7.0 supported but not tested)
-* GCC or [Clang](https://clang.llvm.org) host compiler with support for C++11<sup>*</sup>.
-* [CMake](https://cmake.org) v3.5 or greater.
+* [Nvidia Modern GPU](https://developer.nvidia.com/cuda-gpus) (compute capability &ge; 3.0): Kerpler, Maxwell, Pascal, Volta architectures.
+* [CUDA toolkit](https://developer.nvidia.com/cuda-toolkit) 9 or greater.
+* GCC or [Clang](https://clang.llvm.org) host compiler with support for C++14.
+  Note: the compiler must be compatible with the related CUDA toolkit version.
+  For more information see [CUDA Installation Guide](http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html).
+* [CMake](https://cmake.org) v3.6 or greater.
 * 64-bit Operating System (Ubuntu tested).
 
-<sup>*The next release will support C++14 (CUDA Toolkit v9). </sup>
-
-## Quick Start ##
+### Quick Start ###
 
 The following basic steps are required to build and execute the cuStinger algorithms:
 ```bash
@@ -128,7 +128,9 @@ We are also ready to engage in improving and extending the framework if you requ
 
 * Oded Green, David A. Bader, [*"cuStinger: Supporting dynamic graph algorithms for GPUs"*](https://www.researchgate.net/publication/308174457_cuSTINGER_Supporting_dynamic_graph_algorithms_for_GPUs),
 IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September, 2016, Waltham, MA, USA, pp. 1-6.
-
+* Oded Green, James Fox, Euna Kim, Federico Busato, Nicola Bombieri,
+  Kartik Lakhotia, Shijie Zhou, Shreyas Singapura, Hanqing Zeng,
+  Rajgopal Kannan, Viktor Prasanna, David A. Bader, **"Quickly Finding a Truss in a Haystack"**, IEEE/Amazon/DARPA Graph Challenge, \**Innovation Awards*\*
 
 ---
 ### <center>If you find this software useful in academic work, please acknowledge cuStinger. </center> ###

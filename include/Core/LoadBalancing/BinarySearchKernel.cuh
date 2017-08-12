@@ -36,7 +36,7 @@
  * @file
  */
 #include <Core/cuStingerTypes.cuh>
-#include <Support/Device/BinarySearchLB.cuh>
+#include <Device/BinarySearchLB.cuh>
 
 /**
  * @brief

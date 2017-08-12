@@ -33,9 +33,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include <Support/Device/Definition.cuh>        //xlib::SMemPerBlock
-#include <Support/Device/PrintExt.cuh>          //cu::printArray
-#include <Support/Device/SafeCudaAPI.cuh>       //cuMemcpyToDeviceAsync
+#include <Device/Definition.cuh>        //xlib::SMemPerBlock
+#include <Device/PrintExt.cuh>          //cu::printArray
+#include <Device/SafeCudaAPI.cuh>       //cuMemcpyToDeviceAsync
 
 namespace custinger_alg {
 

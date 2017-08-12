@@ -57,7 +57,7 @@
  */
 #pragma once
 
-#include "Support/Device/SafeCudaAPI.cuh"
+#include "Device/SafeCudaAPI.cuh"
 #include <omp.h>
 
 namespace gpu {

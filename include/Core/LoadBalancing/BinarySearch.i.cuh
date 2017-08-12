@@ -34,8 +34,8 @@
  * </blockquote>}
  */
 #include "BinarySearchKernel.cuh"
-#include <Support/Device/CubWrapper.cuh>    //xlib::CubExclusiveSum
-#include <Support/Device/Definition.cuh>    //xlib::SMemPerBlock
+#include <Device/CubWrapper.cuh>    //xlib::CubExclusiveSum
+#include <Device/Definition.cuh>    //xlib::SMemPerBlock
 
 namespace load_balacing {
 namespace detail {

@@ -34,9 +34,9 @@
  * </blockquote>}
  */
 #include "GraphIO/GraphBase.hpp"
-#include "Support/Host/Basic.hpp"   //WARNING
-#include "Support/Host/FileUtil.hpp"//xlib::file_size
-#include "Support/Host/Numeric.hpp" //xlib::check_overflow
+#include "Host/Basic.hpp"   //WARNING
+#include "Host/FileUtil.hpp"//xlib::file_size
+#include "Host/Numeric.hpp" //xlib::check_overflow
 #include <iostream>                 //std::cout
 #include <sstream>                  //std::istringstream
 
@@ -193,8 +193,6 @@ GInfo GraphBase<vid_t, eoff_t>::getMarketHeader(std::ifstream& fin) {
     std::getline(fin, header_lines);
     auto direction = header_lines.find("symmetric") != std::string::npos ?
                         structure_prop::UNDIRECTED : structure_prop::DIRECTED;
-    //_directed_to_undirected = direction == structure_prop::UNDIRECTED;
-
     /*if (header_lines.find("integer") != std::string::npos)
         _structure._wtype = Structure::INTEGER;
     if (header_lines.find("real") != std::string::npos)
@@ -224,6 +222,7 @@ GInfo GraphBase<vid_t, eoff_t>::getDimacs9Header(std::ifstream& fin) {
     xlib::skip_words(fin, 2);
     size_t num_vertices, num_edges;
     fin >> num_vertices >> num_edges;
+    _stored_undirected = false;
     return { num_vertices, num_edges, num_edges, structure_prop::UNDIRECTED };
 }
 
@@ -247,9 +246,9 @@ GInfo GraphBase<vid_t, eoff_t>::getDimacs10Header(std::ifstream& fin) {
                                   : structure_prop::UNDIRECTED;
         xlib::skip_lines(fin);
     }
-    _directed_to_undirected = direction == structure_prop::UNDIRECTED;
     if (direction == structure_prop::UNDIRECTED)
         num_edges *= 2;
+    _stored_undirected = direction == structure_prop::UNDIRECTED;
     return { num_vertices, num_edges, num_vertices, direction };
 }
 
@@ -266,7 +265,6 @@ GInfo GraphBase<vid_t, eoff_t>::getKonectHeader(std::ifstream& fin) {
     xlib::skip_lines(fin);
     if (str != "%")
         ERROR("Wrong file format")
-    //_directed_to_undirected = direction == structure_prop::UNDIRECTED;
     _stored_undirected = direction == structure_prop::UNDIRECTED;
     return { std::max(value1, value2), num_edges, num_edges, direction };
 }
@@ -277,8 +275,9 @@ template<typename vid_t, typename eoff_t>
 void GraphBase<vid_t, eoff_t>::getNetRepoHeader(std::ifstream& fin) {
     std::string str;
     fin >> str >> str;
-    //_header_direction = (str == "directed") ? Structure::DIRECTED
-    //                                        : Structure::UNDIRECTED;
+    auto direction = (str == "directed") ? structure_prop::DIRECTED
+                                         : structure_prop::UNDIRECTED;
+    _stored_undirected = direction == structure_prop::UNDIRECTED;
     xlib::skip_lines(fin);
 }
 
@@ -302,7 +301,6 @@ GInfo GraphBase<vid_t, eoff_t>::getSnapHeader(std::ifstream& fin) {
         }
     }
     xlib::skip_lines(fin);
-    //_directed_to_undirected = direction == structure_prop::UNDIRECTED;
     _stored_undirected = direction == structure_prop::UNDIRECTED;
     return { num_vertices, num_lines, num_lines, direction };
 }

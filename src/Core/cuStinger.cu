@@ -36,10 +36,10 @@
 #include "Core/cuStinger.hpp"
 #include "Core/Kernels/cuStingerKernels.cuh"
 #include "Core/cuStingerTypes.cuh"              //VertexBasicData
-#include "Support/Device/BinarySearchLB.cuh"    //xlib::binarySearchLB
-#include "Support/Device/CubWrapper.cuh"        //CubSortByValue
-#include "Support/Device/Definition.cuh"        //xlib::SMemPerBlock
-#include "Support/Device/PrintExt.cuh"          //xlib::SMemPerBlock
+#include "Device/BinarySearchLB.cuh"    //xlib::binarySearchLB
+#include "Device/CubWrapper.cuh"        //CubSortByValue
+#include "Device/Definition.cuh"        //xlib::SMemPerBlock
+#include "Device/PrintExt.cuh"          //xlib::SMemPerBlock
 
 namespace custinger {
 

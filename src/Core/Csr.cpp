@@ -36,9 +36,9 @@
 #if defined(CSR_GRAPH)
 
 #include "Core/cuStinger.hpp"
-#include "Support/Device/SafeCudaAPI.cuh"   //cuMalloc, cuMemcpyToDevice
-#include "Support/Host/Numeric.hpp"         //xlib::upper_approx
-#include "Support/Host/Timer.hpp"           //timer::Timer
+#include "Device/SafeCudaAPI.cuh"   //cuMalloc, cuMemcpyToDevice
+#include "Host/Numeric.hpp"         //xlib::upper_approx
+#include "Host/Timer.hpp"           //timer::Timer
 
 namespace custinger {
 

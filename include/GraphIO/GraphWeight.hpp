@@ -37,71 +37,100 @@
  */
 #pragma once
 
-#include "GraphIO/GraphBase.hpp"
-#include <tuple>  //std::tuple
+#include "GraphIO/GraphStd.hpp"
+#include <tuple>
 
 namespace graph {
 
 template<typename vid_t, typename eoff_t>
 class BFS;
 
+template<typename vid_t, typename eoff_t>
+class WCC;
+
 template<typename vid_t = int, typename eoff_t = int, typename weight_t = int>
-class GraphWeight : public GraphBase<vid_t, eoff_t> {
+class GraphWeight : public GraphStd<vid_t, eoff_t> {
     using    coo_t = typename std::tuple<vid_t, vid_t, weight_t>;
     using degree_t = int;
     friend class BFS<vid_t, eoff_t>;
+    friend class WCC<vid_t, eoff_t>;
 
 public:
-    explicit GraphWeight()                                   noexcept = default;
-    explicit GraphWeight(Structure Structure)                noexcept;
-    explicit GraphWeight(const char* filename, Property prop) noexcept;
-    explicit GraphWeight(Structure Structure, const char* filename,
-                         Property property) noexcept;
+    explicit GraphWeight(StructureProp structure = StructureProp()) noexcept;
+
+    explicit GraphWeight(const char* filename,
+                         const ParsingProp& property
+                             = ParsingProp(parsing_prop::PRINT)) noexcept;
+
+    explicit GraphWeight(StructureProp structure, const char* filename,
+                         const ParsingProp& property) noexcept;
+
+    explicit GraphWeight(const eoff_t* csr_offsets, vid_t nV,
+                         const vid_t* csr_edges, eoff_t nE) noexcept;
+
     virtual ~GraphWeight() noexcept final;                              //NOLINT
+    //--------------------------------------------------------------------------
 
-    degree_t out_degree(vid_t index)  const noexcept;
-    degree_t in_degree (vid_t index)  const noexcept;
+    using GraphStd<vid_t, eoff_t>::out_degree;
+    using GraphStd<vid_t, eoff_t>::in_degree;
+    using GraphStd<vid_t, eoff_t>::out_offsets_ptr;
+    using GraphStd<vid_t, eoff_t>::in_offsets_ptr;
+    using GraphStd<vid_t, eoff_t>::out_edges_ptr;
+    using GraphStd<vid_t, eoff_t>::in_edges_ptr;
+    using GraphStd<vid_t, eoff_t>::out_degrees_ptr;
+    using GraphStd<vid_t, eoff_t>::in_degrees_ptr;
 
-    const coo_t*    coo_array()         const noexcept;
-    const eoff_t*    out_offsets() const noexcept;
-    const eoff_t*    in_offsets_array()  const noexcept;
-    const vid_t*     out_edges()   const noexcept;
-    const vid_t*     in_edges_array()    const noexcept;
-    const degree_t* out_degrees_array() const noexcept;
-    const degree_t* in_degrees_array()  const noexcept;
-    const weight_t* out_weights_array() const noexcept;
-    const weight_t* in_weights_array()  const noexcept;
+    const coo_t*     coo_array()         const noexcept;
+    const weight_t*  out_weights_array() const noexcept;
+    const weight_t*  in_weights_array()  const noexcept;
+
+    using GraphStd<vid_t, eoff_t>::max_out_degree;
+    using GraphStd<vid_t, eoff_t>::max_in_degree;
+    using GraphStd<vid_t, eoff_t>::max_out_degree_id;
+    using GraphStd<vid_t, eoff_t>::max_in_degree_id;
+    using GraphStd<vid_t, eoff_t>::is_directed;
 
     void print()     const noexcept override;
     void print_raw() const noexcept override;
     void toBinary(const std::string& filename, bool print = true) const;
     void toMarket(const std::string& filename) const;
+
+    using GraphBase<vid_t, eoff_t>::set_structure;
 private:
-    eoff_t     *_out_offsets { nullptr };
-    eoff_t     *_in_offsets  { nullptr };
-    vid_t      *_out_edges   { nullptr };
-    vid_t      *_in_edges    { nullptr };
-    degree_t* _out_degrees  { nullptr };
-    degree_t* _in_degrees   { nullptr };
-    coo_t*    _coo_edges    { nullptr };
-    weight_t* _out_weights  { nullptr };
-    weight_t* _in_weights   { nullptr };
-    size_t    _coo_size     { 0 };
+    using GraphStd<vid_t, eoff_t>::_bitmask;
+    using GraphStd<vid_t, eoff_t>::_out_offsets;
+    using GraphStd<vid_t, eoff_t>::_in_offsets;
+    using GraphStd<vid_t, eoff_t>::_out_edges;
+    using GraphStd<vid_t, eoff_t>::_in_edges;
+    using GraphStd<vid_t, eoff_t>::_out_degrees;
+    using GraphStd<vid_t, eoff_t>::_in_degrees;
+    using GraphStd<vid_t, eoff_t>::_coo_size;
+    using GraphStd<vid_t, eoff_t>::_seed;
+
+    coo_t*     _coo_edges    { nullptr };
+    weight_t*  _out_weights  { nullptr };
+    weight_t*  _in_weights   { nullptr };
+
+    using GraphBase<vid_t, eoff_t>::_structure;
+    using GraphBase<vid_t, eoff_t>::_prop;
+    using GraphBase<vid_t, eoff_t>::_graph_name;
     using GraphBase<vid_t, eoff_t>::_nE;
     using GraphBase<vid_t, eoff_t>::_nV;
-    using GraphBase<vid_t, eoff_t>::_structure;
+    using GraphBase<vid_t, eoff_t>::_directed_to_undirected;
+    using GraphBase<vid_t, eoff_t>::_undirected_to_directed;
+    using GraphBase<vid_t, eoff_t>::_stored_undirected;
 
-    void allocate() noexcept override;
+    void allocate(const GInfo& ginfo) noexcept override;
 
-    void readMarket  (std::ifstream& fin, Property prop)   override;
-    void readDimacs9 (std::ifstream& fin, Property prop)   override;
-    void readDimacs10(std::ifstream& fin, Property prop)   override;
-    void readSnap    (std::ifstream& fin, Property prop)   override;
-    void readKonect  (std::ifstream& fin, Property prop)   override;
-    void readNetRepo (std::ifstream& fin, Property prop)   override;
-    void readBinary  (const char* filename, Property prop) override;
+    void readMarket  (std::ifstream& fin, bool print)   override;
+    void readDimacs9 (std::ifstream& fin, bool print)   override;
+    void readDimacs10(std::ifstream& fin, bool print)   override;
+    void readSnap    (std::ifstream& fin, bool print)   override;
+    void readKonect  (std::ifstream& fin, bool print)   override;
+    void readNetRepo (std::ifstream& fin)               override;
+    void readBinary  (const char* filename, bool print) override;
 
-    void COOtoCSR(Property prop) noexcept;
+    void COOtoCSR() noexcept override;
 };
 
 } // namespace graph

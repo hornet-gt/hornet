@@ -41,10 +41,10 @@
  */
 #pragma once
 
-#include "Support/Device/VectorUtil.cuh"     //xlib::Make2Str
-#include "Support/Host/Basic.hpp"            //xlib::byte_t
-#include "Support/Host/Metaprogramming.hpp"  //xlib::TupleToTypeSize
-#include "Support/Host/Numeric.hpp"          //xlib::roundup_pow2
+#include "Device/VectorUtil.cuh"     //xlib::Make2Str
+#include "Host/Basic.hpp"            //xlib::byte_t
+#include "Host/Metaprogramming.hpp"  //xlib::TupleToTypeSize
+#include "Host/Numeric.hpp"          //xlib::roundup_pow2
 
 namespace custinger {
 

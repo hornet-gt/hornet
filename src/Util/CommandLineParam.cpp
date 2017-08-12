@@ -34,9 +34,9 @@
  * </blockquote>}
  */
 #include "Util/CommandLineParam.hpp"
-#include "Support/Device/CudaUtil.cuh"      //SAFE_CALL
-#include "Support/Host/Basic.hpp"           //ERROR, xlib::is_integer
-#include "Support/Host/FileUtil.hpp"        //xlib::extract_filepath_noextension
+#include "Device/CudaUtil.cuh"      //SAFE_CALL
+#include "Host/Basic.hpp"           //ERROR, xlib::is_integer
+#include "Host/FileUtil.hpp"        //xlib::extract_filepath_noextension
 #include <cuda_runtime.h>                   //cudaSetDevice
 #include <fstream>                          //std::ifstream
 

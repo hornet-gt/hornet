@@ -45,10 +45,10 @@
     #include "Csr/RawTypes.hpp"
 #else
 
-#include "Support/Host/Basic.hpp"                    //xlib::byte_t
-#include "Support/Host/Metaprogramming.hpp"          //xlib::TupleToTypeSize
+#include "Host/Basic.hpp"                    //xlib::byte_t
+#include "Host/Metaprogramming.hpp"          //xlib::TupleToTypeSize
 #include "Core/MemoryManager/MemoryManagerConf.hpp"  //MIN_EDGES_PER_BLOCK
-#include "Support/Host/Numeric.hpp"                  //xlib::roundup_pow2
+#include "Host/Numeric.hpp"                  //xlib::roundup_pow2
 
 namespace custinger {
 

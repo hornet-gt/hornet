@@ -1,6 +1,6 @@
-#include <Support/Device/SafeCudaAPI.cuh>
-#include <Support/Device/SimpleKernels.cuh>
-#include <Support/Device/Timer.cuh>
+#include <Device/SafeCudaAPI.cuh>
+#include <Device/SimpleKernels.cuh>
+#include <Device/Timer.cuh>
 #include <cmath>
 #include <limits>
 #include <iomanip>

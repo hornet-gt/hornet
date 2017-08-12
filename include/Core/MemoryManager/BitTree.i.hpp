@@ -35,8 +35,8 @@
  */
 #pragma once
 
-#include "Support/Device/SafeCudaAPI.cuh"
-#include "Support/Host/Numeric.hpp"
+#include "Device/SafeCudaAPI.cuh"
+#include "Host/Numeric.hpp"
 
 namespace custinger {
 
@@ -44,7 +44,7 @@ inline BitTree::BitTree(int block_items, int blockarray_items) noexcept :
         _block_items(block_items),
         _blockarray_items(blockarray_items),
         _log_block_items(xlib::log2(block_items)),
-        _log_blockarray_items(xlib::log2(blockarray_items)),
+        _blockarray_bytes(blockarray_items * sizeof(edge_t)),
         _num_blocks(_blockarray_items / _block_items),
         _num_levels(xlib::max(xlib::ceil_log<WORD_SIZE>(_num_blocks), 1)),
         _internal_bits(xlib::geometric_serie<WORD_SIZE>(_num_levels - 1) - 1),
@@ -55,9 +55,10 @@ inline BitTree::BitTree(int block_items, int blockarray_items) noexcept :
 
     assert(xlib::is_power2(block_items));
     assert(xlib::is_power2(blockarray_items));
+    assert(block_items < blockarray_items);
 
-    _h_ptr = new byte_t[sizeof(edge_t) << _log_blockarray_items];
-    cuMalloc(_d_ptr, sizeof(edge_t) << _log_blockarray_items);
+    _h_ptr = new byte_t[_blockarray_bytes];
+    cuMalloc(_d_ptr, _blockarray_bytes);
 
     const word_t EMPTY = static_cast<word_t>(-1);
     std::fill(_array, _array + _num_words, EMPTY);
@@ -68,7 +69,7 @@ inline BitTree::BitTree(BitTree&& obj) noexcept :
                     _block_items(obj._block_items),
                     _blockarray_items(obj._blockarray_items),
                     _log_block_items(obj._log_block_items),
-                    _log_blockarray_items(obj._log_blockarray_items),
+                    _blockarray_bytes(obj._blockarray_bytes),
                     _num_blocks(obj._num_blocks),
                     _num_levels(obj._num_levels),
                     _internal_bits(obj._internal_bits),
@@ -96,17 +97,17 @@ inline BitTree& BitTree::operator=(BitTree&& obj) noexcept {
     assert(_blockarray_items == obj._blockarray_items ||
            _blockarray_items == 0 || obj._blockarray_items == 0);
     if (_block_items == 0) {
-        const_cast<int&>(_block_items)          = obj._block_items;
-        const_cast<int&>(_blockarray_items)     = obj._blockarray_items;
-        const_cast<int&>(_log_block_items)      = obj._log_block_items;
-        const_cast<int&>(_log_blockarray_items) = obj._log_blockarray_items;
-        const_cast<int&>(_num_blocks)           = obj._num_blocks;
-        const_cast<int&>(_num_levels)           = obj._num_levels;
-        const_cast<int&>(_internal_bits)        = obj._internal_bits;
-        const_cast<int&>(_internal_words)       = obj._internal_words;
-        const_cast<int&>(_external_words)       = obj._external_words;
-        const_cast<int&>(_num_words)            = obj._num_words;
-        const_cast<int&>(_total_bits)           = obj._total_bits;
+        const_cast<int&>(_block_items)      = obj._block_items;
+        const_cast<int&>(_blockarray_items) = obj._blockarray_items;
+        const_cast<int&>(_log_block_items)  = obj._log_block_items;
+        const_cast<int&>(_blockarray_bytes) = obj._blockarray_bytes;
+        const_cast<int&>(_num_blocks)       = obj._num_blocks;
+        const_cast<int&>(_num_levels)       = obj._num_levels;
+        const_cast<int&>(_internal_bits)    = obj._internal_bits;
+        const_cast<int&>(_internal_words)   = obj._internal_words;
+        const_cast<int&>(_external_words)   = obj._external_words;
+        const_cast<int&>(_num_words)        = obj._num_words;
+        const_cast<int&>(_total_bits)       = obj._total_bits;
     }
     std::copy(obj._array, obj._array + _num_words, _array);
     _last_level = _array + _internal_words;
@@ -127,7 +128,7 @@ inline BitTree::BitTree() :
                 _block_items(0),
                 _blockarray_items(0),
                 _log_block_items(0),
-                _log_blockarray_items(0),
+                _blockarray_bytes(0),
                 _num_blocks(0),
                 _num_levels(0),
                 _internal_bits(0),
@@ -140,7 +141,7 @@ inline BitTree::BitTree(const BitTree& obj) noexcept :
                     _block_items(obj._block_items),
                     _blockarray_items(obj._blockarray_items),
                     _log_block_items(obj._log_block_items),
-                    _log_blockarray_items(obj._log_blockarray_items),
+                    _blockarray_bytes(obj._blockarray_bytes),
                     _num_blocks(obj._num_blocks),
                     _num_levels(obj._num_levels),
                     _internal_bits(obj._internal_bits),
@@ -263,7 +264,7 @@ BitTree::base_address() const noexcept {
 
 inline bool BitTree::belong_to(void* to_check) const noexcept {
     return to_check >= _d_ptr &&
-           to_check < _d_ptr + (sizeof(edge_t) << _log_blockarray_items);
+           to_check < _d_ptr + _blockarray_bytes;
 }
 
 inline void BitTree::print() const noexcept {

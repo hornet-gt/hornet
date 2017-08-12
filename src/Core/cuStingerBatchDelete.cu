@@ -37,8 +37,8 @@
 
 #include "Core/cuStinger.hpp"
 #include "Core/Kernels/BatchDeleteKernels.cuh"
-#include "Support/Device/CubWrapper.cuh"        //xlib::CubSortPairs2
-#include "Support/Device/PrintExt.cuh"          //cu::printArray
+#include "Device/CubWrapper.cuh"        //xlib::CubSortPairs2
+#include "Device/PrintExt.cuh"          //cu::printArray
 #include <type_traits>                          //std::conditional
 //#define BATCH_DELETE_DEBUG
 //#define CHECK_DUPLICATE

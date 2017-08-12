@@ -38,6 +38,7 @@
  */
 #pragma once
 
+///@brief Eanble B+Tree container for BitTree
 #define B_PLUS_TREE
 
 #include "Core/MemoryManager/BitTree.hpp"

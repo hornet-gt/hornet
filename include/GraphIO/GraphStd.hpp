@@ -38,7 +38,7 @@
 #pragma once
 
 #include "GraphIO/GraphBase.hpp"
-#include "Support/Host/Bitmask.hpp"   //xlib::Bitmask
+#include "Host/Bitmask.hpp"   //xlib::Bitmask
 #include <utility>  //std::pair
 
 namespace graph {
@@ -202,7 +202,7 @@ public:
     explicit GraphStd(const eoff_t* csr_offsets, vid_t nV,
                       const vid_t* csr_edges, eoff_t nE) noexcept;
 
-    virtual ~GraphStd() noexcept final;                                 //NOLINT
+    virtual ~GraphStd() noexcept;                                       //NOLINT
     //--------------------------------------------------------------------------
 
     Vertex   vertex(vid_t index)     const noexcept;
@@ -231,7 +231,7 @@ public:
     void writeMarket(const std::string& filename) const;
 
     using GraphBase<vid_t, eoff_t>::set_structure;
-private:
+protected:
     xlib::Bitmask _bitmask;
     eoff_t*   _out_offsets { nullptr };
     eoff_t*   _in_offsets  { nullptr };
@@ -241,7 +241,7 @@ private:
     degree_t* _in_degrees  { nullptr };
     coo_t*    _coo_edges   { nullptr };
     size_t    _coo_size    { 0 };
-    const uint64_t _seed   { 0xA599AC3F0FD21B92 };
+    static const uint64_t _seed { 0xA599AC3F0FD21B92 };
 
     using GraphBase<vid_t, eoff_t>::_structure;
     using GraphBase<vid_t, eoff_t>::_prop;
@@ -252,7 +252,7 @@ private:
     using GraphBase<vid_t, eoff_t>::_undirected_to_directed;
     using GraphBase<vid_t, eoff_t>::_stored_undirected;
 
-    void allocate(const GInfo& ginfo) noexcept;
+    virtual void allocate(const GInfo& ginfo) noexcept;
 
     void readMarket  (std::ifstream& fin, bool print)   override;
     void readDimacs9 (std::ifstream& fin, bool print)   override;

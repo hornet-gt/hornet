@@ -1,6 +1,6 @@
 /**
  * @internal
- * @brief Vec-Tree interface
+ * @brief Vectorized Bit Tree (Vec-Tree) interface
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
@@ -39,10 +39,8 @@
  */
 #pragma once
 
-#include "Support/Host/Metaprogramming.hpp"
+#include "Host/Metaprogramming.hpp"
 #include <utility>  //std::pair
-
-///@todo implement BitTree without Template
 
 namespace custinger {
 
@@ -54,23 +52,20 @@ namespace custinger {
  * [....] [....] [....] [....] [....] ...   // last_level --> external      <br>
  *
  * @remark 1 means *block* available, 0 *block* used
- * @tparam BLOCK_ITEMS Number of edges per *block*. Maximum number of items that
- *                     that can fit in a single *block*
- * @tparam BLOCKARRAY_ITEMS Number of edges per *BlockArray*.
- *                          Maximum number of items that that can fit in a
- *                          single *BlockArray*
- *
- * @pre BLOCK_ITEMS \f$\le\f$ BLOCKARRAY_ITEMS
  */
 class BitTree {
-    using word_t = unsigned;
-    //static_assert(BLOCK_ITEMS <= BLOCKARRAY_ITEMS, "BitTree Constrains");
 public:
     /**
      * @brief Default Costrustor
-     * @details Build a empty *BitTree* with `BLOCKARRAY_ITEMS` bits.
+     * @details Build a empty *BitTree* with `blockarray_items` bits.
      *         It allocates a *BlockArray* for the HOST and another one for the
      *         DEVICE
+     * @param[in] block_items Number of edges per *block*. Maximum number of
+                              items that  that can fit in a single *block*
+     * @param[in] blockarray_items Number of edges per *BlockArray*.
+     *                          Maximum number of items that that can fit in a
+     *                          single *BlockArray*
+     * @pre BLOCK_ITEMS \f$\le\f$ BLOCKARRAY_ITEMS
      */
     BitTree(int block_items, int blockarray_items) noexcept;
 
@@ -93,7 +88,8 @@ public:
     /**
      * @brief Insert a new *block*
      * @details Find the first empty *block* within the *BlockArray*
-     * @return pair < host_block_ptr, device_block_ptr >
+     * @return pointers to the *BlockArray*
+     *         < `host_block_ptr`, `device_block_ptr` >
      */
     std::pair<byte_t*, byte_t*> insert() noexcept;
 
@@ -118,21 +114,21 @@ public:
 
     /**
      * @brief Base address of the *BlockArray*
-     * @return Pair < `host_block_ptr`, `device_block_ptr` > of the *BlockArray*
+     * @return Pair < `host_block_ptr`, `device_block_ptr` > of *BlockArray*
      */
     std::pair<byte_t*, byte_t*> base_address() const noexcept;
 
     /**
      * @brief Check if a particular *block* device address belong to the actual
      *        *BlockArray*
-     * @param[in] ptr pointer to check
-     * @return `true` if `ptr` belong to *BitTree*  the actual *BlockArray*,
+     * @param[in] device_ptr pointer to check
+     * @return `true` if `device_ptr` belong to the actual *BlockArray*,
      *         `false` otherwise
      */
     bool belong_to(void* device_ptr) const noexcept;
 
     /**
-     * @brief Print BitTree  internal representation
+     * @brief Print BitTree internal representation
      */
     void print() const noexcept;
 
@@ -148,20 +144,25 @@ public:
 
 #if defined(B_PLUS_TREE)
 
+    /**
+     * @brief Default constructor
+     */
     BitTree();
 
     /**
-     * @brief Copy constructor -> Move constructor !!!!!!!
+     * @brief Copy constructor
+     * @warning Internally replaced with the move constructor
      */
     BitTree(const BitTree& obj) noexcept;
 
-    BitTree& operator=(const BitTree& obj) noexcept;
 #else
     BitTree(BitTree& obj)                  = delete;
-    BitTree& operator=(const BitTree& obj) = delete;
 #endif
+    BitTree& operator=(const BitTree& obj) = delete;
 
 private:
+    using word_t = unsigned;
+
     static const unsigned   WORD_SIZE = sizeof(word_t) * 8;
     static const unsigned  NUM_BLOCKS = EDGES_PER_BLOCKARRAY /
                                         MIN_EDGES_PER_BLOCK;
@@ -179,7 +180,7 @@ private:
     const int _block_items;
     const int _blockarray_items;
     const int _log_block_items;
-    const int _log_blockarray_items;
+    const int _blockarray_bytes;
     const int _num_blocks;
     const int _num_levels;
     const int _internal_bits;

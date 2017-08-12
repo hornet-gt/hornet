@@ -34,13 +34,13 @@
  * </blockquote>}
  */
 #include "GraphIO/GraphStd.hpp"
-#include "Support/Host/Basic.hpp"     //ERROR
-#include "Support/Host/FileUtil.hpp"  //xlib::MemoryMapped
-#include "Support/Host/PrintExt.hpp"  //xlib::printArray
-#include <algorithm>                  //std::iota, std::shuffle
-#include <cassert>                    //assert
-#include <chrono>                     //std::chrono
-#include <random>                     //std::mt19937_64
+#include "Host/Basic.hpp"     //ERROR
+#include "Host/FileUtil.hpp"  //xlib::MemoryMapped
+#include "Host/PrintExt.hpp"  //xlib::printArray
+#include <algorithm>          //std::iota, std::shuffle
+#include <cassert>            //assert
+#include <chrono>             //std::chrono
+#include <random>             //std::mt19937_64
 
 namespace graph {
 
@@ -165,20 +165,20 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
         eoff_t half = _nE / 2;
         for (eoff_t i = 0; i < half; i++)
             _coo_edges[i + half] = {_coo_edges[i].second, _coo_edges[i].first};
-        if (_directed_to_undirected) {
-            if (_prop.is_print()) {
-                std::cout << "Directed to Undirected: Removing duplicated "
-                             "edges..." << std::flush;
-            }
-            std::sort(_coo_edges, _coo_edges + _nE);
-            auto   last = std::unique(_coo_edges, _coo_edges + _nE);
-            auto new_nE = std::distance(_coo_edges, last);
-            if (_prop.is_print() && new_nE != _nE) {
-                std::cout << "(" << xlib::format(_nE - new_nE)
-                          << " edges removed)" << std::endl;
-            }
-            _nE = new_nE;
+    }
+    if (_directed_to_undirected) {
+        if (_prop.is_print()) {
+            std::cout << "Directed to Undirected: Removing duplicated edges..."
+                      << std::flush;
         }
+        std::sort(_coo_edges, _coo_edges + _nE);
+        auto   last = std::unique(_coo_edges, _coo_edges + _nE);
+        auto new_nE = std::distance(_coo_edges, last);
+        if (_prop.is_print() && new_nE != _nE) {
+            std::cout << "(" << xlib::format(_nE - new_nE) << " edges removed)"
+                      << std::endl;
+        }
+        _nE = new_nE;
     }
     else if (_undirected_to_directed) {
         std::cout << "Undirected to Directed: Removing random edges..."
@@ -214,7 +214,7 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
         std::cout << "COO to CSR...\t" << std::flush;
 
     for (eoff_t i = 0; i < _nE; i++) {
-        vid_t  src = _coo_edges[i].first;
+        vid_t src = _coo_edges[i].first;
         _out_degrees[src]++;
         if (_structure.is_reverse()) {
             vid_t dest = _coo_edges[i].second;

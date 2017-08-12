@@ -33,8 +33,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Support/Device/SafeCudaAPI.cuh"
-#include "Support/Device/PrintExt.cuh"
+#include "Device/SafeCudaAPI.cuh"
+#include "Device/PrintExt.cuh"
 
 namespace custinger {
 

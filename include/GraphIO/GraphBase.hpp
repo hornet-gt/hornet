@@ -38,7 +38,7 @@
  */
 #pragma once
 
-#include "Support/Host/Basic.hpp"   //xlib::PropertyClass
+#include "Host/Basic.hpp"   //xlib::PropertyClass
 #include <string>                   //std::string
 
 namespace graph {
@@ -136,7 +136,7 @@ protected:
     eoff_t        _nE         { 0 };
     bool          _directed_to_undirected { false };
     bool          _undirected_to_directed { false };
-    bool          _stored_undirected     { false };
+    bool          _stored_undirected      { false };
 
     explicit GraphBase() = default;
     explicit GraphBase(StructureProp structure) noexcept;

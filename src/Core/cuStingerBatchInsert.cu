@@ -37,8 +37,8 @@
 
 #include "Core/cuStinger.hpp"
 #include "Core/Kernels/BatchInsertKernels.cuh"
-#include "Support/Device/CubWrapper.cuh"
-#include "Support/Device/PrintExt.cuh"
+#include "Device/CubWrapper.cuh"
+#include "Device/PrintExt.cuh"
 
 namespace custinger {
 

@@ -33,10 +33,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Support/Device/DeviceQueue.cuh"
-#include "Support/Device/Definition.cuh"
-#include "Support/Host/Algorithm.hpp"
-#include "Support/Device/BinarySearchLB.cuh"
+#include "Device/DeviceQueue.cuh"
+#include "Device/Definition.cuh"
+#include "Host/Algorithm.hpp"
+#include "Device/BinarySearchLB.cuh"
 
 namespace custinger {
 

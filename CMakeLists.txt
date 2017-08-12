@@ -17,12 +17,15 @@ set(CUDA_SEPARABLE_COMPILATION ON)
 include_directories(include)
 include_directories(externals/cub-1.7.0)
 include_directories(externals/cpp-btree-master)
+include_directories(externals/Support/include)
 include_directories(${CUDA_INCLUDE_DIRS})
 
 include(util/CMakeLists.txt)
 #-------------------------------------------------------------------------------
 file(GLOB_RECURSE CPP_SRCS ${PROJECT_SOURCE_DIR}/src/*.cpp)
 file(GLOB_RECURSE CU_SRCS  ${PROJECT_SOURCE_DIR}/src/*.cu)
+file(GLOB_RECURSE SCPP_SRCS ${PROJECT_SOURCE_DIR}/externals/Support/src/*.cpp)
+file(GLOB_RECURSE SCU_SRCS  ${PROJECT_SOURCE_DIR}/externals/Support/src/*.cu)
 
 if(CSR)
     set(CSR_FLAG "-DCSR_GRAPH")
@@ -30,13 +33,13 @@ if(CSR)
     message("==> CSR enabled")
 endif()
 
-
-cuda_add_library(cuStinger ${CPP_SRCS} ${CU_SRCS} OPTIONS ${CSR_FLAG})
+cuda_add_library(cuStinger ${CPP_SRCS} ${CU_SRCS} ${SCPP_SRCS} ${SCU_SRCS}
+                 OPTIONS ${CSR_FLAG})
 #-------------------------------------------------------------------------------
 
 #cuda_add_executable(ptxtest test/ptxtest.cu)
 cuda_add_executable(cuStingerTest test/cuStingerTest.cpp OPTIONS ${CSR_FLAG})
-cuda_add_executable(mem_benchmark test/MemBenchmark.cu OPTIONS ${CSR_FLAG})
+cuda_add_executable(mem_benchmark test/MemBenchmark.cu   OPTIONS ${CSR_FLAG})
 
 target_link_libraries(cuStingerTest cuStinger ${CUDA_LIBRARIES})
 target_link_libraries(mem_benchmark cuStinger ${CUDA_LIBRARIES})

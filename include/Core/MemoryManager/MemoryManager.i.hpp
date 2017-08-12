@@ -69,9 +69,9 @@ MemoryManager::insert(degree_t degree) noexcept {
             return it.SC_MACRO insert();
     }
     _num_blockarrays++;
-    const auto      block_items = MIN_EDGES_PER_BLOCK * (1 << index);
-    const auto blockarray_items = block_items <= EDGES_PER_BLOCKARRAY ?
-                                  EDGES_PER_BLOCKARRAY : block_items;
+    auto      block_items = MIN_EDGES_PER_BLOCK * (1 << index);
+    auto blockarray_items = block_items <= EDGES_PER_BLOCKARRAY ?
+                            EDGES_PER_BLOCKARRAY : block_items;
 #if defined(B_PLUS_TREE)
     BitTree bit_tree(block_items, blockarray_items);
     auto ret = bit_tree.insert();
@@ -96,7 +96,11 @@ inline void MemoryManager::remove(void* device_ptr, degree_t degree) noexcept {
                           - EDGES_PER_BLOCKARRAY;
     const auto& it = container.upper_bound(low_address);
     assert(it != container.end());
-    container.erase(it);
+    it->remove(device_ptr);
+    if (it->size() == 0) {  //shrink
+        _num_blockarrays--;
+        container.erase(it);
+    }
 #else
     const auto& end_it = container.end();
     for (auto it = container.begin(); it != end_it; it++) {

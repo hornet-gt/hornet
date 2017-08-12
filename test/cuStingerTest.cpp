@@ -4,9 +4,9 @@
 #include "GraphIO/GraphStd.hpp"        //GraphStd
 #include "Util/BatchFunctions.hpp"
 //#include "Util/Parameters.hpp"         //Param
-#include "Support/Host/FileUtil.hpp"   //xlib::extract_filepath_noextension
-#include "Support/Device/CudaUtil.cuh" //xlib::deviceInfo
-#include "Support/Host/Timer.hpp"      //Timer<HOST>
+#include "Host/FileUtil.hpp"   //xlib::extract_filepath_noextension
+#include "Device/CudaUtil.cuh" //xlib::deviceInfo
+#include "Host/Timer.hpp"      //Timer<HOST>
 #include <algorithm>                   //std:.generate
 #include <chrono>                      //std::chrono
 #include <random>                      //std::mt19937_64

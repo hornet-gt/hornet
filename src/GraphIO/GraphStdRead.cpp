@@ -34,8 +34,8 @@
  * </blockquote>}
  */
 #include "GraphIO/GraphStd.hpp"
-#include "Support/Host/Algorithm.hpp" //xlib::UniqueMap
-#include "Support/Host/FileUtil.hpp"  //xlib::skip_lines, xlib::Progress
+#include "Host/Algorithm.hpp" //xlib::UniqueMap
+#include "Host/FileUtil.hpp"  //xlib::skip_lines, xlib::Progress
 #include <cstring>                    //std::strtok
 #include <sstream>                    //std::istringstream
 #include <vector>                     //std::vector

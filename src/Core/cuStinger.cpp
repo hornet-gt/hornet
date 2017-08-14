@@ -36,11 +36,11 @@
 #if !defined(CSR_GRAPH)
 
 #include "Core/cuStinger.hpp"
-#include "GraphIO/GraphBase.hpp"        //graph::structure
-#include "Device/Timer.cuh"     //xlib::Timer
-#include "Host/FileUtil.hpp"    //xlib::MemoryMapped
-#include "Host/Timer.hpp"       //xlib::Timer
-#include <cstring>                      //std::memcpy
+#include "GraphIO/GraphBase.hpp"    //graph::structure
+#include "Device/Timer.cuh"         //xlib::Timer
+#include "Host/FileUtil.hpp"        //xlib::MemoryMapped
+#include "Host/Timer.hpp"           //xlib::Timer
+#include <cstring>                  //std::memcpy
 
 namespace custinger {
 

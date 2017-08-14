@@ -39,7 +39,7 @@
 #pragma once
 
 ///@brief Eanble B+Tree container for BitTree
-#define B_PLUS_TREE
+//#define B_PLUS_TREE
 
 #include "Core/MemoryManager/BitTree.hpp"
 #include "Core/MemoryManager/MemoryManagerConf.hpp"

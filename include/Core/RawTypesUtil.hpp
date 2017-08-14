@@ -60,17 +60,17 @@ using    ETypeSizePS = typename xlib::ExcPrefixSum<ETypeSize>::type;
 //------------------------------------------------------------------------------
 
 ///@internal @brief Array of all vertex field (type) sizes
-extern const VTypeSize      VTYPE_SIZE;
+constexpr VTypeSize      VTYPE_SIZE;
 ///@internal @brief Array of all edge field (type) sizes
-extern const ETypeSize      ETYPE_SIZE;
+constexpr ETypeSize      ETYPE_SIZE;
 ///@internal @brief Array of extra vertex field (type) sizes
-extern const ExtraVTypeSize EXTRA_VTYPE_SIZE;
+constexpr ExtraVTypeSize EXTRA_VTYPE_SIZE;
 ///@internal @brief Array of extra edge field (type) sizes
-extern const ExtraETypeSize EXTRA_ETYPE_SIZE;
+constexpr ExtraETypeSize EXTRA_ETYPE_SIZE;
 
 ///@internal @brief Array of exclusive prefix-sum of all vertex field (type)
 ///                 sizes
-extern const VTypeSizePS    VTYPE_SIZE_PS;
+constexpr VTypeSizePS    VTYPE_SIZE_PS;
 ///@internal @brief Array of exclusive prefix-sum of all edge field (type) sizes
 constexpr ETypeSizePS    ETYPE_SIZE_PS;
 

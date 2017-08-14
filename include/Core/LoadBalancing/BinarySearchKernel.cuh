@@ -36,7 +36,7 @@
  * @file
  */
 #include <Core/cuStingerTypes.cuh>
-#include <Support/Device/BinarySearchLB.cuh>
+#include <Device/BinarySearchLB.cuh>
 
 /**
  * @brief
@@ -59,8 +59,8 @@ void binarySearchKernel(custinger::cuStingerDevice           custinger,
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
 
     auto lambda = [&](int pos, degree_t offset) {
-                        Vertex vertex(custinger, d_input[pos]);
-                        auto edge = vertex.edge(offset);
+                        auto vertex = custinger.vertex(d_input[pos]);
+                        auto   edge = vertex.edge(offset);
                         Operator(edge, optional_data);
                     };
     xlib::binarySearchLB<BLOCK_SIZE>(d_work, work_size, smem, lambda);
@@ -80,7 +80,7 @@ void binarySearchKernel(custinger::cuStingerDevice           custinger,
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
 
     const auto& lambda = [&](int pos, degree_t offset) {
-                                Vertex vertex(custinger, d_input[pos]);
+                                auto vertex = custinger.vertex(d_input[pos]);
                                 auto edge = vertex.edge(offset);
                                 op(edge);
                         };

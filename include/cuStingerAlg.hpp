@@ -45,6 +45,7 @@
 #include "Core/Operator++.cuh"
 #include "Core/Queue/MultiLevelQueue.cuh"
 #include "Core/Queue/TwoLevelQueue.cuh"
+#include "Core/StandardAPI.hpp"
 #include <cuStinger.hpp>
 
 using custinger::vid_t;

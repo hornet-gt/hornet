@@ -63,6 +63,7 @@ struct ptr2_t {
 template<typename T>
 class TwoLevelQueue {
 public:
+    const custinger::cuStinger& custinger;
     /**
      * @brief Default costructor
      * @param[in] custinger reference to the custinger instance
@@ -155,20 +156,6 @@ public:
      */
     __host__ void print_output() noexcept;
 
-    /**
-     * @brief traverse the edges of queue vertices
-     * @tparam    Operator typename of the operator (deduced)
-     * @param[in] op struct/lambda expression that implements the operator
-     * @remark the Operator typename must implement the method
-     *         `bool operator()(Vertex, Edge)` or the lambda expression
-     *         `[=](Vertex, Edge){ return bool }`. The method must return `true`
-     *          if the actual vertex is active in the next iteration, `false`
-     *          otherwise
-     * @remark the method is enabled only if the queue type is `vid_t`
-     */
-    //template<typename Operator>
-    //__host__ void traverse_edges(Operator op) noexcept;
-
 private:
     ///@internal @brief if `true` check for kernel errors in `traverse_edges()
     static const bool     CHECK_CUDA_ERROR1 = true;
@@ -182,10 +169,7 @@ private:
 
     ///@internal @brief input and output queue pointers
     ptr2_t<T>    _d_queue_ptrs        { nullptr, nullptr };
-    ///@internal @brief input and output workload pointers
-    //ptr2_t<int>  _d_work_ptrs         { nullptr, nullptr };
-    ///@internal @brief device counter of the queue
-    //int*         _d_queue_counter     { nullptr };
+
     ///@internal @brief host pointer used by `host_data()` method
     T*           _host_data           { nullptr };
     const size_t _max_allocated_items { 0 };
@@ -193,21 +177,7 @@ private:
     int2*        _d_counters          { nullptr };
     int2         _h_counters          { 0, 0 };
     const bool   _kernel_copy         { false };
-    ///@internal @brief size of queue maintained on the host
-    //int          _num_queue_vertices  { 0 };
-    ///@internal @brief number of edges in the queue for `traverse_edges()`
-    //int          _num_queue_edges     { 0 };   // traverse_edges
-    //bool         _enable_traverse     { false };
-    //bool         _enable_delete       { true };
 
-    /**
-     * @brief evaluate the workload for a set of vertices
-     * @param[in] items_array input array of vertices
-     * @param[in] number of vertices in the array
-     * @remark the method is enabled only if the queue type is `vid_t`
-     */
-    //__host__ void
-    //work_evaluate(const custinger::vid_t* items_array, int num_items) noexcept;
 };
 
 } // namespace custinger_alg

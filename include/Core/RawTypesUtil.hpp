@@ -72,7 +72,7 @@ extern const ExtraETypeSize EXTRA_ETYPE_SIZE;
 ///                 sizes
 extern const VTypeSizePS    VTYPE_SIZE_PS;
 ///@internal @brief Array of exclusive prefix-sum of all edge field (type) sizes
-extern const ETypeSizePS    ETYPE_SIZE_PS;
+constexpr ETypeSizePS    ETYPE_SIZE_PS;
 
 
 ///@internal @brief Number of all vertex fields (types)

@@ -33,25 +33,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
+#include "Host/Numeric.hpp"     //xlib::factorial
+
 namespace xlib {
-
-template<unsigned A, unsigned B, unsigned... ARGS>
-struct Max {
-    static const unsigned value = Max<A, Max<B, ARGS...>::value>::value;
-};
-template<unsigned A, unsigned B>
-struct Max<A, B> {
-    static const unsigned value = A > B ? A : B;
-};
-
-template<unsigned A, unsigned B, unsigned... ARGS>
-struct Min {
-    static const unsigned value = Min<A, Min<B, ARGS...>::value>::value;
-};
-template<unsigned A, unsigned B>
-struct Min<A, B> {
-    static const unsigned value = A < B ? A : B;
-};
 
 template<unsigned N, unsigned DIV>
 struct CeilDiv {
@@ -86,11 +70,6 @@ struct UpperApprox {
 template<uint64_t N, uint64_t MUL>
 struct UpperApproxUll {
     static const uint64_t value = CeilDivUll<N, MUL>::value * MUL;
-};
-
-template<uint64_t N>
-struct IsPower2 {
-    static const bool value = (N != 0) && !static_cast<bool>( (N & (N - 1)) );
 };
 
 template<unsigned N, unsigned EXP>
@@ -142,7 +121,7 @@ template<unsigned N, unsigned BASE>
 struct Log {
     static_assert(N > 0, "Log : N <= 0");
     static const unsigned value = N < BASE ? 0 :
-                                  1 + Log<Max<1, N / BASE>::value, BASE>::value;
+                                  1 + Log<xlib::max(1u, N / BASE), BASE>::value;
 };
 template<unsigned BASE>
 struct Log<1, BASE> {
@@ -190,16 +169,6 @@ public:
 
 //------------------------------------------------------------------------------
 
-template<unsigned N>
-struct Factorial {
-    static_assert(N >= 0, "Factorial : N < 0");
-    static const unsigned value = N * Factorial<N - 1>::value;
-};
-template<>
-struct Factorial<0> {
-    static const unsigned value = 1;
-};
-
 template<unsigned LOW, unsigned HIGH>
 struct ProductSequence {
     static const unsigned value = LOW * ProductSequence<LOW + 1, HIGH>::value;
@@ -213,11 +182,11 @@ template<unsigned N, unsigned K>
 struct BinomialCoeff {
 static_assert(N >= 0 && K >= 0 && K <= N, "BinomialCoeff");
 private:
-    static const unsigned MIN = Min<K, N - K>::value;
-    static const unsigned MAX = Max<K, N - K>::value;
+    static const unsigned MIN = xlib::min(K, N - K);
+    static const unsigned MAX = xlib::max(K, N - K);
 public:
     static const unsigned value = ProductSequence<MAX + 1, N>::value /
-                                  Factorial<MIN>::value;
+                                  xlib::factorial(MIN);
 };
 template<unsigned N>
 struct BinomialCoeff<N ,N> {

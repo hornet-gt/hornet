@@ -35,6 +35,7 @@
  */
 #include "Core/MemoryManager/MemoryManagerConf.hpp"
 #include "Core/cuStingerDevice.cuh" //cuStingerDevice
+#include "Core/RawTypes.hpp"
 
 namespace custinger {
 
@@ -75,7 +76,7 @@ vid_t Vertex::neighbor_id(degree_t index) const {
 template<typename T>
 __device__ __forceinline__
 WeightT* Vertex::edge_weight_ptr() const {
-    xlib::SeqDev<ETypeSizePS> ETYPE_SIZE_PS_D;
+    constexpr ETypeSizePS ETYPE_SIZE_PS_D;
     auto ptr = _edge_ptr + EDGES_PER_BLOCKARRAY * ETYPE_SIZE_PS_D[1];
     return reinterpret_cast<WeightT*>(ptr);
 }
@@ -141,7 +142,7 @@ Edge::Edge(cuStingerDevice& custinger, byte_t* edge_ptr, int pitch) :
                         _dst_id(*reinterpret_cast<vid_t*>(edge_ptr)),
                         _tmp_vertex(custinger),
                         _src_vertex(_tmp_vertex) {
-    xlib::SeqDev<ETypeSizePS> ETYPE_SIZE_PS_D;  //Edge Type Sizes Prefixsum
+    const ETypeSizePS ETYPE_SIZE_PS_D;
 
     _dst_id = *reinterpret_cast<vid_t*>(edge_ptr);
     #pragma unroll

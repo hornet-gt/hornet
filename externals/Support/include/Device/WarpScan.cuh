@@ -45,7 +45,7 @@ namespace xlib {
 template<int WARP_SZ = 32>
 struct WarpInclusiveScan {
     /// @cond
-    static_assert(IsPower2<WARP_SZ>::value &&
+    static_assert(xlib::is_power2(WARP_SZ) &&
                   WARP_SZ >= 1 && WARP_SZ <= 32,
                   "WarpInclusiveScan : WARP_SZ must be a power of 2\
                                        and 2 <= WARP_SZ <= 32");
@@ -81,7 +81,7 @@ struct WarpInclusiveScan {
 template<int WARP_SZ = 32>
 struct WarpExclusiveScan {
     /// @cond
-    static_assert(IsPower2<WARP_SZ>::value &&
+    static_assert(xlib::is_power2(WARP_SZ) &&
                   WARP_SZ >= 2 && WARP_SZ <= 32,
                   "WarpExclusiveScan : WARP_SZ must be a power of 2\
                              and 2 <= WARP_SZ <= 32");

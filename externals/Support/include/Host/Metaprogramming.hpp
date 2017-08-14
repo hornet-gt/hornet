@@ -50,26 +50,23 @@ namespace xlib {
  * @tparam B second parameter
  * @tparam ARGS additional parameters
  */
-//template<unsigned A, unsigned B, unsigned... ARGS> struct Max;
-//template<unsigned A, unsigned B, unsigned... ARGS> struct Min;
-//template<unsigned N, unsigned DIV>      struct CeilDiv;
-//template<uint64_t N, uint64_t DIV>      struct CeilDivUll;
+template<unsigned N, unsigned DIV>      struct CeilDiv;
+template<uint64_t N, uint64_t DIV>      struct CeilDivUll;
 
 /**
  * @brief compute
  * \f$ \[\left\lfloor {\frac{N}{{\textif{DIV}}} + 0.5} \right\rfloor \] \f$
  */
-//template<unsigned N, unsigned DIV>      struct RoundDiv;
-/*
+template<unsigned N, unsigned DIV>      struct RoundDiv;
+
 template<unsigned N, unsigned MUL>      struct UpperApprox;
 template<uint64_t N, uint64_t MUL>      struct UpperApproxUll;
 template<unsigned N, unsigned MUL>      struct LowerApprox;
-template<uint64_t N, uint64_t MUL>      struct LowerApproxUll;*/
+template<uint64_t N, uint64_t MUL>      struct LowerApproxUll;
 
-//template<uint64_t N>                    struct IsPower2;
 template<unsigned N, unsigned EXP>      struct Pow;
-//template<unsigned N>                    struct RoundUpPow2;
-//template<uint64_t N>                    struct RoundUpPow2Ull;
+template<unsigned N>                    struct RoundUpPow2;
+template<uint64_t N>                    struct RoundUpPow2Ull;
 template<unsigned N>                    struct RoundDownPow2;
 template<uint64_t N>                    struct RoundDownPow2Ull;
 
@@ -79,22 +76,19 @@ template<unsigned N>                    struct CeilLog2;
 template<uint64_t N>                    struct CeilLog2Ull;
 template<unsigned N, unsigned BASE>     struct CeilLog;
 
-//template<unsigned N>                    struct Factorail;
 template<unsigned N, unsigned K>        struct BinomialCoeff;
 template<unsigned LOW, unsigned HIGH>   struct ProductSequence;
 template<unsigned N, unsigned HIGH>     struct GeometricSerie;
 //------------------------------------------------------------------------------
 
-template<int N, typename... TArgs>
-using NthTypeOf = typename std::tuple_element<N, std::tuple<TArgs...>>::type;
-
-template<typename>
-struct SeqDev;
-
 template<unsigned... Is>
 struct Seq {
     static constexpr unsigned value[] = { Is... };
-    static constexpr unsigned    size = sizeof...(Is);
+
+    static constexpr unsigned size() {
+        return sizeof...(Is);
+    }
+
     constexpr unsigned operator[](int index) const {
         return value[index];
     }
@@ -103,14 +97,12 @@ template<unsigned... Is>
 constexpr unsigned Seq<Is...>::value[];                                //NOTLINT
 ///@cond
 
-template<unsigned... Is>
-struct SeqDev<Seq<Is...>> {
-    HOST_DEVICE unsigned operator[](int index) const {
-        constexpr unsigned value[] = { Is... };
-        return value[index];
-    }
-};
-
+/*
+constexpr int fun(int i) { return i * 3; };
+GenerateSeq<fun, 4>::type table;
+f<table[0]>();
+f<table[1]>();
+*/
 template<unsigned(*fun)(unsigned), unsigned MAX, unsigned INDEX = 0,
          unsigned... Is>
 struct GenerateSeq : GenerateSeq<fun, MAX, INDEX + 1, Is..., fun(INDEX)>{};
@@ -119,32 +111,6 @@ template<unsigned(*fun)(unsigned), unsigned MAX, unsigned... Is>
 struct GenerateSeq<fun, MAX, MAX, Is...>  {
     using type = Seq<Is...>;
 };
-/*
-constexpr int fun(int i) { return i * 3; };
-GenerateSeq<fun, 4>::type table;
-f<table[0]>();
-f<table[1]>();
-*/
-
-template<typename, typename>
-struct TupleConcat;
-
-template<typename... TArgs1, typename... TArgs2>
-struct TupleConcat<std::tuple<TArgs1...>, std::tuple<TArgs2...>> {
-    using type = std::tuple<TArgs1..., TArgs2...>;
-};
-
-//------------------------------------------------------------------------------
-
-template<typename>
-struct TupleToTypeSize;
-
-template<typename... TArgs>
-struct TupleToTypeSize<std::tuple<TArgs...>> {
-   using type = Seq<sizeof(TArgs)...>;
-};
-
-//------------------------------------------------------------------------------
 
 template<unsigned, typename, typename>
 struct PrefixSumAux;
@@ -179,6 +145,17 @@ struct PrefixSumAux<1, Seq<Is1...>, Seq<Is2...>> {
 //@endcond
 
 //==============================================================================
+
+template<int N, typename... TArgs>
+using NthTypeOf = typename std::tuple_element<N, std::tuple<TArgs...>>::type;
+
+template<typename, typename>
+struct TupleConcat;
+
+template<typename... TArgs1, typename... TArgs2>
+struct TupleConcat<std::tuple<TArgs1...>, std::tuple<TArgs2...>> {
+    using type = std::tuple<TArgs1..., TArgs2...>;
+};
 
 template<typename, typename>
 struct tuple_compare;
@@ -217,6 +194,16 @@ struct tuple_rm_pointers_aux<std::tuple<TArgs1...>, std::tuple<T2, TArgs2...>> :
 template<typename... TArgs>
 struct tuple_rm_pointers_aux<std::tuple<TArgs...>, std::tuple<>> {
     using type = std::tuple<TArgs...>;
+};
+
+//------------------------------------------------------------------------------
+
+template<typename>
+struct TupleToTypeSize;
+
+template<typename... TArgs>
+struct TupleToTypeSize<std::tuple<TArgs...>> {
+   using type = Seq<sizeof(TArgs)...>;
 };
 
 } // namespace xlib

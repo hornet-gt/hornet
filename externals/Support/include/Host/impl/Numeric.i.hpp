@@ -256,7 +256,7 @@ constexpr T upper_approx(T value) noexcept {
 
     const auto MUL_ = static_cast<T>(MUL);
     return MUL == 1 ? value :
-            !IsPower2<MUL>::value ? ceil_div(value, MUL) * MUL_
+            !xlib::is_power2(MUL) ? ceil_div(value, MUL) * MUL_
                                   : (value + MUL_ - 1) & ~(MUL_ - 1);
 }
 
@@ -275,7 +275,7 @@ constexpr T lower_approx(T value) noexcept {
 
     const auto MUL_ = static_cast<T>(MUL);
     return MUL == 1 ? value :
-           !IsPower2<MUL>::value ? (value / MUL_) * MUL_ : value & ~(MUL_ - 1);
+           !xlib::is_power2(MUL) ? (value / MUL_) * MUL_ : value & ~(MUL_ - 1);
 }
 
 //------------------------------------------------------------------------------
@@ -417,7 +417,7 @@ namespace detail {
 
 template<unsigned BASE, typename T>
 HOST_DEVICE
-typename std::enable_if<!xlib::IsPower2<BASE>::value, int>::type
+typename std::enable_if<!xlib::is_power2(BASE), int>::type
 log_aux(T value) noexcept {
     int count;
     for (count = 0; value; count++)
@@ -427,7 +427,7 @@ log_aux(T value) noexcept {
 
 template<unsigned BASE, typename T>
 HOST_DEVICE
-typename std::enable_if<xlib::IsPower2<BASE>::value, int>::type
+typename std::enable_if<xlib::is_power2(BASE), int>::type
 log_aux(T value) noexcept {
     return xlib::log2(value) / xlib::Log2<BASE>::value;
 }
@@ -439,7 +439,7 @@ ceil_log(T value);*/
 
 template<unsigned BASE, typename T>
 HOST_DEVICE
-typename std::enable_if<xlib::IsPower2<BASE>::value, int>::type
+typename std::enable_if<xlib::is_power2(BASE), int>::type
 ceil_log_aux(T value) noexcept {
     auto ret = xlib::ceil_div<xlib::Log2<BASE>::value>(xlib::ceil_log2(value));
     assert(static_cast<T>(std::ceil(std::log2(value) / std::log2(BASE)))
@@ -463,7 +463,7 @@ int ceil_log(T value) noexcept {
 
 template<unsigned BASE, typename T>
 HOST_DEVICE
-typename std::enable_if<xlib::IsPower2<BASE>::value, T>::type
+typename std::enable_if<xlib::is_power2(BASE), T>::type
 pow(T exp) noexcept {
     static_assert(std::is_integral<T>::value, "T must be integral");
     return 1 << (xlib::Log2<BASE>::value * exp);
@@ -471,7 +471,7 @@ pow(T exp) noexcept {
 
 template<unsigned BASE, typename T>
 HOST_DEVICE
-typename std::enable_if<!xlib::IsPower2<BASE>::value, T>::type
+typename std::enable_if<!xlib::is_power2(BASE), T>::type
 pow(T exp) noexcept {
     static_assert(std::is_integral<T>::value, "T must be integral");
     return pow(exp, BASE);
@@ -520,7 +520,7 @@ constexpr uint64_t multiplyShiftHash64(uint64_t A, uint64_t B,
 
 template<unsigned A, unsigned B, unsigned BINS>
 struct MultiplyShiftHash32 {
-    static_assert(IsPower2<BINS>::value, "BINS must be a power of 2");
+    static_assert(xlib::is_power2(BINS), "BINS must be a power of 2");
 
     HOST_DEVICE
     static unsigned op(unsigned value) {
@@ -530,7 +530,7 @@ struct MultiplyShiftHash32 {
 
 template<uint64_t A, uint64_t B, unsigned BINS>
 struct MultiplyShiftHash64 {
-    static_assert(IsPower2<BINS>::value, "BINS must be a power of 2");
+    static_assert(xlib::is_power2(BINS), "BINS must be a power of 2");
 
     HOST_DEVICE
     static uint64_t op(uint64_t value) {

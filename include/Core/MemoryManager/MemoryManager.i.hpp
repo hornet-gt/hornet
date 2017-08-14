@@ -96,8 +96,8 @@ inline void MemoryManager::remove(void* device_ptr, degree_t degree) noexcept {
                           - EDGES_PER_BLOCKARRAY;
     const auto& it = container.upper_bound(low_address);
     assert(it != container.end());
-    it->remove(device_ptr);
-    if (it->size() == 0) {  //shrink
+    it->second.remove(device_ptr);
+    if (it->second.size() == 0) {  //shrink
         _num_blockarrays--;
         container.erase(it);
     }

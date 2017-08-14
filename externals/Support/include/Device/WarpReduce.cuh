@@ -44,7 +44,7 @@ namespace xlib {
 
 template<int WARP_SZ = 32>//!!!!!!!!!!!!! if WARP_SZ == 1
 struct WarpReduce {
-    static_assert(IsPower2<WARP_SZ>::value &&
+    static_assert(xlib::is_power2(WARP_SZ) &&
                   WARP_SZ >= 1 && WARP_SZ <= 32,
                   "WarpReduce : WARP_SZ must be a power of 2 and\
                                 2 <= WARP_SZ <= 32");

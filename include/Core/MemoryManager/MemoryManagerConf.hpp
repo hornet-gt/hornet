@@ -56,8 +56,8 @@ const size_t MIN_EDGES_PER_BLOCK = 1;
  */
 const size_t EDGES_PER_BLOCKARRAY = 262144;
 
-static_assert(xlib::IsPower2<MIN_EDGES_PER_BLOCK>::value  &&
-              xlib::IsPower2<EDGES_PER_BLOCKARRAY>::value &&
+static_assert(xlib::is_power2(MIN_EDGES_PER_BLOCK)  &&
+              xlib::is_power2(EDGES_PER_BLOCKARRAY) &&
               MIN_EDGES_PER_BLOCK <= EDGES_PER_BLOCKARRAY,
               "Memory Management Constrains");
 

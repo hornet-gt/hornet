@@ -78,7 +78,7 @@ const unsigned      WARP_SIZE = 32;
 
     template<typename T = char, unsigned BLOCK_SIZE = 0>
     class SMemPerThread {
-        static_assert(BLOCK_SIZE == 0 || IsPower2<BLOCK_SIZE>::value,
+        static_assert(BLOCK_SIZE == 0 || xlib::is_power2(BLOCK_SIZE),
                       "BLOCK_SIZE must be a power of 2");
         static const unsigned _BLOCK_SIZE = BLOCK_SIZE == 0 ? MAX_BLOCK_SIZE :
                                             BLOCK_SIZE;
@@ -86,12 +86,12 @@ const unsigned      WARP_SIZE = 32;
         //max block size for full occupancy
         static const unsigned  SM_BLOCKS = SM_THREADS / _BLOCK_SIZE;
         static const unsigned OCC_RATIO1 = SM_BLOCKS / RESIDENT_BLOCKS_PER_SM;
-        static const unsigned  OCC_RATIO = Max<OCC_RATIO1, 1>::value;
+        static const unsigned  OCC_RATIO = xlib::max(OCC_RATIO1, 1u);
         static const unsigned   SMEM_OCC = SMEM_PER_THREAD * OCC_RATIO;
 
         static const unsigned SMEM_LIMIT = MAX_BLOCK_SMEM / _BLOCK_SIZE;
     public:
-        static const unsigned value = Min<SMEM_LIMIT, SMEM_OCC>::value /
+        static const unsigned value = xlib::min(SMEM_LIMIT, SMEM_OCC) /
                                       sizeof(T);
     };
 

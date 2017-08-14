@@ -178,7 +178,7 @@ void threadToWarpIndexing(T (&reg)[ITEMS_PER_THREAD], T* smem) {
     T* smem_warp = smem + xlib::lane_id();
 
     if (ITEMS_PER_THREAD <= SMEM_ITEMS || ITEMS_PER_THREAD % SMEM_ITEMS == 0) {
-        const unsigned SIZE = Min<SMEM_ITEMS, ITEMS_PER_THREAD>::value;
+        const unsigned SIZE = xlib::min(SMEM_ITEMS, ITEMS_PER_THREAD);
         T*      smem_thread = smem + xlib::lane_id() * SIZE;
 
         if (ITEMS_PER_THREAD <= SMEM_ITEMS)

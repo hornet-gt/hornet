@@ -166,10 +166,13 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
         for (eoff_t i = 0; i < half; i++)
             _coo_edges[i + half] = {_coo_edges[i].second, _coo_edges[i].first};
     }
-    if (_directed_to_undirected) {
+    bool remove_duplicates = _prop.is_remove_duplicates() &&
+                             _structure.is_undirected();
+    if (_directed_to_undirected || remove_duplicates) {
         if (_prop.is_print()) {
-            std::cout << "Directed to Undirected: Removing duplicated edges..."
-                      << std::flush;
+            if (_directed_to_undirected)
+                std::cout << "Directed to Undirected: ";
+            std::cout << "Removing duplicated edges..." << std::flush;
         }
         std::sort(_coo_edges, _coo_edges + _nE);
         auto   last = std::unique(_coo_edges, _coo_edges + _nE);

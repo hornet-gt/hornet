@@ -53,6 +53,10 @@ bool ParsingProp::is_randomize() const noexcept {
     return *this & parsing_prop::RANDOMIZE;
 }
 
+bool ParsingProp::is_remove_duplicates() const noexcept {
+    return *this & parsing_prop::REMOVE_DUPLICATES;
+}
+
 bool ParsingProp::is_print() const noexcept {
     return *this & parsing_prop::PRINT;
 }

@@ -44,7 +44,8 @@
 namespace graph {
 
 namespace detail {
-    enum class ParsingEnum { RANDOMIZE = 1, SORT = 2, PRINT = 4 };
+    enum class ParsingEnum { RANDOMIZE = 1, SORT = 2, REMOVE_DUPLICATES = 4,
+                             PRINT = 8 };
 } // namespace detail
 
 class ParsingProp : public xlib::PropertyClass<detail::ParsingEnum,
@@ -56,16 +57,18 @@ public:
     explicit ParsingProp() noexcept = default;
     explicit ParsingProp(const detail::ParsingEnum& value) noexcept;
 private:
-    bool is_sort()      const noexcept;
-    bool is_randomize() const noexcept;
-    bool is_print()     const noexcept;
+    bool is_sort()              const noexcept;
+    bool is_randomize()         const noexcept;
+    bool is_remove_duplicates() const noexcept;
+    bool is_print()             const noexcept;
 };
 
 namespace parsing_prop {
 
-const ParsingProp RANDOMIZE( detail::ParsingEnum::RANDOMIZE );
-const ParsingProp      SORT( detail::ParsingEnum::SORT );
-const ParsingProp     PRINT( detail::ParsingEnum::PRINT );
+const ParsingProp         RANDOMIZE( detail::ParsingEnum::RANDOMIZE );
+const ParsingProp              SORT( detail::ParsingEnum::SORT );
+const ParsingProp REMOVE_DUPLICATES( detail::ParsingEnum::REMOVE_DUPLICATES );
+const ParsingProp             PRINT( detail::ParsingEnum::PRINT );
 
 } // namespace parsing_prop
 

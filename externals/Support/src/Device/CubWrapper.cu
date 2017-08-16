@@ -305,7 +305,7 @@ template<typename T>
 T CubReduce<T>::run() noexcept {
     cub::DeviceReduce::Sum(_d_temp_storage, _temp_storage_bytes,
                            _d_in, _d_out, _num_items);
-    int h_result;
+    T h_result;
     cuMemcpyToHostAsync(_d_out, h_result);
     return h_result;
 }
@@ -477,6 +477,6 @@ template class CubSelect<int2>;
 template class CubSelectFlagged<int2>;
 template class CubSelectFlagged<int>;
 template class CubReduce<int>;
-template class CubReduce<unsigned int>;
+template class CubReduce<unsigned>;
 
 } //namespace xlib

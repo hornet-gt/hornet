@@ -2,6 +2,8 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
+#include "Core/StandardAPI.hpp"
+
 #include "Static/TriangleCounting/triangle.cuh"
 
 using namespace custinger_alg;
@@ -264,7 +266,7 @@ void devicecuStaticTriangleCounting(custinger::cuStingerDevice custinger,
                            int number_blocks,
                            int shifter,
                            TriangleData* __restrict__ devData) {
-    vid_t nv = custinger.nV;
+    vid_t nv = custinger.nV();
     // Partitioning the work to the multiple thread of a single GPU processor.
     //The threads should get a near equal number of the elements
     //to intersect - this number will be off by no more than one.
@@ -281,7 +283,7 @@ void devicecuStaticTriangleCounting(custinger::cuStingerDevice custinger,
     vid_t* firstFoundPos = firstFound + (adj_offset << shifter);
     for (vid_t src = this_mp_start; src < this_mp_stop; src++) {
         //vid_t      srcLen = custinger->dVD->getUsed()[src];
-        Vertex vertex(custinger, src);
+		Vertex vertex = custinger.vertex(src);
         vid_t srcLen = vertex.degree();
 
         // triangle_t tCount = 0;
@@ -290,8 +292,7 @@ void devicecuStaticTriangleCounting(custinger::cuStingerDevice custinger,
             // vid_t dest = vertex.edge(k).dst();
             vid_t dest = vertex.edge(k).dst_id();
             //int destLen = custinger->dVD->getUsed()[dest];
-            degree_t destLen = Vertex(custinger, dest).degree();
-
+            degree_t destLen = custinger.vertex(dest).degree();
             if (dest < src) //opt
                 continue;   //opt
 
@@ -305,8 +306,11 @@ void devicecuStaticTriangleCounting(custinger::cuStingerDevice custinger,
             degree_t    small_len = sourceSmaller ? srcLen : destLen;
             degree_t    large_len = sourceSmaller ? destLen : srcLen;
 
-            const vid_t* small_ptr = Vertex(custinger, small).neighbor_ptr();
-            const vid_t* large_ptr = Vertex(custinger, large).neighbor_ptr();
+            // const vid_t* small_ptr = Vertex(custinger, small).neighbor_ptr();
+            // const vid_t* large_ptr = Vertex(custinger, large).neighbor_ptr();
+
+            const vid_t* small_ptr = custinger.vertex(small).neighbor_ptr();
+            const vid_t* large_ptr = custinger.vertex(large).neighbor_ptr();
 
             triangle_t triFound = count_triangles
                 (custinger, small, small_ptr, small_len, large, large_ptr,
@@ -420,14 +424,15 @@ void TriangleCounting::init(){
 }
 
 triangle_t TriangleCounting::countTriangles(){
-    triangle_t* outputArray = (triangle_t*)malloc((hostTriangleData.nv+2)*sizeof(triangle_t));
-    cudaMemcpy(outputArray,hostTriangleData.triPerVertex,(hostTriangleData.nv+2)*sizeof(triangle_t),cudaMemcpyDeviceToHost);
-    triangle_t sum=0;
-    for(int i=0; i<(hostTriangleData.nv); i++){
-        // printf("%d %ld\n", i,outputArray[i]);
-        sum+=outputArray[i];
-    }
-	// free(outputArray);
+ //    triangle_t* outputArray = (triangle_t*)malloc((hostTriangleData.nv+2)*sizeof(triangle_t));
+ //    cudaMemcpy(outputArray,hostTriangleData.triPerVertex,(hostTriangleData.nv+2)*sizeof(triangle_t),cudaMemcpyDeviceToHost);
+ //    triangle_t sum=0;
+ //    for(int i=0; i<(hostTriangleData.nv); i++){
+ //        // printf("%d %ld\n", i,outputArray[i]);
+ //        sum+=outputArray[i];
+ //    }
+	// // free(outputArray);
+	triangle_t sum= reduce<triangle_t>(hostTriangleData.triPerVertex, hostTriangleData.nv);
 
     return sum;
 }

@@ -3,10 +3,8 @@
 #include <stdlib.h>
 #include <cstdlib>
 
-
-
 #include "Static/TriangleCounting/triangle.cuh"
-#include "Support/Device/Timer.cuh"
+#include "Device/Timer.cuh"
 
 
 using namespace std;
@@ -110,9 +108,12 @@ int main(const int argc, char *argv[]){
                                  graph.out_offsets_ptr(),
                                  graph.out_edges_ptr());
 
-	cuStinger custiger_graph(custinger_init);
+	cuStinger custinger_graph(custinger_init);
 
-	testTriangleCountingConfigurations(custiger_graph,graph.nV(),graph.nE());
+	custinger_graph.check_sorted_adjs();
+	// std::cout << "Is sorted " <<  << std::endl;
+
+	testTriangleCountingConfigurations(custinger_graph,graph.nV(),graph.nE());
 	int64_t hostTris;
 	hostCountTriangles(graph.nV(), graph.nE(),graph.out_offsets_ptr(), graph.out_edges_ptr(),&hostTris);
     return 0;

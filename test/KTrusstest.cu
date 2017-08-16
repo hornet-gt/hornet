@@ -1,5 +1,5 @@
 #include "Static/KTruss/KTruss.cuh"
-#include "Support/Device/Timer.cuh"
+#include "Device/Timer.cuh"
 
 using namespace timer;
 using namespace custinger;

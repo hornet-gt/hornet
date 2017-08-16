@@ -476,5 +476,6 @@ template class CubSelect<int>;
 template class CubSelect<int2>;
 template class CubSelectFlagged<int2>;
 template class CubSelectFlagged<int>;
+template class CubReduce<int>;
 
 } //namespace xlib

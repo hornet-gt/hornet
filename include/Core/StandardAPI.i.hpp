@@ -5,27 +5,6 @@
  * @date August, 2017
  * @version v2
  *
- * @brief Improved CUDA APIs
- * @details Advatages:                                                      <br>
- *   - **clear semantic**: input, then output (google style)
- *   - **type checking**:
- *      - input and output must have the same type T
- *      - const checking for inputs
- *      - device symbols must be references
- *   - **no byte object sizes**: the number of bytes is  determined by looking
- *       the parameter type T
- *   - **fast debbuging**:
- *      - in case of error the macro provides the file name, the line, the
- *        name of the function where it is called, and the API name that fail
- *      - assertion to check null pointers and num_items == 0
- *      - assertion to check every CUDA API errors
- *      - additional info: cudaMalloc fail -> what is the available memory?
- *   - **direct argument passing** of constant values. E.g.                 <br>
- *       \code{.cu}
- *        cuMemcpyToSymbol(false, d_symbol); //d_symbol must be bool
- *       \endcode
- *   - much **less verbose**
- *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
  *
  * @license{<blockquote>
@@ -109,12 +88,14 @@ void memsetOne(const T* pointer, size_t num_items) {
 
 template<typename T>
 T reduce(const T* input, size_t num_items) {
-    return xlib::CubReduce<T>(input, num_items);
+    xlib::CubReduce<T> cub_reduce(input, num_items);
+    return cub_reduce.run();
 }
 
 template<typename T>
 void excl_prefixsum(const T* input, size_t num_items, T* output) {
-    xlib::CubExclusiveSum<T>(input, num_items, output);
+    xlib::CubExclusiveSum<T> cub_prefixsum(input, num_items, output);
+    cub_prefixsum.run();
 }
 
 } // namespace gpu

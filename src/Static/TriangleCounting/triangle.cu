@@ -2,7 +2,6 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-#include "Core/StandardAPI.hpp"
 
 #include "Static/TriangleCounting/triangle.cuh"
 

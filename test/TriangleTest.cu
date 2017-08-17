@@ -101,7 +101,7 @@ int main(const int argc, char *argv[]){
 	cudaGetDeviceProperties(&prop, device);
  
     graph::GraphStd<vid_t, eoff_t> graph(UNDIRECTED);
-    graph.read(argv[1], SORT | PRINT);
+    graph.read(argv[1], SORT | PRINT | REMOVE_DUPLICATES);
 
 
 	cuStingerInit custinger_init(graph.nV(), graph.nE(),
@@ -127,25 +127,29 @@ int main(const int argc, char *argv[]){
 // CPU Version - assume sorted index lists. 
 int hostSingleIntersection (const vid_t ai, const degree_t alen, const vid_t * a,
 						    const vid_t bi, const degree_t blen, const vid_t * b){
-	degree_t ka = 0, kb = 0,out = 0;
+
+	int32_t ka = 0, kb = 0;
+ 	int32_t out = 0;
+
+
 	if (!alen || !blen || a[alen-1] < b[0] || b[blen-1] < a[0])
-    	return 0;
+    return 0;
 
-	while (1) {
-    	if (ka >= alen || kb >= blen) break;
-		vid_t va = a[ka],vb = b[kb];
+	const vid_t *aptr=a, *aend=a+alen;
+	const vid_t *bptr=b, *bend=b+blen;
 
-	    if (va == vb) {
-	     	++ka; ++kb; ++out;
-	    }
-	    else if (va < vb) {
-	      ++ka;
-	      while (ka < alen && a[ka] < vb) ++ka;
-	    } else {
-	      ++kb;
-	      while (kb < blen && va > b[kb]) ++kb;
-	    }
-	}
+	while(aptr< aend && bptr<bend){
+		if(*aptr==*bptr){
+			aptr++, bptr++, out++;
+		}
+		else if(*aptr<*bptr){
+			aptr++;
+		}
+		else {
+			bptr++;
+		}
+  	}  
+  
 	return out;
 }
 

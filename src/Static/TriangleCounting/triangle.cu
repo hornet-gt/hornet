@@ -430,8 +430,8 @@ triangle_t TriangleCounting::countTriangles(){
  //        // printf("%d %ld\n", i,outputArray[i]);
  //        sum+=outputArray[i];
  //    }
-	// // free(outputArray);
-	triangle_t sum=gpu::reduce(hostTriangleData.triPerVertex, hostTriangleData.nv);
+	// // // free(outputArray);
+	triangle_t sum=gpu::reduce(hostTriangleData.triPerVertex, hostTriangleData.nv+1);
 
     return sum;
 }

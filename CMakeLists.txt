@@ -49,3 +49,4 @@ target_link_libraries(mem_benchmark cuStinger ${CUDA_LIBRARIES})
 #-------------------------------------------------------------------------------
 ##subscript_out_of_range
 #cmake -DCMAKE_BUILD_TYPE=Release -DCUDAHC=$clang39 ..
+

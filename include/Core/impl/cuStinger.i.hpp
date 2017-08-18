@@ -58,7 +58,7 @@ inline const vid_t* cuStinger::csr_edges() noexcept {
 }
 
 inline const eoff_t* cuStinger::device_csr_offsets() noexcept {
-    if (_d_csr_offsets != nullptr) {
+    if (_d_csr_offsets == nullptr) {
         cuMalloc(_d_csr_offsets, _nV + 1);
         cuMemcpyToDevice(csr_offsets(), _nV + 1, _d_csr_offsets);
     }

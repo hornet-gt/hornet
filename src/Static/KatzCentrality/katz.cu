@@ -60,7 +60,7 @@ katzCentrality::katzCentrality(custinger::cuStinger& custinger) :
 katzCentrality::~katzCentrality() {
 	release();
     // gpu::free(hostKatzData.distances);
-}	
+}
 
 
 // void katzCentrality::setInitParameters(length_t maxIteration_, length_t K_,length_t maxDegree_,bool isStatic_){
@@ -177,7 +177,7 @@ void katzCentrality::run(){
 	// allVinG_TraverseVertices<katzCentralityOperator::init>(custing,deviceKatzData);
 	forAllVertices<katz_operators::init>(custinger,deviceKatzData);
 	hostKatzData.iteration = 1;
-	
+
 	hostKatzData.nActive = hostKatzData.nv;
 	while(hostKatzData.nActive> hostKatzData.K && hostKatzData.iteration < hostKatzData.maxIteration){
 
@@ -185,7 +185,7 @@ void katzCentrality::run(){
 		hostKatzData.lowerBoundConst = pow(hostKatzData.alpha,hostKatzData.iteration+1)/((1.0-hostKatzData.alpha));
 		hostKatzData.upperBoundConst = pow(hostKatzData.alpha,hostKatzData.iteration+1)/((1.0-hostKatzData.alpha*(double)hostKatzData.maxDegree));
 		hostKatzData.nActive = 0; // Each iteration the number of active vertices is set to zero.
-	
+
 		syncDeviceWithHost(); // Passing constants to the device.
 
 		// allVinG_TraverseVertices<katzCentralityOperator::initNumPathsPerIteration>(custing,deviceKatzData);
@@ -193,7 +193,7 @@ void katzCentrality::run(){
 		// allVinG_TraverseVertices<katzCentralityOperator::updateKatzAndBounds>(custing,deviceKatzData);
 
 		forAllVertices<katz_operators::initNumPathsPerIteration>(custinger,deviceKatzData);
-        forAllEdges<katz_operators::updatePathCount>(custinger, deviceKatzData,load_balacing);
+        forAllEdges<katz_operators::updatePathCount>(custinger, deviceKatzData);
 		forAllVertices<katz_operators::updateKatzAndBounds>(custinger,deviceKatzData);
 		// allVinA_TraverseEdges_LB<katzCentralityOperator::updatePathCount>(custing,deviceKatzData,*cusLB);
 		// allVinG_TraverseVertices<katzCentralityOperator::updateKatzAndBounds>(custing,deviceKatzData);
@@ -205,7 +205,7 @@ void katzCentrality::run(){
 
 		if(isStatic){
 			// Swapping pointers.
-			ulong_t* temp = hostKatzData.nPathsCurr; hostKatzData.nPathsCurr=hostKatzData.nPathsPrev; hostKatzData.nPathsPrev=temp;	
+			ulong_t* temp = hostKatzData.nPathsCurr; hostKatzData.nPathsCurr=hostKatzData.nPathsPrev; hostKatzData.nPathsPrev=temp;
 		}else{
 			hostKatzData.nPathsPrev = hPathsPtr[hostKatzData.iteration - 1];
 			hostKatzData.nPathsCurr = hPathsPtr[hostKatzData.iteration - 0];
@@ -223,14 +223,14 @@ void katzCentrality::run(){
 		// allVinG_TraverseVertices<katzCentralityOperator::countActive>(custing,deviceKatzData);
 		// allVinA_TraverseVertices<katzCentralityOperator::countActive>(custing,deviceKatzData,hostKatzData.vertexArray,oldActiveCount);
 		forAllVertices<katz_operators::countActive>(custinger,hostKatzData.vertexArray,oldActiveCount,deviceKatzData);
-		
+
 // /* 	ulong_t* nPathsCurr = (ulong_t*) allocHostArray(hostKatzData.nv, sizeof(ulong_t));
 // 	ulong_t* nPathsPrev = (ulong_t*) allocHostArray(hostKatzData.nv, sizeof(ulong_t));
 // 	vid_t* vertexArray = (vid_t*) allocHostArray(hostKatzData.nv, sizeof(vid_t));
 // 	double* KC         = (double*) allocHostArray(hostKatzData.nv, sizeof(double));
 // 	double* lowerBound = (double*) allocHostArray(hostKatzData.nv, sizeof(double));
 // 	double* upperBound = (double*) allocHostArray(hostKatzData.nv, sizeof(double));
-    
+
 // 	copyArrayDeviceToHost(hostKatzData.lowerBound,lowerBound,custing.nv, sizeof(double)) ;
 // 	copyArrayDeviceToHost(hostKatzData.upperBound,upperBound,custing.nv, sizeof(double)) ;
 // 	copyArrayDeviceToHost(hostKatzData.KC,KC,custing.nv, sizeof(double)) ;
@@ -246,7 +246,7 @@ void katzCentrality::run(){
 // 	freeHostArray(KC);
 //     freeHostArray(lowerBound);
 // 	freeHostArray(upperBound);
-// */		
+// */
 		syncHostWithDevice();
 		cout << hostKatzData.nActive << endl;
 	}

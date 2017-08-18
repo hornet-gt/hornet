@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
 
 	float totalTime;
 
-	// custinger_alg::katzCentrality kcPostUpdate(custinger_graph);
+//	custinger_alg::katzCentrality kcPostUpdate(custinger_graph);
 	// kcPostUpdate.setInitParameters(maxIterations,topK,maxLen,false);
 	// kcPostUpdate.Init(custing);
 	// kcPostUpdate.Reset();
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
 	// kcPostUpdate.Release();
 	// custiger_graph.freecuStinger();
 
-	cudaDeviceReset();
+	//cudaDeviceReset();
 
     // delete[] weights;
 

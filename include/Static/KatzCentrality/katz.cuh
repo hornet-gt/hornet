@@ -166,7 +166,7 @@ void initNumPathsPerIteration(Vertex& src, void* optional_field){
 // 	atomicAdd(kd->nPathsCurr+src, kd->nPathsPrev[dst]);
 // }
 __device__ __forceinline__
-void updatePathCount(Vertex& src_, const Edge& edge, void* optional_field){
+void updatePathCount(Vertex& src_, Edge& edge, void* optional_field){
 	auto kd = reinterpret_cast<katzData*>(optional_field);
 	auto dst = edge.dst_id();
     auto src = src_.id();
@@ -181,7 +181,7 @@ void updateKatzAndBounds(Vertex& s, void* optional_field){
 
 	kd->KC[src]=kd->KC[src] + kd->alphaI * (double)kd->nPathsCurr[src];
 	kd->lowerBound[src]=kd->KC[src] + kd->lowerBoundConst * (double)kd->nPathsCurr[src];
-	kd->upperBound[src]=kd->KC[src] + kd->upperBoundConst * (double)kd->nPathsCurr[src];   
+	kd->upperBound[src]=kd->KC[src] + kd->upperBoundConst * (double)kd->nPathsCurr[src];
 
 	if(kd->isActive[src]){
 		int32_t pos = atomicAdd(&(kd -> nActive),1);

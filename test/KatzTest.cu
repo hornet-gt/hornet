@@ -38,7 +38,7 @@
  */
 
 #include "Static/KatzCentrality/katz.cuh"
-// #include "Support/Device/Timer.cuh"
+#include "Device/Timer.cuh"
 
 
 using namespace timer;
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     cudaSetDevice(device);
 	cudaDeviceProp prop;
 	cudaGetDeviceProperties(&prop, device);
- 
+
 
 	int maxIterations=20;
 	int topK=100;
@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
 
 	float totalTime;
 
-	// custinger_alg::katzCentrality kcPostUpdate(custinger_graph);	
+	// custinger_alg::katzCentrality kcPostUpdate(custinger_graph);
 	// kcPostUpdate.setInitParameters(maxIterations,topK,maxLen,false);
 	// kcPostUpdate.Init(custing);
 	// kcPostUpdate.Reset();
@@ -85,8 +85,8 @@ int main(int argc, char* argv[]) {
 	// kcPostUpdate.Run(custing);
 	// totalTime = end_clock(ce_start, ce_stop);
 	// cout << "The number of iterations      : " << kcPostUpdate.getIterationCount() << endl;
-	// cout << "Total time for KC             : " << totalTime << endl; 
-	// cout << "Average time per iteartion    : " << totalTime/(float)kcPostUpdate.getIterationCount() << endl; 
+	// cout << "Total time for KC             : " << totalTime << endl;
+	// cout << "Average time per iteartion    : " << totalTime/(float)kcPostUpdate.getIterationCount() << endl;
 
 	// kcPostUpdate.Release();
 	// custiger_graph.freecuStinger();
@@ -95,8 +95,6 @@ int main(int argc, char* argv[]) {
 
     // delete[] weights;
 
-    return 0;	
+    return 0;
 
 }
-
-

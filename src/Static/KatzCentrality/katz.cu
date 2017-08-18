@@ -1,16 +1,46 @@
-
-
-// #include "update.hpp"
-// #include "cuStinger.hpp"
-// #include "operators.cuh"
-// #include "static_katz_centrality/katz.cuh"
+/**
+ * @internal
+ * @author Oded Green                                                  <br>
+ *         Georgia Institute of Technology, Computational Science and Engineering                   <br>
+ *         ogreen@gatech.edu
+ * @date August, 2017
+ * @version v2
+ *
+ * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ *
+ * @license{<blockquote>
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ * * Neither the name of the copyright holder nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * </blockquote>}
+ *
+ * @file
+ */
 
 #include "Static/KatzCentrality/katz.cuh"
 
 
-// #include "kernel_mergesort.hxx"
-// using namespace mgpu;
-
+using namespace xlib;
 typedef int32_t length_t;
 
 
@@ -79,7 +109,7 @@ void katzCentrality::init(cuStinger& custing){
 		hostKatzData.nPathsCurr = hPathsPtr[1];
 
 		// copyArrayHostToDevice(hPathsPtr,hostKatzData.nPaths,hostKatzData.maxIteration,sizeof(double));
-		copyHostToDevice(hPathsPtr,hostKatzData.nPaths,hostKatzData.maxIteration);
+		gpu::copyHostToDevice(hPathsPtr,hostKatzData.maxIteration,hostKatzData.nPaths);
 	}
 
 	gpu::allocate(hostKatzData.KC, hostKatzData.nv);
@@ -146,8 +176,6 @@ void katzCentrality::release(){
 void katzCentrality::run(){
 	// allVinG_TraverseVertices<katzCentralityOperator::init>(custing,deviceKatzData);
 	forAllVertices<katz_operators::init>(custinger,deviceKatzData);
-	standard_context_t context(false);
-
 	hostKatzData.iteration = 1;
 	
 	hostKatzData.nActive = hostKatzData.nv;
@@ -165,7 +193,8 @@ void katzCentrality::run(){
 		// allVinG_TraverseVertices<katzCentralityOperator::updateKatzAndBounds>(custing,deviceKatzData);
 
 		forAllVertices<katz_operators::initNumPathsPerIteration>(custinger,deviceKatzData);
-        forAllEdges<katz_operators::updatePathCount>(custinger, deviceKatzData);
+        forAllEdges<katz_operators::updatePathCount>(custinger, deviceKatzData,load_balacing);
+		forAllVertices<katz_operators::updateKatzAndBounds>(custinger,deviceKatzData);
 		// allVinA_TraverseEdges_LB<katzCentralityOperator::updatePathCount>(custing,deviceKatzData,*cusLB);
 		// allVinG_TraverseVertices<katzCentralityOperator::updateKatzAndBounds>(custing,deviceKatzData);
 
@@ -187,12 +216,14 @@ void katzCentrality::run(){
 
 		syncDeviceWithHost();
 
-		mergesort(hostKatzData.lowerBoundSort,hostKatzData.vertexArray,oldActiveCount, greater_t<double>(),context);
+		xlib::CubSortByKey<double,vid_t>  sorter(hostKatzData.lowerBoundSort,hostKatzData.vertexArray,oldActiveCount,NULL, NULL);
+		sorter.run();
+		// mergesort(hostKatzData.lowerBoundSort,hostKatzData.vertexArray,oldActiveCount, greater_t<double>(),context);
 
 		// allVinG_TraverseVertices<katzCentralityOperator::countActive>(custing,deviceKatzData);
-		allVinA_TraverseVertices<katzCentralityOperator::countActive>(custing,deviceKatzData,hostKatzData.vertexArray,oldActiveCount);
-
-
+		// allVinA_TraverseVertices<katzCentralityOperator::countActive>(custing,deviceKatzData,hostKatzData.vertexArray,oldActiveCount);
+		forAllVertices<katz_operators::countActive>(custinger,hostKatzData.vertexArray,oldActiveCount,deviceKatzData);
+		
 // /* 	ulong_t* nPathsCurr = (ulong_t*) allocHostArray(hostKatzData.nv, sizeof(ulong_t));
 // 	ulong_t* nPathsPrev = (ulong_t*) allocHostArray(hostKatzData.nv, sizeof(ulong_t));
 // 	vid_t* vertexArray = (vid_t*) allocHostArray(hostKatzData.nv, sizeof(vid_t));

@@ -1,3 +1,42 @@
+/**
+ * @internal
+ * @author Oded Green                                                  <br>
+ *         Georgia Institute of Technology, Computational Science and Engineering                   <br>
+ *         ogreen@gatech.edu
+ * @date August, 2017
+ * @version v2
+ *
+ * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ *
+ * @license{<blockquote>
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ * * Neither the name of the copyright holder nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * </blockquote>}
+ *
+ * @file
+ */
+
 #pragma once
 
 #include <cuda_runtime.h>
@@ -51,10 +90,10 @@ public:
 
 	void setInitParameters(int32_t maxIteration_,int32_t K_,int32_t maxDegree_, bool isStatic_=true);
 	void init(cuStinger& custing);
-	void reset();
-	// void run(cuStinger& custing);
+	void reset() override;
 	void run() override;
-	void release();
+	void release() override;
+    bool validate() override { return true; }
 
 	// virtual void SyncHostWithDevice(){
 	// 	cout << "This is a stub" << endl;
@@ -136,8 +175,10 @@ void updatePathCount(Vertex& src_, const Edge& edge, void* optional_field){
 
 
 __device__ __forceinline__
-void updateKatzAndBounds(cuStinger* custing,int32_t src, void* metadata){
-	katzData* kd = (katzData*)metadata;
+void updateKatzAndBounds(Vertex& s, void* optional_field){
+	auto kd = reinterpret_cast<katzData*>(optional_field);
+    vid_t src = s.id();
+
 	kd->KC[src]=kd->KC[src] + kd->alphaI * (double)kd->nPathsCurr[src];
 	kd->lowerBound[src]=kd->KC[src] + kd->lowerBoundConst * (double)kd->nPathsCurr[src];
 	kd->upperBound[src]=kd->KC[src] + kd->upperBoundConst * (double)kd->nPathsCurr[src];   
@@ -149,9 +190,12 @@ void updateKatzAndBounds(cuStinger* custing,int32_t src, void* metadata){
 	}
 }
 
+
 __device__ __forceinline__
-void countActive(cuStinger* custing,int32_t src, void* metadata){
-	katzData* kd = (katzData*)metadata;
+// void countActive(cuStinger* custing,int32_t src, void* metadata){
+void countActive(Vertex& s, void* optional_field){
+	auto kd = reinterpret_cast<katzData*>(optional_field);
+	vid_t src = s.id();
 	if (kd->upperBound[src] > kd->lowerBound[kd->vertexArray[kd->K-1]]) {
 		atomicAdd(&(kd -> nActive),1);
 	}

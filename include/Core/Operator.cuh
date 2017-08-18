@@ -96,10 +96,13 @@ void forAllVertices(const custinger::cuStinger& custinger, void* optional_data)
                     noexcept;
 
 template<void (*Operator)(custinger::Vertex&, void*)>
-void forAllVertices(const custinger::cuStinger& custinger,
-                    TwoLevelQueue<custinger::vid_t>& queue,
+void forAllVertices(TwoLevelQueue<custinger::vid_t>& queue,
                     void* optional_data) noexcept;
 
+template<void (*Operator)(custinger::Vertex&, void*)>
+void forAllVertices(const custinger::cuStinger& custinger,
+                    const custinger::vid_t* vertex_array, int size,
+                    void* optional_data) noexcept;
 /**
  * @brief apply the `Operator` to the algorithm-dependent data for all edges
  *        in the graph
@@ -109,14 +112,20 @@ void forAllVertices(const custinger::cuStinger& custinger,
  * @param[in] optional_data algorithm-dependent data
  * @remark    the first call may be more expensive than the following
  */
-template<void (*Operator)(custinger::Vertex&, const custinger::Edge&, void*)>
-void forAllEdges(const custinger::cuStinger& custinger, void* optional_data)
-                 noexcept;
+template<void (*Operator)(custinger::Vertex&, const custinger::Edge&, void*),
+         typename LoadBalancing>
+void forAllEdges(const custinger::cuStinger& custinger, void* optional_data,
+                 LoadBalancing& LB) noexcept;
 
 template<void (*Operator)(custinger::Edge&, void*), typename LoadBalancing>
 void forAllEdges(TwoLevelQueue<custinger::vid_t>& queue,
-                 void* optional_data,
-                 LoadBalancing& LB) noexcept;
+                 void* optional_data, LoadBalancing& LB) noexcept;
+
+template<void (*Operator)(custinger::Edge&, void*), typename LoadBalancing>
+void forAllEdges(const custinger::cuStinger& custinger,
+                 const custinger::vid_t* vertex_array, int size,
+                 void* optional_data, LoadBalancing& LB) noexcept;
+
 //------------------------------------------------------------------------------
 /*
 template<void (*Operator)(custinger::Vertex, custinger::Edge, void*)>

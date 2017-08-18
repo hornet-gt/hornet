@@ -149,7 +149,7 @@ void CC::reset() {
 }
 
 void CC::run() {
-    auto max_vertex = custinger.max_degree_vertex();
+    auto max_vertex = custinger.max_degree_id();
     queue.insert(max_vertex);
 
     while (queue.size() > 0)

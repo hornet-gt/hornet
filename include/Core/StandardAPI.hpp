@@ -1,11 +1,8 @@
 /**
- * @brief cuStinger Algorithms Umbrella header
- * @remark The users must include only this header to implement algorithm on top
- *        of cuStinger
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date August, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -36,20 +33,71 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  *
- * @file
  */
 #pragma once
 
-#include "Core/cuStingerAlg.cuh"
-#include "Core/Operator.cuh"
-#include "Core/Operator++.cuh"
-#include "Core/Queue/MultiLevelQueue.cuh"
-#include "Core/Queue/TwoLevelQueue.cuh"
-#include "Core/StandardAPI.hpp"
-#include <cuStinger.hpp>
+namespace gpu {
 
-using custinger::vid_t;
-using custinger::eoff_t;
-using custinger::cuStinger;
-using custinger::Vertex;
-using custinger::Edge;
+template<typename T>
+void allocate(T*& pointer, size_t num_items);
+
+template<typename T>
+void free(T* pointer);
+
+template<typename T>
+void copyDeviceToDevice(const T* source, size_t num_items, T* destination);
+
+template<typename T>
+void copyHostToDevice(const T* source, size_t num_items, T* destination);
+
+template<typename T>
+void copyHostToDevice(T value, T* destination);
+
+template<typename T>
+void copyDeviceToHost(const T* source, size_t num_items, T* destination);
+
+template<typename T>
+void copyDeviceToHost(const T* source, T& value);
+
+template<typename T>
+void memsetZero(const T* pointer, size_t num_items);
+
+template<typename T>
+void memsetOne(const T* pointer, size_t num_items);
+
+template<typename T>
+T reduce(const T* input, size_t num_items);
+
+template<typename T>
+void excl_prefixsum(const T* input, size_t num_items, T* output);
+
+} // namespace gpu
+
+//==============================================================================
+
+namespace host {
+
+template<typename T>
+void allocate(T*& pointer, size_t num_items);
+
+template<typename T>
+void free(T*& pointer);
+
+template<typename T>
+void copyHostToHost(const T* input, size_t num_items, T* output);
+
+template<typename T>
+void memsetZero(T* pointer, size_t num_items);
+
+template<typename T>
+void memsetOne(T* pointer, size_t num_items);
+
+template<typename T>
+T reduce(const T* input, size_t num_items);
+
+template<typename T>
+void excl_prefixsum(const T* input, size_t num_items, T* output);
+
+} // namespace host
+
+#include "Core/StandardAPI.i.hpp"

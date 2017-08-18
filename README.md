@@ -14,23 +14,24 @@ The document is organized as follows:
 * [cuStinger Algorithms](#custinger-algorithms)
 * [Performance](#performance)
 * [cuStinger Algorithms Lines of Code](#custinger-algorithms-lines-of-code)
+* [Code Documentation](#code-documentation)
 * [Reporting bugs and contributing](#reporting-bugs-and-contributing)
 * [Publications](#publications)
 * [cuStinger Developers](#custinger-developers)
 * [Acknowledgements](#acknowledgements)
 * [License](#licence)
 
-## Requirements ##
+### Requirements ###
 
-* [Nvidia Modern GPU](https://developer.nvidia.com/cuda-gpus) (compute capability >= 3.0): Kerpler, Maxwell, Pascal architectures.
-* [CUDA toolkit](https://developer.nvidia.com/cuda-toolkit) v7.5 or greater. (CUDA toolkit v8.0 recommended, CUDA toolkit v7.0 supported but not tested)
-* GCC or [Clang](https://clang.llvm.org) host compiler with support for C++11<sup>*</sup>.
-* [CMake](https://cmake.org) v3.5 or greater.
+* [Nvidia Modern GPU](https://developer.nvidia.com/cuda-gpus) (compute capability &ge; 3.0): Kerpler, Maxwell, Pascal, Volta architectures.
+* [CUDA toolkit](https://developer.nvidia.com/cuda-toolkit) 9 or greater.
+* GCC or [Clang](https://clang.llvm.org) host compiler with support for C++14.
+  Note: the compiler must be compatible with the related CUDA toolkit version.
+  For more information see [CUDA Installation Guide](http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html).
+* [CMake](https://cmake.org) v3.6 or greater.
 * 64-bit Operating System (Ubuntu tested).
 
-<sup>*The next release will support C++14 (CUDA Toolkit v9). </sup>
-
-## Quick Start ##
+### Quick Start ###
 
 The following basic steps are required to build and execute the cuStinger algorithms:
 ```bash
@@ -53,7 +54,7 @@ make -j
 | (PG) Page Rank                      |     yes       | on-going |
 | (TC) Triangle Counting              |     yes       |   yes    |
 | (KC) Katz Centrality                |     yes       |   yes    |
-| (MIS) Maximal Independent Set       |    to-do      |  to-do   |
+| (MIS) Maximal Independent Set       |   on-going    |  to-do   |
 | (MF) Maximum Flow                   |    to-do      |  to-do   |
 | (CC) Clustering Coeffient           |    to-do      |  to-do   |
 | (ST) St-Connectivity                |    to-do      |  to-do   |
@@ -111,6 +112,12 @@ make -j
 <sup>(A) lines of code required for the algorithm </sup><br>
 <sup>(B) lines of code required for the operators </sup>
 
+### Code Documentation ###
+
+The code documentation is located in the `docs` directory of cuStinger data
+structure directory (*doxygen* html format).
+The documentation is also accessible online [**here**.](https://federicounivr.github.io/cuStinger/)
+
 ### Reporting bugs and contributing ###
 
 If you find any bugs please report them by using the repository (github **issues** panel).
@@ -121,24 +128,26 @@ We are also ready to engage in improving and extending the framework if you requ
 
 * Oded Green, David A. Bader, [*"cuStinger: Supporting dynamic graph algorithms for GPUs"*](https://www.researchgate.net/publication/308174457_cuSTINGER_Supporting_dynamic_graph_algorithms_for_GPUs),
 IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September, 2016, Waltham, MA, USA, pp. 1-6.
-
+* Oded Green, James Fox, Euna Kim, Federico Busato, Nicola Bombieri,
+  Kartik Lakhotia, Shijie Zhou, Shreyas Singapura, Hanqing Zeng,
+  Rajgopal Kannan, Viktor Prasanna, David A. Bader, **"Quickly Finding a Truss in a Haystack"**, IEEE/Amazon/DARPA Graph Challenge, \**Innovation Awards*\*
 
 ---
 ### <center>If you find this software useful in academic work, please acknowledge cuStinger. </center> ###
 ***
 
-## cuStinger Developers ##
+## cuStinger 2.0 Developers ##
 
 ##### Data Structure ######
 
-* `Oded Green`, Researcher, Georgia Institute of Technology
 * `Federico Busato`, Ph.D. Student, University of Verona (Italy)
+* `Oded Green`, Researcher, Georgia Institute of Technology
 
 ##### Algorithms ######
 
-* `Oded Green`, Researcher, Georgia Institute of Technology
 * `Federico Busato`, Ph.D. Student, University of Verona (Italy)
-* `James Fox`, Ph.D. Student, Georgia Institute of Technology : *Temporal Motif Finding*
+* `Oded Green`, Researcher, Georgia Institute of Technology
+* `James Fox`, Ph.D. Student, Georgia Institute of Technology : *Maximal Independent Set*, *Temporal Motif Finding*
 * `Devavret Makkar`, Ph.D. Student, Georgia Institute of Technology : *Triangle Counting*
 * `Elisabetta Bergamini`, Ph.D. Student, Karlsruhe Institute of Technology (Germany) : *Katz Centrality*
 * ...

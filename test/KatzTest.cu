@@ -71,18 +71,18 @@ int main(int argc, char* argv[]) {
 
 	// Finding largest vertex
 	// vid_t maxV		 	=custiger_graph.max_degree_id();
-	// degree_t   maxDeg	=custiger_graph.max_degree();
+	degree_t   maxDeg	=custinger_graph.max_degree();
 
     // runKtruss(custinger_init, alg, maxk, graph.name());
 
 	float totalTime;
 
-//	custinger_alg::katzCentrality kcPostUpdate(custinger_graph);
-	// kcPostUpdate.setInitParameters(maxIterations,topK,maxLen,false);
-	// kcPostUpdate.Init(custing);
-	// kcPostUpdate.Reset();
+	custinger_alg::katzCentrality kcPostUpdate(custinger_graph);
+	kcPostUpdate.setInitParameters(maxIterations,topK,maxDeg,false);
+	kcPostUpdate.init(custinger_graph);
+	kcPostUpdate.reset();
 	// start_clock(ce_start, ce_stop);
-	// kcPostUpdate.Run(custing);
+	kcPostUpdate.run();
 	// totalTime = end_clock(ce_start, ce_stop);
 	// cout << "The number of iterations      : " << kcPostUpdate.getIterationCount() << endl;
 	// cout << "Total time for KC             : " << totalTime << endl;

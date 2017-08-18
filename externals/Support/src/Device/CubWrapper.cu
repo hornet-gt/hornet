@@ -467,6 +467,7 @@ CubArgMax<T>::run() noexcept {
 //------------------------------------------------------------------------------
 
 template class CubSortByKey<int, int>;
+template class CubSortByKey<double, int>
 template class CubRunLengthEncode<int, int>;
 template class CubExclusiveSum<int>;
 template class CubSortPairs2<int, int>;

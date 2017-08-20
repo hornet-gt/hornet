@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
 	Timer<DEVICE> TM;
 
 	kcPostUpdate.setInitParameters(maxIterations,topK,maxDeg,false);
-	kcPostUpdate.init(custinger_graph);
+	kcPostUpdate.init();
 	kcPostUpdate.reset();
 	// start_clock(ce_start, ce_stop);
 	kcPostUpdate.run();

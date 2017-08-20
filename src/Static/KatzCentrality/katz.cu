@@ -172,8 +172,8 @@ void katzCentrality::run(){
 	hostKatzData.iteration = 1;
 
 	hostKatzData.nActive = hostKatzData.nv;
-	while(hostKatzData.nActive> hostKatzData.K && hostKatzData.iteration < hostKatzData.maxIteration){
 
+	while(hostKatzData.nActive> hostKatzData.K && hostKatzData.iteration < hostKatzData.maxIteration){
 		hostKatzData.alphaI          = pow(hostKatzData.alpha,hostKatzData.iteration);
 		hostKatzData.lowerBoundConst = pow(hostKatzData.alpha,hostKatzData.iteration+1)/((1.0-hostKatzData.alpha));
 		hostKatzData.upperBoundConst = pow(hostKatzData.alpha,hostKatzData.iteration+1)/((1.0-hostKatzData.alpha*(double)hostKatzData.maxDegree));
@@ -212,7 +212,7 @@ void katzCentrality::run(){
 		xlib::CubSortByKey<double,vid_t>  sorter(hostKatzData.lowerBoundUnsorted,hostKatzData.vertexArrayUnsorted,oldActiveCount,hostKatzData.lowerBoundSorted, hostKatzData.vertexArraySorted);
 		syncDeviceWithHost();
 
-		// sorter.run();
+		sorter.run();
 		forAllVertices<katz_operators::countActive>(custinger,hostKatzData.vertexArraySorted,oldActiveCount,deviceKatzData);
 
 

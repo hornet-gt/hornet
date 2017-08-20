@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
 
 
 	int maxIterations=20;
-	int topK=100;
+	int topK=1000000;
 
     graph::GraphStd<vid_t, eoff_t> graph(UNDIRECTED);
     graph.read(argv[1], SORT | PRINT);
@@ -70,25 +70,27 @@ int main(int argc, char* argv[]) {
 
 
 	// Finding largest vertex
-	// vid_t maxV		 	=custiger_graph.max_degree_id();
-	// degree_t   maxDeg	=custiger_graph.max_degree();
-
-    // runKtruss(custinger_init, alg, maxk, graph.name());
+	vid_t maxV		 	=custinger_graph.max_degree_id();
+	degree_t   maxDeg	=custinger_graph.max_degree();
 
 	float totalTime;
 
-//	custinger_alg::katzCentrality kcPostUpdate(custinger_graph);
-	// kcPostUpdate.setInitParameters(maxIterations,topK,maxLen,false);
-	// kcPostUpdate.Init(custing);
-	// kcPostUpdate.Reset();
-	// start_clock(ce_start, ce_stop);
-	// kcPostUpdate.Run(custing);
-	// totalTime = end_clock(ce_start, ce_stop);
+	custinger_alg::katzCentrality kcPostUpdate(custinger_graph);
+	kcPostUpdate.setInitParameters(maxIterations,topK,maxDeg,true);
+	kcPostUpdate.init();
+	kcPostUpdate.reset();
+	Timer<DEVICE> TM;
+
+	TM.start();
+	kcPostUpdate.run();
+	TM.stop();
+	totalTime = TM.duration();
+	
 	// cout << "The number of iterations      : " << kcPostUpdate.getIterationCount() << endl;
 	// cout << "Total time for KC             : " << totalTime << endl;
 	// cout << "Average time per iteartion    : " << totalTime/(float)kcPostUpdate.getIterationCount() << endl;
 
-	// kcPostUpdate.Release();
+	kcPostUpdate.release();
 	// custiger_graph.freecuStinger();
 
 	//cudaDeviceReset();

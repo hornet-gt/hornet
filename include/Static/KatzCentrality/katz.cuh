@@ -76,9 +76,10 @@ struct katzData{
 	int32_t nv;
 
 	bool* isActive;
-	double*     	lowerBoundSort;
-	int32_t*     vertexArray; // Sorting
-	int32_t*     indexArray; // Sorting
+	double*     lowerBoundUnsorted;
+	double*     lowerBoundSorted;
+	int32_t*    vertexArrayUnsorted; // Sorting
+	int32_t*    vertexArraySorted; // Sorting
 
 };
 
@@ -89,20 +90,11 @@ public:
     ~katzCentrality();
 
 	void setInitParameters(int32_t maxIteration_,int32_t K_,int32_t maxDegree_, bool isStatic_=true);
-	void init(cuStinger& custing);
+	void init();
 	void reset() override;
 	void run() override;
 	void release() override;
     bool validate() override { return true; }
-
-	// virtual void SyncHostWithDevice(){
-	// 	cout << "This is a stub" << endl;
-	// 	// copyArrayDeviceToHost(deviceKatzData,hostKatzData,1, sizeof(katzData));
-	// }
-	// virtual void SyncDeviceWithHost(){
-	// 	cout << "This is a stub" << endl;
-	// 	// copyArrayHostToDevice(hostKatzData,deviceKatzData,1, sizeof(katzData));
-	// }
 
 	int32_t getIterationCount();
 
@@ -135,36 +127,26 @@ private:
 
 
 namespace katz_operators {
-// class katzCentralityOperator{
-// public:
+
 
 // Used at the very beginning
 __device__ __forceinline__
 void init(Vertex& s, void* optional_field){
 	auto kd = reinterpret_cast<katzData*>(optional_field);
-	// katzData* kd = (katzData*)metadata;
 	vid_t src = s.id();
 	kd->nPathsPrev[src]=1;
 	kd->nPathsCurr[src]=0;
 	kd->KC[src]=0.0;
 	kd->isActive[src]=true;
-	kd->indexArray[src]=src;
+	// kd->vertexArrayUnsorted[src]=src;
 }
 
-// Used every iteration
 __device__ __forceinline__
-// void initNumPathsPerIteration(cuStinger* custing,int32_t src, void* metadata){
 void initNumPathsPerIteration(Vertex& src, void* optional_field){
 	auto kd = reinterpret_cast<katzData*>(optional_field);
-	// katzData* kd = (katzData*)metadata;
 	kd->nPathsCurr[src.id()]=0;
 }
 
-// __device__ __forceinline__
-// void updatePathCount(cuStinger* custing,int32_t src, int32_t dst, void* metadata){
-// 	katzData* kd = (katzData*)metadata;
-// 	atomicAdd(kd->nPathsCurr+src, kd->nPathsPrev[dst]);
-// }
 __device__ __forceinline__
 void updatePathCount(Vertex& src_, Edge& edge, void* optional_field){
 	auto kd = reinterpret_cast<katzData*>(optional_field);
@@ -185,18 +167,17 @@ void updateKatzAndBounds(Vertex& s, void* optional_field){
 
 	if(kd->isActive[src]){
 		int32_t pos = atomicAdd(&(kd -> nActive),1);
-		kd->vertexArray[pos] = src;
-		kd->lowerBoundSort[pos]=kd->lowerBound[src];
+		kd->vertexArrayUnsorted[pos] = src;
+		kd->lowerBoundUnsorted[pos]=kd->lowerBound[src];
 	}
 }
 
 
 __device__ __forceinline__
-// void countActive(cuStinger* custing,int32_t src, void* metadata){
 void countActive(Vertex& s, void* optional_field){
 	auto kd = reinterpret_cast<katzData*>(optional_field);
 	vid_t src = s.id();
-	if (kd->upperBound[src] > kd->lowerBound[kd->vertexArray[kd->K-1]]) {
+	if (kd->upperBound[src] > kd->lowerBound[kd->vertexArraySorted[kd->K-1]]) {
 		atomicAdd(&(kd -> nActive),1);
 	}
 	else{
@@ -208,7 +189,7 @@ __device__ __forceinline__
 void printPointers(cuStinger* custing,int32_t src, void* metadata){
 	katzData* kd = (katzData*)metadata;
 	if(threadIdx.x==0 && blockIdx.x==0 && src==0)
-		printf("\n@ %p %p %p %p %p %p %p %p @\n",kd->nPathsData,kd->nPaths, kd->nPathsPrev, kd->nPathsCurr, kd->KC,kd->lowerBound,kd->lowerBoundSort,kd->upperBound);
+		printf("\n@ %p %p %p %p %p %p %p %p @\n",kd->nPathsData,kd->nPaths, kd->nPathsPrev, kd->nPathsCurr, kd->KC,kd->lowerBound,kd->lowerBoundUnsorted,kd->upperBound);
 }
 
 __device__ __forceinline__

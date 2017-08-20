@@ -83,19 +83,23 @@ CubSortByKey<T, R>::CubSortByKey(const T* d_key, const R* d_data_in,
                         _d_data_out(d_data_out),
                         _d_key_max(d_key_max) {
 
+    const int num_bits = std::is_floating_point<T>::value ? sizeof(T) * 8 :
+                         xlib::ceil_log2(_d_key_max);
     cub::DeviceRadixSort::SortPairs(_d_temp_storage, _temp_storage_bytes,
                                     _d_key, _d_key_sorted,
                                     _d_data_in, _d_data_out,
-                                    _num_items, 0, xlib::ceil_log2(_d_key_max));
+                                    _num_items, 0, num_bits);
     SAFE_CALL( cudaMalloc(&_d_temp_storage, _temp_storage_bytes) )
 }
 
 template<typename T, typename R>
 void CubSortByKey<T, R>::run() noexcept {
+    const int num_bits = std::is_floating_point<T>::value ? sizeof(T) * 8 :
+                         xlib::ceil_log2(_d_key_max);
     cub::DeviceRadixSort::SortPairs(_d_temp_storage, _temp_storage_bytes,
                                     _d_key, _d_key_sorted,
                                     _d_data_in, _d_data_out,
-                                    _num_items, 0, xlib::ceil_log2(_d_key_max));
+                                    _num_items, 0, num_bits);
 }
 //------------------------------------------------------------------------------
 

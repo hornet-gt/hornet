@@ -158,10 +158,6 @@ void GraphBase<vid_t, eoff_t>::read(const char* filename,               //NOLINT
     else if (file_ext == ".graph") {
         if (prop.is_print())
             std::cout << "        (Dimacs10th)\n";
-        if (prop.is_randomize() || prop.is_sort()) {
-            std::cerr << "#input sort/randomize ignored on Dimacs10th format"
-                      << std::endl;
-        }
         readDimacs10(fin, prop.is_print());
     }
     else if (file_ext == ".gr" && (first_str == "c"|| first_str == "p")) {
@@ -269,6 +265,8 @@ GInfo GraphBase<vid_t, eoff_t>::getKonectHeader(std::ifstream& fin) {
     xlib::skip_lines(fin);
     if (str != "%")
         ERROR("Wrong file format")
+    if (direction == structure_prop::UNDIRECTED)
+        num_edges *= 2;
     _stored_undirected = direction == structure_prop::UNDIRECTED;
     return { std::max(value1, value2), num_edges, num_edges, direction };
 }
@@ -305,8 +303,10 @@ GInfo GraphBase<vid_t, eoff_t>::getSnapHeader(std::ifstream& fin) {
         }
     }
     xlib::skip_lines(fin);
+    size_t num_edges = direction == structure_prop::UNDIRECTED ? num_lines * 2
+                                                               : num_lines;
     _stored_undirected = direction == structure_prop::UNDIRECTED;
-    return { num_vertices, num_lines, num_lines, direction };
+    return { num_vertices, num_edges, num_lines, direction };
 }
 
 //------------------------------------------------------------------------------

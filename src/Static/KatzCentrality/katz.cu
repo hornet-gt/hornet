@@ -209,6 +209,10 @@ void katzCentrality::run(){
 
 
 		std::cout << "hello " << oldActiveCount << std::endl <<std::flush;
+        if (oldActiveCount <= 0 || oldActiveCount > hostKatzData.nv) {
+        	std::cout << "ERROR: sort size " << oldActiveCount << "   max: "
+                       << hostKatzData.nv << std::endl;
+        }
 		xlib::CubSortByKey<double,vid_t>  sorter(hostKatzData.lowerBoundUnsorted,hostKatzData.vertexArrayUnsorted,oldActiveCount,hostKatzData.lowerBoundSorted, hostKatzData.vertexArraySorted);
 		syncDeviceWithHost();
 

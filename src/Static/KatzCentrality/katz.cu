@@ -212,7 +212,7 @@ void katzCentrality::run(){
 		xlib::CubSortByKey<double,vid_t>  sorter(hostKatzData.lowerBoundUnsorted,hostKatzData.vertexArrayUnsorted,oldActiveCount,hostKatzData.lowerBoundSorted, hostKatzData.vertexArraySorted);
 		syncDeviceWithHost();
 
-		// sorter.run();
+		sorter.run();
 		forAllVertices<katz_operators::countActive>(custinger,hostKatzData.vertexArraySorted,oldActiveCount,deviceKatzData);
 
 

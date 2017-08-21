@@ -81,15 +81,15 @@ int main(int argc, char* argv[]) {
 	kcPostUpdate.reset();
 	Timer<DEVICE> TM;
 
-	kcPostUpdate.setInitParameters(maxIterations,topK,maxDeg,false);
-	kcPostUpdate.init(custinger_graph);
 	kcPostUpdate.reset();
-	// start_clock(ce_start, ce_stop);
+
+	TM.start();
 	kcPostUpdate.run();
-	// totalTime = end_clock(ce_start, ce_stop);
-	// cout << "The number of iterations      : " << kcPostUpdate.getIterationCount() << endl;
-	// cout << "Total time for KC             : " << totalTime << endl;
-	// cout << "Average time per iteartion    : " << totalTime/(float)kcPostUpdate.getIterationCount() << endl;
+	TM.stop();
+	totalTime = TM.duration();
+	cout << "The number of iterations      : " << kcPostUpdate.getIterationCount() << endl;
+	cout << "Total time for KC             : " << totalTime << endl;
+	cout << "Average time per iteartion    : " << totalTime/(float)kcPostUpdate.getIterationCount() << endl;
 
 	kcPostUpdate.release();
 	// custiger_graph.freecuStinger();

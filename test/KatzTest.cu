@@ -56,8 +56,8 @@ int main(int argc, char* argv[]) {
 	cudaGetDeviceProperties(&prop, device);
 
 
-	int maxIterations=20;
-	int topK=1000000;
+	int maxIterations=1000;
+	int topK=100;
 
     graph::GraphStd<vid_t, eoff_t> graph(UNDIRECTED);
     graph.read(argv[1], SORT | PRINT);
@@ -70,8 +70,8 @@ int main(int argc, char* argv[]) {
 
 
 	// Finding largest vertex
-	vid_t maxV		 	=custinger_graph.max_degree_id();
-	degree_t   maxDeg	=custinger_graph.max_degree();
+	degree_t   maxDeg		=custinger_graph.max_degree();
+	cout << "Max degree is " << maxDeg << endl;
 
 	float totalTime;
 
@@ -80,9 +80,6 @@ int main(int argc, char* argv[]) {
 	kcPostUpdate.init();
 	kcPostUpdate.reset();
 	Timer<DEVICE> TM;
-
-	kcPostUpdate.reset();
-
 	TM.start();
 	kcPostUpdate.run();
 	TM.stop();
@@ -92,11 +89,6 @@ int main(int argc, char* argv[]) {
 	cout << "Average time per iteartion    : " << totalTime/(float)kcPostUpdate.getIterationCount() << endl;
 
 	kcPostUpdate.release();
-	// custiger_graph.freecuStinger();
-
-	//cudaDeviceReset();
-
-    // delete[] weights;
 
     return 0;
 

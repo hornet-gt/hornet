@@ -93,10 +93,6 @@ void katzCentrality::init(){
 	else{
 		gpu::allocate(hostKatzData.nPathsData, hostKatzData.nv*hostKatzData.maxIteration);
 		gpu::allocate(hostKatzData.nPaths, hostKatzData.maxIteration);
-		// hostKatzData.nPathsData = (ulong_t*) allocDeviceArray((hostKatzData.nv)*hostKatzData.maxIteration, sizeof(ulong_t));
-		// hostKatzData.nPaths = (ulong_t**) allocDeviceArray(hostKatzData.maxIteration, sizeof(ulong_t*));
-
-		// hPathsPtr = (ulong_t**)allocHostArray(hostKatzData.maxIteration, sizeof(ulong_t*));
 		hPathsPtr = (ulong_t**)malloc(hostKatzData.maxIteration* sizeof(ulong_t*));
 
 		for(int i=0; i< hostKatzData.maxIteration; i++){
@@ -104,8 +100,6 @@ void katzCentrality::init(){
 		}
 		hostKatzData.nPathsPrev = hPathsPtr[0];
 		hostKatzData.nPathsCurr = hPathsPtr[1];
-
-		// copyArrayHostToDevice(hPathsPtr,hostKatzData.nPaths,hostKatzData.maxIteration,sizeof(double));
 		gpu::copyHostToDevice(hPathsPtr,hostKatzData.maxIteration,hostKatzData.nPaths);
 	}
 
@@ -118,9 +112,6 @@ void katzCentrality::init(){
 	gpu::allocate(hostKatzData.vertexArrayUnsorted, hostKatzData.nv);
 	gpu::allocate(hostKatzData.lowerBoundSorted, hostKatzData.nv);
 	gpu::allocate(hostKatzData.lowerBoundUnsorted, hostKatzData.nv);
-
-	// deviceKatzData = (katzData*)allocDeviceArray(1, sizeof(katzData));
-	// cusLB = new cusLoadBalance(custing);
 
 	syncDeviceWithHost();
 	reset();
@@ -145,7 +136,6 @@ void katzCentrality::release(){
 		return;
 	memReleased=true;
 
-	// delete cusLB;
 	gpu::free(hostKatzData.nPathsData);
 
 	if (!isStatic){
@@ -165,35 +155,26 @@ void katzCentrality::release(){
 
 }
 
-// void katzCentrality::run(cuStinger& custing){
 void katzCentrality::run(){
-	// allVinG_TraverseVertices<katzCentralityOperator::init>(custing,deviceKatzData);
 	forAllVertices<katz_operators::init>(custinger,deviceKatzData);
 	hostKatzData.iteration = 1;
 
 	hostKatzData.nActive = hostKatzData.nv;
 
 	while(hostKatzData.nActive> hostKatzData.K && hostKatzData.iteration < hostKatzData.maxIteration){
+
 		hostKatzData.alphaI          = pow(hostKatzData.alpha,hostKatzData.iteration);
 		hostKatzData.lowerBoundConst = pow(hostKatzData.alpha,hostKatzData.iteration+1)/((1.0-hostKatzData.alpha));
 		hostKatzData.upperBoundConst = pow(hostKatzData.alpha,hostKatzData.iteration+1)/((1.0-hostKatzData.alpha*(double)hostKatzData.maxDegree));
 		hostKatzData.nActive = 0; // Each iteration the number of active vertices is set to zero.
 
 		syncDeviceWithHost(); // Passing constants to the device.
-
-		// allVinG_TraverseVertices<katzCentralityOperator::initNumPathsPerIteration>(custing,deviceKatzData);
-		// allVinA_TraverseEdges_LB<katzCentralityOperator::updatePathCount>(custing,deviceKatzData,*cusLB);
-		// allVinG_TraverseVertices<katzCentralityOperator::updateKatzAndBounds>(custing,deviceKatzData);
-
 		forAllVertices<katz_operators::initNumPathsPerIteration>(custinger,deviceKatzData);
         forAllEdges<katz_operators::updatePathCount>(custinger, deviceKatzData);
 		forAllVertices<katz_operators::updateKatzAndBounds>(custinger,deviceKatzData);
-
-
-
 		syncHostWithDevice();
-		hostKatzData.iteration++;
 
+		hostKatzData.iteration++;
 		if(isStatic){
 			// Swapping pointers.
 			ulong_t* temp = hostKatzData.nPathsCurr; hostKatzData.nPathsCurr=hostKatzData.nPathsPrev; hostKatzData.nPathsPrev=temp;
@@ -201,53 +182,60 @@ void katzCentrality::run(){
 			hostKatzData.nPathsPrev = hPathsPtr[hostKatzData.iteration - 1];
 			hostKatzData.nPathsCurr = hPathsPtr[hostKatzData.iteration - 0];
 		}
-
-		length_t oldActiveCount = hostKatzData.nActive;
+		length_t oldActiveCount 	= hostKatzData.nActive;
+		hostKatzData.nPrevActive 	= hostKatzData.nActive;
 		hostKatzData.nActive = 0; // Resetting active vertices for sorting operations.
-
 		syncDeviceWithHost();
 
-
-		std::cout << "hello " << oldActiveCount << std::endl <<std::flush;
-		xlib::CubSortByKey<double,vid_t>  sorter(hostKatzData.lowerBoundUnsorted,hostKatzData.vertexArrayUnsorted,oldActiveCount,hostKatzData.lowerBoundSorted, hostKatzData.vertexArraySorted);
-		syncDeviceWithHost();
-
+		// Notice that the sorts the vertices in an incremental order based on the lower bounds.
+		// The algorithms requires the vertices to be sorted in an decremental fashion.
+		// As such, we use the nPrevActive variables to store the number of previous active vertices
+		// and are able to find the K-th from last vertex (which is essentially going from the tail of the array).
+		xlib::CubSortByKey<double,vid_t> sorter(hostKatzData.lowerBoundUnsorted,hostKatzData.vertexArrayUnsorted,oldActiveCount,hostKatzData.lowerBoundSorted, hostKatzData.vertexArraySorted);
 		sorter.run();
-		forAllVertices<katz_operators::countActive>(custinger,hostKatzData.vertexArraySorted,oldActiveCount,deviceKatzData);
 
-
-		// mergesort(hostKatzData.lowerBoundSort,hostKatzData.vertexArray,oldActiveCount, greater_t<double>(),context);
-		// allVinG_TraverseVertices<katzCentralityOperator::countActive>(custing,deviceKatzData);
-		// allVinA_TraverseVertices<katzCentralityOperator::countActive>(custing,deviceKatzData,hostKatzData.vertexArray,oldActiveCount);
-
-// /* 	ulong_t* nPathsCurr = (ulong_t*) allocHostArray(hostKatzData.nv, sizeof(ulong_t));
-// 	ulong_t* nPathsPrev = (ulong_t*) allocHostArray(hostKatzData.nv, sizeof(ulong_t));
-// 	vid_t* vertexArray = (vid_t*) allocHostArray(hostKatzData.nv, sizeof(vid_t));
-// 	double* KC         = (double*) allocHostArray(hostKatzData.nv, sizeof(double));
-// 	double* lowerBound = (double*) allocHostArray(hostKatzData.nv, sizeof(double));
-// 	double* upperBound = (double*) allocHostArray(hostKatzData.nv, sizeof(double));
-
-// 	copyArrayDeviceToHost(hostKatzData.lowerBound,lowerBound,custing.nv, sizeof(double)) ;
-// 	copyArrayDeviceToHost(hostKatzData.upperBound,upperBound,custing.nv, sizeof(double)) ;
-// 	copyArrayDeviceToHost(hostKatzData.KC,KC,custing.nv, sizeof(double)) ;
-// 	copyArrayDeviceToHost(hostKatzData.vertexArray,vertexArray,custing.nv, sizeof(vid_t)) ;
-
-// //	for (int i=0; i<10; i++){
-// //	  printf("%d : katz = %g    lower = %g    upper=%g\n",vertexArray[i], KC[vertexArray[i]],lowerBound[vertexArray[i]],upperBound[vertexArray[i]]);
-// //	}
-
-//   	freeHostArray(nPathsCurr);
-// 	freeHostArray(nPathsPrev);
-//     freeHostArray(vertexArray);
-// 	freeHostArray(KC);
-//     freeHostArray(lowerBound);
-// 	freeHostArray(upperBound);
-// */
+		forAllVertices<katz_operators::countActive>(custinger,hostKatzData.vertexArrayUnsorted,oldActiveCount,deviceKatzData);
 		syncHostWithDevice();
-		cout << hostKatzData.nActive << endl;
+		// printKMostImportant();
+
+		// cout << "Active  : " << hostKatzData.nActive << endl;
 	}
 	// cout << "@@ " << hostKatzData.iteration << " @@" << endl;
 	syncHostWithDevice();
+}
+// This function should only be used directly within run() and is currently commented out due to 
+// to large execution overheads.
+void katzCentrality::printKMostImportant(){
+
+		ulong_t* nPathsCurr = (ulong_t*) malloc(hostKatzData.nv* sizeof(ulong_t));
+		ulong_t* nPathsPrev = (ulong_t*) malloc(hostKatzData.nv* sizeof(ulong_t));
+		vid_t* vertexArray = (vid_t*) malloc(hostKatzData.nv* sizeof(vid_t));
+		vid_t* vertexArrayUnsorted = (vid_t*) malloc(hostKatzData.nv* sizeof(vid_t));
+		double* KC         = (double*) malloc(hostKatzData.nv* sizeof(double));
+		double* lowerBound = (double*) malloc(hostKatzData.nv* sizeof(double));
+		double* upperBound = (double*) malloc(hostKatzData.nv* sizeof(double));
+
+		gpu::copyDeviceToHost(hostKatzData.lowerBound,hostKatzData.nv,lowerBound);
+		gpu::copyDeviceToHost(hostKatzData.upperBound,hostKatzData.nv, upperBound);
+		gpu::copyDeviceToHost(hostKatzData.KC,hostKatzData.nv,KC);
+		gpu::copyDeviceToHost(hostKatzData.vertexArraySorted,hostKatzData.nv,vertexArray);
+		gpu::copyDeviceToHost(hostKatzData.vertexArrayUnsorted,hostKatzData.nv,vertexArrayUnsorted);
+
+
+		if(hostKatzData.nPrevActive>hostKatzData.K)
+			for (int i=hostKatzData.nPrevActive-1; i>=(hostKatzData.nPrevActive-hostKatzData.K); i--){
+				vid_t j=vertexArray[i];
+				printf("%d\t\t %e\t\t %e\t\t %e\t\t %e\t\t \n",j,KC[j],upperBound[j],lowerBound[j],upperBound[j]-lowerBound[j]);
+			}
+
+		free(nPathsCurr);
+		free(nPathsPrev);
+		free(vertexArray);
+		free(vertexArrayUnsorted);
+		free(KC);
+		free(lowerBound);
+		free(upperBound);
+		
 }
 
 length_t katzCentrality::getIterationCount(){

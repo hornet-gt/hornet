@@ -73,6 +73,7 @@ struct katzData{
 	int32_t maxIteration;
 	// number of active vertices at each iteration
 	int32_t nActive;
+	int32_t nPrevActive;
 	int32_t nv;
 
 	bool* isActive;
@@ -102,12 +103,11 @@ public:
 	const katzData* getDeviceKatzData(){return deviceKatzData;}
 
 	virtual void copyKCToHost(double* hostArray){
-		cout << "This is a stub" << endl;
-		// copyArrayDeviceToHost(hostKatzData->KC,hostArray, hostKatzData->nv, sizeof(double));
+		gpu::copyDeviceToHost(hostKatzData.KC,hostKatzData.nv,hostArray);
 	}
 
 	virtual void copynPathsToHost(ulong_t* hostArray){
-		cout << "This is a stub" << endl;
+		gpu::copyDeviceToHost(hostKatzData.nPathsData,hostKatzData.nv*hostKatzData.maxIteration,hostArray);
 		// copyArrayDeviceToHost(hostKatzData->nPathsData,hostArray, (hostKatzData->nv)*hostKatzData->maxIteration, sizeof(ulong_t));
 	}
 
@@ -117,6 +117,8 @@ protected:
 	katzData hostKatzData, *deviceKatzData;
 
 private:
+	void printKMostImportant();
+
     load_balacing::BinarySearch load_balacing;
 	// cusLoadBalance* cusLB;
 	bool isStatic;
@@ -138,7 +140,6 @@ void init(Vertex& s, void* optional_field){
 	kd->nPathsCurr[src]=0;
 	kd->KC[src]=0.0;
 	kd->isActive[src]=true;
-	// kd->vertexArrayUnsorted[src]=src;
 }
 
 __device__ __forceinline__
@@ -177,7 +178,14 @@ __device__ __forceinline__
 void countActive(Vertex& s, void* optional_field){
 	auto kd = reinterpret_cast<katzData*>(optional_field);
 	vid_t src = s.id();
-	if (kd->upperBound[src] > kd->lowerBound[kd->vertexArraySorted[kd->K-1]]) {
+	// if (kd->upperBound[src] > kd->lowerBound[kd->vertexArray[kd->K-1]]) {
+		// if (src==(kd->vertexArraySorted[kd->nPrevActive-(kd->K-1)]))
+		// 	printf("!!!%d %E\n",src,kd->upperBound[src]-kd->lowerBound[src]);
+
+	// printf("%d %lf: %lf %lf %e\n",src,kd->lowerBound[kd->vertexArraySorted[kd->nActive-(kd->K)]],kd->upperBound[src],kd->upperBound[src],kd->upperBound[src]-kd->lowerBound[kd->vertexArraySorted[kd->nActive-(kd->K)]]);
+
+
+	if (kd->upperBound[src] > kd->lowerBound[kd->vertexArraySorted[kd->nPrevActive-(kd->K)]]) {
 		atomicAdd(&(kd -> nActive),1);
 	}
 	else{
@@ -185,21 +193,22 @@ void countActive(Vertex& s, void* optional_field){
 	}
 }
 
-__device__ __forceinline__
-void printPointers(cuStinger* custing,int32_t src, void* metadata){
-	katzData* kd = (katzData*)metadata;
-	if(threadIdx.x==0 && blockIdx.x==0 && src==0)
-		printf("\n@ %p %p %p %p %p %p %p %p @\n",kd->nPathsData,kd->nPaths, kd->nPathsPrev, kd->nPathsCurr, kd->KC,kd->lowerBound,kd->lowerBoundUnsorted,kd->upperBound);
-}
 
-__device__ __forceinline__
-void printKID(cuStinger* custing,int32_t src, void* metadata){
-	katzData* kd = (katzData*)metadata;
-	if(kd->nPathsPrev[src]!=1)
-		printf("%d %ld\n ", src,kd->nPathsPrev[src]);
-	if(kd->nPathsCurr[src]!=0)
-		printf("%d %ld\n ", src,kd->nPathsCurr[src]);
-}
+// __device__ __forceinline__
+// void printPointers(cuStinger* custing,int32_t src, void* metadata){
+// 	katzData* kd = (katzData*)metadata;
+// 	if(threadIdx.x==0 && blockIdx.x==0 && src==0)
+// 		printf("\n@ %p %p %p %p %p %p %p %p @\n",kd->nPathsData,kd->nPaths, kd->nPathsPrev, kd->nPathsCurr, kd->KC,kd->lowerBound,kd->lowerBoundUnsorted,kd->upperBound);
+// }
+
+// __device__ __forceinline__
+// void printKID(cuStinger* custing,int32_t src, void* metadata){
+// 	katzData* kd = (katzData*)metadata;
+// 	if(kd->nPathsPrev[src]!=1)
+// 		printf("%d %ld\n ", src,kd->nPathsPrev[src]);
+// 	if(kd->nPathsCurr[src]!=0)
+// 		printf("%d %ld\n ", src,kd->nPathsCurr[src]);
+// }
 
 
 };

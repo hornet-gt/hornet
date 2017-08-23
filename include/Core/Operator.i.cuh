@@ -35,18 +35,20 @@ __global__ void forAllnumEKernel(custinger::eoff_t d_nE, void* optional_data) {
 }
 
 //------------------------------------------------------------------------------
-template<void (*Operator)(const custinger::Vertex&, void*)>
+template<void (*Operator)(custinger::Vertex&, void*)>
 __global__ void forAllVerticesKernel(custinger::cuStingerDevice custinger,
                                      void* optional_data) {
     using custinger::vid_t;
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
 
-    for (vid_t i = id; i < custinger.nV(); i += stride)
-        Operator(custinger.vertex(i), optional_data);
+    for (vid_t i = id; i < custinger.nV(); i += stride) {
+        auto vertex = custinger.vertex(i);
+        Operator(vertex, optional_data);
+    }
 }
 
-template<void (*Operator)(const custinger::Vertex&, void*)>
+template<void (*Operator)(custinger::Vertex&, void*)>
 __global__
 void forAllVerticesKernel(custinger::cuStingerDevice           custinger,
                           const custinger::vid_t* __restrict__ d_array,
@@ -56,23 +58,26 @@ void forAllVerticesKernel(custinger::cuStingerDevice           custinger,
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
 
-    for (vid_t i = id; i < num_items; i += stride)
-        Operator(custinger.vertex(d_array[i]), optional_data);
+    for (vid_t i = id; i < num_items; i += stride) {
+        auto vertex = custinger.vertex(d_array[i]);
+        Operator(vertex, optional_data);
+    }
 }
 
 //------------------------------------------------------------------------------
 
 template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
-      void (*Operator)(const custinger::Vertex&, const custinger::Edge&, void*)>
+      void (*Operator)(custinger::Vertex&, custinger::Edge&, void*)>
 __global__
 void forAllEdgesKernel(const custinger::eoff_t* __restrict__ csr_offsets,
                        custinger::cuStingerDevice           custinger,
                        void*                    __restrict__ optional_data) {
 
     __shared__ custinger::degree_t smem[ITEMS_PER_BLOCK];
-    const auto lambda = [&](int pos, custinger::degree_t offset) {
+    const auto& lambda = [&](int pos, custinger::degree_t offset) {
                         auto vertex = custinger.vertex(pos);
-                        Operator(vertex, vertex.edge(offset), optional_data);
+                        auto   edge = vertex.edge(offset);
+                        Operator(vertex, edge, optional_data);
                     };
     xlib::binarySearchLB<BLOCK_SIZE>(csr_offsets, custinger.nV() + 1, smem,
                                      lambda);
@@ -131,8 +136,8 @@ void forAllnumE(const custinger::cuStinger& custinger, void* optional_data)
 
 //==============================================================================
 
-template<void (*Operator)(const custinger::Vertex&, void*)>
-void forAllVertices(const custinger::cuStinger& custinger, void* optional_data)
+template<void (*Operator)(custinger::Vertex&, void*)>
+void forAllVertices(custinger::cuStinger& custinger, void* optional_data)
                     noexcept {
 
     detail::forAllVerticesKernel<Operator>
@@ -141,7 +146,7 @@ void forAllVertices(const custinger::cuStinger& custinger, void* optional_data)
     CHECK_CUDA_ERROR
 }
 
-template<void (*Operator)(const custinger::Vertex&, void*)>
+template<void (*Operator)(custinger::Vertex&, void*)>
 void forAllVertices(TwoLevelQueue<custinger::vid_t>& queue,
                     void* optional_data) noexcept {
 
@@ -153,8 +158,8 @@ void forAllVertices(TwoLevelQueue<custinger::vid_t>& queue,
     CHECK_CUDA_ERROR
 }
 
-template<void (*Operator)(const custinger::Vertex&, void*)>
-void forAllVertices(const custinger::cuStinger& custinger,
+template<void (*Operator)(custinger::Vertex&, void*)>
+void forAllVertices(custinger::cuStinger& custinger,
                     const custinger::vid_t* vertex_array, int size,
                     void* optional_data) noexcept {
 
@@ -166,11 +171,9 @@ void forAllVertices(const custinger::cuStinger& custinger,
 
 //------------------------------------------------------------------------------
 
-template<void (*Operator)(const custinger::Vertex&, const custinger::Edge&,
-                          void*)>
+template<void (*Operator)(custinger::Vertex&, custinger::Edge&, void*)>
 void forAllEdges(custinger::cuStinger& custinger, void* optional_data)
                  noexcept {
-
     using custinger::vid_t;
     const unsigned BLOCK_SIZE = 256;
     const int  PARTITION_SIZE = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;

@@ -8,7 +8,7 @@ add_subdirectory(externals/cuStinger)
 
 include_directories(include)
 include_directories(externals/cuStinger/include)
-include_directories(externals/cuStinger/externals/cub-1.7.0)
+include_directories(externals/cuStinger/externals/cub-1.7.3)
 include_directories(externals/cuStinger/externals/cpp-btree-master)
 include_directories(externals/cuStinger/externals/Support/include)
 

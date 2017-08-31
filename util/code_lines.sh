@@ -16,7 +16,9 @@ fi
             --ignored=ignored.txt                                              \
             "$dir/../include" "$dir/../src" "$dir/../test"                     \
             "$dir/../externals/cuStinger/include"                              \
-            "$dir/../externals/cuStinger/src"
+            "$dir/../externals/cuStinger/externals/Support"                    \
+            "$dir/../externals/cuStinger/src"                                  \
+            "$dir/../externals/cuStinger/test"
 
 if [ $? -ne 0 ]; then exit 1; fi
 

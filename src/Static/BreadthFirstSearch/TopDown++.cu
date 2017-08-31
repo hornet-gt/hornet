@@ -119,7 +119,6 @@ void BfsTopDown2::run2() {
                                             queue.insert(dst);
                                         }
                                     };
-
     while (queue.size() > 0) {
         forAllEdges(queue, BFSOperator, load_balacing);
         current_level++;

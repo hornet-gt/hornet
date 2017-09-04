@@ -42,10 +42,10 @@ namespace detail {
 
 template<bool = true>
 __global__
-void computeWorkKernel(const custinger::vid_t*    __restrict__ d_input,
-                       const custinger::degree_t* __restrict__ d_degrees,
-                       int                                     num_vertices,
-                       int*                       __restrict__ d_work) {
+void computeWorkKernel(const hornet::vid_t*    __restrict__ d_input,
+                       const hornet::degree_t* __restrict__ d_degrees,
+                       int                                  num_vertices,
+                       int*                    __restrict__ d_work) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
     for (int i = id; i < num_vertices; i += stride)
@@ -55,57 +55,32 @@ void computeWorkKernel(const custinger::vid_t*    __restrict__ d_input,
 } // namespace detail
 //------------------------------------------------------------------------------
 
-inline BinarySearch::BinarySearch(custinger::cuStinger& custinger)
-                                  noexcept : _custinger(custinger){
-    cuMalloc(_d_work, custinger.nV() + 1);
-    cuMalloc(_d_degrees, custinger.nV());
+template<typename HornetClass>
+BinarySearch::BinarySearch(const HornetClass& hornet) noexcept {
+    static_assert(IsHornet<HornetClass>::value,
+                 "TwoLevelQueue paramenter is not an instance of Hornet Class");
 
-    const auto& csr_offsets = custinger.csr_offsets();
-    auto tmp = new custinger::degree_t[custinger.nV() + 1];
-    std::adjacent_difference(csr_offsets, csr_offsets + custinger.nV() + 1,tmp);
-    cuMemcpyToDevice(tmp + 1, custinger.nV(), _d_degrees);
-    delete[] tmp;
+    cuMalloc(_d_work, hornet.nV() + 1);
+    cuMalloc(_d_degrees, hornet.nV());
+
+    /*const auto& csr_offsets = hornet.csr_offsets();
+    auto tmp = new degree_t[hornet.nV() + 1];
+    std::adjacent_difference(csr_offsets, csr_offsets + hornet.nV() + 1, tmp);
+    cuMemcpyToDevice(tmp + 1, hornet.nV(), _d_degrees);
+    delete[] tmp;*/
 }
 
 inline BinarySearch::~BinarySearch() noexcept {
     cuFree(_d_work, _d_degrees);
 }
-/*
-template<void (*Operator)(const custinger::Vertex&, const custinger::Edge&,
-                          void*)>
-void BinarySearch::traverse_edges(const custinger::vid_t* d_input,
-                                  int num_vertices,
-                                  void* optional_field) noexcept {
-    using custinger::vid_t;
-    const int ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
 
-    //cu::printArray(d_input, num_vertices);
-
-    detail::computeWorkKernel
-        <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
-        (d_input, _d_degrees, num_vertices, _d_work);
-
-    if (CHECK_CUDA_ERROR1)
-        CHECK_CUDA_ERROR
-
-    xlib::CubExclusiveSum<int> prefixsum(_d_work, num_vertices + 1);
-    prefixsum.run();
-
-    int total_work;
-    cuMemcpyToHost(_d_work + num_vertices, total_work);
-    unsigned grid_size = xlib::ceil_div<ITEMS_PER_BLOCK>(total_work);
-
-    binarySearchKernel<BLOCK_SIZE, ITEMS_PER_BLOCK, Operator>
-        <<< grid_size, BLOCK_SIZE >>>(_custinger.device_side(), d_input,
-                                     _d_work, num_vertices + 1, optional_field);
-    if (CHECK_CUDA_ERROR1)
-        CHECK_CUDA_ERROR
-}*/
-
-template<typename Operator>
-void BinarySearch::apply(const custinger::vid_t* d_input, int num_vertices,
-                         const Operator& op) noexcept {
-    using custinger::vid_t;
+template<typename HornetClass, typename Operator>
+void BinarySearch::apply(const HornetClass& hornet,
+                         const vid_t*       d_input,
+                         int                num_vertices,
+                         const Operator&    op) const noexcept {
+    static_assert(IsHornet<HornetClass>::value,
+                 "TwoLevelQueue paramenter is not an instance of Hornet Class");
     const int ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
 
     detail::computeWorkKernel
@@ -122,15 +97,15 @@ void BinarySearch::apply(const custinger::vid_t* d_input, int num_vertices,
 
     binarySearchKernel<BLOCK_SIZE, ITEMS_PER_BLOCK>
         <<< grid_size, BLOCK_SIZE >>>
-        (_custinger.device_side(), d_input, _d_work, num_vertices + 1, op);
+        (hornet.device_side(), d_input, _d_work, num_vertices + 1, op);
     CHECK_CUDA_ERROR
 }
 
-
-template<void (*Operator)(custinger::Edge&, void*)>
-void BinarySearch::apply(const custinger::vid_t* d_input, int num_vertices,
+/*
+template<void (*Operator)(hornet::Edge&, void*)>
+void BinarySearch::apply(const hornet::vid_t* d_input, int num_vertices,
                          void* optional_data) noexcept {
-    using custinger::vid_t;
+    using hornet::vid_t;
     const int ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
 
     detail::computeWorkKernel
@@ -150,16 +125,6 @@ void BinarySearch::apply(const custinger::vid_t* d_input, int num_vertices,
         (_custinger.device_side(), d_input, _d_work, num_vertices + 1,
          optional_data);
     CHECK_CUDA_ERROR
-}
-
-/*
-template<void (*Operator)(const custinger::Vertex&, const custinger::Edge&,
-                          void*)>
-void BinarySearch::traverse_edges(const
-                          custinger_alg::TwoLevelQueue<custinger::vid_t>& queue,
-                          void* optional_field) noexcept {
-    //traverse_edges<Operator>(queue.device_ptr_q1(), queue.size(),
-    //                         optional_field);
 }*/
 
 } // namespace load_balacing

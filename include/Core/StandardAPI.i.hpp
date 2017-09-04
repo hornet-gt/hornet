@@ -37,8 +37,11 @@
 #pragma once
 
 #include "Device/SafeCudaAPI.cuh"
+#include "Device/CubWrapper.cuh"
 #include <omp.h>
+#include <cstring>
 
+namespace hornet {
 namespace gpu {
 
 template<typename T>
@@ -52,15 +55,20 @@ void free(T* pointer) {
 }
 
 template<typename T>
-void copyDeviceToDevice(const T* source, size_t num_items, T* destination) {
-    cuMemcpyDeviceToDevice(source, num_items, destination);
+void copyToDevice(const T* device_input, size_t num_items, T* device_output) {
+    cuMemcpyDeviceToDevice(device_input, num_items, device_output);
 }
 
 template<typename T>
-void copyHostToDevice(const T* source, size_t num_items, T* destination) {
-    cuMemcpyToDevice(source, num_items, destination);
+void copyToHost(const T* device_input, size_t num_items, T* host_output) {
+    cuMemcpyToHost(device_input, num_items, host_output);
 }
 
+template<typename T>
+void copyFromHost(const T* host_input, size_t num_items, T* device_output) {
+    cuMemcpyToDevice(host_input, num_items, device_output);
+}
+/*
 template<typename T>
 void copyHostToDevice(T value, T* destination) {
     cuMemcpyToDevice(value, destination);
@@ -74,7 +82,7 @@ void copyDeviceToHost(const T* source, size_t num_items, T* destination) {
 template<typename T>
 void copyDeviceToHost(const T* source, T& value) {
     cuMemcpyToHost(source, value);
-}
+}*/
 
 template<typename T>
 void memsetZero(const T* pointer, size_t num_items) {
@@ -115,8 +123,23 @@ void free(T*& pointer) {
 }
 
 template<typename T>
-void copyHostToHost(const T* input, size_t num_items, T* output) {
-    std::copy(input, input + num_items, output);
+void copyToHost(const T* host_input, size_t num_items, T* host_output) {
+    std::copy(host_input, host_input + num_items, host_output);
+}
+
+template<typename T>
+void copyToDevice(const T* host_input, size_t num_items, T* device_output) {
+    cuMemcpyToDevice(host_input, num_items, device_output);
+}
+
+template<typename T>
+void copyToDevice(T host_value, T* device_output) {
+    cuMemcpyToDevice(host_value, device_output);
+}
+
+template<typename T>
+void copyFromDevice(const T* device_input, size_t num_items, T* host_output) {
+    cuMemcpyToHost(device_input, num_items, host_output);
 }
 
 template<typename T>
@@ -171,3 +194,4 @@ void excl_prefixsum(const T* input, size_t num_items, T* output) {
 }
 
 } // namespace host
+} // namespace hornet

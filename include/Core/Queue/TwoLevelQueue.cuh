@@ -37,9 +37,7 @@
  */
 #pragma once
 
-#include <Core/cuStinger.hpp>
-
-namespace custinger_alg {
+namespace hornet_alg {
 
 /**
  * @internal
@@ -50,6 +48,7 @@ template<typename T>
 struct ptr2_t {
     const T* first;
     T*       second;
+
     ///@internal @brief swap the two pointers
     void swap() noexcept;
 };
@@ -63,7 +62,6 @@ struct ptr2_t {
 template<typename T>
 class TwoLevelQueue {
 public:
-    const custinger::cuStinger& custinger;
     /**
      * @brief Default costructor
      * @param[in] custinger reference to the custinger instance
@@ -72,7 +70,8 @@ public:
      * @param[in] max_allocated_items number of allocated items for a single
      *            level of the queue. Default value: V * 2
      */
-    explicit TwoLevelQueue(const custinger::cuStinger& custinger) noexcept;
+    template<typename HornetClass>
+    explicit TwoLevelQueue(const HornetClass& custinger) noexcept;
 
     explicit TwoLevelQueue(size_t max_allocated_items) noexcept;
 
@@ -91,7 +90,8 @@ public:
      * @remark the method can be called on both host and device
      * @remark the method may expensive on host, cheap on device
      */
-    __host__ __device__ void insert(const T& item) noexcept;
+    __host__ __device__ __forceinline__
+    void insert(const T& item) noexcept;
 
     /**
      * @brief insert a set of items in the queue
@@ -100,19 +100,19 @@ public:
      * @remark the method can be called only on the host
      * @remark the method may be expensive
      */
-    __host__ void insert(const T* items_array, int num_items) noexcept;
+    void insert(const T* items_array, int num_items) noexcept;
 
     /**
      * @brief swap input and output queue
      * @remark the queue counter is also set to zero
      */
-    __host__ void swap() noexcept;
+    void swap() noexcept;
 
     /**
      * @brief reset the queue
      * @remark the queue counter is set to zero
      */
-    __host__ void clear() noexcept;
+    void clear() noexcept;
 
     /**
      * @brief size of the queue at the input queue
@@ -120,45 +120,44 @@ public:
      * @remark the method is cheap
      */
     //__host__ int size() noexcept;
-    __host__ int size() noexcept;
-    __host__ int output_size() noexcept;
+    int size() const noexcept;
+
+    int output_size() noexcept;
 
     /**
      * @brief device pointer of the input queue
      * @return constant device pointer to the start of the input queue
      * @remark the method is cheap
      */
-    __host__ const T* device_input_ptr() const noexcept;
+    const T* device_input_ptr() const noexcept;
 
     /**
      * @brief device pointer of the output queue
      * @return constant device pointer to the start of the output queue
      * @remark the method is cheap
      */
-    __host__ const T* device_output_ptr() const noexcept;
+    const T* device_output_ptr() const noexcept;
 
     /**
      * @brief host pointer of the data stored in the output device queue
      * @return constant host pointer to the start of the output queue
      * @remark the method may be expensive
      */
-    __host__ const T* host_data() noexcept;
+    const T* host_data() noexcept;
 
     /**
      * @brief print the items stored at the output queue
      * @remark the method may be expensive
      */
-    __host__ void print_input() noexcept;
+    void print_input() noexcept;
 
     /**
      * @brief print the items stored at the output queue
      * @remark the method may be expensive
      */
-    __host__ void print_output() noexcept;
+    void print_output() noexcept;
 
 private:
-    ///@internal @brief if `true` check for kernel errors in `traverse_edges()
-    static const bool     CHECK_CUDA_ERROR1 = true;
     ///@internal @brief print the queue input queue in `traverse_edges()` method
     static const bool PRINT_VERTEX_FRONTIER = 0;
     ///@internal @brief block size for `traverse_edges()` kernels
@@ -177,9 +176,8 @@ private:
     int2*        _d_counters          { nullptr };
     int2         _h_counters          { 0, 0 };
     const bool   _kernel_copy         { false };
-
 };
 
-} // namespace custinger_alg
+} // namespace hornet_alg
 
 #include "TwoLevelQueue.i.cuh"

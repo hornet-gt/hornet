@@ -34,8 +34,11 @@
  * </blockquote>}
  */
 #include "Static/BreadthFirstSearch/TopDown++.cuh"
+#include <GraphIO/GraphStd.hpp>
+#include <GraphIO/BFS.hpp>
+#include <Device/Algorithm.cuh>
 
-namespace custinger_alg {
+namespace hornet_alg {
 
 const dist_t INF = std::numeric_limits<dist_t>::max();
 
@@ -55,6 +58,7 @@ struct BFSOperator {
                                 current_level(current_level_),
                                 queue(queue) {}
 
+    template<typename Edge>
     __device__ __forceinline__
     void operator()(Edge& edge) {
         auto dst = edge.dst_id();
@@ -70,11 +74,11 @@ struct BFSOperator {
 // BfsTopDown2 //
 /////////////////
 
-BfsTopDown2::BfsTopDown2(custinger::cuStinger& custinger) :
-                                 StaticAlgorithm(custinger),
-                                 queue(custinger),
-                                 load_balacing(custinger) {
-    gpu::allocate(d_distances, custinger.nV());
+BfsTopDown2::BfsTopDown2(HornetCSR& hornet) :
+                                 StaticAlgorithm(hornet),
+                                 queue(hornet),
+                                 load_balacing(hornet) {
+    gpu::allocate(d_distances, hornet.nV());
     reset();
 }
 
@@ -87,13 +91,13 @@ void BfsTopDown2::reset() {
     queue.clear();
 
     auto distances = d_distances;
-    forAllnumV(custinger, [=] __device__ (int i){ distances[i] = INF; } );
+    forAllnumV(hornet, [=] __device__ (int i){ distances[i] = INF; } );
 }
 
 void BfsTopDown2::set_parameters(vid_t source) {
     bfs_source = source;
     queue.insert(bfs_source);               // insert bfs source in the frontier
-    gpu::copyHostToDevice(0, d_distances + bfs_source);  //reset source distance
+    host::copyToDevice(0, d_distances + bfs_source);  //reset source distance
 }
 
 void BfsTopDown2::run() {
@@ -101,26 +105,27 @@ void BfsTopDown2::run() {
         //queue.print_input();
         //for all edges in "queue" applies the operator "BFSOperator" by using
         //the load balancing algorithm instantiated in "load_balacing"
-        forAllEdges(queue, BFSOperator(d_distances, current_level, queue),
+        forAllEdges(hornet, queue,
+                    BFSOperator(d_distances, current_level, queue),
                     load_balacing);
         current_level++;
         queue.swap();
     }
 }
 
-
 //same procedure of run() but it uses lambda expression instead explict
 //structure operator
 void BfsTopDown2::run2() {
-    const auto& BFSOperator = [=] __device__ (Edge& edge) {
-                                        auto dst = edge.dst_id();
-                                        if (d_distances[dst] == INF) {
-                                            d_distances[dst] = current_level;
-                                            queue.insert(dst);
-                                        }
-                                    };
     while (queue.size() > 0) {
-        forAllEdges(queue, BFSOperator, load_balacing);
+        const auto& BFSOperator = [=] __device__(auto edge) {
+                                            auto dst = edge.dst_id();
+                                            if (d_distances[dst] == INF) {
+                                                d_distances[dst] = current_level;
+                                                queue.insert(dst);
+                                            }
+                                        };
+
+        forAllEdges(hornet, queue, BFSOperator, load_balacing);
         current_level++;
         queue.swap();
     }
@@ -133,8 +138,8 @@ void BfsTopDown2::release() {
 
 bool BfsTopDown2::validate() {
     using namespace graph;
-    GraphStd<vid_t, eoff_t> graph(custinger.csr_offsets(), custinger.nV(),
-                                  custinger.csr_edges(), custinger.nE());
+    GraphStd<vid_t, eoff_t> graph(hornet.csr_offsets(), hornet.nV(),
+                                  hornet.csr_edges(), hornet.nE());
     BFS<vid_t, eoff_t> bfs(graph);
     bfs.run(bfs_source);
 
@@ -142,4 +147,4 @@ bool BfsTopDown2::validate() {
     return cu::equal(h_distances, h_distances + graph.nV(), d_distances);
 }
 
-} // namespace custinger_alg
+} // namespace hornet_alg

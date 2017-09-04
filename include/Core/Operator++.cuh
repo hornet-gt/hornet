@@ -38,7 +38,9 @@
  */
 #pragma once
 
-namespace custinger_alg {
+#include "Core/Queue/TwoLevelQueue.cuh"
+
+namespace hornet_alg {
 ///////////////
 // C++11 API //
 ///////////////
@@ -67,8 +69,8 @@ void forAll(int num_items, const Operator& op);
  * @param[in] op struct/lambda expression that implements the operator
  * @remark    all algorithm-dependent data must be capture by `op`
  */
-template<typename Operator>
-void forAllnumV(const custinger::cuStinger& custinger, const Operator& op);
+template<typename HornetClass, typename Operator>
+void forAllnumV(HornetClass& hornet, const Operator& op);
 
 
 /**
@@ -79,8 +81,8 @@ void forAllnumV(const custinger::cuStinger& custinger, const Operator& op);
  * @param[in] op struct/lambda expression that implements the operator
  * @remark    all algorithm-dependent data must be capture by `op`
  */
-template<typename Operator>
-void forAllnumE(const custinger::cuStinger& custinger, const Operator& op);
+template<typename HornetClass, typename Operator>
+void forAllnumE(HornetClass& hornet, const Operator& op);
 
 //==============================================================================
 
@@ -94,8 +96,8 @@ void forAllnumE(const custinger::cuStinger& custinger, const Operator& op);
  *            `void operator()(Vertex)` or the lambda expression
  *            `[=](Vertex){}`
  */
-template<typename Operator>
-void forAllVertices(custinger::cuStinger& custinger, const Operator& op);
+template<typename HornetClass, typename Operator>
+void forAllVertices(HornetClass& hornet, const Operator& op);
 
 /**
  * @brief apply the `Operator` to all edges in the graph
@@ -107,25 +109,30 @@ void forAllVertices(custinger::cuStinger& custinger, const Operator& op);
  *            `void operator()(Vertex, Edge)` or the lambda expression
  *            `[=](Vertex, Edge){}`
  */
-template<typename Operator, typename LoadBalancing>
-void forAllEdges(custinger::cuStinger& custinger, const Operator& op,
-                 LoadBalancing& LB);
+template<typename HornetClass, typename Operator, typename LoadBalancing>
+void forAllEdges(HornetClass&         hornet,
+                 const Operator&      op,
+                 const LoadBalancing& load_balacing);
 
 //==============================================================================
 
-template<typename Operator, typename T>
-void forAllVertices(custinger::cuStinger& custinger,
-                    const custinger::vid_t* vertex_array,
-                    int size, const Operator& op);
-
-template<typename Operator>
-void forAllVertices(TwoLevelQueue<custinger::vid_t>& queue,
+template<typename HornetClass, typename Operator>
+void forAllVertices(HornetClass&    hornet,
+                    const vid_t*    vertex_array,
+                    int             size,
                     const Operator& op);
 
-template<typename Operator, typename LoadBalancing>
-void forAllEdges(custinger::cuStinger& custinger,
-                 const custinger::vid_t* vertex_array, int size, 
-                 const Operator& op, LoadBalancing& LB);
+template<typename HornetClass, typename Operator>
+void forAllVertices(HornetClass&          hornet,
+                    const TwoLevelQueue<vid_t>& queue,
+                    const Operator&       op);
+
+template<typename HornetClass, typename Operator, typename LoadBalancing>
+void forAllEdges(HornetClass&         hornet,
+                 const vid_t*         vertex_array,
+                 int                  size,
+                 const Operator&      op,
+                 const LoadBalancing& load_balacing);
 
 /**
  * @brief apply the `Operator` to all vertices in the graph
@@ -137,23 +144,20 @@ void forAllEdges(custinger::cuStinger& custinger,
  *            `void operator()(Vertex)` or the lambda expression
  *            `[=](Vertex){}`
  */
-template<typename Operator, typename LoadBalancing>
-void forAllEdges(TwoLevelQueue<custinger::vid_t>& queue,
-                 const Operator& op, LoadBalancing& LB);
-/*
-template<typename Operator>
-void forAllEdges(custinger::cuStinger& custinger,
-                 TwoLevelQueue<custinger::vid_t>& queue,
-                 const Operator& op);
-*/
+template<typename HornetClass, typename Operator, typename LoadBalancing>
+void forAllEdges(HornetClass&                hornet,
+                 const TwoLevelQueue<vid_t>& queue,
+                 const Operator&             op,
+                 const LoadBalancing&        LB);
+
 //==============================================================================
 
-template<typename Operator>
-void forAllBatchEdges(const Operator& op);  //TO DO
+template<typename BatchUpdateT, typename Operator>
+void forAllBatchEdges(const BatchUpdateT& batch_update, const Operator& op);
 
-template<typename Operator>
-void forAllBatchVertices(const Operator& op);  //TO DO
+template<typename BatchUpdateT, typename Operator>
+void forAllBatchVertices(const BatchUpdateT& batch_update, const Operator& op);
 
-} // namespace custinger_alg
+} // namespace hornet_alg
 
 #include "Operator++.i.cuh"

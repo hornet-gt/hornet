@@ -36,6 +36,7 @@
  */
 #pragma once
 
+namespace hornet {
 namespace gpu {
 
 template<typename T>
@@ -45,19 +46,19 @@ template<typename T>
 void free(T* pointer);
 
 template<typename T>
-void copyDeviceToDevice(const T* source, size_t num_items, T* destination);
+void copyToDevice(const T* device_input, size_t num_items, T* device_output);
+
+//template<typename T>
+//void copyToDevice(T device_value, T* destination);
 
 template<typename T>
-void copyHostToDevice(const T* source, size_t num_items, T* destination);
+void copyToHost(const T* device_input, size_t num_items, T* host_output);
+
+//template<typename T>
+//void copyToHost(const T* source, T& value);
 
 template<typename T>
-void copyHostToDevice(T value, T* destination);
-
-template<typename T>
-void copyDeviceToHost(const T* source, size_t num_items, T* destination);
-
-template<typename T>
-void copyDeviceToHost(const T* source, T& value);
+void copyFromHost(const T* host_input, size_t num_items, T* device_output);
 
 template<typename T>
 void memsetZero(const T* pointer, size_t num_items);
@@ -81,10 +82,25 @@ template<typename T>
 void allocate(T*& pointer, size_t num_items);
 
 template<typename T>
+void allocateNotPageable(T*& pointer, size_t num_items);
+
+template<typename T>
 void free(T*& pointer);
 
 template<typename T>
-void copyHostToHost(const T* input, size_t num_items, T* output);
+void freePageable(T*& pointer);
+
+template<typename T>
+void copyToHost(const T* host_input, size_t num_items, T* host_output);
+
+template<typename T>
+void copyToDevice(const T* host_input, size_t num_items, T* device_output);
+
+template<typename T>
+void copyToDevice(T host_value, T* device_output);
+
+template<typename T>
+void copyFromDevice(const T* device_input, size_t num_items, T* host_output);
 
 template<typename T>
 void memsetZero(T* pointer, size_t num_items);
@@ -99,5 +115,6 @@ template<typename T>
 void excl_prefixsum(const T* input, size_t num_items, T* output);
 
 } // namespace host
+} // namespace hornet
 
 #include "Core/StandardAPI.i.hpp"

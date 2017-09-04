@@ -1,4 +1,4 @@
-set(PROJECT "cuStingerAlg")
+set(PROJECT "HornetAlg")
 project(${PROJECT} CXX)
 
 cmake_minimum_required(VERSION 3.5)
@@ -17,22 +17,17 @@ include(externals/cuStinger/util/CMakeLists.txt)
 #-------------------------------------------------------------------------------
 file(GLOB_RECURSE CU_SRCS ${PROJECT_SOURCE_DIR}/src/Static/*.cu)
 
-if(CSR)
-    set(CSR_FLAG "-DCSR_GRAPH")
-    add_compile_options("-DCSR_GRAPH")
-endif()
-
-cuda_add_library(cuStingerAlg ${CU_SRCS} OPTIONS ${CSR_FLAG})
+cuda_add_library(hornetAlg ${CU_SRCS} OPTIONS ${CSR_FLAG})
 #-------------------------------------------------------------------------------
 
 cuda_add_executable(bfs++ test/BFSTest++.cu OPTIONS ${CSR_FLAG})
-cuda_add_executable(bfs   test/BFSTest.cu OPTIONS ${CSR_FLAG})
+#cuda_add_executable(bfs   test/BFSTest.cu OPTIONS ${CSR_FLAG})
 #cuda_add_executable(CC    test/CCTest.cu)
 #cuda_add_executable(KTruss test/KTrusstest.cu)
-cuda_add_executable(Triangle test/TriangleTest.cu)
+#cuda_add_executable(Triangle test/TriangleTest.cu)
 
-target_link_libraries(bfs++ cuStingerAlg cuStinger)
-target_link_libraries(bfs   cuStingerAlg cuStinger)
-#target_link_libraries(CC    cuStingerAlg cuStinger)
-#target_link_libraries(KTruss cuStingerAlg cuStinger)
-target_link_libraries(Triangle cuStingerAlg cuStinger)
+target_link_libraries(bfs++ hornetAlg hornet)
+#target_link_libraries(bfs   HornetAlg cuStinger)
+#target_link_libraries(CC    HornetAlg cuStinger)
+#target_link_libraries(KTruss HornetAlg cuStinger)
+#target_link_libraries(Triangle HornetAlg cuStinger)

@@ -39,7 +39,6 @@
  */
 #pragma once
 
-#include "Core/cuStingerTypes.cuh"
 #include "Core/Queue/TwoLevelQueue.cuh"
 
 /**
@@ -54,9 +53,10 @@ class BinarySearch {
 public:
     /**
      * @brief Default costructor
-     * @param[in] custinger cuStinger instance
+     * @param[in] hornet cuStinger instance
      */
-    explicit BinarySearch(custinger::cuStinger& custinger) noexcept;
+    template<typename HornetClass>
+    explicit BinarySearch(const HornetClass& hornet) noexcept;
 
     /**
      * @brief Decostructor
@@ -69,10 +69,10 @@ public:
      * @param[in] queue input vertex queue
      * @param[in] optional_field algorithm-dependent data
      */
-    /*template<void (*Operator)(const custinger::Vertex&, const custinger::Edge&,
+    /*template<void (*Operator)(const hornet::Vertex&, const hornet::Edge&,
                               void*)>
     void traverse_edges(const
-                        custinger_alg::TwoLevelQueue<custinger::vid_t>& queue,
+                        hornet_alg::TwoLevelQueue<hornet::vid_t>& queue,
                         void* optional_field) noexcept;*/
 
     /**
@@ -82,9 +82,9 @@ public:
      * @param[in] num_vertices number of vertices in the input array
      * @param[in] optional_field algorithm-dependent data
      */
-    /*template<void (*Operator)(const custinger::Vertex&, const custinger::Edge&,
+    /*template<void (*Operator)(const hornet::Vertex&, const hornet::Edge&,
                               void*)>
-    void traverse_edges(const custinger::vid_t* d_input, int num_vertices,
+    void traverse_edges(const hornet::vid_t* d_input, int num_vertices,
                         void* optional_field) noexcept;*/
 
     /**
@@ -97,16 +97,18 @@ public:
      *            `void operator()(Vertex, Edge)` or the lambda expression
      *            `[=](Vertex, Edge){}`
      */
-     template<typename Operator>
-     void apply(const custinger::vid_t* d_input, int num_vertices,
-                const Operator& op) noexcept;
+     template<typename HornetClass, typename Operator>
+     void apply(const HornetClass& hornet,
+                const vid_t*       d_input,
+                int                num_vertices,
+                const Operator&    op) const noexcept;
 
-    template<typename Operator>
-    void apply(const Operator& op) noexcept;
+    template<typename HornetClass, typename Operator>
+    void apply(const HornetClass& hornet, const Operator& op) const noexcept;
 
-     template<void (*Operator)(custinger::Edge&, void*)>
-     void apply(const custinger::vid_t* d_input, int num_vertices,
-                void* optional_data) noexcept;
+    /* template<void (*Operator)(hornet::Edge&, void*)>
+     void apply(const hornet::vid_t* d_input, int num_vertices,
+                void* optional_data) noexcept;*/
 
     /**
      * @brief Traverse the edges in a vertex array (C++11-Style API)
@@ -120,13 +122,12 @@ public:
      *            `[=](Vertex, Edge){}`
      */
     //template<typename Operator>
-    //void traverse_edges(const custinger::vid_t* d_input, int num_vertices,
+    //void traverse_edges(const hornet::vid_t* d_input, int num_vertices,
     //                    Operator op) noexcept;
 
 private:
     static const int         BLOCK_SIZE = 256;
     static const bool CHECK_CUDA_ERROR1 = 1;
-    custinger::cuStinger& _custinger;
     int* _d_work    { nullptr };
     int* _d_degrees { nullptr };
 };

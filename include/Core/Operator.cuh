@@ -40,7 +40,7 @@
 
 #include "Core/cuStingerTypes.cuh"
 
-namespace custinger_alg {
+namespace hornet_alg {
 /////////////////
 // C Style API //
 /////////////////
@@ -136,6 +136,6 @@ template<void (*Operator)(custinger::Vertex, custinger::Edge, void*)>
 template<typename Operator>
 void forAllBatchVertices(Operator op);
 */
-} // namespace custinger_alg
+} // namespace hornet_alg
 
 #include "Operator.i.cuh"

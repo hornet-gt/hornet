@@ -39,15 +39,19 @@
  */
 #pragma once
 
-#include "cuStingerAlg.hpp"
+#include "HornetAlg.hpp"
+#include "Core/LoadBalancing/BinarySearch.cuh"
+#include <Core/GPUCsr/Csr.cuh>
 
-namespace custinger_alg {
+namespace hornet_alg {
+
+using HornetCSR = csr::Hornet<EMPTY, EMPTY>;
 
 using dist_t = int;
 
-class BfsTopDown2 final : public StaticAlgorithm {
+class BfsTopDown2 : public StaticAlgorithm<HornetCSR> {
 public:
-    explicit BfsTopDown2(cuStinger& custinger);
+    BfsTopDown2(HornetCSR& hornet);
     ~BfsTopDown2();
 
 	void reset()    override;
@@ -65,4 +69,4 @@ private:
     dist_t  current_level { 0 };
 };
 
-} // namespace custinger_alg
+} // namespace hornet_alg

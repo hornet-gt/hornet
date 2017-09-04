@@ -38,28 +38,26 @@
  */
 #pragma once
 
-#include "Core/LoadBalancing/BinarySearch.cuh"   //load_balacing::BinarySearch
-#include <Core/cuStinger.hpp>                    //custinger::cuStinger
-
 /**
  * @brief cuStinger algorithms namespace
  */
-namespace custinger_alg {
+namespace hornet_alg {
 
 /**
  * @brief Abstract class for cuStinger static algorithms
  * @remark the user must extend this class to be full compliant with the
  *         cuStinger interface
  */
+template<typename HornetClass>
 class StaticAlgorithm {
 public:
     /**
      * @brief Default costructor
-     * @param[in] custinger cuStinger instance on which the algorithm is run
+     * @param[in] hornet cuStinger instance on which the algorithm is run
      * @remark the cuStinger instance reference can be used in also methods
-     *          throws `custinger` field
+     *          throws `hornet` field
      */
-    explicit StaticAlgorithm(custinger::cuStinger& custinger) noexcept;
+    explicit StaticAlgorithm(HornetClass& hornet) noexcept;
 
     /**
      * @brief Decostructor
@@ -138,10 +136,8 @@ public:
     virtual void syncHostWithDevice() noexcept final;
 
 protected:
-    /**
-     * @brief custinger reference
-     */
-    custinger::cuStinger& custinger;
+    //the algorithm may change the data structure
+    HornetClass& hornet;
 
 private:
     size_t _data_size     { 0 };
@@ -150,6 +146,6 @@ private:
     bool   _is_registered { false };
 };
 
-} // namespace custinger_alg
+} // namespace hornet_alg
 
-#include "cuStingerAlg.i.cuh"
+#include "HornetAlg.i.cuh"

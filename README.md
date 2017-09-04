@@ -1,9 +1,9 @@
-# cuStingerAlg #
+# HornetAlg #
 
-The repository provides the graph algorithms implemented over the cuStinger
+The repository provides the graph algorithms implemented over the Hornet
 data structure.
 
-For additional information please refer to [**cuStinger repository**]( https://github.com/FedericoUnivr/cuStinger).
+For additional information please refer to [**Hornet repository**]( https://github.com/FedericoUnivr/Hornet).
 
 ## Getting Started ##
 
@@ -11,13 +11,13 @@ The document is organized as follows:
 
 * [Requirements](#requirements)
 * [Quick start](#quick-start)
-* [cuStinger Algorithms](#custinger-algorithms)
+* [Hornet Algorithms](#hornet-algorithms)
 * [Performance](#performance)
-* [cuStinger Algorithms Lines of Code](#custinger-algorithms-lines-of-code)
+* [Hornet Algorithms Lines of Code](#hornet-algorithms-lines-of-code)
 * [Code Documentation](#code-documentation)
 * [Reporting bugs and contributing](#reporting-bugs-and-contributing)
 * [Publications](#publications)
-* [cuStinger Developers](#custinger-developers)
+* [Hornet Developers](#hornet-developers)
 * [Acknowledgements](#acknowledgements)
 * [License](#licence)
 
@@ -33,7 +33,7 @@ The document is organized as follows:
 
 ### Quick Start ###
 
-The following basic steps are required to build and execute the cuStinger algorithms:
+The following basic steps are required to build and execute the Hornet algorithms:
 ```bash
 git clone --recursive https://github.com/FedericoUnivr/cuStingerAlg.git
 cd cuStingerAlg/build
@@ -41,7 +41,7 @@ cmake ..
 make -j
 ```
 
-## cuStinger Algorithms ##
+## Hornet Algorithms ##
 
 |           Algorithm                 |    Static     | Dynamic  |
 | :-----------------------------------|:-------------:|:--------:|
@@ -96,7 +96,7 @@ make -j
 | (TC) Triangle Counting              |                 |                  |          |
 | (KC) Katz Centrality                |                 |                  |          |
 
-## cuStinger Algorithms Lines of Code ##
+## Hornet Algorithms Lines of Code ##
 
 |         Algorithm                   | Static (A) | Static (B) | Dynamic (A) |
 | :-----------------------------------|:----------:|:----------:|:-----------:|
@@ -114,9 +114,9 @@ make -j
 
 ### Code Documentation ###
 
-The code documentation is located in the `docs` directory of cuStinger data
+The code documentation is located in the `docs` directory of Hornet data
 structure directory (*doxygen* html format).
-The documentation is also accessible online [**here**.](https://federicounivr.github.io/cuStinger/)
+The documentation is also accessible online [**here**.](https://federicounivr.github.io/Hornet/)
 
 ### Reporting bugs and contributing ###
 
@@ -126,17 +126,17 @@ We are also ready to engage in improving and extending the framework if you requ
 
 ## Publications ##
 
-* Oded Green, David A. Bader, [*"cuStinger: Supporting dynamic graph algorithms for GPUs"*](https://www.researchgate.net/publication/308174457_cuSTINGER_Supporting_dynamic_graph_algorithms_for_GPUs),
+* Oded Green, David A. Bader, [*"Hornet: Supporting dynamic graph algorithms for GPUs"*](https://www.researchgate.net/publication/308174457_cuSTINGER_Supporting_dynamic_graph_algorithms_for_GPUs),
 IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September, 2016, Waltham, MA, USA, pp. 1-6.
 * Oded Green, James Fox, Euna Kim, Federico Busato, Nicola Bombieri,
   Kartik Lakhotia, Shijie Zhou, Shreyas Singapura, Hanqing Zeng,
   Rajgopal Kannan, Viktor Prasanna, David A. Bader, **"Quickly Finding a Truss in a Haystack"**, IEEE/Amazon/DARPA Graph Challenge, \**Innovation Awards*\*
 
 ---
-### <center>If you find this software useful in academic work, please acknowledge cuStinger. </center> ###
+### <center>If you find this software useful in academic work, please acknowledge Hornet. </center> ###
 ***
 
-## cuStinger 2.0 Developers ##
+## Hornet Developers ##
 
 ##### Data Structure ######
 
@@ -160,7 +160,7 @@ IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September, 2016
 
 > BSD 3-Clause License
 >
-> Copyright (c) 2017, cuStinger
+> Copyright (c) 2017, Hornet
 > All rights reserved.
 >
 > Redistribution and use in source and binary forms, with or without

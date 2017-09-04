@@ -48,14 +48,8 @@ void free(T* pointer);
 template<typename T>
 void copyToDevice(const T* device_input, size_t num_items, T* device_output);
 
-//template<typename T>
-//void copyToDevice(T device_value, T* destination);
-
 template<typename T>
 void copyToHost(const T* device_input, size_t num_items, T* host_output);
-
-//template<typename T>
-//void copyToHost(const T* source, T& value);
 
 template<typename T>
 void copyFromHost(const T* host_input, size_t num_items, T* device_output);
@@ -71,6 +65,10 @@ T reduce(const T* input, size_t num_items);
 
 template<typename T>
 void excl_prefixsum(const T* input, size_t num_items, T* output);
+
+template<typename HostIterator, typename DeviceIterator>
+bool equal(HostIterator host_start, HostIterator host_end,
+           DeviceIterator device_start) noexcept;
 
 } // namespace gpu
 

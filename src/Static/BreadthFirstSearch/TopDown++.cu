@@ -36,7 +36,6 @@
 #include "Static/BreadthFirstSearch/TopDown++.cuh"
 #include <GraphIO/GraphStd.hpp>
 #include <GraphIO/BFS.hpp>
-#include <Device/Algorithm.cuh>
 
 namespace hornet_alg {
 
@@ -114,16 +113,16 @@ void BfsTopDown2::run() {
 }
 
 //same procedure of run() but it uses lambda expression instead explict
-//structure operator
+//struct operator
 void BfsTopDown2::run2() {
     while (queue.size() > 0) {
         const auto& BFSOperator = [=] __device__(auto edge) {
-                                            auto dst = edge.dst_id();
-                                            if (d_distances[dst] == INF) {
-                                                d_distances[dst] = current_level;
-                                                queue.insert(dst);
-                                            }
-                                        };
+                                        auto dst = edge.dst_id();
+                                        if (d_distances[dst] == INF) {
+                                            d_distances[dst] = current_level;
+                                            queue.insert(dst);
+                                        }
+                                    };
 
         forAllEdges(hornet, queue, BFSOperator, load_balacing);
         current_level++;
@@ -144,7 +143,7 @@ bool BfsTopDown2::validate() {
     bfs.run(bfs_source);
 
     auto h_distances = bfs.distances();
-    return cu::equal(h_distances, h_distances + graph.nV(), d_distances);
+    return gpu::equal(h_distances, h_distances + graph.nV(), d_distances);
 }
 
 } // namespace hornet_alg

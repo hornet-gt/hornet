@@ -64,30 +64,6 @@ public:
     ~BinarySearch() noexcept;
 
     /**
-     * @brief Traverse the edges in a vertex queue (C-Style API)
-     * @tparam Operator function to apply to each edge and to `optional_data`
-     * @param[in] queue input vertex queue
-     * @param[in] optional_field algorithm-dependent data
-     */
-    /*template<void (*Operator)(const hornet::Vertex&, const hornet::Edge&,
-                              void*)>
-    void traverse_edges(const
-                        hornet_alg::TwoLevelQueue<hornet::vid_t>& queue,
-                        void* optional_field) noexcept;*/
-
-    /**
-     * @brief Traverse the edges in a device vertex array (C-Style API)
-     * @tparam Operator function to apply to each edge and to `optional_data`
-     * @param[in] d_input device vertex array
-     * @param[in] num_vertices number of vertices in the input array
-     * @param[in] optional_field algorithm-dependent data
-     */
-    /*template<void (*Operator)(const hornet::Vertex&, const hornet::Edge&,
-                              void*)>
-    void traverse_edges(const hornet::vid_t* d_input, int num_vertices,
-                        void* optional_field) noexcept;*/
-
-    /**
      * @brief Traverse the edges in a vertex queue (C++11-Style API)
      * @tparam Operator function to apply at each edge
      * @param[in] queue input vertex queue
@@ -106,30 +82,10 @@ public:
     template<typename HornetClass, typename Operator>
     void apply(const HornetClass& hornet, const Operator& op) const noexcept;
 
-    /* template<void (*Operator)(hornet::Edge&, void*)>
-     void apply(const hornet::vid_t* d_input, int num_vertices,
-                void* optional_data) noexcept;*/
-
-    /**
-     * @brief Traverse the edges in a vertex array (C++11-Style API)
-     * @tparam Operator function to apply at each edge
-     * @param[in] d_input vertex array
-     * @param[in] num_vertices number of vertices in the queue
-     * @param[in] op struct/lambda expression that implements the operator
-     * @remark    all algorithm-dependent data must be capture by `op`
-     * @remark    the Operator typename must implement the method
-     *            `void operator()(Vertex, Edge)` or the lambda expression
-     *            `[=](Vertex, Edge){}`
-     */
-    //template<typename Operator>
-    //void traverse_edges(const hornet::vid_t* d_input, int num_vertices,
-    //                    Operator op) noexcept;
-
 private:
     static const int         BLOCK_SIZE = 256;
     static const bool CHECK_CUDA_ERROR1 = 1;
     int* _d_work    { nullptr };
-    int* _d_degrees { nullptr };
 };
 
 } // namespace load_balacing

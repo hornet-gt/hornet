@@ -36,6 +36,7 @@
  */
 #pragma once
 
+#include <Device/Algorithm.cuh>
 #include "Device/SafeCudaAPI.cuh"
 #include "Device/CubWrapper.cuh"
 #include <omp.h>
@@ -104,6 +105,12 @@ template<typename T>
 void excl_prefixsum(const T* input, size_t num_items, T* output) {
     xlib::CubExclusiveSum<T> cub_prefixsum(input, num_items, output);
     cub_prefixsum.run();
+}
+
+template<typename HostIterator, typename DeviceIterator>
+bool equal(HostIterator host_start, HostIterator host_end,
+           DeviceIterator device_start) noexcept {
+    return cu::equal(host_start, host_end, device_start);
 }
 
 } // namespace gpu

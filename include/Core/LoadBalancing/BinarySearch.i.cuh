@@ -61,8 +61,7 @@ BinarySearch::BinarySearch(const HornetClass& hornet) noexcept {
                  "TwoLevelQueue paramenter is not an instance of Hornet Class");
 
     cuMalloc(_d_work, hornet.nV() + 1);
-    cuMalloc(_d_degrees, hornet.nV());
-
+    //cuMalloc(_d_degrees, hornet.nV());
     /*const auto& csr_offsets = hornet.csr_offsets();
     auto tmp = new degree_t[hornet.nV() + 1];
     std::adjacent_difference(csr_offsets, csr_offsets + hornet.nV() + 1, tmp);
@@ -71,7 +70,7 @@ BinarySearch::BinarySearch(const HornetClass& hornet) noexcept {
 }
 
 inline BinarySearch::~BinarySearch() noexcept {
-    cuFree(_d_work, _d_degrees);
+    cuFree(_d_work);
 }
 
 template<typename HornetClass, typename Operator>
@@ -85,7 +84,7 @@ void BinarySearch::apply(const HornetClass& hornet,
 
     detail::computeWorkKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
-        (d_input, _d_degrees, num_vertices, _d_work);
+        (d_input, hornet.device_degrees(), num_vertices, _d_work);
     CHECK_CUDA_ERROR
 
     xlib::CubExclusiveSum<int> prefixsum(_d_work, num_vertices + 1);

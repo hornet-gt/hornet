@@ -5,6 +5,7 @@
 #include "Static/BreadthFirstSearch/TopDown++.cuh"
 #include <GraphIO/GraphStd.hpp>
 #include <Util/CommandLineParam.hpp>
+//#include <cuda_profiler_api.h> //--profile-from-start off
 
 using namespace hornet_alg;
 
@@ -24,9 +25,11 @@ int main(int argc, char* argv[]) {
     bfs_top_down.set_parameters(graph.max_out_degree_id());
     Timer<DEVICE> TM;
     TM.start();
+    //cuProfilerStart();
 
     bfs_top_down.run();
 
+    //cuProfilerStop();
     TM.stop();
     TM.print("TopDown");
 

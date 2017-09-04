@@ -144,15 +144,15 @@ __host__ int TwoLevelQueue<T>::size() noexcept {
 
 template<typename T>
 int TwoLevelQueue<T>::size() const noexcept {
-    int2 _h_counters;
-    cuMemcpyToHost(_d_counters, _h_counters);
+    //int2 _h_counters;
+    //cuMemcpyToHost(_d_counters, _h_counters);
     return _h_counters.x;
 }
 
 template<typename T>
 int TwoLevelQueue<T>::output_size() noexcept {
-    int2 _h_counters;
-    cuMemcpyToHost(_d_counters, _h_counters);
+    //int2 _h_counters;
+    //cuMemcpyToHost(_d_counters, _h_counters);
     return _h_counters.y;
 }
 

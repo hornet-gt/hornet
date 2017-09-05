@@ -2,7 +2,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date September, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -38,35 +38,12 @@
 #include <Device/Definition.cuh>    //xlib::SMemPerBlock
 
 namespace load_balacing {
-namespace detail {
-
-template<bool = true>
-__global__
-void computeWorkKernel(const hornet::vid_t*    __restrict__ d_input,
-                       const hornet::degree_t* __restrict__ d_degrees,
-                       int                                  num_vertices,
-                       int*                    __restrict__ d_work) {
-    int     id = blockIdx.x * blockDim.x + threadIdx.x;
-    int stride = blockDim.x * gridDim.x;
-    for (int i = id; i < num_vertices; i += stride)
-        d_work[i] = d_degrees[ d_input[i] ];
-}
-
-} // namespace detail
-//------------------------------------------------------------------------------
 
 template<typename HornetClass>
 BinarySearch::BinarySearch(const HornetClass& hornet) noexcept {
     static_assert(IsHornet<HornetClass>::value,
-                 "TwoLevelQueue paramenter is not an instance of Hornet Class");
-
+                 "BinarySearch: paramenter is not an instance of Hornet Class");
     cuMalloc(_d_work, hornet.nV() + 1);
-    //cuMalloc(_d_degrees, hornet.nV());
-    /*const auto& csr_offsets = hornet.csr_offsets();
-    auto tmp = new degree_t[hornet.nV() + 1];
-    std::adjacent_difference(csr_offsets, csr_offsets + hornet.nV() + 1, tmp);
-    cuMemcpyToDevice(tmp + 1, hornet.nV(), _d_degrees);
-    delete[] tmp;*/
 }
 
 inline BinarySearch::~BinarySearch() noexcept {
@@ -79,10 +56,10 @@ void BinarySearch::apply(const HornetClass& hornet,
                          int                num_vertices,
                          const Operator&    op) const noexcept {
     static_assert(IsHornet<HornetClass>::value,
-                 "TwoLevelQueue paramenter is not an instance of Hornet Class");
-    const int ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
+                 "BinarySearch: paramenter is not an instance of Hornet Class");
+    const auto ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
 
-    detail::computeWorkKernel
+    kernel::computeWorkKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
         (d_input, hornet.device_degrees(), num_vertices, _d_work);
     CHECK_CUDA_ERROR
@@ -91,10 +68,10 @@ void BinarySearch::apply(const HornetClass& hornet,
     prefixsum.run();
 
     int total_work;
-    cuMemcpyToHost(_d_work + num_vertices, total_work);
+    cuMemcpyToHostAsync(_d_work + num_vertices, total_work);
     unsigned grid_size = xlib::ceil_div<ITEMS_PER_BLOCK>(total_work);
 
-    binarySearchKernel<BLOCK_SIZE, ITEMS_PER_BLOCK>
+    kernel::binarySearchKernel<BLOCK_SIZE, ITEMS_PER_BLOCK>
         <<< grid_size, BLOCK_SIZE >>>
         (hornet.device_side(), d_input, _d_work, num_vertices + 1, op);
     CHECK_CUDA_ERROR

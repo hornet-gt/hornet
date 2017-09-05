@@ -4,7 +4,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date September, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -83,9 +83,8 @@ public:
     void apply(const HornetClass& hornet, const Operator& op) const noexcept;
 
 private:
-    static const int         BLOCK_SIZE = 256;
-    static const bool CHECK_CUDA_ERROR1 = 1;
-    int* _d_work    { nullptr };
+    static const unsigned BLOCK_SIZE = 256;
+    int* _d_work { nullptr };
 };
 
 } // namespace load_balacing

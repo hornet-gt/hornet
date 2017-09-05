@@ -36,6 +36,7 @@
 #include <Device/Definition.cuh>        //xlib::SMemPerBlock
 #include <Device/PrintExt.cuh>          //cu::printArray
 #include <Device/SafeCudaAPI.cuh>       //cuMemcpyToDeviceAsync
+#include <BasicTypes.hpp>
 
 namespace hornet_alg {
 
@@ -48,11 +49,9 @@ void ptr2_t<T>::swap() noexcept {
 
 template<typename T>
 template<typename HronetClass>
-TwoLevelQueue<T>::TwoLevelQueue(const HronetClass& hornet)
-                                noexcept :
+TwoLevelQueue<T>::TwoLevelQueue(const HronetClass& hornet) noexcept :
                                   _max_allocated_items(hornet.nV() * 2) {
-
-    static_assert(IsHornet<HronetClass>::value,
+    static_assert(hornet::IsHornet<HronetClass>::value,
                  "TwoLevelQueue paramenter is not an instance of Hornet Class");
     cuMalloc(_d_queue_ptrs.first, _max_allocated_items);
     cuMalloc(_d_queue_ptrs.second, _max_allocated_items);
@@ -65,6 +64,7 @@ TwoLevelQueue<T>::TwoLevelQueue(const TwoLevelQueue<T>& obj) noexcept :
                             _max_allocated_items(obj._max_allocated_items),
                             _d_queue_ptrs(obj._d_queue_ptrs),
                             _d_counters(obj._d_counters),
+                            _h_counters(obj._h_counters),
                             _kernel_copy(true) {}
 
 template<typename T>
@@ -107,14 +107,20 @@ template<typename T>
 void TwoLevelQueue<T>::swap() noexcept {
     _d_queue_ptrs.swap();
 
-    cuMemcpyToHost(_d_counters, _h_counters);
+    cuMemcpyToHostAsync(_d_counters, _h_counters);
     _h_counters.x = _h_counters.y;
     _h_counters.y = 0;
-    cuMemcpyToDevice(_h_counters, _d_counters);
+    cuMemcpyToDeviceAsync(_h_counters, _d_counters);
+}
+
+template<typename T>
+void TwoLevelQueue<T>::update_host() noexcept {
+    cuMemcpyToHostAsync(_d_counters, _h_counters);
 }
 
 template<typename T>
 void TwoLevelQueue<T>::clear() noexcept {
+    _h_counters = { 0, 0 };
     cuMemset0x00(_d_counters);
 }
 
@@ -127,45 +133,27 @@ template<typename T>
 const T* TwoLevelQueue<T>::device_output_ptr() const noexcept {
     return _d_queue_ptrs.second;
 }
-/*
-template<typename T>
-__host__ const T* TwoLevelQueue<T>::host_data() noexcept {
-    if (_host_data == nullptr)
-        _host_data = new T[_max_allocated_items];
-    cuMemcpyToHost(_d_queue_ptrs.second, _num_queue_vertices, _host_data);
-    return _host_data;
-}*/
-/*
-template<typename T>
-__host__ int TwoLevelQueue<T>::size() noexcept {
-    cuMemcpyToHost(_d_queue_counter, _num_queue_vertices);
-    return _num_queue_vertices;
-}*/
 
 template<typename T>
 int TwoLevelQueue<T>::size() const noexcept {
-    //int2 _h_counters;
-    //cuMemcpyToHost(_d_counters, _h_counters);
+    //update_host();
     return _h_counters.x;
 }
 
 template<typename T>
-int TwoLevelQueue<T>::output_size() noexcept {
-    //int2 _h_counters;
-    //cuMemcpyToHost(_d_counters, _h_counters);
+int TwoLevelQueue<T>::output_size() const noexcept {
+    //update_host();
     return _h_counters.y;
 }
 
 template<typename T>
-void TwoLevelQueue<T>::print_input() noexcept {
-    int2 _h_counters;
+void TwoLevelQueue<T>::print() const noexcept {
     cuMemcpyToHost(_d_counters, _h_counters);
     cu::printArray(_d_queue_ptrs.first, _h_counters.x);
 }
 
 template<typename T>
-void TwoLevelQueue<T>::print_output() noexcept {
-    int2 _h_counters;
+void TwoLevelQueue<T>::print_output() const noexcept {
     cuMemcpyToHost(_d_counters, _h_counters);
     cu::printArray(_d_queue_ptrs.second, _h_counters.y);
 }

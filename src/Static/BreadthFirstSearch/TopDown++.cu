@@ -33,7 +33,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Static/BreadthFirstSearch/TopDown++.cuh"
+//#include "Static/BreadthFirstSearch/TopDown++.cuh"
+#include "Static/BreadthFirstSearch/TopDown_Hornet.cuh"
 #include <GraphIO/GraphStd.hpp>
 #include <GraphIO/BFS.hpp>
 
@@ -47,21 +48,12 @@ const dist_t INF = std::numeric_limits<dist_t>::max();
 ///////////////
 
 struct BFSOperator {
+    dist_t*              d_distances;
+    dist_t               current_level;
     TwoLevelQueue<vid_t> queue;
-    dist_t* d_distances;
-    dist_t  current_level;
 
-    BFSOperator(dist_t* d_distances_, dist_t current_level_,
-                TwoLevelQueue<vid_t>& queue) :
-                                d_distances(d_distances_),
-                                current_level(current_level_),
-                                queue(queue) {}
-
-    template<typename Edge>
-    __device__ __forceinline__
-    void operator()(Edge& edge) {
+    OPERATOR(Vertex& vertex, Edge& edge) {
         auto dst = edge.dst_id();
-        //printf("\t%d\n", dst);
         if (d_distances[dst] == INF) {
             d_distances[dst] = current_level;
             queue.insert(dst);
@@ -73,7 +65,8 @@ struct BFSOperator {
 // BfsTopDown2 //
 /////////////////
 
-BfsTopDown2::BfsTopDown2(HornetCSR& hornet) :
+//BfsTopDown2::BfsTopDown2(HornetCSR& hornet) :
+BfsTopDown2::BfsTopDown2(HornetGPU& hornet) :
                                  StaticAlgorithm(hornet),
                                  queue(hornet),
                                  load_balacing(hornet) {
@@ -105,7 +98,7 @@ void BfsTopDown2::run() {
         //for all edges in "queue" applies the operator "BFSOperator" by using
         //the load balancing algorithm instantiated in "load_balacing"
         forAllEdges(hornet, queue,
-                    BFSOperator(d_distances, current_level, queue),
+                    BFSOperator { d_distances, current_level, queue },
                     load_balacing);
         current_level++;
         queue.swap();
@@ -115,17 +108,21 @@ void BfsTopDown2::run() {
 //same procedure of run() but it uses lambda expression instead explict
 //struct operator
 void BfsTopDown2::run2() {
-    while (queue.size() > 0) {
-        const auto& BFSOperator = [=] __device__(auto edge) {
-                                        auto dst = edge.dst_id();
-                                        if (d_distances[dst] == INF) {
-                                            d_distances[dst] = current_level;
-                                            queue.insert(dst);
-                                        }
-                                    };
+    auto distances = d_distances;
+    auto     level = 1;
 
-        forAllEdges(hornet, queue, BFSOperator, load_balacing);
-        current_level++;
+    while (queue.size() > 0) {
+        auto queue1 = queue;
+        const auto& BFSLambda = [=] __device__(auto vertex, auto edge) mutable {
+                                    auto dst = edge.dst_id();
+                                    if (distances[dst] == INF) {
+                                        distances[dst] = level;
+                                        queue1.insert(dst);
+                                    }
+                                };
+
+        forAllEdges(hornet, queue, BFSLambda, load_balacing);
+        level++;
         queue.swap();
     }
 }

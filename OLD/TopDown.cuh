@@ -1,8 +1,9 @@
 /**
- * @author Federico Busato                                                  <br>
+ * @brief Top-Down implementation of Breadth-first Search by using C-Style APIs
+ * @author Oded Green, Federico Busato                                      <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date September, 2017
+ * @date April, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -35,49 +36,39 @@
  *
  * @file
  */
-namespace load_balacing {
-namespace kernel {
+#pragma once
 
-/**
- * @brief
- */
-template<unsigned VW_SIZE, typename HornetDevice, typename Operator>
-__global__
-void vertexBasedKernel(HornetDevice              hornet,
-                       const vid_t* __restrict__ d_input,
-                       int                       num_vertices,
-                       Operator                  op) {
-    int   group_id = (blockIdx.x * blockDim.x + threadIdx.x) / VW_SIZE;
-    int     stride = (gridDim.x * blockDim.x) / VW_SIZE;
-    int group_lane = threadIdx.x % VW_SIZE;
+#include "cuStingerAlg.hpp"
 
-    for (auto i = group_id; i < num_vertices; i += stride) {
-        const auto& vertex = hornet.vertex(d_input[i]);
-        for (auto j = group_lane; j < vertex.degree(); j += VW_SIZE) {
-            const auto& edge = vertex.edge(j);
-            op(vertex, edge);
-        }
-    }
-}
+namespace custinger_alg {
 
-/**
- * @brief
- */
-template<unsigned VW_SIZE, typename HornetDevice, typename Operator>
-__global__
-void vertexBasedKernel(HornetDevice hornet, Operator op) {
-    int   group_id = (blockIdx.x * blockDim.x + threadIdx.x) / VW_SIZE;
-    int     stride = (gridDim.x * blockDim.x) / VW_SIZE;
-    int group_lane = threadIdx.x % VW_SIZE;
+using dist_t = int;
 
-    for (auto i = group_id; i < hornet.nV(); i += stride) {
-        const auto& vertex = hornet.vertex(i);
-        for (auto j = group_lane; j < vertex.degree();  j += VW_SIZE) {
-            const auto& edge = vertex.edge(j);
-            op(vertex, edge);
-        }
-    }
-}
+struct BfsData {
+    BfsData(cuStinger& custinger) : queue(custinger) {}
 
-} // kernel
-} // namespace load_balacing
+	TwoLevelQueue<vid_t> queue;
+    dist_t* distances;
+	dist_t  current_level;
+};
+
+class BfsTopDown final : public StaticAlgorithm {
+public:
+    explicit BfsTopDown(cuStinger& custinger);
+    ~BfsTopDown();
+
+    void reset()    override;
+	void run()      override;
+	void release()  override;
+    bool validate() override;
+
+    void set_parameters(vid_t source);
+private:
+    //load_balacing::BinarySearch load_balacing;
+    load_balacing::VertexBased load_balacing;
+	BfsData  host_bfs_data;
+	BfsData* device_bfs_data { nullptr };
+    vid_t    bfs_source      { 0 };
+};
+
+} // namespace custinger_alg

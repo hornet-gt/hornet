@@ -39,8 +39,12 @@
 #pragma once
 
 #include "Core/Queue/TwoLevelQueue.cuh"
+#include <BasicTypes.hpp>
 
 namespace hornet_alg {
+using hornet::vid_t;
+using hornet::eoff_t;
+
 ///////////////
 // C++11 API //
 ///////////////
@@ -48,8 +52,6 @@ namespace hornet_alg {
  * @brief Block size for all kernels associeted to operators
  */
 const int BLOCK_SIZE_OP2 = 256;
-
-//enum class LoadBalancing { SIMPLE, BINARY_SEARCH, NODE_BASED, SCAN_BASED };
 
 /**
  * @brief apply the `Operator` a fixed number of times
@@ -85,6 +87,7 @@ template<typename HornetClass, typename Operator>
 void forAllnumE(HornetClass& hornet, const Operator& op);
 
 //==============================================================================
+//==============================================================================
 
 /**
  * @brief apply the `Operator` to all vertices in the graph
@@ -111,9 +114,14 @@ void forAllVertices(HornetClass& hornet, const Operator& op);
  */
 template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&         hornet,
+                 const Operator&      op);
+
+template<typename HornetClass, typename Operator, typename LoadBalancing>
+void forAllEdges(HornetClass&         hornet,
                  const Operator&      op,
                  const LoadBalancing& load_balacing);
 
+//==============================================================================
 //==============================================================================
 
 template<typename HornetClass, typename Operator>
@@ -126,6 +134,14 @@ template<typename HornetClass, typename Operator>
 void forAllVertices(HornetClass&          hornet,
                     const TwoLevelQueue<vid_t>& queue,
                     const Operator&       op);
+
+//------------------------------------------------------------------------------
+
+template<typename HornetClass, typename Operator, typename LoadBalancing>
+void forAllEdges(HornetClass&         hornet,
+                 const vid_t*         vertex_array,
+                 int                  size,
+                 const Operator&      op);
 
 template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&         hornet,
@@ -147,8 +163,13 @@ void forAllEdges(HornetClass&         hornet,
 template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&                hornet,
                  const TwoLevelQueue<vid_t>& queue,
+                 const Operator&             op);
+
+template<typename HornetClass, typename Operator, typename LoadBalancing>
+void forAllEdges(HornetClass&                hornet,
+                 const TwoLevelQueue<vid_t>& queue,
                  const Operator&             op,
-                 const LoadBalancing&        LB);
+                 const LoadBalancing&        load_balacing);
 
 //==============================================================================
 

@@ -2,7 +2,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date September, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -36,54 +36,35 @@
  * @file
  */
 #include "VertexBasedKernel.cuh"
-#include "Device/Definition.cuh"    //xlib::SMemPerBlock
-#include "Device/CubWrapper.cuh"    //xlib::CubExclusiveSum
-//#include "cuStingerAlg/Operator++.cuh"      //custinger::forAll
 
 namespace load_balacing {
 
-template<typename Operator>
-void VertexBased::apply(custinger::cuStinger& custinger,
-                        const custinger::vid_t* d_input, int num_vertices,
-                        const Operator& op) noexcept {
+template<unsigned VW_SIZE>
+template<typename HornetClass, typename Operator>
+void VertexBased<VW_SIZE>::apply(const HornetClass& hornet,
+                                 const vid_t*       d_input,
+                                 int                num_vertices,
+                                 const Operator&    op) const noexcept {
+    static_assert(IsHornet<HornetClass>::value,
+                  "VertexBased: paramenter is not an instance of Hornet Class");
 
-    detail::vertexBasedKernel
-        <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
-        (custinger, d_input, num_vertices, op);
+    kernel::vertexBasedKernel<VW_SIZE>
+        <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices) * VW_SIZE, BLOCK_SIZE >>>
+        (hornet.device_side(), d_input, num_vertices, op);
+    CHECK_CUDA_ERROR
 }
 
-template<typename Operator>
-void VertexBased::apply(custinger::cuStinger& custinger,
-                        const Operator& op) noexcept {
+template<unsigned VW_SIZE>
+template<typename HornetClass, typename Operator>
+void VertexBased<VW_SIZE>::apply(const HornetClass& hornet, const Operator& op)
+                                 const noexcept {
+    static_assert(IsHornet<HornetClass>::value,
+                 "VertexBased: paramenter is not an instance of Hornet Class");
 
-    detail::vertexBasedKernel
-        <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
-        (custinger, op);
+    kernel::vertexBasedKernel<VW_SIZE>
+        <<< xlib::ceil_div<BLOCK_SIZE>(hornet.nV()) * VW_SIZE, BLOCK_SIZE >>>
+        (hornet.device_side(), op);
+    CHECK_CUDA_ERROR
 }
-
-/*
-template<void (*Operator)(custinger::Vertex, custinger::Edge, void*)>
-inline void VertexBased::traverse_edges(const custinger::vid_t* d_input,
-                                         int num_vertices,
-                                         void* optional_field) noexcept {
-    @details::VertexBasedKernel
-        <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
-        (d_input, num_verticesk, optional_field);
-
-    if (CHECK_CUDA_ERROR1)
-        CHECK_CUDA_ERROR
-}
-
-template<typename Operator>
-inline void VertexBased::traverse_edges(const custinger::vid_t* d_input,
-                                        int num_vertices,
-                                        Operator op) noexcept {
-    @details::VertexBasedKernel
-        <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
-        (d_input, num_vertices, op);
-
-    if (CHECK_CUDA_ERROR1)
-        CHECK_CUDA_ERROR
-}*/
 
 } // namespace load_balacing

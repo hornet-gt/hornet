@@ -109,6 +109,12 @@ public:
     void swap() noexcept;
 
     /**
+     * @brief swap input and output queue
+     * @remark the queue counter is also set to zero
+     */
+    void update_host() noexcept;
+
+    /**
      * @brief reset the queue
      * @remark the queue counter is set to zero
      */
@@ -122,7 +128,7 @@ public:
     //__host__ int size() noexcept;
     int size() const noexcept;
 
-    int output_size() noexcept;
+    int output_size() const noexcept;
 
     /**
      * @brief device pointer of the input queue
@@ -149,28 +155,18 @@ public:
      * @brief print the items stored at the output queue
      * @remark the method may be expensive
      */
-    void print_input() noexcept;
+    void print() const noexcept;
 
     /**
      * @brief print the items stored at the output queue
      * @remark the method may be expensive
      */
-    void print_output() noexcept;
+    void print_output() const noexcept;
 
 private:
-    ///@internal @brief print the queue input queue in `traverse_edges()` method
-    static const bool PRINT_VERTEX_FRONTIER = 0;
-    ///@internal @brief block size for `traverse_edges()` kernels
-    static const unsigned        BLOCK_SIZE = 256;
-
-    //const custinger::cuStinger& _custinger;
-    //const custinger::eoff_t* _csr_offsets { nullptr };
-
     ///@internal @brief input and output queue pointers
     ptr2_t<T>    _d_queue_ptrs        { nullptr, nullptr };
 
-    ///@internal @brief host pointer used by `host_data()` method
-    T*           _host_data           { nullptr };
     const size_t _max_allocated_items { 0 };
     ///@internal @brief device counter of the queue for `traverse_edges()`
     int2*        _d_counters          { nullptr };

@@ -1,5 +1,3 @@
-#include "Device/BinarySearchLB.cuh"
-
 namespace hornet_alg {
 namespace detail {
 
@@ -51,7 +49,7 @@ void forAllVerticesKernel(HornetDevice              hornet,
     for (vid_t i = id; i < num_items; i += stride)
         op(hornet.vertex(vertices_array[i]));
 }
-
+/*
 template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
          typename HornetDevice, typename Operator>
 __global__
@@ -66,7 +64,7 @@ void forAllEdgesKernel(const eoff_t* __restrict__ csr_offsets,
                             };
     xlib::binarySearchLB<BLOCK_SIZE>(csr_offsets, hornet.nV() + 1,
                                      smem, lambda);
-}
+}*/
 
 } //namespace detail
 
@@ -109,14 +107,15 @@ void forAllVertices(HornetClass& hornet, const Operator& op) {
 //------------------------------------------------------------------------------
 
 template<typename HornetClass, typename Operator, typename LoadBalancing>
+[[deprecated]]
 void forAllEdges(HornetClass& hornet, const Operator& op,
                  const LoadBalancing& LB) {
     const int PARTITION_SIZE = xlib::SMemPerBlock<BLOCK_SIZE_OP2, vid_t>::value;
     int num_partitions = xlib::ceil_div<PARTITION_SIZE>(hornet.nE());
 
-    detail::forAllEdgesKernel<BLOCK_SIZE_OP2, PARTITION_SIZE, Operator>
+    /*detail::forAllEdgesKernel<BLOCK_SIZE_OP2, PARTITION_SIZE, Operator>
        <<< num_partitions, BLOCK_SIZE_OP2 >>>
-       (hornet.device_csr_offsets(), hornet.device_side(), op);
+       (hornet.device_csr_offsets(), hornet.device_side(), op);*/
 }
 
 //==============================================================================
@@ -151,8 +150,8 @@ void forAllEdges(HornetClass& hornet,
 template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass& hornet,
                  const TwoLevelQueue<vid_t>& queue,
-                 const Operator& op, const LoadBalancing& LB) {
-    LB.apply(hornet, queue.device_input_ptr(), queue.size(), op);
+                 const Operator& op, const LoadBalancing& load_balacing) {
+    load_balacing.apply(hornet, queue.device_input_ptr(), queue.size(), op);
 }
 
 } // namespace hornet_alg

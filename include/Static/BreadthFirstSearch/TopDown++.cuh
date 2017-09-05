@@ -40,6 +40,8 @@
 #pragma once
 
 #include "HornetAlg.hpp"
+#include "Core/LoadBalancing/VertexBased.cuh"
+#include "Core/LoadBalancing/ScanBased.cuh"
 #include "Core/LoadBalancing/BinarySearch.cuh"
 #include <Core/GPUCsr/Csr.cuh>
 
@@ -63,7 +65,9 @@ public:
     void run2();
 private:
     TwoLevelQueue<vid_t>        queue;
-    load_balacing::BinarySearch load_balacing;
+    //load_balacing::BinarySearch load_balacing;
+    //load_balacing::VertexBased1 load_balacing;
+    load_balacing::ScanBased load_balacing;
     dist_t* d_distances   { nullptr };
     vid_t   bfs_source    { 0 };
     dist_t  current_level { 0 };

@@ -43,6 +43,13 @@
  */
 namespace hornet_alg {
 
+#define EDGE_OPERATOR template<typename Edge>                                  \
+                      __device__ __forceinline__                               \
+                      void operator()
+
+#define OPERATOR template<typename Vertex, typename Edge>                      \
+                 __device__ __forceinline__                                    \
+                 void operator()
 /**
  * @brief Abstract class for cuStinger static algorithms
  * @remark the user must extend this class to be full compliant with the

@@ -2,7 +2,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date September, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -37,47 +37,45 @@
  */
 #pragma once
 
-#include "Core/cuStingerTypes.cuh"
+#include "BasicTypes.hpp"
 
 /**
  * @brief
  */
 namespace load_balacing {
+using hornet::vid_t;
+using hornet::eoff_t;
 
+template<unsigned VW_SIZE>
 class VertexBased {
+    static_assert(xlib::is_power2(VW_SIZE) && VW_SIZE <= xlib::WARP_SIZE,
+                 "VW_SIZE must be a power of two such that 0 <= VW_SIZE <= 32");
 public:
-    //explicit VertexBased() noexcept = default;
+    VertexBased() = default;
 
-    /*template<void (*Operator)(custinger::Vertex, custinger::Edge, void*)>
-    void traverse_edges(const custinger::vid_t* d_input, int num_vertices,
-                        void* optional_field) noexcept;
+    template<typename T>
+    VertexBased(const T&) {}
 
-    template<typename Operator>
-    void traverse_edges(const custinger::vid_t* d_input, int num_vertices,
-                        Operator op) noexcept;*/
+    template<typename HornetClass, typename Operator>
+    void apply(const HornetClass& hornet,
+               const vid_t*       d_input,
+               int                num_vertices,
+               const Operator&    op) const noexcept;
 
-    template<typename Operator>
-    void apply(custinger::cuStinger& custinger,
-               const custinger::vid_t* d_input, int num_vertices,
-               const Operator& op) noexcept;
-
-    template<typename Operator>
-    void apply(custinger::cuStinger& custinger, const Operator& op) noexcept;
-
-    /*template<typename Operator>
-    __device__ __forceinline__
-    apply(const vid_t* neightbor_ptr, degree_t degree, const Operator& op);
-
-    template<typename Operator>
-    __device__ __forceinline__
-    apply(vid_t src_id, const vid_t* neightbor_ptr, degree_t degree,
-          const Operator& op);*/
+    template<typename HornetClass, typename Operator>
+    void apply(const HornetClass& hornet, const Operator& op) const noexcept;
 
 private:
-    static const int         BLOCK_SIZE = 256;
-    static const bool CHECK_CUDA_ERROR1 = 1;
+    static const unsigned BLOCK_SIZE = 256;
 };
+
+using  VertexBased1 = VertexBased<1>;
+using  VertexBased2 = VertexBased<2>;
+using  VertexBased4 = VertexBased<4>;
+using  VertexBased8 = VertexBased<8>;
+using VertexBased16 = VertexBased<16>;
+using VertexBased32 = VertexBased<32>;
 
 } // namespace load_balacing
 
-#include "cuStingerAlg/LoadBalancing/VertexBased.i.cuh"
+#include "VertexBased.i.cuh"

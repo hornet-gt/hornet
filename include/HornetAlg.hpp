@@ -40,12 +40,9 @@
  */
 #pragma once
 
-#include <BasicTypes.hpp>
-using namespace hornet;
-
 #include "Core/HornetAlg.cuh"
-//#include "Core/Operator.cuh"
 #include "Core/Operator++.cuh"
-//#include "Core/Queue/MultiLevelQueue.cuh"
 #include "Core/Queue/TwoLevelQueue.cuh"
 #include "Core/StandardAPI.hpp"
+#include <BasicTypes.hpp>
+using namespace hornet;

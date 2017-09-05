@@ -2,7 +2,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date September, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -41,6 +41,7 @@
  * @brief
  */
 namespace load_balacing {
+namespace kernel {
 
 /**
  * @brief
@@ -66,6 +67,18 @@ void binarySearchKernel(hornet::cuStingerDevice           hornet,
 }*/
 
 //------------------------------------------------------------------------------
+template<bool = true>
+__global__
+void computeWorkKernel(const hornet::vid_t*    __restrict__ d_input,
+                       const hornet::degree_t* __restrict__ d_degrees,
+                       int                                  num_vertices,
+                       int*                    __restrict__ d_work) {
+    int     id = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
+    for (auto i = id; i < num_vertices; i += stride)
+        d_work[i] = d_degrees[ d_input[i] ];
+}
+
 
 template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
          typename HornetDevice, typename Operator>
@@ -78,11 +91,12 @@ void binarySearchKernel(HornetDevice              hornet,
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
 
     const auto& lambda = [&](int pos, degree_t offset) {
-                                auto vertex = hornet.vertex(d_input[pos]);
-                                auto   edge = vertex.edge(offset);
-                                op(edge);
+                            const auto& vertex = hornet.vertex(d_input[pos]);
+                            const auto&   edge = vertex.edge(offset);
+                            op(vertex, edge);
                         };
     xlib::binarySearchLB<BLOCK_SIZE>(d_work, work_size, smem, lambda);
 }
 
+} // namespace kernel
 } // namespace load_balacing

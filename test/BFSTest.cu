@@ -2,8 +2,7 @@
  * @brief Breadth-first Search Top-Down test program (C++11 Style APIs)
  * @file
  */
-//#include "Static/BreadthFirstSearch/TopDown++.cuh"
-#include "Static/BreadthFirstSearch/TopDown_Hornet.cuh"
+#include "Static/BreadthFirstSearch/TopDown.cuh"
 #include <GraphIO/GraphStd.hpp>
 #include <Util/CommandLineParam.hpp>
 //#include <cuda_profiler_api.h> //--profile-from-start off

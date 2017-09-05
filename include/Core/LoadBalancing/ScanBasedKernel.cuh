@@ -60,9 +60,9 @@ void scanBasedKernel(HornetDevice              hornet,
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
 
-    int        lane_id = xlib::lane_id();
-    eoff_t* smem_local = smem + xlib::warp_id() * LOCAL_SIZE;
-    int    approx_size = xlib::upper_approx<xlib::WARP_SIZE>(num_vertices);
+    int     lane_id = xlib::lane_id();
+    it_t smem_local = smem + xlib::warp_id() * LOCAL_SIZE;
+    int approx_size = xlib::upper_approx<xlib::WARP_SIZE>(num_vertices);
 
     for (auto i = id; i < approx_size; i += stride) {
         degree_t degree = 0;

@@ -33,8 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-//#include "Static/BreadthFirstSearch/TopDown++.cuh"
-#include "Static/BreadthFirstSearch/TopDown_Hornet.cuh"
+#include "Static/BreadthFirstSearch/TopDown.cuh"
 #include <GraphIO/GraphStd.hpp>
 #include <GraphIO/BFS.hpp>
 

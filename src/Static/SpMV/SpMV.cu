@@ -1,6 +1,4 @@
 /**
- * @brief Top-Down implementation of Breadth-first Search by using C++11-Style
- *        APIs
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
@@ -34,45 +32,76 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
- *
- * @file
  */
-#pragma once
-
-#include "HornetAlg.hpp"
-#include "Core/LoadBalancing/VertexBased.cuh"
-#include "Core/LoadBalancing/ScanBased.cuh"
-#include "Core/LoadBalancing/BinarySearch.cuh"
-#include <Core/GPUCsr/Csr.cuh>
-#include <Core/GPU/Hornet.cuh>
+#include "Static/SpMV/SpMV.cuh"
+#include <GraphIO/GraphWeight.hpp>
 
 namespace hornet_alg {
+///////////////
+// OPERATORS //
+///////////////
 
-//using HornetGPU = csr::Hornet<EMPTY, EMPTY>;
-using HornetGPU = gpu::Hornet<EMPTY, EMPTY>;
+struct SpMVOperator {
+    int* d_vector;
+    int* d_result;
 
-using dist_t = int;
-
-class BfsTopDown : public StaticAlgorithm<HornetGPU> {
-public:
-    BfsTopDown(HornetGPU& hornet);
-    ~BfsTopDown();
-
-	void reset()    override;
-	void run()      override;
-	void release()  override;
-    bool validate() override;
-
-    void set_parameters(vid_t source);
-    void run2();
-private:
-    TwoLevelQueue<vid_t>        queue;
-    //load_balacing::BinarySearch load_balacing;
-    load_balacing::VertexBased1 load_balacing;
-    //load_balacing::ScanBased load_balacing;
-    dist_t* d_distances   { nullptr };
-    vid_t   bfs_source    { 0 };
-    dist_t  current_level { 0 };
+    OPERATOR(Vertex& vertex, Edge& edge) {
+        auto dst = edge.dst_id();
+        edge.weight();
+    }
 };
+//------------------------------------------------------------------------------
+/////////////////
+// SpMV //
+/////////////////
+
+SpMV::SpMV(HornetGPU& hornet, const int* h_vector) :
+                                StaticAlgorithm(hornet),
+                                load_balacing(hornet),
+                                h_vector(h_vector) {
+    gpu::allocate(d_vector, hornet.nV());
+    gpu::allocate(d_result, hornet.nV());
+    host::copyToDevice(h_vector, hornet.nV(), d_vector);
+    reset();
+}
+
+SpMV::~SpMV() {
+    gpu::free(d_vector, d_result);
+}
+
+void SpMV::reset() {
+    gpu::memset0x00(d_result, hornet.nV());
+}
+
+void SpMV::run() {
+    forAllEdges(hornet, SpMVOperator { d_vector, d_result }, load_balacing);
+    //segmented reduce
+}
+
+void SpMV::release() {
+    gpu::free(d_vector, d_result);
+    d_vector = nullptr;
+    d_result = nullptr;
+}
+
+bool SpMV::validate() {
+    using namespace graph;
+    GraphWeight<vid_t, eoff_t, int> graph(hornet.csr_offsets(), hornet.nV(),
+                                          hornet.csr_edges(), hornet.nE());
+    //HOST SpMV
+    auto h_result = new int[hornet.nV()]();
+    for (auto i = 0; i < hornet.nV(); i++) {
+        const auto& vertex = hornet.vertex(i);
+        int sum = 0;
+        for (auto j = 0; j < vertex.degree(); j++) {
+            const auto& edge = vertex.edge(j);
+            sum += edge.weight() * h_vector[edge.dst_id()];
+        }
+        h_result[i] = sum;
+    }
+    bool ret = gpu::equal(h_result, h_result + graph.nV(), d_result);
+    delete[] h_result;
+    return ret;
+}
 
 } // namespace hornet_alg

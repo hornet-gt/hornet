@@ -2,7 +2,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date September, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -61,11 +61,10 @@ struct BFSOperator {
 };
 //------------------------------------------------------------------------------
 /////////////////
-// BfsTopDown2 //
+// BfsTopDown //
 /////////////////
 
-//BfsTopDown2::BfsTopDown2(HornetCSR& hornet) :
-BfsTopDown2::BfsTopDown2(HornetGPU& hornet) :
+BfsTopDown::BfsTopDown(HornetGPU& hornet) :
                                  StaticAlgorithm(hornet),
                                  queue(hornet),
                                  load_balacing(hornet) {
@@ -73,11 +72,11 @@ BfsTopDown2::BfsTopDown2(HornetGPU& hornet) :
     reset();
 }
 
-BfsTopDown2::~BfsTopDown2() {
+BfsTopDown::~BfsTopDown() {
     gpu::free(d_distances);
 }
 
-void BfsTopDown2::reset() {
+void BfsTopDown::reset() {
     current_level = 1;
     queue.clear();
 
@@ -85,13 +84,13 @@ void BfsTopDown2::reset() {
     forAllnumV(hornet, [=] __device__ (int i){ distances[i] = INF; } );
 }
 
-void BfsTopDown2::set_parameters(vid_t source) {
+void BfsTopDown::set_parameters(vid_t source) {
     bfs_source = source;
     queue.insert(bfs_source);               // insert bfs source in the frontier
     host::copyToDevice(0, d_distances + bfs_source);  //reset source distance
 }
 
-void BfsTopDown2::run() {
+void BfsTopDown::run() {
     while (queue.size() > 0) {
         //queue.print_input();
         //for all edges in "queue" applies the operator "BFSOperator" by using
@@ -106,7 +105,7 @@ void BfsTopDown2::run() {
 
 //same procedure of run() but it uses lambda expression instead explict
 //struct operator
-void BfsTopDown2::run2() {
+void BfsTopDown::run2() {
     auto distances = d_distances;
     auto     level = 1;
 
@@ -126,12 +125,12 @@ void BfsTopDown2::run2() {
     }
 }
 
-void BfsTopDown2::release() {
+void BfsTopDown::release() {
     gpu::free(d_distances);
     d_distances = nullptr;
 }
 
-bool BfsTopDown2::validate() {
+bool BfsTopDown::validate() {
     using namespace graph;
     GraphStd<vid_t, eoff_t> graph(hornet.csr_offsets(), hornet.nV(),
                                   hornet.csr_edges(), hornet.nE());

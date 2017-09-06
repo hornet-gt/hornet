@@ -86,12 +86,12 @@ void copyDeviceToHost(const T* source, T& value) {
 }*/
 
 template<typename T>
-void memsetZero(const T* pointer, size_t num_items) {
+void memsetZero(T* pointer, size_t num_items) {
     cuMemset0x00(pointer, num_items);
 }
 
 template<typename T>
-void memsetOne(const T* pointer, size_t num_items) {
+void memsetOne(T* pointer, size_t num_items) {
     cuMemset0xFF(pointer, num_items);
 }
 

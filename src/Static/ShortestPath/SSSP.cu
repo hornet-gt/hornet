@@ -33,111 +33,84 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Static/BreadthFirstSearch/TopDown.cuh"
-#include <GraphIO/GraphStd.hpp>
-#include <GraphIO/BFS.hpp>
+#include "Static/ShortestPath/SSSP.cuh"
+#include <GraphIO/GraphWeight.hpp>
+#include <GraphIO/BellmanFord.hpp>
 
 namespace hornet_alg {
 
-const dist_t INF = std::numeric_limits<dist_t>::max();
+const weight_t INF = std::numeric_limits<weight_t>::max();
 
 //------------------------------------------------------------------------------
 ///////////////
 // OPERATORS //
 ///////////////
 
-struct BFSOperator {
-    dist_t*              d_distances;
-    dist_t               current_level;
+struct SSSPOperator {
+    weight_t*            d_distances;
     TwoLevelQueue<vid_t> queue;
 
     OPERATOR(Vertex& vertex, Edge& edge) {
-        auto dst = edge.dst_id();
-        if (d_distances[dst] == INF) {
-            d_distances[dst] = current_level;
+        auto    src = vertex.id();
+        auto    dst = edge.dst_id();
+        auto weight = edge.weight();
+        auto tentative = d_distances[src] + weight;
+        if (tentative < d_distances[dst]) {
+            d_distances[dst] = tentative;
             queue.insert(dst);
         }
     }
 };
 //------------------------------------------------------------------------------
 /////////////////
-// BfsTopDown //
+// SSSP //
 /////////////////
 
-BfsTopDown::BfsTopDown(HornetGPU& hornet) :
-                                 StaticAlgorithm(hornet),
-                                 queue(hornet),
-                                 load_balacing(hornet) {
+SSSP::SSSP(HornetGPU& hornet) : StaticAlgorithm(hornet),
+                                queue(hornet),
+                                load_balacing(hornet) {
     gpu::allocate(d_distances, hornet.nV());
     reset();
 }
 
-BfsTopDown::~BfsTopDown() {
+SSSP::~SSSP() {
     gpu::free(d_distances);
 }
 
-void BfsTopDown::reset() {
-    current_level = 1;
+void SSSP::reset() {
     queue.clear();
-
     auto distances = d_distances;
     forAllnumV(hornet, [=] __device__ (int i){ distances[i] = INF; } );
 }
 
-void BfsTopDown::set_parameters(vid_t source) {
-    bfs_source = source;
-    queue.insert(bfs_source);               // insert bfs source in the frontier
-    host::copyToDevice(0, d_distances + bfs_source);  //reset source distance
+void SSSP::set_parameters(vid_t source) {
+    sssp_source = source;
+    queue.insert(sssp_source);
+    host::copyToDevice(weight_t(0), d_distances + sssp_source);
 }
 
-void BfsTopDown::run() {
+void SSSP::run() {
     while (queue.size() > 0) {
-        //queue.print_input();
-        //for all edges in "queue" applies the operator "BFSOperator" by using
-        //the load balancing algorithm instantiated in "load_balacing"
-        forAllEdges(hornet, queue,
-                    BFSOperator { d_distances, current_level, queue },
+        forAllEdges(hornet, queue, SSSPOperator { d_distances, queue },
                     load_balacing);
-        current_level++;
         queue.swap();
     }
 }
 
-//same procedure of run() but it uses lambda expression instead explict
-//struct operator
-void BfsTopDown::run2() {
-    auto distances = d_distances;
-    auto     level = 1;
-
-    while (queue.size() > 0) {
-        auto queue1 = queue;
-        const auto& BFSLambda = [=] __device__(auto vertex, auto edge) mutable {
-                                    auto dst = edge.dst_id();
-                                    if (distances[dst] == INF) {
-                                        distances[dst] = level;
-                                        queue1.insert(dst);
-                                    }
-                                };
-
-        forAllEdges(hornet, queue, BFSLambda, load_balacing);
-        level++;
-        queue.swap();
-    }
-}
-
-void BfsTopDown::release() {
+void SSSP::release() {
     gpu::free(d_distances);
     d_distances = nullptr;
 }
 
-bool BfsTopDown::validate() {
+bool SSSP::validate() {
     using namespace graph;
-    GraphStd<vid_t, eoff_t> graph(hornet.csr_offsets(), hornet.nV(),
-                                  hornet.csr_edges(), hornet.nE());
-    BFS<vid_t, eoff_t> bfs(graph);
-    bfs.run(bfs_source);
+    GraphWeight<vid_t, eoff_t, weight_t>
+        graph(hornet.csr_offsets(), hornet.nV(),
+              hornet.csr_edges(), hornet.nE(), hornet.edge_field<1>());
+    BellmanFord<vid_t, eoff_t, weight_t> sssp(graph);
+    sssp.run(sssp_source);
 
-    auto h_distances = bfs.result();
+    auto h_distances = sssp.result();
     return gpu::equal(h_distances, h_distances + graph.nV(), d_distances);
 }
 

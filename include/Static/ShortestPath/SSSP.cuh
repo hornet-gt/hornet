@@ -48,26 +48,29 @@
 
 namespace hornet_alg {
 
-using HornetGPU = csr::Hornet<EMPTY, TypeList<int>>;
-//using HornetGPU = gpu::Hornet<EMPTY, TypeList<int>>;
+using weight_t = float;
 
-class SpMV : public StaticAlgorithm<HornetGPU> {
+//using HornetGPU = gpu::Hornet<EMPTY, TypeList<float>>;
+using HornetGPU = csr::Hornet<EMPTY, TypeList<weight_t>>;
+
+class SSSP : public StaticAlgorithm<HornetGPU> {
 public:
-    SpMV(HornetGPU& hornet, int* h_vector);
-    ~SpMV();
+    SSSP(HornetGPU& hornet);
+    ~SSSP();
 
 	void reset()    override;
 	void run()      override;
 	void release()  override;
     bool validate() override;
 
+    void set_parameters(vid_t source);
 private:
+    TwoLevelQueue<vid_t>        queue;
     //load_balacing::BinarySearch load_balacing;
     load_balacing::VertexBased1 load_balacing;
     //load_balacing::ScanBased load_balacing;
-    int* h_vector { nullptr };
-    int* d_vector { nullptr };
-    int* d_result { nullptr };
+    weight_t* d_distances { nullptr };
+    vid_t     sssp_source { 0 };
 };
 
 } // namespace hornet_alg

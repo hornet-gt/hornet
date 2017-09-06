@@ -55,10 +55,10 @@ template<typename T>
 void copyFromHost(const T* host_input, size_t num_items, T* device_output);
 
 template<typename T>
-void memsetZero(const T* pointer, size_t num_items);
+void memsetZero(T* pointer, size_t num_items);
 
 template<typename T>
-void memsetOne(const T* pointer, size_t num_items);
+void memsetOne(T* pointer, size_t num_items);
 
 template<typename T>
 T reduce(const T* input, size_t num_items);

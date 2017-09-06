@@ -107,15 +107,12 @@ void forAllVertices(HornetClass& hornet, const Operator& op) {
 //------------------------------------------------------------------------------
 
 template<typename HornetClass, typename Operator, typename LoadBalancing>
-[[deprecated]]
 void forAllEdges(HornetClass& hornet, const Operator& op,
-                 const LoadBalancing& LB) {
+                 const LoadBalancing& load_balacing) {
     const int PARTITION_SIZE = xlib::SMemPerBlock<BLOCK_SIZE_OP2, vid_t>::value;
     int num_partitions = xlib::ceil_div<PARTITION_SIZE>(hornet.nE());
 
-    /*detail::forAllEdgesKernel<BLOCK_SIZE_OP2, PARTITION_SIZE, Operator>
-       <<< num_partitions, BLOCK_SIZE_OP2 >>>
-       (hornet.device_csr_offsets(), hornet.device_side(), op);*/
+    load_balacing.apply(hornet, op);
 }
 
 //==============================================================================
@@ -143,8 +140,8 @@ template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass& hornet,
                  const vid_t* vertex_array,
                  int size, const Operator& op,
-                 const LoadBalancing& LB) {
-    LB.apply(hornet, vertex_array, size, op);
+                 const LoadBalancing& load_balacing) {
+    load_balacing.apply(hornet, vertex_array, size, op);
 }
 
 template<typename HornetClass, typename Operator, typename LoadBalancing>

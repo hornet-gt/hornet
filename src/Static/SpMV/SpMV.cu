@@ -46,16 +46,18 @@ struct SpMVOperator {
     int* d_result;
 
     OPERATOR(Vertex& vertex, Edge& edge) {
-        auto dst = edge.dst_id();
-        edge.weight();
+        auto   col = edge.dst_id();
+        auto value = edge.weight();
+        auto   sum = value * d_vector[col];
+        atomicAdd(d_result + vertex.id(), sum);
     }
 };
 //------------------------------------------------------------------------------
-/////////////////
+//////////
 // SpMV //
-/////////////////
+//////////
 
-SpMV::SpMV(HornetGPU& hornet, const int* h_vector) :
+SpMV::SpMV(HornetGPU& hornet, int* h_vector) :
                                 StaticAlgorithm(hornet),
                                 load_balacing(hornet),
                                 h_vector(h_vector) {
@@ -66,11 +68,11 @@ SpMV::SpMV(HornetGPU& hornet, const int* h_vector) :
 }
 
 SpMV::~SpMV() {
-    gpu::free(d_vector, d_result);
+    release();
 }
 
 void SpMV::reset() {
-    gpu::memset0x00(d_result, hornet.nV());
+    gpu::memsetZero(d_result, hornet.nV());
 }
 
 void SpMV::run() {
@@ -79,27 +81,27 @@ void SpMV::run() {
 }
 
 void SpMV::release() {
-    gpu::free(d_vector, d_result);
+    gpu::free(d_vector);
+    gpu::free(d_result);
     d_vector = nullptr;
     d_result = nullptr;
 }
 
 bool SpMV::validate() {
-    using namespace graph;
-    GraphWeight<vid_t, eoff_t, int> graph(hornet.csr_offsets(), hornet.nV(),
-                                          hornet.csr_edges(), hornet.nE());
-    //HOST SpMV
-    auto h_result = new int[hornet.nV()]();
-    for (auto i = 0; i < hornet.nV(); i++) {
-        const auto& vertex = hornet.vertex(i);
+    auto   n_rows = hornet.nV();
+    auto   h_rows = hornet.csr_offsets();
+    auto   h_cols = hornet.csr_edges();
+    auto  h_value = hornet.edge_field<1>();
+    auto h_result = new int[hornet.nV()];
+
+    for (auto i = 0; i < n_rows; i++) {
         int sum = 0;
-        for (auto j = 0; j < vertex.degree(); j++) {
-            const auto& edge = vertex.edge(j);
-            sum += edge.weight() * h_vector[edge.dst_id()];
-        }
+        for (auto j = h_rows[i]; j < h_rows[i + 1]; j++)
+            sum += h_value[j] * h_vector[h_cols[j]];
         h_result[i] = sum;
     }
-    bool ret = gpu::equal(h_result, h_result + graph.nV(), d_result);
+    bool ret = gpu::equal(h_result, h_result + hornet.nV(), d_result);
+
     delete[] h_result;
     return ret;
 }

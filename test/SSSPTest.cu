@@ -1,8 +1,8 @@
 /**
- * @brief Sparse Matrix-Vector multiplication
+ * @brief Breadth-first Search Top-Down test program (C++11 Style APIs)
  * @file
  */
-#include "Static/SpMV/SpMV.cuh"
+#include "Static/ShortestPath/SSSP.cuh"
 #include <GraphIO/GraphStd.hpp>
 #include <Util/CommandLineParam.hpp>
 //#include <cuda_profiler_api.h> //--profile-from-start off
@@ -13,29 +13,28 @@ int main(int argc, char* argv[]) {
 
     graph::GraphStd<vid_t, eoff_t> graph;
     CommandLineParam cmd(graph, argc, argv);
-    auto h_vector = new int[graph.nV()];
-    auto  h_value = new int[graph.nE()];
-    std::fill(h_vector, h_vector + graph.nV(), 1);
-    std::fill(h_value, h_value + graph.nE(), 1);
 
+    auto h_value = new int[graph.nE()];
+    std::fill(h_value, h_value + graph.nE(), 1);
     HornetInit hornet_init(graph.nV(), graph.nE(), graph.out_offsets_ptr(),
-                           graph.out_edges_ptr());
+                          graph.out_edges_ptr());
     hornet_init.insertEdgeData(h_value);
 
-    HornetGPU hornet_matrix(hornet_init);
-    SpMV spmv(hornet_matrix, h_vector);
+    HornetGPU hornet_graph(hornet_init);
+    SSSP sssp(hornet_graph);
+    sssp.set_parameters(0); //graph.max_out_degree_id()
 
     Timer<DEVICE> TM;
     TM.start();
+    //cuProfilerStart();
 
-    spmv.run();
+    sssp.run();
 
+    //cuProfilerStop();
     TM.stop();
-    TM.print("SpMV");
+    TM.print("TopDown");
 
-    auto is_correct = spmv.validate();
+    auto is_correct = sssp.validate();
     std::cout << (is_correct ? "\nCorrect <>\n\n" : "\n! Not Correct\n\n");
-    delete[] h_vector;
-    delete[] h_value;
     return is_correct;
 }

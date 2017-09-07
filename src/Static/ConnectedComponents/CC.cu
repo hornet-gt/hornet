@@ -33,37 +33,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Static/ConnectedComponents/CC++.cuh"
+#include "Static/ConnectedComponents/CC.cuh"
 #include <GraphIO/WCC.hpp>
-namespace custinger_alg {
 
-const color_t NO_COLOR = std::numeric_limits<color_t>::max();
+namespace hornet_alg {
 
+const color_t    NO_COLOR = std::numeric_limits<color_t>::max();
+const color_t FIRST_COLOR = color_t(0);
 //------------------------------------------------------------------------------
 ///////////////
 // OPERATORS //
 ///////////////
 
-struct Common {
+struct GiantCCOperator {
     color_t*             d_colors;
     TwoLevelQueue<vid_t> queue;
-    Common(color_t* d_colors_, TwoLevelQueue<vid_t> queue_) :
-                                d_colors(d_colors_),
-                                queue(queue_) {}
-};
 
-struct GiantCCOperator {
-    color_t* d_colors;
-    GiantCCOperator(color_t* d_colors_) : d_colors(d_colors_) {}
-
-    __device__ __forceinline__
-    bool operator()(const Vertex& src, const Edge& edge) {
-        auto dst = edge.dst();
+    OPERATOR(Vertex& src, Edge& edge) {
+        auto dst = edge.dst_id();
         if (d_colors[dst] == NO_COLOR) {
-            d_colors[dst] = 0;
-            return true;             // the vertex dst is active
+            d_colors[dst] = FIRST_COLOR;
+            queue.insert(dst);
         }
-        return false;
     }
 };
 
@@ -71,48 +62,48 @@ struct BuildVertexEnqueue {
     color_t*             d_colors;
     TwoLevelQueue<vid_t> queue;
 
-    BuildVertexEnqueue(color_t* d_colors_, const TwoLevelQueue<vid_t>& queue_) :
-                                d_colors(d_colors_),
-                                queue(queue_) {}
-
-    __device__ __forceinline__
-    void operator()(const Vertex& src) {
+    OPERATOR(Vertex& src) {
         if (d_colors[src.id()] == NO_COLOR)
             queue.insert(src.id());
     }
 };
 
-struct BuildEdgeQueue {
-    TwoLevelQueue<int2> queue;
+struct BuildPairQueue {
+    TwoLevelQueue<idpair_t> queue;
 
-    BuildEdgeQueue(const TwoLevelQueue<int2>& queue_) : queue(queue_) {}
+    OPERATOR(Vertex& src, Edge& edge) {
+        if (src.id() > edge.dst_id())
+            queue.insert({ src.id(), edge.dst_id() });
+    }
+};
 
-    __device__ __forceinline__
-    bool operator()(const Vertex& src, const Edge& edge) {
-        if (src.id() > edge.dst())
-            queue.insert(make_int2(src.id(), edge.dst()));
-        return false;
+struct ColoringOperator {
+    color_t*            d_colors;
+    HostDeviceVar<bool> d_continue;
+
+    OPERATOR(vid2_t vertex_pair) {
+        bool continue_var;
+        auto src_color = d_colors[vertex_pair.x];
+        auto dst_color = d_colors[vertex_pair.y];
+        if (src_color > dst_color) {
+            d_colors[vertex_pair.y] = d_colors[vertex_pair.x];
+            continue_var = true;
+        }
+        else if (src_color < dst_color) {
+            d_colors[vertex_pair.x] = d_colors[vertex_pair.y];
+            continue_var = true;
+        }
+        else
+            continue_var = false;
+
+        if (continue_var)
+            d_continue = true;
+        //gpu::reduce_or(d_continue.ptr(), continue_var);
     }
 };
 
 /*
-struct Colorig : Common {
-    Colorig(color_t* d_colors_, TwoLevelQueue<int2> queue_) :
-                                Common(d_colors_, queue_) {}
-
-    __device__ __forceinline__
-    bool operator()(const int2& item) {
-        auto src_color = d_colors[item.x];
-        auto dst_color = d_colors[item.y];
-        if (src_color > dst_color)
-            d_colors[item.y] = d_colors[item.x];
-        else if (src_color < dst_color)
-            d_colors[item.x] = d_colors[item.y];
-    }
-};
-
-
-struct ColorigAtomic : Common {
+struct ColorigAtomic {
     EnqueueOperator(color_t* d_colors_, TwoLevelQueue<int2> queue_) :
                                 Common(d_colors_, queue_) {}
 
@@ -123,7 +114,7 @@ struct ColorigAtomic : Common {
         if (src_color < old_color)
             atomicMax(d_colors + item.x, old_color);
         //d_colors[item.x] = old_color;
-    W}
+    }
 };*/
 
 //------------------------------------------------------------------------------
@@ -131,60 +122,57 @@ struct ColorigAtomic : Common {
 // CC //
 ////////
 
-CC::CC(custinger::cuStinger& custinger) :  StaticAlgorithm(custinger),
-                                           queue(custinger, true) {
-    cuMalloc(d_colors, custinger.nV());
+CC::CC(HornetGPU& hornet) : StaticAlgorithm(hornet),
+                            queue(hornet),
+                            queue_pair(hornet),
+                            load_balacing(hornet) {
+    gpu::allocate(d_colors, hornet.nV());
     reset();
 }
 
 CC::~CC() {
-    cuFree(d_colors);
+    gpu::free(d_colors);
 }
 
 void CC::reset() {
     queue.clear();
 
     auto colors = d_colors;
-    forAllnumV(custinger, [=] __device__ (int i){ colors[i] = NO_COLOR; } );
+    forAllnumV(hornet, [=] __device__ (int i){ colors[i] = NO_COLOR; } );
 }
 
 void CC::run() {
-    auto max_vertex = custinger.max_degree_id();
+    auto max_vertex = hornet.max_degree_id();
     queue.insert(max_vertex);
 
-    while (queue.size() > 0)
-        queue.traverse_edges( GiantCCOperator(d_colors) );
+    while (queue.size() > 0) {
+        forAllEdges(hornet, queue, GiantCCOperator { d_colors, queue },
+                    load_balacing);
+        queue.swap();
+    }
 
     queue.clear();
-    forAllVertices(custinger, BuildVertexEnqueue(d_colors, queue));
-    queue.print2();
+    forAllVertices(hornet, BuildVertexEnqueue { d_colors, queue });
 
-    TwoLevelQueue<int2> queue2(custinger);
-    queue.traverse_edges( BuildEdgeQueue(queue2) );
-    //while ()
-    //    queue.traverse_edges( ColoringOperator() );
+    forAllEdges(hornet, queue, BuildPairQueue { queue_pair }, load_balacing);
+
+    while (hd_continue)
+        forAll(queue_pair, ColoringOperator { d_colors, hd_continue } );
 }
 
 void CC::release() {
-    cuFree(d_colors);
+    gpu::free(d_colors);
     d_colors = nullptr;
 }
 
 bool CC::validate() {
     using namespace graph;
-    GraphStd<vid_t, eoff_t> graph(custinger.csr_offsets(), custinger.nV(),
-                                  custinger.csr_edges(), custinger.nE());
+    GraphStd<vid_t, eoff_t> graph(hornet.csr_offsets(), hornet.nV(),
+                                  hornet.csr_edges(), hornet.nE());
     WCC<vid_t, eoff_t> wcc(graph);
     wcc.run();
 
-    auto ratio_largest = xlib::per_cent(wcc.largest(), graph.nV());
-    auto ratio_trivial = xlib::per_cent(wcc.num_trivial(),  graph.nV());
-    std::cout << std::setprecision(1) << std::fixed
-              << "\n        Number CC: " << xlib::format(wcc.size())
-              << "\n       Largest CC: " << ratio_largest << " %"
-              << "\n    N. Trivial CC: " << xlib::format(wcc.num_trivial())
-              << "\n       Trivial CC: " << ratio_trivial << " %\n";
-
+    wcc.print_statistics();
     wcc.print_histogram();
 
     auto color_match = new color_t[ wcc.size() ];
@@ -195,13 +183,13 @@ bool CC::validate() {
     auto h_result = wcc.result();
 
     for (vid_t i = 0; i < graph.nV(); i++) {
-        std::cout << h_result[i] << "\t" << d_results[i] << std::endl;
-        /*if (color_match[ d_results[i] ] == NO_COLOR)
+        //std::cout << h_result[i] << "\t" << d_results[i] << std::endl;
+        if (color_match[ d_results[i] ] == NO_COLOR)
             color_match[ d_results[i] ] = h_result[i];
         else if (color_match[ d_results[i] ] != h_result[i])
-            return false;*/
+            return false;
     }
     return true;
 }
 
-} // namespace custinger_alg
+} // namespace hornet_alg

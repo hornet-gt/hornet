@@ -1,25 +1,23 @@
 /**
- * @brief Breadth-first Search Top-Down test program (C++11 Style APIs)
+ * @brief Connected-Component test program
  * @file
  */
-#include "Static/ConnectedComponents/CC++.cuh"
+#include "Static/ConnectedComponents/CC.cuh"
+#include <GraphIO/GraphStd.hpp>
+#include <Util/CommandLineParam.hpp>
 
 int main(int argc, char* argv[]) {
-    using namespace graph;
     using namespace timer;
-    using namespace custinger;
-    using namespace custinger_alg;
+    using namespace hornet_alg;
 
-    GraphStd<vid_t, eoff_t> graph(Structure::UNDIRECTED);
-    CommandLineParam(graph, argc, argv);
+    graph::GraphStd<vid_t, eoff_t> graph;
+    CommandLineParam cmd(graph, argc, argv);
 
-    cuStingerInit custinger_init(graph.nV(), graph.nE(), graph.out_offsets(),
-                                 graph.out_edges());
+    HornetInit hornet_init(graph.nV(), graph.nE(), graph.out_offsets_ptr(),
+                           graph.out_edges_ptr());
+    HornetGPU hornet_graph(hornet_init);
 
-    graph.print();
-
-    cuStinger custiger_graph(custinger_init);
-    CC cc_multistep(custiger_graph);
+    CC cc_multistep(hornet_graph);
 
     Timer<DEVICE> TM;
     TM.start();

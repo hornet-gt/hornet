@@ -1,5 +1,5 @@
 /**
- * @brief Breadth-first Search Top-Down test program (C++11 Style APIs)
+ * @brief Breadth-first Search Top-Down test program
  * @file
  */
 #include "Static/BreadthFirstSearch/TopDown.cuh"
@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
     CommandLineParam cmd(graph, argc, argv);
 
     HornetInit hornet_init(graph.nV(), graph.nE(), graph.out_offsets_ptr(),
-                          graph.out_edges_ptr());
+                           graph.out_edges_ptr());
 
     HornetGPU hornet_graph(hornet_init);
 

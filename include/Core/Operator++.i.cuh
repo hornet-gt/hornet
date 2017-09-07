@@ -9,6 +9,16 @@ __global__ void forAllKernel(int size, Operator op) {
         op(i);
 }
 
+template<typename T, typename Operator>
+__global__ void forAllKernel(T* array, int size, Operator op) {
+    int     id = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
+    for (int i = id; i < size; i += stride) {
+        auto value = array[i];
+        op(value);
+    }
+}
+
 template<typename Operator>
 __global__ void forAllnumVKernel(vid_t d_nV, Operator op) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -33,8 +43,10 @@ __global__ void forAllVerticesKernel(HornetDevice hornet,
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
 
-    for (vid_t i = id; i < hornet.nV(); i += stride)
-        op(Vertex(hornet, i));
+    for (vid_t i = id; i < hornet.nV(); i += stride) {
+        auto vertex = hornet.vertex(i);
+        op(vertex);
+    }
 }
 
 template<typename HornetDevice, typename Operator>
@@ -75,6 +87,14 @@ template<typename Operator>
 void forAll(size_t size, const Operator& op) {
     detail::forAllKernel
         <<< xlib::ceil_div<BLOCK_SIZE_OP2>(size), BLOCK_SIZE_OP2 >>> (size, op);
+}
+
+template<typename T, typename Operator>
+void forAll(const TwoLevelQueue<T>& queue, const Operator& op) {
+    auto size = queue.size();
+    detail::forAllKernel
+        <<< xlib::ceil_div<BLOCK_SIZE_OP2>(size), BLOCK_SIZE_OP2 >>>
+        (queue.device_input_ptr(), size, op);
 }
 
 //------------------------------------------------------------------------------

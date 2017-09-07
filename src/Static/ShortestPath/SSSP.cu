@@ -51,9 +51,9 @@ struct SSSPOperator {
     TwoLevelQueue<vid_t> queue;
 
     OPERATOR(Vertex& vertex, Edge& edge) {
-        auto    src = vertex.id();
-        auto    dst = edge.dst_id();
-        auto weight = edge.weight();
+        auto       src = vertex.id();
+        auto       dst = edge.dst_id();
+        auto    weight = edge.weight();
         auto tentative = d_distances[src] + weight;
         if (tentative < d_distances[dst]) {
             d_distances[dst] = tentative;

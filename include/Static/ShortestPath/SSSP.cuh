@@ -48,7 +48,7 @@
 
 namespace hornet_alg {
 
-using weight_t = float;
+using weight_t = int;
 
 //using HornetGPU = gpu::Hornet<EMPTY, TypeList<float>>;
 using HornetGPU = csr::Hornet<EMPTY, TypeList<weight_t>>;
@@ -66,8 +66,8 @@ public:
     void set_parameters(vid_t source);
 private:
     TwoLevelQueue<vid_t>        queue;
-    //load_balacing::BinarySearch load_balacing;
-    load_balacing::VertexBased1 load_balacing;
+    load_balacing::BinarySearch load_balacing;
+    //load_balacing::VertexBased1 load_balacing;
     //load_balacing::ScanBased load_balacing;
     weight_t* d_distances { nullptr };
     vid_t     sssp_source { 0 };

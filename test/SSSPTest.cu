@@ -14,23 +14,21 @@ int main(int argc, char* argv[]) {
     graph::GraphStd<vid_t, eoff_t> graph;
     CommandLineParam cmd(graph, argc, argv);
 
-    auto h_value = new int[graph.nE()];
-    std::fill(h_value, h_value + graph.nE(), 1);
+    auto h_value = new weight_t[graph.nE()];
+    std::fill(h_value, h_value + graph.nE(), weight_t(1));
     HornetInit hornet_init(graph.nV(), graph.nE(), graph.out_offsets_ptr(),
-                          graph.out_edges_ptr());
+                           graph.out_edges_ptr());
     hornet_init.insertEdgeData(h_value);
 
     HornetGPU hornet_graph(hornet_init);
     SSSP sssp(hornet_graph);
-    sssp.set_parameters(0); //graph.max_out_degree_id()
+    sssp.set_parameters(0);
 
     Timer<DEVICE> TM;
     TM.start();
-    //cuProfilerStart();
 
     sssp.run();
 
-    //cuProfilerStop();
     TM.stop();
     TM.print("TopDown");
 

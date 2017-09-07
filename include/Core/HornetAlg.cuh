@@ -43,11 +43,7 @@
  */
 namespace hornet_alg {
 
-#define EDGE_OPERATOR template<typename Edge>                                  \
-                      __device__ __forceinline__                               \
-                      void operator()
-
-#define OPERATOR template<typename Vertex, typename Edge>                      \
+#define OPERATOR template<typename Vertex = void, typename Edge = void>        \
                  __device__ __forceinline__                                    \
                  void operator()
 /**

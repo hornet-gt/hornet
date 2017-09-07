@@ -1,6 +1,5 @@
 /**
- * @brief Top-Down implementation of Breadth-first Search by using C++11-Style
- *        APIs
+ * @brief Weakly Connected-Component implementation
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
@@ -39,15 +38,24 @@
  */
 #pragma once
 
-#include "cuStingerAlg.hpp"
+#include "HornetAlg.hpp"
+#include "Core/HostDeviceVar.cuh"
+#include "Core/LoadBalancing/VertexBased.cuh"
+#include "Core/LoadBalancing/ScanBased.cuh"
+#include "Core/LoadBalancing/BinarySearch.cuh"
+#include <Core/GPUCsr/Csr.cuh>
+#include <Core/GPU/Hornet.cuh>
 
-namespace custinger_alg {
+namespace hornet_alg {
+
+using HornetGPU = csr::Hornet<EMPTY, EMPTY>;
+//using HornetGPU = gpu::Hornet<EMPTY, EMPTY>;
 
 using color_t = int;
 
-class CC : public StaticAlgorithm {
+class CC : public StaticAlgorithm<HornetGPU> {
 public:
-    explicit CC(cuStinger& custinger);
+    explicit CC(HornetGPU& horne);
     ~CC();
 
 	void reset()    override;
@@ -55,8 +63,14 @@ public:
 	void release()  override;
     bool validate() override;
 private:
-    TwoLevelQueue<vid_t> queue;
-    color_t* d_colors    { nullptr };
+    TwoLevelQueue<vid_t>  queue;
+    TwoLevelQueue<vid2_t> queue_pair;
+    color_t*              d_colors    { nullptr };
+    HostDeviceVar<bool>   hd_continue { true };
+
+    //load_balacing::BinarySearch load_balacing;
+    load_balacing::VertexBased1 load_balacing;
+    //load_balacing::ScanBased load_balacing;
 };
 
-} // namespace custinger_alg
+} // namespace hornet_alg

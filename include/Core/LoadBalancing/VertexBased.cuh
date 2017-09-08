@@ -60,10 +60,10 @@ public:
     void apply(const HornetClass& hornet,
                const vid_t*       d_input,
                int                num_vertices,
-               const Operator&    op) const noexcept;
+               Operator&&         op) const noexcept;
 
     template<typename HornetClass, typename Operator>
-    void apply(const HornetClass& hornet, const Operator& op) const noexcept;
+    void apply(const HornetClass& hornet, Operator&& op) const noexcept;
 
 private:
     static const unsigned BLOCK_SIZE = 256;

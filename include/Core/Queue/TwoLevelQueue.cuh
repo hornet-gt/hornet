@@ -77,12 +77,12 @@ public:
 
     TwoLevelQueue(const TwoLevelQueue<T>& obj) noexcept;
 
+    //TwoLevelQueue(TwoLevelQueue<T>&& obj) noexcept;
+
     /**
      * @brief Default Decostructor
      */
     ~TwoLevelQueue() noexcept;
-
-    //__host__ void init(size_t size) noexcept;
 
     /**
      * @brief insert an item in the queue
@@ -104,30 +104,34 @@ public:
 
     /**
      * @brief swap input and output queue
-     * @remark the queue counter is also set to zero
+     * @detail the queue output counter is set to zero
+     * @remark the method is sycnhronized
      */
     void swap() noexcept;
+
+    /**
+     * @brief reset the queue
+     * @details the queue counter is set to zero
+     */
+    void clear() noexcept;
 
     /**
      * @brief swap input and output queue
      * @remark the queue counter is also set to zero
      */
-    void update_host() noexcept;
-
-    /**
-     * @brief reset the queue
-     * @remark the queue counter is set to zero
-     */
-    void clear() noexcept;
+    void sync() const noexcept;
 
     /**
      * @brief size of the queue at the input queue
      * @return actual number of queue items at the input queue
      * @remark the method is cheap
+     * @warning the method is NOT sycnhronized
      */
-    //__host__ int size() noexcept;
     int size() const noexcept;
 
+    /**
+     * @warning the method is NOT sycnhronized
+     */
     int output_size() const noexcept;
 
     /**
@@ -149,7 +153,7 @@ public:
      * @return constant host pointer to the start of the output queue
      * @remark the method may be expensive
      */
-    const T* host_data() noexcept;
+    //const T* host_data() noexcept;
 
     /**
      * @brief print the items stored at the output queue
@@ -163,15 +167,18 @@ public:
      */
     void print_output() const noexcept;
 
+    //void kernel_after() const noexcept;
+
 private:
     ///@internal @brief input and output queue pointers
     ptr2_t<T>    _d_queue_ptrs        { nullptr, nullptr };
 
     const size_t _max_allocated_items { 0 };
     ///@internal @brief device counter of the queue for `traverse_edges()`
-    int2*        _d_counters          { nullptr };
-    int2         _h_counters          { 0, 0 };
-    const bool   _kernel_copy         { false };
+    int2*        _d_counters { nullptr };
+    mutable int2 _h_counters { 0, 0 };
+    bool   _kernel_copy      { false };
+    //mutable bool _need_update         { false };
 };
 
 } // namespace hornet_alg

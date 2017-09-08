@@ -38,7 +38,7 @@
 #include "VertexBasedKernel.cuh"
 
 namespace load_balacing {
-
+/*
 template<unsigned VW_SIZE>
 template<typename HornetClass, typename Operator>
 void VertexBased<VW_SIZE>::apply(const HornetClass& hornet,
@@ -52,18 +52,34 @@ void VertexBased<VW_SIZE>::apply(const HornetClass& hornet,
         <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices) * VW_SIZE, BLOCK_SIZE >>>
         (hornet.device_side(), d_input, num_vertices, op);
     CHECK_CUDA_ERROR
+}*/
+
+template<unsigned VW_SIZE>
+template<typename HornetClass, typename Operator>
+void VertexBased<VW_SIZE>::apply(const HornetClass& hornet,
+                                 const vid_t*       d_input,
+                                 int                num_vertices,
+                                 Operator&&         op) const noexcept {
+    static_assert(IsHornet<HornetClass>::value,
+                  "VertexBased: paramenter is not an instance of Hornet Class");
+
+    kernel::vertexBasedKernel<VW_SIZE>
+        <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices) * VW_SIZE, BLOCK_SIZE >>>
+        (hornet.device_side(), d_input, num_vertices,
+         std::forward<Operator&&>(op));
+    CHECK_CUDA_ERROR
 }
 
 template<unsigned VW_SIZE>
 template<typename HornetClass, typename Operator>
-void VertexBased<VW_SIZE>::apply(const HornetClass& hornet, const Operator& op)
+void VertexBased<VW_SIZE>::apply(const HornetClass& hornet, Operator&& op)
                                  const noexcept {
     static_assert(IsHornet<HornetClass>::value,
                  "VertexBased: paramenter is not an instance of Hornet Class");
 
     kernel::vertexBasedKernel<VW_SIZE>
         <<< xlib::ceil_div<BLOCK_SIZE>(hornet.nV()) * VW_SIZE, BLOCK_SIZE >>>
-        (hornet.device_side(), op);
+        (hornet.device_side(), std::forward<Operator&&>(op));
     CHECK_CUDA_ERROR
 }
 

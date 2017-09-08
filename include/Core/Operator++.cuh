@@ -113,8 +113,7 @@ void forAllVertices(HornetClass& hornet, const Operator& op);
  *            `[=](Vertex, Edge){}`
  */
 template<typename HornetClass, typename Operator, typename LoadBalancing>
-void forAllEdges(HornetClass&         hornet,
-                 const Operator&      op);
+void forAllEdges(HornetClass& hornet, const Operator& op);
 
 template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&         hornet,
@@ -131,9 +130,9 @@ void forAllVertices(HornetClass&    hornet,
                     const Operator& op);
 
 template<typename HornetClass, typename Operator>
-void forAllVertices(HornetClass&          hornet,
+void forAllVertices(HornetClass&                hornet,
                     const TwoLevelQueue<vid_t>& queue,
-                    const Operator&       op);
+                    const Operator&             op);
 
 //------------------------------------------------------------------------------
 
@@ -164,7 +163,13 @@ template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&                hornet,
                  const TwoLevelQueue<vid_t>& queue,
                  const Operator&             op);
-
+/*
+template<typename HornetClass, typename Operator, typename LoadBalancing>
+void forAllEdges(HornetClass&                hornet,
+                 const TwoLevelQueue<vid_t>& queue,
+                 const Operator&             op,
+                 const LoadBalancing&        load_balacing);
+*/
 template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&                hornet,
                  const TwoLevelQueue<vid_t>& queue,

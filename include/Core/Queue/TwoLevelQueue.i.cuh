@@ -65,7 +65,28 @@ TwoLevelQueue<T>::TwoLevelQueue(const TwoLevelQueue<T>& obj) noexcept :
                             _d_queue_ptrs(obj._d_queue_ptrs),
                             _d_counters(obj._d_counters),
                             _h_counters(obj._h_counters),
-                            _kernel_copy(true) {}
+                            _kernel_copy(true) {
+    /*std::cout << "copy queue" << std::endl;
+    obj._kernel_copy = true;
+    _kernel_copy = true;
+
+    obj._need_update = true;
+    _need_update = true;*/
+}
+/*
+template<typename T>
+TwoLevelQueue<T>::TwoLevelQueue(TwoLevelQueue<T>&& obj) noexcept :
+                            _max_allocated_items(obj._max_allocated_items),
+                            _d_queue_ptrs(obj._d_queue_ptrs),
+                            _d_counters(obj._d_counters),
+                            _h_counters(obj._h_counters) {
+    obj._need_update = true;
+    _need_update = true;
+
+    obj._kernel_copy = true;
+    std::cout << "move queue" << std::endl;
+    _kernel_copy = true;
+}*/
 
 template<typename T>
 TwoLevelQueue<T>::~TwoLevelQueue() noexcept {
@@ -103,25 +124,46 @@ void TwoLevelQueue<T>::insert(const T* items_array, int num_items) noexcept {
     cuMemcpyToDevice(_h_counters, _d_counters);
 }
 
+template<typename = void>
+__global__ void swapKernel(int2* d_counters) {
+    auto counters = *d_counters;
+    counters.x = counters.y;
+    counters.y = 0;
+    *d_counters = counters;
+}
+
+template<typename T>
+void TwoLevelQueue<T>::sync() const noexcept {
+    //if (_need_update) {
+        cuMemcpyToHostAsync(_d_counters, _h_counters);
+    //    _need_update = false;
+    //    std::cout << "updated" << std::endl;
+    //}
+}
+
 template<typename T>
 void TwoLevelQueue<T>::swap() noexcept {
     _d_queue_ptrs.swap();
-
-    cuMemcpyToHostAsync(_d_counters, _h_counters);
+    swapKernel<<< 1, 1 >>>(_d_counters);
+    //std::cout << "swap:: need update: " << _need_update << std::endl;
+    sync();
+    /*cuMemcpyToHostAsync(_d_counters, _h_counters);
     _h_counters.x = _h_counters.y;
     _h_counters.y = 0;
-    cuMemcpyToDeviceAsync(_h_counters, _d_counters);
+    cuMemcpyToDeviceAsync(_h_counters, _d_counters);*/
 }
-
+/*
 template<typename T>
-void TwoLevelQueue<T>::update_host() noexcept {
-    cuMemcpyToHostAsync(_d_counters, _h_counters);
-}
+void TwoLevelQueue<T>::kernel_after() const noexcept {
+    std::cout << "need_update" << std::endl;
+    _need_update = true;
+}*/
 
 template<typename T>
 void TwoLevelQueue<T>::clear() noexcept {
     _h_counters = { 0, 0 };
     cuMemset0x00(_d_counters);
+    //_need_update = false;
 }
 
 template<typename T>
@@ -133,28 +175,34 @@ template<typename T>
 const T* TwoLevelQueue<T>::device_output_ptr() const noexcept {
     return _d_queue_ptrs.second;
 }
+/*
+template<typename T>
+int TwoLevelQueue<T>::size_internal() const noexcept {
+    return _h_counters.x;
+}*/
 
 template<typename T>
 int TwoLevelQueue<T>::size() const noexcept {
-    //update_host();
+    //std::cout << "size:: need update: " << _need_update << std::endl;
+    //sync();
     return _h_counters.x;
 }
 
 template<typename T>
 int TwoLevelQueue<T>::output_size() const noexcept {
-    //update_host();
+    //sync();
     return _h_counters.y;
 }
 
 template<typename T>
 void TwoLevelQueue<T>::print() const noexcept {
-    cuMemcpyToHost(_d_counters, _h_counters);
+    sync();
     cu::printArray(_d_queue_ptrs.first, _h_counters.x);
 }
 
 template<typename T>
 void TwoLevelQueue<T>::print_output() const noexcept {
-    cuMemcpyToHost(_d_counters, _h_counters);
+    sync();
     cu::printArray(_d_queue_ptrs.second, _h_counters.y);
 }
 

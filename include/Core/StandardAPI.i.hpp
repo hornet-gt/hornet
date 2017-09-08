@@ -113,6 +113,11 @@ bool equal(HostIterator host_start, HostIterator host_end,
     return cu::equal(host_start, host_end, device_start);
 }
 
+template<typename T>
+void print(const T* device_input, size_t num_items) {
+    cu::printArray(device_input, num_items);
+}
+
 } // namespace gpu
 
 //==============================================================================
@@ -198,6 +203,11 @@ void excl_prefixsum(const T* input, size_t num_items, T* output) {
             flag = false;
         }
     }
+}
+
+template<typename T>
+void print(const T* host_input, size_t num_items) {
+    xlib::printArray(host_input, num_items);
 }
 
 } // namespace host

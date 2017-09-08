@@ -63,8 +63,10 @@ struct BuildVertexEnqueue {
     TwoLevelQueue<vid_t> queue;
 
     OPERATOR(Vertex& src) {
-        if (d_colors[src.id()] == NO_COLOR)
+        if (d_colors[src.id()] == NO_COLOR) {
             queue.insert(src.id());
+            d_colors[src.id()] = src.id() + 1;
+        }
     }
 };
 
@@ -72,8 +74,9 @@ struct BuildPairQueue {
     TwoLevelQueue<idpair_t> queue;
 
     OPERATOR(Vertex& src, Edge& edge) {
-        if (src.id() > edge.dst_id())
+        if (src.id() > edge.dst_id()) {
             queue.insert({ src.id(), edge.dst_id() });
+        }
     }
 };
 
@@ -85,6 +88,8 @@ struct ColoringOperator {
         bool continue_var;
         auto src_color = d_colors[vertex_pair.x];
         auto dst_color = d_colors[vertex_pair.y];
+        //printf("%d\t->\t%d:\t%d\t%d\n",
+        //        vertex_pair.x, vertex_pair.y, src_color, dst_color);
         if (src_color > dst_color) {
             d_colors[vertex_pair.y] = d_colors[vertex_pair.x];
             continue_var = true;
@@ -143,6 +148,7 @@ void CC::reset() {
 
 void CC::run() {
     auto max_vertex = hornet.max_degree_id();
+    gpu::memsetZero(d_colors + max_vertex);
     queue.insert(max_vertex);
 
     while (queue.size() > 0) {
@@ -150,14 +156,19 @@ void CC::run() {
                     load_balacing);
         queue.swap();
     }
-
     queue.clear();
     forAllVertices(hornet, BuildVertexEnqueue { d_colors, queue });
 
+    queue.swap();
+    if (queue.size() == 0)
+        return;
     forAllEdges(hornet, queue, BuildPairQueue { queue_pair }, load_balacing);
 
-    while (hd_continue)
+    queue_pair.swap();
+    do {
+        hd_continue = false;
         forAll(queue_pair, ColoringOperator { d_colors, hd_continue } );
+    } while (hd_continue);
 }
 
 void CC::release() {
@@ -175,15 +186,16 @@ bool CC::validate() {
     wcc.print_statistics();
     wcc.print_histogram();
 
-    auto color_match = new color_t[ wcc.size() ];
-    std::fill(color_match, color_match + wcc.size(), NO_COLOR);
-
     auto d_results = new color_t[graph.nV()];
     cuMemcpyToHost(d_colors, graph.nV(), d_results);
+
     auto h_result = wcc.result();
+    auto color_match = new color_t[ graph.nV() + 1 ];
+    std::fill(color_match, color_match + graph.nV() + 1, NO_COLOR);
 
     for (vid_t i = 0; i < graph.nV(); i++) {
-        //std::cout << h_result[i] << "\t" << d_results[i] << std::endl;
+        std::cout << i << "\t"
+                  << h_result[i] << "\t" << d_results[i] << std::endl;
         if (color_match[ d_results[i] ] == NO_COLOR)
             color_match[ d_results[i] ] = h_result[i];
         else if (color_match[ d_results[i] ] != h_result[i])

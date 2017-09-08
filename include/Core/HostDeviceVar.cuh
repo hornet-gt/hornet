@@ -2,7 +2,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date September, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -44,64 +44,27 @@ namespace hornet_alg {
 template<typename T>
 class HostDeviceVar {
 public:
-    explicit HostDeviceVar() noexcept {
-        cuMalloc(_d_value_ptr, 1);
-    }
+    explicit HostDeviceVar() noexcept;
 
-    explicit HostDeviceVar(const T& value) noexcept : _value(value) {
-        cuMalloc(_d_value_ptr, 1);
-    }
+    explicit HostDeviceVar(const T& value) noexcept;
 
-    HostDeviceVar(const HostDeviceVar& obj) noexcept :
-                                            _value(obj._value),
-                                            _d_value_ptr(obj._d_value_ptr),
-                                            _is_kernel(true) {
-        cuMemcpyToDeviceAsync(_value, _d_value_ptr);
-        obj._first_eval = false;
-    }
+    HostDeviceVar(const HostDeviceVar& obj) noexcept;
 
-    ~HostDeviceVar() noexcept {
-        if (_is_kernel)
-            cuFree(_d_value_ptr);
-    }
+    //HostDeviceVar(HostDeviceVar&& obj) noexcept;
 
-    __host__ __device__ __forceinline__
-    operator T() const noexcept {
-#if !defined(__CUDA_ARCH__)
-        cuMemcpyToHostAsync(_d_value_ptr, _value);
-#endif
-        return _value;
-    }
-
-    __host__ __device__ __forceinline__
-    operator T() noexcept {
-#if !defined(__CUDA_ARCH__)
-        if (!_first_eval)
-            cuMemcpyToHostAsync(_d_value_ptr, _value);
-        _first_eval = false;
-#endif
-        return _value;
-    }
+    ~HostDeviceVar() noexcept;
 
     __device__ __forceinline__
-    T& ref() noexcept {
-        return &*_d_value_ptr;
-    }
+    T& ref() noexcept;
 
     __device__ __forceinline__
-    T* ptr() noexcept {
-        return _d_value_ptr;
-    }
+    T* ptr() noexcept;
 
     __host__ __device__ __forceinline__
-    const T& operator=(const T& value) noexcept {
-#if defined(__CUDA_ARCH__)
-        *_d_value_ptr = value;
-#else
-        cuMemcpyToDeviceAsync(_value, _d_value_ptr);
-#endif
-        return value;
-    }
+    operator T() noexcept;
+
+    __host__ __device__ __forceinline__
+    const T& operator=(const T& value) noexcept;
 
     template<typename R>
     friend inline
@@ -120,3 +83,5 @@ private:
 };
 
 } // namespace hornet_alg
+
+#include "HostDeviceVar.i.cuh"

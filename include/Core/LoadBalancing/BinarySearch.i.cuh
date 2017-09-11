@@ -77,6 +77,22 @@ void BinarySearch::apply(const HornetClass& hornet,
     CHECK_CUDA_ERROR
 }
 
+template<typename HornetClass, typename Operator>
+void BinarySearch::apply(const HornetClass& hornet, const Operator& op)
+                         const noexcept {
+    static_assert(IsHornet<HornetClass>::value,
+                 "BinarySearch: paramenter is not an instance of Hornet Class");
+    const auto ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
+
+    unsigned grid_size = xlib::ceil_div<ITEMS_PER_BLOCK>(hornet.nE());
+
+    kernel::binarySearchKernel<BLOCK_SIZE, ITEMS_PER_BLOCK>
+        <<< grid_size, BLOCK_SIZE >>>
+        (hornet.device_side(), hornet.device_csr_offsets(),
+         hornet.nV() + 1, op);
+    CHECK_CUDA_ERROR
+}
+
 /*
 template<void (*Operator)(hornet::Edge&, void*)>
 void BinarySearch::apply(const hornet::vid_t* d_input, int num_vertices,

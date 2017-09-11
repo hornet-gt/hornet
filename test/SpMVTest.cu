@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
 
     HornetGPU hornet_matrix(hornet_init);
     SpMV spmv(hornet_matrix, h_vector);
-
+    
     Timer<DEVICE> TM;
     TM.start();
 

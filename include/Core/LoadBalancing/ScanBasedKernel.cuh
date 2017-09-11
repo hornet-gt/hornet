@@ -79,7 +79,7 @@ void scanBasedKernel(HornetDevice              hornet,
         }
 
         degree_t total;
-        xlib::WarpExclusiveScan<>::AddBcast(degree, total);
+        xlib::WarpExclusiveScan<>::addAll(degree, total);
 
         while (total > 0) {
             while ( start < end && degree < LOCAL_SIZE ) {

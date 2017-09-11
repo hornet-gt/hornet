@@ -103,7 +103,7 @@ void TwoLevelQueue<T>::insert(const T& item) noexcept {
     int warp_offset;
     if (xlib::lane_id() == elected_lane)
         warp_offset = atomicAdd(&_d_counters->y, __popc(ballot));
-    int offset = __popc(ballot & xlib::LaneMaskLT()) +
+    int offset = __popc(ballot & xlib::lanemask_lt()) +
                  __shfl_sync(0xFFFFFFFF, warp_offset, elected_lane);
     _d_queue_ptrs.second[offset] = item;
 #else

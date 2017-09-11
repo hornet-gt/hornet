@@ -46,6 +46,7 @@ struct SpMVOperator {
     int* d_result;
 
     OPERATOR(Vertex& vertex, Edge& edge) {
+        //printf("%d %d      %d\n", vertex.id(), edge.dst_id(), edge.weight());
         auto   col = edge.dst_id();
         auto value = edge.weight();
         auto   sum = value * d_vector[col];
@@ -77,7 +78,6 @@ void SpMV::reset() {
 
 void SpMV::run() {
     forAllEdges(hornet, SpMVOperator { d_vector, d_result }, load_balacing);
-    //segmented reduce
 }
 
 void SpMV::release() {
@@ -101,7 +101,6 @@ bool SpMV::validate() {
         h_result[i] = sum;
     }
     bool ret = gpu::equal(h_result, h_result + hornet.nV(), d_result);
-
     delete[] h_result;
     return ret;
 }

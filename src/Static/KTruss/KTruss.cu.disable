@@ -48,19 +48,19 @@ void KTruss::init(){
 
 
 void copyArrayHostToHost(void* hostSrc,  void* hostDst, vid_t elements, int32_t eleSize){
-	memcpy(hostDst,hostSrc,elements*eleSize);
+    memcpy(hostDst,hostSrc,elements*eleSize);
 }
 
 void copyArrayHostToDevice(void* hostSrc, void* devDst, vid_t elements, int32_t eleSize){
-	SAFE_CALL (cudaMemcpy(devDst,hostSrc,elements*eleSize,cudaMemcpyHostToDevice));
+    SAFE_CALL (cudaMemcpy(devDst,hostSrc,elements*eleSize,cudaMemcpyHostToDevice));
 }
 
 void copyArrayDeviceToHost(void* devSrc, void* hostDst, vid_t elements, int32_t eleSize){
-	SAFE_CALL (cudaMemcpy(hostDst,devSrc,elements*eleSize,cudaMemcpyDeviceToHost));
+    SAFE_CALL (cudaMemcpy(hostDst,devSrc,elements*eleSize,cudaMemcpyDeviceToHost));
 }
 
 void copyArrayDeviceToDevice(void* devSrc, void* devDst, vid_t elements, int32_t eleSize){
-	SAFE_CALL (cudaMemcpy(devDst,devSrc,elements*eleSize,cudaMemcpyDeviceToDevice));
+    SAFE_CALL (cudaMemcpy(devDst,devSrc,elements*eleSize,cudaMemcpyDeviceToDevice));
 }
 
 

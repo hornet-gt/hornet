@@ -58,9 +58,9 @@ public:
     SSSP(HornetGPU& hornet);
     ~SSSP();
 
-	void reset()    override;
-	void run()      override;
-	void release()  override;
+    void reset()    override;
+    void run()      override;
+    void release()  override;
     bool validate() override;
 
     void set_parameters(vid_t source);

@@ -58,9 +58,9 @@ public:
     explicit CC(HornetGPU& horne);
     ~CC();
 
-	void reset()    override;
-	void run()      override;
-	void release()  override;
+    void reset()    override;
+    void run()      override;
+    void release()  override;
     bool validate() override;
 private:
     TwoLevelQueue<vid_t>  queue;

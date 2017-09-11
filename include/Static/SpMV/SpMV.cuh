@@ -56,14 +56,14 @@ public:
     SpMV(HornetGPU& hornet, int* h_vector);
     ~SpMV();
 
-	void reset()    override;
-	void run()      override;
-	void release()  override;
+    void reset()    override;
+    void run()      override;
+    void release()  override;
     bool validate() override;
 
 private:
-    //load_balacing::BinarySearch load_balacing;
-    load_balacing::VertexBased1 load_balacing;
+    load_balacing::BinarySearch load_balacing;
+    //load_balacing::VertexBased1 load_balacing;
     //load_balacing::ScanBased load_balacing;
     int* h_vector { nullptr };
     int* d_vector { nullptr };

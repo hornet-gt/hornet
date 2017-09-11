@@ -13,11 +13,13 @@ int main(int argc, char* argv[]) {
 
     graph::GraphStd<vid_t, eoff_t> graph;
     CommandLineParam cmd(graph, argc, argv);
+    //graph.print();
 
     HornetInit hornet_init(graph.nV(), graph.nE(), graph.out_offsets_ptr(),
                            graph.out_edges_ptr());
 
     HornetGPU hornet_graph(hornet_init);
+    //hornet_graph.print();
 
     BfsTopDown bfs_top_down(hornet_graph);
 

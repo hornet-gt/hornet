@@ -44,6 +44,7 @@ BinarySearch::BinarySearch(const HornetClass& hornet) noexcept {
     static_assert(IsHornet<HornetClass>::value,
                  "BinarySearch: paramenter is not an instance of Hornet Class");
     cuMalloc(_d_work, hornet.nV() + 1);
+    prefixsum.initialize(hornet.nV() + 1);
 }
 
 inline BinarySearch::~BinarySearch() noexcept {
@@ -64,8 +65,7 @@ void BinarySearch::apply(const HornetClass& hornet,
         (d_input, hornet.device_degrees(), num_vertices, _d_work);
     CHECK_CUDA_ERROR
 
-    xlib::CubExclusiveSum<int> prefixsum(_d_work, num_vertices + 1);
-    prefixsum.run();
+    prefixsum.run(_d_work, num_vertices + 1);
 
     int total_work;
     cuMemcpyToHostAsync(_d_work + num_vertices, total_work);

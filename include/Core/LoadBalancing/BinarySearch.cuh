@@ -84,6 +84,9 @@ public:
 
 private:
     static const unsigned BLOCK_SIZE = 256;
+
+    xlib::CubExclusiveSum<int> prefixsum;
+
     int* _d_work { nullptr };
 };
 

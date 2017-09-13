@@ -19,7 +19,7 @@ file(GLOB_RECURSE CU_SRCS ${PROJECT_SOURCE_DIR}/src/Static/*.cu)
 
 cuda_add_library(hornetAlg ${CU_SRCS})
 #-------------------------------------------------------------------------------
-
+cuda_add_executable(brim  test/BrimTest.cu)
 cuda_add_executable(bfs  test/BFSTest.cu)
 cuda_add_executable(spmv test/SpMVTest.cu)
 cuda_add_executable(sssp test/SSSPTest.cu)
@@ -27,6 +27,7 @@ cuda_add_executable(cc   test/CCTest.cu)
 #cuda_add_executable(KTruss test/KTrusstest.cu)
 #cuda_add_executable(Triangle test/TriangleTest.cu)
 
+target_link_libraries(brim hornetAlg hornet)
 target_link_libraries(bfs  hornetAlg hornet)
 target_link_libraries(spmv hornetAlg hornet)
 target_link_libraries(sssp hornetAlg hornet)

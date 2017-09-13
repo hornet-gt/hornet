@@ -1,11 +1,10 @@
 /**
- * @brief Breadth-first Search Top-Down test program (C++11 Style APIs)
+ * @brief SSSP test program
  * @file
  */
 #include "Static/ShortestPath/SSSP.cuh"
 #include <GraphIO/GraphStd.hpp>
 #include <Util/CommandLineParam.hpp>
-//#include <cuda_profiler_api.h> //--profile-from-start off
 
 int main(int argc, char* argv[]) {
     using namespace timer;
@@ -30,7 +29,7 @@ int main(int argc, char* argv[]) {
     sssp.run();
 
     TM.stop();
-    TM.print("TopDown");
+    TM.print("SSSP");
 
     auto is_correct = sssp.validate();
     std::cout << (is_correct ? "\nCorrect <>\n\n" : "\n! Not Correct\n\n");

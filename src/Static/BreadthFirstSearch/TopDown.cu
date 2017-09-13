@@ -92,6 +92,7 @@ void BfsTopDown::set_parameters(vid_t source) {
 
 void BfsTopDown::run() {
     while (queue.size() > 0) {
+        //std::cout << queue.size() << std::endl; 
         //for all edges in "queue" applies the operator "BFSOperator" by using
         //the load balancing algorithm instantiated in "load_balacing"
         forAllEdges(hornet, queue,

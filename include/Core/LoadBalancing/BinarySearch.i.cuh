@@ -71,6 +71,8 @@ void BinarySearch::apply(const HornetClass& hornet,
     cuMemcpyToHostAsync(_d_work + num_vertices, total_work);
     unsigned grid_size = xlib::ceil_div<ITEMS_PER_BLOCK>(total_work);
 
+    if (total_work == 0)
+        return;
     kernel::binarySearchKernel<BLOCK_SIZE, ITEMS_PER_BLOCK>
         <<< grid_size, BLOCK_SIZE >>>
         (hornet.device_side(), d_input, _d_work, num_vertices + 1, op);

@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
 
     BfsTopDown bfs_top_down(hornet_graph);
 
-    bfs_top_down.set_parameters(0); //graph.max_out_degree_id()
+    bfs_top_down.set_parameters(graph.max_out_degree_id());
 
     Timer<DEVICE> TM;
     TM.start();

@@ -29,7 +29,7 @@ The document is organized as follows:
   Note: the compiler must be compatible with the related CUDA toolkit version.
   For more information see [CUDA Installation Guide](http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html).
 * [CMake](https://cmake.org) v3.6 or greater.
-* 64-bit Operating System (Ubuntu tested).
+* 64-bit Operating System (Ubuntu 16.04 or above suggested).
 
 ### Quick Start ###
 

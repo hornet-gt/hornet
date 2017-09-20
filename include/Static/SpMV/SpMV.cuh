@@ -48,8 +48,8 @@
 
 namespace hornet_alg {
 
-//using HornetGPU = csr::Hornet<EMPTY, TypeList<int>>;
-using HornetGPU = gpu::Hornet<EMPTY, TypeList<int>>;
+using HornetGPU = csr::Hornet<EMPTY, TypeList<int>>;
+//using HornetGPU = gpu::Hornet<EMPTY, TypeList<int>>;
 
 class SpMV : public StaticAlgorithm<HornetGPU> {
 public:

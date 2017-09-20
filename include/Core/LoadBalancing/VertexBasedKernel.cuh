@@ -52,11 +52,13 @@ void vertexBasedKernel(HornetDevice              hornet,
     int group_lane = threadIdx.x % VW_SIZE;
 
     for (auto i = group_id; i < num_vertices; i += stride) {
+        __syncthreads();
         const auto& vertex = hornet.vertex(d_input[i]);
         for (auto j = group_lane; j < vertex.degree(); j += VW_SIZE) {
             const auto& edge = vertex.edge(j);
             op(vertex, edge);
         }
+        __syncthreads();
     }
 }
 

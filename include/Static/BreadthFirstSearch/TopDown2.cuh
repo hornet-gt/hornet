@@ -1,4 +1,6 @@
 /**
+ * @brief Top-Down implementation of Breadth-first Search by using C++11-Style
+ *        APIs
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
@@ -35,38 +37,40 @@
  *
  * @file
  */
-#include "ScanBasedKernel.cuh"
+#pragma once
 
-namespace load_balacing {
+#include "HornetAlg.hpp"
+#include "Core/LoadBalancing/VertexBased.cuh"
+#include "Core/LoadBalancing/ScanBased.cuh"
+#include "Core/LoadBalancing/BinarySearch.cuh"
+#include <Core/GPUCsr/Csr.cuh>
+#include <Core/GPU/Hornet.cuh>
 
-template<typename HornetClass, typename Operator>
-void ScanBased::apply(const HornetClass& hornet,
-                      const vid_t*       d_input,
-                      int                num_vertices,
-                      const Operator&    op) const noexcept {
-    static_assert(IsHornet<HornetClass>::value,
-                  "ScanBased: paramenter is not an instance of Hornet Class");
-    //const auto ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
-    //const auto   DYN_SMEM_SIZE = ITEMS_PER_BLOCK * sizeof(vid_t);
+namespace hornet_alg {
 
-    kernel::scanBasedKernel<BLOCK_SIZE>
-        <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
-        (hornet.device_side(), d_input, num_vertices, op);
-    CHECK_CUDA_ERROR
-}
+using HornetGPU = csr::Hornet<EMPTY, EMPTY>;
+//using HornetGPU = gpu::Hornet<EMPTY, EMPTY>;
 
-template<typename HornetClass, typename Operator>
-void ScanBased::apply(const HornetClass& hornet, const Operator& op)
-                      const noexcept {
-    static_assert(IsHornet<HornetClass>::value,
-                 "ScanBased: paramenter is not an instance of Hornet Class");
-    //const auto ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
-    //const auto   DYN_SMEM_SIZE = ITEMS_PER_BLOCK * sizeof(vid_t);
+using dist_t = int;
 
-    kernel::scanBasedKernel<BLOCK_SIZE>
-        <<< xlib::ceil_div<BLOCK_SIZE>(hornet.nV()), BLOCK_SIZE >>>
-        (hornet.device_side(), op);
-    CHECK_CUDA_ERROR
-}
+class BfsTopDown2 : public StaticAlgorithm<HornetGPU> {
+public:
+    BfsTopDown2(HornetGPU& hornet);
+    ~BfsTopDown2();
 
-} // namespace load_balacing
+    void reset()    override;
+    void run()      override;
+    void release()  override;
+    bool validate() override;
+
+    void set_parameters(vid_t source);
+private:
+    TwoLevelQueue<vid_t>        queue;
+    load_balacing::BinarySearch load_balacing;
+    //load_balacing::VertexBased1 load_balacing;
+    dist_t* d_distances   { nullptr };
+    vid_t   bfs_source    { 0 };
+    dist_t  current_level { 0 };
+};
+
+} // namespace hornet_alg

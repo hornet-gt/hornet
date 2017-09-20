@@ -43,8 +43,6 @@
  * @brief
  */
 namespace load_balacing {
-using hornet::vid_t;
-using hornet::eoff_t;
 
 template<unsigned VW_SIZE>
 class VertexBased {
@@ -66,7 +64,7 @@ public:
     void apply(const HornetClass& hornet, Operator&& op) const noexcept;
 
 private:
-    static const unsigned BLOCK_SIZE = 256;
+    static const unsigned BLOCK_SIZE = 128;
 };
 
 using  VertexBased1 = VertexBased<1>;

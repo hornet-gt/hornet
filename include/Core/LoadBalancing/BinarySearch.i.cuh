@@ -40,11 +40,13 @@
 namespace load_balacing {
 
 template<typename HornetClass>
-BinarySearch::BinarySearch(const HornetClass& hornet) noexcept {
+BinarySearch::BinarySearch(const HornetClass& hornet,
+                           const float work_factor) noexcept :
+                                _work_size(work_factor * hornet.nV()) {
     static_assert(IsHornet<HornetClass>::value,
                  "BinarySearch: paramenter is not an instance of Hornet Class");
-    cuMalloc(_d_work, hornet.nV() + 1);
-    prefixsum.initialize(hornet.nV() + 1);
+    cuMalloc(_d_work, _work_size);
+    prefixsum.initialize(_work_size);
 }
 
 inline BinarySearch::~BinarySearch() noexcept {
@@ -59,6 +61,8 @@ void BinarySearch::apply(const HornetClass& hornet,
     static_assert(IsHornet<HornetClass>::value,
                  "BinarySearch: paramenter is not an instance of Hornet Class");
     const auto ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
+    const auto   DYN_SMEM_SIZE = ITEMS_PER_BLOCK * sizeof(vid_t);
+    assert(num_vertices < _work_size && "BinarySearch (work queue) too small");
 
     kernel::computeWorkKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
@@ -66,6 +70,7 @@ void BinarySearch::apply(const HornetClass& hornet,
     CHECK_CUDA_ERROR
 
     prefixsum.run(_d_work, num_vertices + 1);
+    CHECK_CUDA_ERROR
 
     int total_work;
     cuMemcpyToHostAsync(_d_work + num_vertices, total_work);
@@ -74,7 +79,7 @@ void BinarySearch::apply(const HornetClass& hornet,
     if (total_work == 0)
         return;
     kernel::binarySearchKernel<BLOCK_SIZE, ITEMS_PER_BLOCK>
-        <<< grid_size, BLOCK_SIZE >>>
+        <<< grid_size, BLOCK_SIZE, DYN_SMEM_SIZE >>>
         (hornet.device_side(), d_input, _d_work, num_vertices + 1, op);
     CHECK_CUDA_ERROR
 }
@@ -85,40 +90,15 @@ void BinarySearch::apply(const HornetClass& hornet, const Operator& op)
     static_assert(IsHornet<HornetClass>::value,
                  "BinarySearch: paramenter is not an instance of Hornet Class");
     const auto ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
+    const auto   DYN_SMEM_SIZE = ITEMS_PER_BLOCK * sizeof(vid_t);
 
     unsigned grid_size = xlib::ceil_div<ITEMS_PER_BLOCK>(hornet.nE());
 
     kernel::binarySearchKernel<BLOCK_SIZE, ITEMS_PER_BLOCK>
-        <<< grid_size, BLOCK_SIZE >>>
+        <<< grid_size, BLOCK_SIZE, DYN_SMEM_SIZE >>>
         (hornet.device_side(), hornet.device_csr_offsets(),
          hornet.nV() + 1, op);
     CHECK_CUDA_ERROR
 }
-
-/*
-template<void (*Operator)(hornet::Edge&, void*)>
-void BinarySearch::apply(const hornet::vid_t* d_input, int num_vertices,
-                         void* optional_data) noexcept {
-    using hornet::vid_t;
-    const int ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
-
-    detail::computeWorkKernel
-        <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
-        (d_input, _d_degrees, num_vertices, _d_work);
-    CHECK_CUDA_ERROR
-
-    xlib::CubExclusiveSum<int> prefixsum(_d_work, num_vertices + 1);
-    prefixsum.run();
-
-    int total_work;
-    cuMemcpyToHost(_d_work + num_vertices, total_work);
-    unsigned grid_size = xlib::ceil_div<ITEMS_PER_BLOCK>(total_work);
-
-    binarySearchKernel<BLOCK_SIZE, ITEMS_PER_BLOCK, Operator>
-        <<< grid_size, BLOCK_SIZE >>>
-        (_custinger.device_side(), d_input, _d_work, num_vertices + 1,
-         optional_data);
-    CHECK_CUDA_ERROR
-}*/
 
 } // namespace load_balacing

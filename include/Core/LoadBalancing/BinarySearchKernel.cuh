@@ -55,7 +55,6 @@ void computeWorkKernel(const hornet::vid_t*    __restrict__ d_input,
         d_work[i] = d_degrees[ d_input[i] ];
 }
 
-
 template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
          typename HornetDevice, typename Operator>
 __global__
@@ -64,14 +63,14 @@ void binarySearchKernel(HornetDevice              hornet,
                         const int*   __restrict__ d_work,
                         int                       work_size,
                         Operator                  op) {
-    __shared__ degree_t smem[ITEMS_PER_BLOCK];
 
     const auto& lambda = [&](int pos, degree_t offset) {
                             const auto& vertex = hornet.vertex(d_input[pos]);
                             const auto&   edge = vertex.edge(offset);
                             op(vertex, edge);
                         };
-    xlib::binarySearchLB<BLOCK_SIZE>(d_work, work_size, smem, lambda);
+    xlib::binarySearchLB<BLOCK_SIZE, ITEMS_PER_BLOCK / BLOCK_SIZE>
+        (d_work, work_size, xlib::dyn_smem, lambda);
 }
 
 template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
@@ -81,14 +80,13 @@ void binarySearchKernel(HornetDevice              hornet,
                         const int*   __restrict__ d_work,
                         int                       work_size,
                         Operator                  op) {
-    __shared__ degree_t smem[ITEMS_PER_BLOCK];
 
     const auto& lambda = [&](int pos, degree_t offset) {
                             const auto& vertex = hornet.vertex(pos);
                             const auto&   edge = vertex.edge(offset);
                             op(vertex, edge);
                         };
-    xlib::binarySearchLB<BLOCK_SIZE>(d_work, work_size, smem, lambda);
+    xlib::binarySearchLB<BLOCK_SIZE>(d_work, work_size, xlib::dyn_smem, lambda);
 }
 
 } // namespace kernel

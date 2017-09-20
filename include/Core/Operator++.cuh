@@ -63,6 +63,10 @@ const int BLOCK_SIZE_OP2 = 256;
 template<typename Operator>
 void forAll(int num_items, const Operator& op);
 
+template<typename T, typename Operator>
+void forAll(const TwoLevelQueue<T>& queue,
+            const Operator&         op);
+
 /**
  * @brief apply the `Operator` a number of times equal to the actual number of
  *        vertices in the graph

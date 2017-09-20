@@ -33,7 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Static/BreadthFirstSearch/TopDown.cuh"
+#include "Static/BreadthFirstSearch/TopDown2.cuh"
 #include "Core/Auxilary/DuplicateRemoving.cuh"
 #include <GraphIO/GraphStd.hpp>
 #include <GraphIO/BFS.hpp>
@@ -47,37 +47,55 @@ const dist_t INF = std::numeric_limits<dist_t>::max();
 // OPERATORS //
 ///////////////
 
-struct BFSOperator {
+struct BFSOperator1 {
     dist_t*              d_distances;
-    dist_t               current_level;
     TwoLevelQueue<vid_t> queue;
 
     OPERATOR(Vertex& vertex, Edge& edge) {
         auto dst = edge.dst_id();
-        if (d_distances[dst] == INF) {//!is_duplicate<2>(dst) &&
-            d_distances[dst] = current_level;
+        if (!is_duplicate<2>(dst) && d_distances[dst] == INF)
             queue.insert(dst);
-        }
+    }
+};
+
+struct BFSOperator2 {
+    dist_t* d_distances;
+    dist_t  current_level;
+
+    OPERATOR(vid_t& vertex_id) {
+        d_distances[vertex_id] = current_level;
+    }
+};
+
+struct BFSOperatorAtomic {
+    dist_t               current_level;
+    dist_t*              d_distances;
+    TwoLevelQueue<vid_t> queue;
+
+    OPERATOR(Vertex& vertex, Edge& edge) {
+        auto dst = edge.dst_id();
+        if (atomicCAS(d_distances + dst, INF, current_level) == INF)
+            queue.insert(dst);
     }
 };
 //------------------------------------------------------------------------------
 /////////////////
-// BfsTopDown //
+// BfsTopDown2 //
 /////////////////
 
-BfsTopDown::BfsTopDown(HornetGPU& hornet) :
+BfsTopDown2::BfsTopDown2(HornetGPU& hornet) :
                                  StaticAlgorithm(hornet),
-                                 queue(hornet),
+                                 queue(hornet, 5),
                                  load_balacing(hornet) {
     gpu::allocate(d_distances, hornet.nV());
     reset();
 }
 
-BfsTopDown::~BfsTopDown() {
+BfsTopDown2::~BfsTopDown2() {
     gpu::free(d_distances);
 }
 
-void BfsTopDown::reset() {
+void BfsTopDown2::reset() {
     current_level = 1;
     queue.clear();
 
@@ -85,53 +103,38 @@ void BfsTopDown::reset() {
     forAllnumV(hornet, [=] __device__ (int i){ distances[i] = INF; } );
 }
 
-void BfsTopDown::set_parameters(vid_t source) {
+void BfsTopDown2::set_parameters(vid_t source) {
     bfs_source = source;
     queue.insert(bfs_source);               // insert bfs source in the frontier
     gpu::memsetZero(d_distances + bfs_source);  //reset source distance
 }
-
-void BfsTopDown::run() {
+/*
+void BfsTopDown2::run() {
     while (queue.size() > 0) {
-        //std::cout << queue.size() << std::endl;
-        //for all edges in "queue" applies the operator "BFSOperator" by using
-        //the load balancing algorithm instantiated in "load_balacing"
-        forAllEdges(hornet, queue,
-                    BFSOperator { d_distances, current_level, queue },
+        forAllEdges(hornet, queue, BFSOperator1 { d_distances, queue },
                     load_balacing);
+        queue.swap();
+        forAll(queue, BFSOperator2 { d_distances, current_level });
         current_level++;
-        queue.swap();
     }
-}
+}*/
 
-//same procedure of run() but it uses lambda expression instead explict
-//struct operator
-void BfsTopDown::run2() {
-    auto distances = d_distances;
-    auto     level = 1;
-
+void BfsTopDown2::run() {
     while (queue.size() > 0) {
-        auto queue1 = queue;
-        const auto& BFSLambda = [=] __device__(auto vertex, auto edge) mutable {
-                                    auto dst = edge.dst_id();
-                                    if (distances[dst] == INF) {
-                                        distances[dst] = level;
-                                        queue1.insert(dst);
-                                    }
-                                };
-
-        forAllEdges(hornet, queue, BFSLambda, load_balacing);
-        level++;
+        forAllEdges(hornet, queue,
+                    BFSOperatorAtomic { current_level, d_distances, queue },
+                    load_balacing);
         queue.swap();
+        current_level++;
     }
 }
 
-void BfsTopDown::release() {
+void BfsTopDown2::release() {
     gpu::free(d_distances);
     d_distances = nullptr;
 }
 
-bool BfsTopDown::validate() {
+bool BfsTopDown2::validate() {
     std::cout << "\nTotal enqueue vertices: "
               << xlib::format(queue.enqueue_items())
               << std::endl;

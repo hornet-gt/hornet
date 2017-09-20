@@ -1,5 +1,4 @@
 /**
- * @internal
  * @brief Device-wide Binary Search load balacing
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
@@ -56,7 +55,8 @@ public:
      * @param[in] hornet cuStinger instance
      */
     template<typename HornetClass>
-    explicit BinarySearch(const HornetClass& hornet) noexcept;
+    explicit BinarySearch(const HornetClass& hornet,
+                          const float work_factor = 2.0f) noexcept;
 
     /**
      * @brief Decostructor
@@ -83,11 +83,12 @@ public:
     void apply(const HornetClass& hornet, const Operator& op) const noexcept;
 
 private:
-    static const unsigned BLOCK_SIZE = 256;
+    static const unsigned BLOCK_SIZE = 128;
 
     xlib::CubExclusiveSum<int> prefixsum;
 
     int* _d_work { nullptr };
+    const size_t _work_size;
 };
 
 } // namespace load_balacing

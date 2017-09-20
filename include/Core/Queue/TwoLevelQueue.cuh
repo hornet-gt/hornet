@@ -71,7 +71,8 @@ public:
      *            level of the queue. Default value: V * 2
      */
     template<typename HornetClass>
-    explicit TwoLevelQueue(const HornetClass& custinger) noexcept;
+    explicit TwoLevelQueue(const HornetClass& custinger,
+                           const float work_factor = 2.0f) noexcept;
 
     explicit TwoLevelQueue(size_t max_allocated_items) noexcept;
 
@@ -167,7 +168,10 @@ public:
      */
     void print_output() const noexcept;
 
-    //void kernel_after() const noexcept;
+    /**
+     * @brief total enqueue items
+     */
+    int enqueue_items() const noexcept;
 
 private:
     ///@internal @brief input and output queue pointers
@@ -175,10 +179,10 @@ private:
 
     const size_t _max_allocated_items { 0 };
     ///@internal @brief device counter of the queue for `traverse_edges()`
-    int2*        _d_counters { nullptr };
-    mutable int2 _h_counters { 0, 0 };
-    bool   _kernel_copy      { false };
-    //mutable bool _need_update         { false };
+    int2*        _d_counters          { nullptr };
+    mutable int2 _h_counters          { 0, 0 };
+    bool         _kernel_copy         { false };
+    int          _enqueue_items       { 0 };
 };
 
 } // namespace hornet_alg

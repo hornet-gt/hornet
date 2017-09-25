@@ -1,12 +1,11 @@
 /**
- * @internal
- * @author Oded Green                                                  <br>
- *         Georgia Institute of Technology, Computational Science and Engineering                   <br>
- *         ogreen@gatech.edu
+ * @author Oded Green                                                       <br>
+ *   Georgia Institute of Technology, Computational Science and Engineering <br>
+ *   ogreen@gatech.edu
  * @date August, 2017
  * @version v2
  *
- * @copyright Copyright © 2017 hornet. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -33,215 +32,194 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
- *
- * @file
  */
 
 #include "Static/KatzCentrality/katz.cuh"
 
-
-using namespace xlib;
-using namespace std;
-typedef int32_t length_t;
-
+using length_t = int;
 
 namespace hornet_alg {
 
-/// TODO - changed hostKatzdata to pointer so that I can try to inherit it in the streaming case.
+/// TODO - changed hostKatzdata to pointer so that I can try to inherit it in
+// the streaming case.
 
-katzCentrality::katzCentrality(HornetGPU& hornet) :
+KatzCentrality::KatzCentrality(HornetGPU& hornet, int max_iteration, int K,
+                               int max_degree, bool is_static) :
                                        StaticAlgorithm(hornet),
-                                       load_balacing(hornet)
-									    {
+                                       load_balacing(hornet) {
+    if (max_iteration <= 0)
+        ERROR("Number of max iterations should be greater than zero")
 
-    deviceKatzData = register_data(hostKatzData);
-	memReleased = true;
+    hd_katzdata().nV            = hornet.nV();
+    hd_katzdata().K             = K;
+    hd_katzdata().max_degree    = max_degree;
+    hd_katzdata().alpha         = 1.0 / (static_cast<double>(max_degree) + 1.0);
+    hd_katzdata().max_iteration = max_iteration;
+
+    auto nV = hornet.nV();
+
+    if (is_static) {
+        gpu::allocate(hd_katzdata().num_paths_data, nV * 2);
+        hd_katzdata().num_paths_prev = hd_katzdata().num_paths_data;
+        hd_katzdata().num_paths_curr = hd_katzdata().num_paths_data + nV;
+        hd_katzdata().num_paths      = nullptr;
+        h_paths_ptr                  = nullptr;
+    }
+    else {
+        gpu::allocate(hd_katzdata().num_paths_data, nV * max_iteration);
+        gpu::allocate(hd_katzdata().num_paths, max_iteration);
+
+        host::allocate(h_paths_ptr, max_iteration);
+        for(int i = 0; i < max_iteration; i++)
+            h_paths_ptr[i] = hd_katzdata().num_paths_data + nV * i;
+
+        hd_katzdata().num_paths_prev = h_paths_ptr[0];
+        hd_katzdata().num_paths_curr = h_paths_ptr[1];
+        host::copyToDevice(h_paths_ptr, max_iteration, hd_katzdata().num_paths);
+    }
+    gpu::allocate(hd_katzdata().KC,          nV);
+    gpu::allocate(hd_katzdata().lower_bound, nV);
+    gpu::allocate(hd_katzdata().upper_bound, nV);
+
+    gpu::allocate(hd_katzdata().is_active,             nV);
+    gpu::allocate(hd_katzdata().vertex_array_sorted,   nV);
+    gpu::allocate(hd_katzdata().vertex_array_unsorted, nV);
+    gpu::allocate(hd_katzdata().lower_bound_sorted,    nV);
+    gpu::allocate(hd_katzdata().lower_bound_unsorted,  nV);
+
+    reset();
 }
 
-katzCentrality::~katzCentrality() {
-	release();
+KatzCentrality::~KatzCentrality() {
+    release();
 }
 
-void katzCentrality::setInitParameters(int32_t maxIteration_,int32_t K_,int32_t maxDegree_, bool isStatic_){
-	hostKatzData.K=K_;
-	hostKatzData.maxDegree=maxDegree_;
-	hostKatzData.alpha = 1.0/((double)hostKatzData.maxDegree+1.0);
+void KatzCentrality::reset() {
+    hd_katzdata().iteration = 1;
 
-	hostKatzData.maxIteration=maxIteration_;
-	isStatic = isStatic_;
-
-	if(maxIteration_==0){
-		cout << "Number of max iterations should be greater than zero" << endl;
-		return;
-	}
+    if (_is_static) {
+        hd_katzdata().num_paths_prev = hd_katzdata().num_paths_data;
+        hd_katzdata().num_paths_curr = hd_katzdata().num_paths_data +
+                                       hornet.nV();
+    }
+    else {
+        hd_katzdata().num_paths_prev = h_paths_ptr[0];
+        hd_katzdata().num_paths_curr = h_paths_ptr[1];
+    }
 }
 
-
-void katzCentrality::init(){
-
-	if(memReleased==false){
-		release();
-		memReleased=true;
-	}
-	hostKatzData.nv = hornet.nV();
-
-	if(isStatic==true){
-		gpu::allocate(hostKatzData.nPathsData, hostKatzData.nv*2);
-		hostKatzData.nPathsPrev = hostKatzData.nPathsData;
-		hostKatzData.nPathsCurr = hostKatzData.nPathsData+(hostKatzData.nv);
-	}
-	else{
-		gpu::allocate(hostKatzData.nPathsData, hostKatzData.nv*hostKatzData.maxIteration);
-		gpu::allocate(hostKatzData.nPaths, hostKatzData.maxIteration);
-		hPathsPtr = (ulong_t**)malloc(hostKatzData.maxIteration* sizeof(ulong_t*));
-
-		for(int i=0; i< hostKatzData.maxIteration; i++){
-			hPathsPtr[i] = (hostKatzData.nPathsData+(hostKatzData.nv)*i);
-		}
-		hostKatzData.nPathsPrev = hPathsPtr[0];
-		hostKatzData.nPathsCurr = hPathsPtr[1];
-		gpu::copyHostToDevice(hPathsPtr,hostKatzData.maxIteration,hostKatzData.nPaths);
-	}
-
-	gpu::allocate(hostKatzData.KC, hostKatzData.nv);
-	gpu::allocate(hostKatzData.lowerBound, hostKatzData.nv);
-	gpu::allocate(hostKatzData.upperBound, hostKatzData.nv);
-
-	gpu::allocate(hostKatzData.isActive, hostKatzData.nv);
-	gpu::allocate(hostKatzData.vertexArraySorted, hostKatzData.nv);
-	gpu::allocate(hostKatzData.vertexArrayUnsorted, hostKatzData.nv);
-	gpu::allocate(hostKatzData.lowerBoundSorted, hostKatzData.nv);
-	gpu::allocate(hostKatzData.lowerBoundUnsorted, hostKatzData.nv);
-
-	syncDeviceWithHost();
-	reset();
+void KatzCentrality::release(){
+    gpu::free(hd_katzdata().num_paths_data);
+    gpu::free(hd_katzdata().num_paths);
+    gpu::free(hd_katzdata().KC);
+    gpu::free(hd_katzdata().lower_bound);
+    gpu::free(hd_katzdata().upper_bound);
+    gpu::free(hd_katzdata().vertex_array_sorted);
+    gpu::free(hd_katzdata().vertex_array_unsorted);
+    gpu::free(hd_katzdata().lower_bound_sorted);
+    gpu::free(hd_katzdata().lower_bound_unsorted);
+    host::free(h_paths_ptr);
 }
 
-void katzCentrality::reset(){
-	hostKatzData.iteration = 1;
+void KatzCentrality::run() {
+    forAllnumV(hornet, InitOperator { hd_katzdata });
 
-	if(isStatic==true){
-		hostKatzData.nPathsPrev = hostKatzData.nPathsData;
-		hostKatzData.nPathsCurr = hostKatzData.nPathsData+(hostKatzData.nv);
-	}
-	else{
-		hostKatzData.nPathsPrev = hPathsPtr[0];
-		hostKatzData.nPathsCurr = hPathsPtr[1];
-	}
-	syncDeviceWithHost();
+    hd_katzdata().iteration  = 1;
+    hd_katzdata().num_active = hornet.nV();
+
+    while (hd_katzdata().num_active > hd_katzdata().K &&
+           hd_katzdata().iteration < hd_katzdata().max_iteration) {
+
+        hd_katzdata().alphaI            = std::pow(hd_katzdata().alpha,
+                                                   hd_katzdata().iteration);
+        hd_katzdata().lower_bound_const = std::pow(hd_katzdata().alpha,
+                                                  hd_katzdata().iteration + 1) /
+                                        (1.0 - hd_katzdata().alpha);
+        hd_katzdata().upper_bound_const = std::pow(hd_katzdata().alpha,
+                                                  hd_katzdata().iteration + 1) /
+                                        (1.0 - hd_katzdata().alpha *
+                                 static_cast<double>(hd_katzdata().max_degree));
+        hd_katzdata().num_active = 0; // Each iteration the number of active
+                                     // vertices is set to zero.
+
+        forAllnumV (hornet, InitNumPathsPerIteration { hd_katzdata } );
+        forAllEdges(hornet, UpdatePathCount          { hd_katzdata } );
+        forAllnumV (hornet, UpdateKatzAndBounds      { hd_katzdata } );
+
+        hd_katzdata().iteration++;
+        if(_is_static) {
+            std::swap(hd_katzdata().num_paths_curr,
+                      hd_katzdata().num_paths_prev);
+        }
+        else {
+            auto                    iter = hd_katzdata().iteration;
+            hd_katzdata().num_paths_prev = h_paths_ptr[iter - 1];
+            hd_katzdata().num_paths_curr = h_paths_ptr[iter - 0];
+        }
+        auto         old_active_count = hd_katzdata().num_active;
+        hd_katzdata().num_prev_active = hd_katzdata().num_active;
+        hd_katzdata().num_active      = 0; // Resetting active vertices for
+                                           // sorting
+
+        // Notice that the sorts the vertices in an incremental order based on
+        // the lower bounds.
+        // The algorithms requires the vertices to be sorted in an decremental
+        // fashion.
+        // As such, we use the num_prev_active variables to store the number of
+        // previous active vertices and are able to find the K-th from last
+        // vertex (which is essentially going from the tail of the array).
+        xlib::CubSortByKey<double, vid_t> cub_sort
+            (hd_katzdata().lower_bound_unsorted,
+             hd_katzdata().vertex_array_unsorted,
+             old_active_count, hd_katzdata().lower_bound_sorted,
+             hd_katzdata().vertex_array_sorted);
+        cub_sort.run();
+
+        forAllVertices(hornet,
+                       CountActive { old_active_count, hd_katzdata } );
+    }
 }
 
-void katzCentrality::release(){
-	if(memReleased==true)
-		return;
-	memReleased=true;
+// This function should only be used directly within run() and is currently
+// commented out due to to large execution overheads.
+void KatzCentrality::printKMostImportant() {
+    auto nV = hornet.nV();
+    host::allocate(num_paths_curr, nV);
+    host::allocate(num_paths_prev, nV);
+    host::allocate(vertexArray,    nV);
+    host::allocate(vertex_array_unsorted, nV);
+    host::allocate(KC,          nV);
+    host::allocate(lower_bound, nV);
+    host::allocate(upper_bound, nV);
 
-	gpu::free(hostKatzData.nPathsData);
+    gpu::copyToHost(hd_katzdata().lower_bound, nV, lower_bound);
+    gpu::copyToHost(hd_katzdata().upper_bound, nV, upper_bound);
+    gpu::copyToHost(hd_katzdata().KC, nV, KC);
+    gpu::copyToHost(hd_katzdata().vertex_array_sorted, nV, vertexArray);
+    gpu::copyToHost(hd_katzdata().vertex_array_unsorted, nV,
+                    vertex_array_unsorted);
 
-	if (!isStatic){
-		gpu::free(hostKatzData.nPaths);
-		// freeHostArray(hPathsPtr);
-		free(hPathsPtr);
-	}
+    if (hd_katzdata().num_prev_active > hd_katzdata().K) {
+        for (int i = hd_katzdata().num_prev_active - 1;
+                i >= hd_katzdata().num_prev_active - hd_katzdata().K; i--) {
+            vid_t j = vertexArray[i];
+            std::cout << j << "\t\t" << KC[j] << "\t\t" << upper_bound[j]
+                      << upper_bound[j] - lower_bound[j] << "\n";
+        }
+    }
+    std::cout << std::endl;
 
-	gpu::free(hostKatzData.KC);
-	gpu::free(hostKatzData.lowerBound);
-	gpu::free(hostKatzData.upperBound);
-
-	gpu::free(hostKatzData.vertexArraySorted);
-	gpu::free(hostKatzData.vertexArrayUnsorted);
-	gpu::free(hostKatzData.lowerBoundSorted);
-	gpu::free(hostKatzData.lowerBoundUnsorted);
-
+    host::free(num_paths_curr);
+    host::free(num_paths_prev);
+    host::free(vertexArray);
+    host::free(vertex_array_unsorted);
+    host::free(KC);
+    host::free(lower_bound);
+    host::free(upper_bound);
 }
 
-void katzCentrality::run(){
-	forAllVertices<katz_operators::init>(hornet,deviceKatzData);
-	hostKatzData.iteration = 1;
-
-	hostKatzData.nActive = hostKatzData.nv;
-
-	while(hostKatzData.nActive> hostKatzData.K && hostKatzData.iteration < hostKatzData.maxIteration){
-
-		hostKatzData.alphaI          = pow(hostKatzData.alpha,hostKatzData.iteration);
-		hostKatzData.lowerBoundConst = pow(hostKatzData.alpha,hostKatzData.iteration+1)/((1.0-hostKatzData.alpha));
-		hostKatzData.upperBoundConst = pow(hostKatzData.alpha,hostKatzData.iteration+1)/((1.0-hostKatzData.alpha*(double)hostKatzData.maxDegree));
-		hostKatzData.nActive = 0; // Each iteration the number of active vertices is set to zero.
-
-		syncDeviceWithHost(); // Passing constants to the device.
-		forAllVertices<katz_operators::initNumPathsPerIteration>(hornet,deviceKatzData);
-        forAllEdges<katz_operators::updatePathCount>(hornet, deviceKatzData);
-		forAllVertices<katz_operators::updateKatzAndBounds>(hornet,deviceKatzData);
-		syncHostWithDevice();
-
-		hostKatzData.iteration++;
-		if(isStatic){
-			// Swapping pointers.
-			ulong_t* temp = hostKatzData.nPathsCurr; hostKatzData.nPathsCurr=hostKatzData.nPathsPrev; hostKatzData.nPathsPrev=temp;
-		}else{
-			hostKatzData.nPathsPrev = hPathsPtr[hostKatzData.iteration - 1];
-			hostKatzData.nPathsCurr = hPathsPtr[hostKatzData.iteration - 0];
-		}
-		length_t oldActiveCount 	= hostKatzData.nActive;
-		hostKatzData.nPrevActive 	= hostKatzData.nActive;
-		hostKatzData.nActive = 0; // Resetting active vertices for sorting operations.
-		syncDeviceWithHost();
-
-		// Notice that the sorts the vertices in an incremental order based on the lower bounds.
-		// The algorithms requires the vertices to be sorted in an decremental fashion.
-		// As such, we use the nPrevActive variables to store the number of previous active vertices
-		// and are able to find the K-th from last vertex (which is essentially going from the tail of the array).
-		xlib::CubSortByKey<double,vid_t> sorter(hostKatzData.lowerBoundUnsorted,hostKatzData.vertexArrayUnsorted,oldActiveCount,hostKatzData.lowerBoundSorted, hostKatzData.vertexArraySorted);
-		sorter.run();
-
-		forAllVertices<katz_operators::countActive>(hornet,hostKatzData.vertexArrayUnsorted,oldActiveCount,deviceKatzData);
-		syncHostWithDevice();
-		// printKMostImportant();
-
-		// cout << "Active  : " << hostKatzData.nActive << endl;
-	}
-	// cout << "@@ " << hostKatzData.iteration << " @@" << endl;
-	syncHostWithDevice();
-}
-// This function should only be used directly within run() and is currently commented out due to 
-// to large execution overheads.
-void katzCentrality::printKMostImportant(){
-
-		ulong_t* nPathsCurr = (ulong_t*) malloc(hostKatzData.nv* sizeof(ulong_t));
-		ulong_t* nPathsPrev = (ulong_t*) malloc(hostKatzData.nv* sizeof(ulong_t));
-		vid_t* vertexArray = (vid_t*) malloc(hostKatzData.nv* sizeof(vid_t));
-		vid_t* vertexArrayUnsorted = (vid_t*) malloc(hostKatzData.nv* sizeof(vid_t));
-		double* KC         = (double*) malloc(hostKatzData.nv* sizeof(double));
-		double* lowerBound = (double*) malloc(hostKatzData.nv* sizeof(double));
-		double* upperBound = (double*) malloc(hostKatzData.nv* sizeof(double));
-
-		gpu::copyDeviceToHost(hostKatzData.lowerBound,hostKatzData.nv,lowerBound);
-		gpu::copyDeviceToHost(hostKatzData.upperBound,hostKatzData.nv, upperBound);
-		gpu::copyDeviceToHost(hostKatzData.KC,hostKatzData.nv,KC);
-		gpu::copyDeviceToHost(hostKatzData.vertexArraySorted,hostKatzData.nv,vertexArray);
-		gpu::copyDeviceToHost(hostKatzData.vertexArrayUnsorted,hostKatzData.nv,vertexArrayUnsorted);
-
-
-		if(hostKatzData.nPrevActive>hostKatzData.K)
-			for (int i=hostKatzData.nPrevActive-1; i>=(hostKatzData.nPrevActive-hostKatzData.K); i--){
-				vid_t j=vertexArray[i];
-				printf("%d\t\t %e\t\t %e\t\t %e\t\t %e\t\t \n",j,KC[j],upperBound[j],lowerBound[j],upperBound[j]-lowerBound[j]);
-			}
-
-		free(nPathsCurr);
-		free(nPathsPrev);
-		free(vertexArray);
-		free(vertexArrayUnsorted);
-		free(KC);
-		free(lowerBound);
-		free(upperBound);
-		
+int KatzCentrality::get_iteration_count(){
+    return hd_katzdata().iteration;
 }
 
-length_t katzCentrality::getIterationCount(){
-	syncHostWithDevice();
-	return hostKatzData.iteration;
-}
-
-
-}// hornetAlgs namespace
+} // namespace hornet_alg

@@ -54,8 +54,8 @@ public:
 
     ~HostDeviceVar() noexcept;
 
-    __device__ __forceinline__
-    T& ref() noexcept;
+    //__device__ __forceinline__
+    //T& ref() noexcept;
 
     __device__ __forceinline__
     T* ptr() noexcept;
@@ -65,6 +65,12 @@ public:
 
     __host__ __device__ __forceinline__
     const T& operator=(const T& value) noexcept;
+
+    __host__ __device__ __forceinline__
+    const T& operator()() const noexcept;
+
+    __host__ __device__ __forceinline__
+    T& operator()() noexcept;
 
     template<typename R>
     friend inline

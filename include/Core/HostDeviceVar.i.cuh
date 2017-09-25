@@ -72,11 +72,12 @@ HostDeviceVar<T>::~HostDeviceVar() noexcept {
         cuFree(_d_value_ptr);
 }
 
+/*
 template<typename T>
 __device__ __forceinline__
 T& HostDeviceVar<T>::ref() noexcept {
     return &*_d_value_ptr;
-}
+}*/
 
 template<typename T>
 __device__ __forceinline__
@@ -107,6 +108,16 @@ const T& HostDeviceVar<T>::operator=(const T& value) noexcept {
 #endif
     _value = value;
     return value;
+}
+
+__host__ __device__ __forceinline__
+const T& operator()() const noexcept {
+    return _value;
+}
+
+__host__ __device__ __forceinline__
+T& operator()() noexcept {
+    return _value;
 }
 
 } // namespace hornet_alg

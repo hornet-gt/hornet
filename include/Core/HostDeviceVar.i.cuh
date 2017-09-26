@@ -110,13 +110,15 @@ const T& HostDeviceVar<T>::operator=(const T& value) noexcept {
     return value;
 }
 
+template<typename T>
 __host__ __device__ __forceinline__
-const T& operator()() const noexcept {
+const T& HostDeviceVar<T>::operator()() const noexcept {
     return _value;
 }
 
+template<typename T>
 __host__ __device__ __forceinline__
-T& operator()() noexcept {
+T& HostDeviceVar<T>::operator()() noexcept {
     return _value;
 }
 

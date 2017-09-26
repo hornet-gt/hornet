@@ -116,7 +116,7 @@ void forAllVertices(HornetClass& hornet, const Operator& op);
  *            `void operator()(Vertex, Edge)` or the lambda expression
  *            `[=](Vertex, Edge){}`
  */
-template<typename HornetClass, typename Operator, typename LoadBalancing>
+template<typename HornetClass, typename Operator>
 void forAllEdges(HornetClass& hornet, const Operator& op);
 
 template<typename HornetClass, typename Operator, typename LoadBalancing>

@@ -36,7 +36,7 @@
  *
  * @file
  */
-namespace katz_operators {
+namespace hornet_alg {
 
 struct Init {
     HostDeviceVar<KatzData> kd;
@@ -66,8 +66,8 @@ struct UpdatePathCount {
     HostDeviceVar<KatzData> kd;
 
     OPERATOR(Vertex& src, Edge& edge){
+        auto src_id = src.id();
         auto dst_id = edge.dst_id();
-        auto src_id = src_.id();
         atomicAdd(kd().num_paths_curr + src_id,
                   kd().num_paths_prev[dst_id]);
     }
@@ -108,4 +108,4 @@ struct CountActive {
     }
 };
 
-};
+} // namespace hornet_alg

@@ -34,7 +34,8 @@
  * </blockquote>}
  */
 
-#include "Static/KatzCentrality/katz.cuh"
+#include "Static/KatzCentrality/Katz.cuh"
+#include "KatzOperators.cuh"
 
 using length_t = int;
 
@@ -122,7 +123,7 @@ void KatzCentrality::release(){
 }
 
 void KatzCentrality::run() {
-    forAllnumV(hornet, InitOperator { hd_katzdata });
+    forAllnumV(hornet, Init { hd_katzdata });
 
     hd_katzdata().iteration  = 1;
     hd_katzdata().num_active = hornet.nV();
@@ -143,7 +144,8 @@ void KatzCentrality::run() {
                                      // vertices is set to zero.
 
         forAllnumV (hornet, InitNumPathsPerIteration { hd_katzdata } );
-        forAllEdges(hornet, UpdatePathCount          { hd_katzdata } );
+        forAllEdges(hornet, UpdatePathCount          { hd_katzdata },
+                    load_balacing);
         forAllnumV (hornet, UpdateKatzAndBounds      { hd_katzdata } );
 
         hd_katzdata().iteration++;
@@ -168,25 +170,31 @@ void KatzCentrality::run() {
         // As such, we use the num_prev_active variables to store the number of
         // previous active vertices and are able to find the K-th from last
         // vertex (which is essentially going from the tail of the array).
-        xlib::CubSortByKey<double, vid_t> cub_sort
+        xlib::CubSortByKey<double, vid_t>::srun
             (hd_katzdata().lower_bound_unsorted,
              hd_katzdata().vertex_array_unsorted,
              old_active_count, hd_katzdata().lower_bound_sorted,
              hd_katzdata().vertex_array_sorted);
-        cub_sort.run();
 
-        forAllVertices(hornet,
-                       CountActive { old_active_count, hd_katzdata } );
+        forAllnumV(hornet, CountActive { hd_katzdata } );
     }
 }
 
 // This function should only be used directly within run() and is currently
 // commented out due to to large execution overheads.
 void KatzCentrality::printKMostImportant() {
+    ulong_t* num_paths_curr;
+    ulong_t* num_paths_prev;
+    int*     vertex_array;
+    int*     vertex_array_unsorted;
+    double*  KC;
+    double*  lower_bound;
+    double*  upper_bound;
+
     auto nV = hornet.nV();
     host::allocate(num_paths_curr, nV);
     host::allocate(num_paths_prev, nV);
-    host::allocate(vertexArray,    nV);
+    host::allocate(vertex_array,   nV);
     host::allocate(vertex_array_unsorted, nV);
     host::allocate(KC,          nV);
     host::allocate(lower_bound, nV);
@@ -195,14 +203,14 @@ void KatzCentrality::printKMostImportant() {
     gpu::copyToHost(hd_katzdata().lower_bound, nV, lower_bound);
     gpu::copyToHost(hd_katzdata().upper_bound, nV, upper_bound);
     gpu::copyToHost(hd_katzdata().KC, nV, KC);
-    gpu::copyToHost(hd_katzdata().vertex_array_sorted, nV, vertexArray);
+    gpu::copyToHost(hd_katzdata().vertex_array_sorted, nV, vertex_array);
     gpu::copyToHost(hd_katzdata().vertex_array_unsorted, nV,
                     vertex_array_unsorted);
 
     if (hd_katzdata().num_prev_active > hd_katzdata().K) {
         for (int i = hd_katzdata().num_prev_active - 1;
                 i >= hd_katzdata().num_prev_active - hd_katzdata().K; i--) {
-            vid_t j = vertexArray[i];
+            vid_t j = vertex_array[i];
             std::cout << j << "\t\t" << KC[j] << "\t\t" << upper_bound[j]
                       << upper_bound[j] - lower_bound[j] << "\n";
         }
@@ -211,15 +219,19 @@ void KatzCentrality::printKMostImportant() {
 
     host::free(num_paths_curr);
     host::free(num_paths_prev);
-    host::free(vertexArray);
+    host::free(vertex_array);
     host::free(vertex_array_unsorted);
     host::free(KC);
     host::free(lower_bound);
     host::free(upper_bound);
 }
 
-int KatzCentrality::get_iteration_count(){
+int KatzCentrality::get_iteration_count() {
     return hd_katzdata().iteration;
+}
+
+bool KatzCentrality::validate() {
+    return true;
 }
 
 } // namespace hornet_alg

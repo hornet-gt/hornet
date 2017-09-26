@@ -42,19 +42,20 @@
 #include "Core/LoadBalancing/VertexBased.cuh"
 #include "Core/LoadBalancing/ScanBased.cuh"
 #include "Core/LoadBalancing/BinarySearch.cuh"
+#include "Core/HostDeviceVar.cuh"
 #include <Core/GPUCsr/Csr.cuh>
 #include <Core/GPU/Hornet.cuh>
-
-using ulong_t = long long unsigned;
 
 namespace hornet_alg {
 
 using HornetGPU = gpu::Hornet<EMPTY, EMPTY>;
 //using HornetGPU = csr::Hornet<EMPTY, EMPTY>;
 
-struct KatzData{
-    uint64_t*  num_paths_data;
-    uint64_t** num_paths; // Will be used for dynamic graph algorithm which
+using ulong_t = long long unsigned;
+
+struct KatzData {
+    ulong_t*  num_paths_data;
+    ulong_t** num_paths; // Will be used for dynamic graph algorithm which
                           // requires storing paths of all iterations.
 
     ulong_t*  num_paths_curr;
@@ -85,17 +86,14 @@ struct KatzData{
     double* lower_bound_sorted;
     int*    vertex_array_unsorted; // Sorting
     int*    vertex_array_sorted;   // Sorting
-
 };
 
 // Label propogation is based on the values from the previous iteration.
-class katzCentrality : public StaticAlgorithm<HornetGPU> {
+class KatzCentrality : public StaticAlgorithm<HornetGPU> {
 public:
-    katzCentrality(HornetGPU& hornet);
-    ~katzCentrality();
-
-    void set_parameters(int max_iteration, int K, int max_degree,
-                        bool is_static = true);
+    KatzCentrality(HornetGPU& hornet, int max_iteration,
+                   int K, int max_degree, bool is_static = true);
+    ~KatzCentrality();
 
     void reset()    override;
     void run()      override;
@@ -108,6 +106,7 @@ private:
     load_balacing::BinarySearch load_balacing;
     HostDeviceVar<KatzData>     hd_katzdata;
     bool                        _is_static;
+    ulong_t**                   h_paths_ptr;
 
     void printKMostImportant();
 };

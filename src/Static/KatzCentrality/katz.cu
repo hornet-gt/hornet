@@ -34,7 +34,7 @@
  * </blockquote>}
  */
 
-#include "Static/KatzCentrality/Katz.cuh"
+#include "Static/KatzCentrality/katz.cuh"
 #include "KatzOperators.cuh"
 
 using length_t = int;

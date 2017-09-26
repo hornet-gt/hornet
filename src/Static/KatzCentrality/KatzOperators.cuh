@@ -87,7 +87,7 @@ struct UpdateKatzAndBounds {
                                 static_cast<double>(kd().num_paths_curr[src]);
 
         if (kd().is_active[src]) {
-            int pos = atomicAdd(&(kd().num_active), 1);
+            int pos = atomicAdd(&(kd.ptr()->num_active), 1);
             kd().vertex_array_unsorted[pos] = src;
             kd().lower_bound_unsorted[pos]  = kd().lower_bound[src];
         }
@@ -102,7 +102,7 @@ struct CountActive {
     OPERATOR(vid_t src) {
         auto index = kd().vertex_array_sorted[kd().num_prev_active - kd().K];
         if (kd().upper_bound[src] > kd().lower_bound[index])
-            atomicAdd(&(kd().num_active), 1);
+            atomicAdd(&(kd.ptr()->num_active), 1);
         else
             kd().is_active[src] = false;
     }

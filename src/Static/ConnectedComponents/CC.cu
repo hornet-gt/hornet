@@ -71,11 +71,11 @@ struct BuildVertexEnqueue {
 };
 
 struct BuildPairQueue {
-    TwoLevelQueue<idpair_t> queue;
+    TwoLevelQueue<idpair_t> queue_pair;
 
     OPERATOR(Vertex& src, Edge& edge) {
         if (src.id() > edge.dst_id()) {
-            queue.insert({ src.id(), edge.dst_id() });
+            queue_pair.insert({ src.id(), edge.dst_id() });
         }
     }
 };
@@ -186,22 +186,36 @@ bool CC::validate() {
     wcc.print_statistics();
     wcc.print_histogram();
 
-    auto d_results = new color_t[graph.nV()];
-    cuMemcpyToHost(d_colors, graph.nV(), d_results);
+    color_t* d_results;
+    host::allocate(d_results, graph.nV());
+    gpu::copyToHost(d_colors, graph.nV(), d_results);
 
-    auto h_result = wcc.result();
-    auto color_match = new color_t[ graph.nV() + 1 ];
-    std::fill(color_match, color_match + graph.nV() + 1, NO_COLOR);
+    auto h_results = wcc.result();
+    color_t* color_match1, *color_match2;
+    host::allocate(color_match1, graph.nV() + 1);
+    host::allocate(color_match2, graph.nV() + 1);
+    std::fill(color_match1, color_match1 + graph.nV() + 1, NO_COLOR);
+    std::fill(color_match2, color_match2 + graph.nV() + 1, NO_COLOR);
 
+    bool ret = true;
     for (vid_t i = 0; i < graph.nV(); i++) {
         std::cout << i << "\t"
-                  << h_result[i] << "\t" << d_results[i] << std::endl;
-        if (color_match[ d_results[i] ] == NO_COLOR)
-            color_match[ d_results[i] ] = h_result[i];
-        else if (color_match[ d_results[i] ] != h_result[i])
-            return false;
+                  << h_results[i] << "\t" << d_results[i] << std::endl;
+        if (color_match1[ h_results[i] ] == NO_COLOR &&
+                color_match2[ d_results[i] ] == NO_COLOR) {
+            color_match2[ d_results[i] ] = h_results[i];
+            color_match1[ h_results[i] ] = d_results[i];
+        }
+        else if (color_match1[ h_results[i] ] != d_results[i] ||
+                 color_match2[ d_results[i] ] != h_results[i]) {
+            ret = false;
+            break;
+        }
     }
-    return true;
+    host::free(d_results);
+    host::free(color_match1);
+    host::free(color_match2);
+    return ret;
 }
 
 } // namespace hornet_alg

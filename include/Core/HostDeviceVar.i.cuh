@@ -51,33 +51,27 @@ template<typename T>
 HostDeviceVar<T>::HostDeviceVar(const HostDeviceVar& obj) noexcept :
                                         _value(obj._value),
                                         _d_value_ptr(obj._d_value_ptr),
-                                        _is_kernel(true) {
-    //cuMemcpyToDeviceAsync(_value, _d_value_ptr);
-    //std::cout << "copy" << std::endl;
+                                        _copy_count(obj._copy_count + 1) {
+    if (_copy_count == 2)
+        cuMemcpyToDeviceAsync(_value, _d_value_ptr);
+    assert(_copy_count < 3);
 }
-/*
-template<typename T>
-HostDeviceVar<T>::HostDeviceVar(HostDeviceVar&& obj) noexcept :
-                                        _value(obj._value),
-                                        _d_value_ptr(obj._d_value_ptr),
-                                        _is_kernel(true) {
-    cuMemcpyToDeviceAsync(_value, _d_value_ptr);
-    obj._first_eval = false;
-    std::cout << "move" << std::endl;
-}*/
 
 template<typename T>
 HostDeviceVar<T>::~HostDeviceVar() noexcept {
-    if (!_is_kernel)
+    if (_copy_count == 0)
         cuFree(_d_value_ptr);
 }
 
-/*
 template<typename T>
-__device__ __forceinline__
-T& HostDeviceVar<T>::ref() noexcept {
-    return &*_d_value_ptr;
-}*/
+__host__ __device__ __forceinline__
+void HostDeviceVar<T>::sync() noexcept {
+#if defined(__CUDA_ARCH__)
+    *_d_value_ptr = _value;
+#else
+    cuMemcpyToHostAsync(_d_value_ptr, _value);
+#endif
+}
 
 template<typename T>
 __device__ __forceinline__
@@ -89,13 +83,12 @@ template<typename T>
 __host__ __device__ __forceinline__
 HostDeviceVar<T>::operator T() noexcept {
 #if !defined(__CUDA_ARCH__)
-    if (!_first_eval)
-        cuMemcpyToHostAsync(_d_value_ptr, _value);
-    _first_eval = false;
-    return _value;
-#else
-    return *_d_value_ptr;
+    cuMemcpyToHostAsync(_d_value_ptr, _value);
 #endif
+    return _value;
+//#else
+//    return *_d_value_ptr;
+//#endif
 }
 
 template<typename T>
@@ -103,8 +96,6 @@ __host__ __device__ __forceinline__
 const T& HostDeviceVar<T>::operator=(const T& value) noexcept {
 #if defined(__CUDA_ARCH__)
     *_d_value_ptr = value;
-#else
-    cuMemcpyToDeviceAsync(value, _d_value_ptr);
 #endif
     _value = value;
     return value;

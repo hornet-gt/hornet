@@ -148,6 +148,8 @@ void KatzCentrality::run() {
                     load_balacing);
         forAllnumV (hornet, UpdateKatzAndBounds      { hd_katzdata } );
 
+        hd_katzdata.sync();
+
         hd_katzdata().iteration++;
         if(_is_static) {
             std::swap(hd_katzdata().num_paths_curr,
@@ -177,6 +179,7 @@ void KatzCentrality::run() {
              hd_katzdata().vertex_array_sorted);
 
         forAllnumV(hornet, CountActive { hd_katzdata } );
+        hd_katzdata.sync();
     }
 }
 

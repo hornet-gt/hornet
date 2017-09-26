@@ -50,12 +50,10 @@ public:
 
     HostDeviceVar(const HostDeviceVar& obj) noexcept;
 
-    //HostDeviceVar(HostDeviceVar&& obj) noexcept;
-
     ~HostDeviceVar() noexcept;
 
-    //__device__ __forceinline__
-    //T& ref() noexcept;
+    __host__ __device__ __forceinline__
+    void sync() noexcept;
 
     __device__ __forceinline__
     T* ptr() noexcept;
@@ -82,10 +80,9 @@ public:
     }
 
 private:
-    T            _value;
-    T*           _d_value_ptr { nullptr };
-    bool         _is_kernel   { false };
-    mutable bool _first_eval  { true };
+    T    _value;
+    T*   _d_value_ptr { nullptr };
+    int  _copy_count  { 0 };
 };
 
 } // namespace hornet_alg

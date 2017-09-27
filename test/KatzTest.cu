@@ -36,14 +36,8 @@
  *
  * @file
  */
-<<<<<<< HEAD
 #include "Static/KatzCentrality/Katz.cuh"
 #include <Device/Timer.cuh>
-=======
-
-#include "Static/KatzCentrality/katz.cuh"
-#include "Device/Timer.cuh"
->>>>>>> 702ad7bd431123b222afd72cae250cf81e2ebc7f
 #include <GraphIO/GraphStd.hpp>
 
 int main(int argc, char* argv[]) {

@@ -34,7 +34,7 @@
  * </blockquote>}
  */
 
-#include "Static/KatzCentrality/katz.cuh"
+#include "Static/KatzCentrality/Katz.cuh"
 #include "KatzOperators.cuh"
 
 using length_t = int;
@@ -47,7 +47,8 @@ namespace hornet_alg {
 KatzCentrality::KatzCentrality(HornetGPU& hornet, int max_iteration, int K,
                                int max_degree, bool is_static) :
                                        StaticAlgorithm(hornet),
-                                       load_balacing(hornet) {
+                                       load_balacing(hornet),
+                                       is_static(is_static) {
     if (max_iteration <= 0)
         ERROR("Number of max iterations should be greater than zero")
 
@@ -98,7 +99,7 @@ KatzCentrality::~KatzCentrality() {
 void KatzCentrality::reset() {
     hd_katzdata().iteration = 1;
 
-    if (_is_static) {
+    if (is_static) {
         hd_katzdata().num_paths_prev = hd_katzdata().num_paths_data;
         hd_katzdata().num_paths_curr = hd_katzdata().num_paths_data +
                                        hornet.nV();
@@ -151,7 +152,7 @@ void KatzCentrality::run() {
         hd_katzdata.sync();
 
         hd_katzdata().iteration++;
-        if(_is_static) {
+        if(is_static) {
             std::swap(hd_katzdata().num_paths_curr,
                       hd_katzdata().num_paths_prev);
         }

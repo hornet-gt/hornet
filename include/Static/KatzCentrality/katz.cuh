@@ -105,8 +105,8 @@ public:
 private:
     load_balacing::BinarySearch load_balacing;
     HostDeviceVar<KatzData>     hd_katzdata;
-    bool                        _is_static;
     ulong_t**                   h_paths_ptr;
+    bool                        is_static;
 
     void printKMostImportant();
 };

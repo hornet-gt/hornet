@@ -37,7 +37,7 @@
  * @file
  */
 
-#include "Static/KatzCentrality/Katz.cuh"
+#include "Static/KatzCentrality/katz.cuh"
 #include "Device/Timer.cuh"
 #include <GraphIO/GraphStd.hpp>
 

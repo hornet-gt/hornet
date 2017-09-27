@@ -40,6 +40,7 @@
 
 #include "Core/Queue/TwoLevelQueue.cuh"
 #include <BasicTypes.hpp>
+#include <Core/GPU/BatchUpdate.cuh>
 
 namespace hornet_alg {
 using hornet::vid_t;
@@ -182,11 +183,17 @@ void forAllEdges(HornetClass&                hornet,
 
 //==============================================================================
 
-template<typename BatchUpdateT, typename Operator>
-void forAllBatchEdges(const BatchUpdateT& batch_update, const Operator& op);
+using BatchUpdate = hornet::gpu::BatchUpdate;
 
-template<typename BatchUpdateT, typename Operator>
-void forAllBatchVertices(const BatchUpdateT& batch_update, const Operator& op);
+template<typename HornetClass, typename Operator>
+void forAllEdges(HornetClass& hornet,
+                 const BatchUpdate& batch_update,
+                 const Operator& op);
+
+template<typename HornetClass, typename Operator>
+void forAllVertices(HornetClass& hornet,
+                    const BatchUpdate& batch_update,
+                    const Operator& op);
 
 } // namespace hornet_alg
 

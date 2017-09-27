@@ -36,61 +36,51 @@
  *
  * @file
  */
-
-#include "Static/KatzCentrality/katz.cuh"
-#include "Dynamic/KatzCentrality/katz.cuh"
-#include "Device/Timer.cuh"
-
-
-using namespace timer;
-using namespace custinger;
-using namespace custinger_alg;
+#include "Dynamic/KatzCentrality/Katz.cuh"
+#include <Device/Timer.cuh>
+#include <GraphIO/GraphStd.hpp>
 
 int main(int argc, char* argv[]) {
     using namespace graph::structure_prop;
     using namespace graph::parsing_prop;
+    using namespace graph;
+    using namespace hornet_alg;
+    using namespace timer;
 
-	int device=0;
+    int max_iterations = 1000;
+    int           topK = 100;
 
-    cudaSetDevice(device);
-	cudaDeviceProp prop;
-	cudaGetDeviceProperties(&prop, device);
+    GraphStd<vid_t, eoff_t> graph(UNDIRECTED | REVERSE);
+    graph.read(argv[1], SORT | PRINT_INFO);
 
+    HornetInit hornet_init(graph.nV(), graph.nE(),
+                           graph.out_offsets_ptr(),
+                           graph.out_edges_ptr());
 
-	int maxIterations=1000;
-	int topK=100;
+	HornetGPU hornet_graph(hornet_init);
 
-    graph::GraphStd<vid_t, eoff_t> graph(UNDIRECTED);
-    graph.read(argv[1], SORT | PRINT);
+    HornetInit hornet_init_inverse(graph.nV(), graph.nE(),
+                                   graph.in_offsets_ptr(),
+                                   graph.in_edges_ptr());
 
-	cuStingerInit custinger_init(graph.nV(), graph.nE(),
-                                 graph.out_offsets_ptr(),
-                                 graph.out_edges_ptr());
+    // Finding largest vertex
+    degree_t max_degree_vertex = hornet_graph.max_degree_id();
+    std::cout << "Max degree vextex is " << max_degree_vertex << std::endl;
 
-	cuStinger custinger_graph(custinger_init);
-
-
-	// Finding largest vertex
-	degree_t   maxDeg		=custinger_graph.max_degree();
-	cout << "Max degree is " << maxDeg << endl;
-
-	float totalTime;
-
-	custinger_alg::katzCentrality kcPostUpdate(custinger_graph);
-	kcPostUpdate.setInitParameters(maxIterations,topK,maxDeg,true);
-	kcPostUpdate.init();
-	kcPostUpdate.reset();
+	KatzCentrality kcPostUpdate(hornet_graph, max_iterations, topK,
+                                max_degree_vertex);
 	Timer<DEVICE> TM;
 	TM.start();
+
 	kcPostUpdate.run();
+
 	TM.stop();
-	totalTime = TM.duration();
-	cout << "The number of iterations      : " << kcPostUpdate.getIterationCount() << endl;
-	cout << "Total time for KC             : " << totalTime << endl;
-	cout << "Average time per iteartion    : " << totalTime/(float)kcPostUpdate.getIterationCount() << endl;
-
-	kcPostUpdate.release();
-
-    return 0;
-
+    auto total_time = TM.duration();
+    std::cout << "The number of iterations   : "
+              << kcPostUpdate.get_iteration_count()
+              << "\nTotal time for KC          : " << total_time
+              << "\nAverage time per iteartion : "
+              << total_time /
+                 static_cast<float>(kcPostUpdate.get_iteration_count())
+              << "\n";
 }

@@ -39,13 +39,17 @@
 #pragma once
 
 #include "HornetAlg.hpp"
-#include "Core/BatchUpdate.cuh"
 #include "Core/StandardAPI.hpp"
-#include "Static/KatzCentrality/katz.cuh"
+#include "Static/KatzCentrality/Katz.cuh"
 
 namespace hornet_alg {
 
-struct katzDynamicData : katzData {
+struct KatzDynamicData : KatzData {
+    KatzDynamicData() = default;
+    KatzDynamicData(KatzData data) : KatzData(data) {}
+    __device__
+    void operator=(const KatzDynamicData&) { assert(false); }
+
     TwoLevelQueue<vid_t> active_queue;
 
     ulong_t* new_paths_curr;
@@ -54,46 +58,47 @@ struct katzDynamicData : katzData {
     int      iteration_static;
 };
 
-class katzCentralityDynamic : public StaticAlgorithm<HornetGPU> {
+class KatzCentralityDynamic : public StaticAlgorithm<HornetGPU> {
 public:
-    katzCentralityDynamic(HornetGPU& hornet);
-    ~katzCentralityDynamic();
+    KatzCentralityDynamic(HornetGPU& hornet,
+                          HornetGPU& inverted_graph,
+                          int max_iteration, int K,
+                          degree_t max_degree);
 
-    void setInitParametersUndirected(int maxIteration_, int K_, degree_t maxDegree_);
-    void setInitParametersDirected(int maxIteration_, int K_, degree_t maxDegree_,
-                                   cuStinger* invertedGraph);
+    KatzCentralityDynamic(HornetGPU& hornet,
+                          int max_iteration, int K,
+                          degree_t max_degree);
+
+    ~KatzCentralityDynamic();
+
+    void setInitParametersUndirected(int max_iteration, int K,
+                                     degree_t max_degree);
+    void setInitParametersDirected(int max_iteration, int K,
+                                   degree_t max_degree);
 
     void reset()    override;
     void run()      override;
+    void run_static();
     void release()  override;
     bool validate() override;
 
-    void runStatic();
-
-    void batchUpdateInserted(BatchUpdate &bu);
-    void batchUpdateDeleted(BatchUpdate &bu);
-    void Release();
-
     int get_iteration_count();
 
-    virtual void copyKCToHost(double* hostArray){
-        kcStatic.copyKCToHost(hostArray);
-    }
-    virtual void copynPathsToHost(ulong_t* hostArray){
-        kcStatic.copynPathsToHost(hostArray);
-    }
-//protected:
-//    katzDynamicData hostKatzData, *deviceKatzData;
+    void copyKCToHost(double* host_array);
+    void copyNumPathsToHost(ulong_t* host_array);
+
+    void batchUpdateInserted(BatchUpdate& batch_update);
+    void batchUpdateDeleted(BatchUpdate&  batch_update);
+
 private:
-    HostDeviceVar<KatzData> hd_katzdata;
+    HostDeviceVar<KatzDynamicData> hd_katzdata;
 
+    HornetGPU&                  inverted_graph;
     load_balacing::BinarySearch load_balacing;
-    katzCentrality kcStatic;
+    KatzCentrality              kc_static;
+    bool is_directed;
 
-    cuStinger* invertedGraph;
-    bool isDirected;
-
-    void processUpdate(BatchUpdate &bu, bool isInsert);
+    void processUpdate(BatchUpdate& batch_update, bool is_insert);
 };
 
 } // namespace hornet_alg

@@ -40,7 +40,7 @@ namespace hornet_alg {
 
 // Used only once when the streaming katz data structure is initialized
 struct InitStreaming {
-    HostDeviceVar<KatzData> kd;
+    HostDeviceVar<KatzDynamicData> kd;
 
     OPERATOR(vid_t vertex_id) {
         kd().new_paths_curr[vertex_id] = 0;
@@ -52,7 +52,7 @@ struct InitStreaming {
 //------------------------------------------------------------------------------
 
 struct SetupInsertions {
-    HostDeviceVar<KatzData> kd;
+    HostDeviceVar<KatzDynamicData> kd;
 
     OPERATOR(Vertex& vertex, Edge& edge) {
         auto src = vertex.id();
@@ -68,7 +68,7 @@ struct SetupInsertions {
 //------------------------------------------------------------------------------
 
 struct SetupDeletions {
-    HostDeviceVar<KatzData> kd;
+    HostDeviceVar<KatzDynamicData> kd;
 
     OPERATOR(Vertex& vertex, Edge& edge) {
         double minus_alpha = -kd().alpha;
@@ -79,13 +79,14 @@ struct SetupDeletions {
         atomicAdd(kd().new_paths_prev + src, -1);
         vid_t prev = atomicCAS(kd().active + src, 0, kd().iteration);
         if (prev == 0)
+            kd().active_queue.insert(src);
     }
 };
 
 //------------------------------------------------------------------------------
 
 struct InitActiveNewPaths {
-    HostDeviceVar<KatzData> kd;
+    HostDeviceVar<KatzDynamicData> kd;
 
     OPERATOR(vid_t vertex_id) {
         auto npath = kd().num_paths[kd().iteration][vertex_id];
@@ -96,7 +97,7 @@ struct InitActiveNewPaths {
 //------------------------------------------------------------------------------
 
 struct FindNextActive {
-    HostDeviceVar<KatzData> kd;
+    HostDeviceVar<KatzDynamicData> kd;
 
     OPERATOR(Vertex& vertex, Edge& edge) {
         auto dst = edge.dst_id();
@@ -113,7 +114,7 @@ struct FindNextActive {
 //------------------------------------------------------------------------------
 
 struct UpdateActiveNewPaths {
-    HostDeviceVar<KatzData> kd;
+    HostDeviceVar<KatzDynamicData> kd;
 
     OPERATOR(Vertex& vertex, Edge& edge) {
         auto dst = edge.dst_id();
@@ -130,7 +131,7 @@ struct UpdateActiveNewPaths {
 //------------------------------------------------------------------------------
 
 struct UpdateNewPathsBatchInsert {
-    HostDeviceVar<KatzData> kd;
+    HostDeviceVar<KatzDynamicData> kd;
 
     OPERATOR(Vertex& vertex_id, Edge& edge) {
         auto dst = edge.dst_id();
@@ -144,7 +145,7 @@ struct UpdateNewPathsBatchInsert {
 //------------------------------------------------------------------------------
 
 struct UpdateNewPathsBatchDelete {
-    HostDeviceVar<KatzData> kd;
+    HostDeviceVar<KatzDynamicData> kd;
 
     OPERATOR(Vertex& vertex, Edge& edge) {
         auto dst = edge.dst_id();
@@ -158,14 +159,15 @@ struct UpdateNewPathsBatchDelete {
 //------------------------------------------------------------------------------
 
 struct UpdatePrevWithCurr {
-    HostDeviceVar<KatzData> kd;
+    HostDeviceVar<KatzDynamicData> kd;
 
     OPERATOR(vid_t vertex_id) {
-        // Note the conversion to signed long long int!! Especially important for edge deletions where this diff can be negative
-        long long int pathsDiff = kd().new_paths_curr[vertex_id] -
-                                  kd().num_paths[kd().iteration][src];
+        // Note the conversion to signed long long int!! Especially important
+        //for edge deletions where this diff can be negative
+        long long int paths_diff = kd().new_paths_curr[vertex_id] -
+                                   kd().num_paths[kd().iteration][vertex_id];
 
-        kd().KC[vertex_id] += kd().alphaI * pathsDiff;
+        kd().KC[vertex_id] += kd().alphaI * paths_diff;
         if(kd().active[vertex_id] < kd().iteration) {
             auto prev = kd().new_paths_prev[vertex_id];
             kd().num_paths[kd().iteration - 1][vertex_id] = prev;
@@ -177,7 +179,7 @@ struct UpdatePrevWithCurr {
 //------------------------------------------------------------------------------
 
 struct UpdateLastIteration {
-    HostDeviceVar<KatzData> kd;
+    HostDeviceVar<KatzDynamicData> kd;
 
     OPERATOR(vid_t vertex_id) {
         if (kd().active[vertex_id] < kd().iteration) {

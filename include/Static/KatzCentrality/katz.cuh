@@ -102,6 +102,11 @@ public:
 
     int get_iteration_count();
 
+    void copyKCToHost(double* host_array);
+    void copyNumPathsToHost(ulong_t* host_array);
+
+    KatzData katz_data();
+
 private:
     load_balacing::BinarySearch load_balacing;
     HostDeviceVar<KatzData>     hd_katzdata;

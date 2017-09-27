@@ -36,14 +36,29 @@
  *
  * @file
  */
-#include "Dynamic/KatzCentrality/katz.cuh"
+#include "Dynamic/KatzCentrality/Katz.cuh"
+#include "KatzOperators.cuh"
 
 namespace hornet_alg {
 
-katzCentralityDynamic::katzCentralityDynamic(HornetGPU& hornet) :
-                                       StaticAlgorithm(hornet),
-                                       load_balacing(hornet),
-                                       hd_katzdata.active_queue(hornet) {
+KatzCentralityDynamic::KatzCentralityDynamic(HornetGPU& hornet,
+                                             HornetGPU& inverted_graph,
+                                             int max_iteration, int K,
+                                             degree_t max_degree) :
+                                   StaticAlgorithm(hornet),
+                                   load_balacing(hornet),
+                                   inverted_graph(inverted_graph),
+                                   is_directed(false),
+                                   kc_static(hornet, max_iteration, K,
+                                             max_degree, false) {
+
+    hd_katzdata().active_queue.initilize(hornet);
+
+    gpu::allocate(hd_katzdata().new_paths_curr, hornet.nV());
+    gpu::allocate(hd_katzdata().new_paths_prev, hornet.nV());
+    gpu::allocate(hd_katzdata().active,         hornet.nV());
+
+    hd_katzdata = kc_static.katz_data();
 
     std::cout << "Oded remember to take care of memory de-allocation\n"
               << "Oded need to figure out correct API for dynamic graph"
@@ -53,138 +68,144 @@ katzCentralityDynamic::katzCentralityDynamic(HornetGPU& hornet) :
               << std::endl;
 }
 
-katzCentralityDynamic::~katzCentralityDynamic() {
+KatzCentralityDynamic::KatzCentralityDynamic(HornetGPU& hornet,
+                                             int max_iteration, int K,
+                                             degree_t max_degree) :
+                                   StaticAlgorithm(hornet),
+                                   load_balacing(hornet),
+                                   inverted_graph(inverted_graph),
+                                   is_directed(true),
+                                   kc_static(inverted_graph, max_iteration, K,
+                                             max_degree, true) {
+
+    hd_katzdata().active_queue.initilize(hornet);
+
+    gpu::allocate(hd_katzdata().new_paths_curr, hornet.nV());
+    gpu::allocate(hd_katzdata().new_paths_prev, hornet.nV());
+    gpu::allocate(hd_katzdata().active,         hornet.nV());
+
+    hd_katzdata = kc_static.katz_data();
+
+    std::cout << "Oded remember to take care of memory de-allocation\n"
+              << "Oded need to figure out correct API for dynamic graph"
+              << "algorithms\n"
+              << "Dynamic katz centrality algorithm needs to get both the"
+              << "original graph and the inverted graph for directed graphs"
+              << std::endl;
+}
+
+KatzCentralityDynamic::~KatzCentralityDynamic() {
     release();
 }
 
-void katzCentralityDynamic::setInitParametersUndirected(int maxIteration_, int K_,degree_t maxDegree_){
-    kcStatic.setInitParameters(maxIteration_,K_,maxDegree_,false);
-    is_directed = false;
-}
-void katzCentralityDynamic::setInitParametersDirected(int maxIteration_, int K_,degree_t maxDegree_, cuStinger* invertedGraph__){
-    kcStatic.setInitParameters(maxIteration_, K_, maxDegree_, false);
-    invertedGraph = invertedGraph__;
-    is_directed   = true;
-}
-
-void katzCentralityDynamic::init(){
-    // Initializing the static graph KatzCentrality data structure
-    kcStatic.init();
-
-    host::copyToHost(kcStatic.getHostKatzData(), 1, &hd_katzdata,);
-    gpu::copyToDevice(kcStatic.getDeviceKatzData(), 1, deviceKatzData);
-
-    gpu::allocate(hd_katzdata.new_paths_curr, hornet.nV());
-    gpu::allocate(hd_katzdata.new_paths_prev, hornet.nV());
-    gpu::allocate(hd_katzdata.active,         hornet.nV());
-}
-
-
-void katzCentralityDynamic::runStatic() {
+void KatzCentralityDynamic::run_static() {
     // Executing the static graph algorithm
-    kcStatic.reset();
-    kcStatic.run(hornet);
+    kc_static.reset();
+    kc_static.run();
 
-    host::copyToHost(kcStatic.getHostKatzData(), 1, &hd_katzdata,);
-    gpu::copyToDevice(kcStatic.getDeviceKatzData(), 1, deviceKatzData);
-
-    hd_katzdata.iteration_static = hd_katzdata.iteration;
+    hd_katzdata().iteration_static = hd_katzdata().iteration;
 
     // Initializing the fields of the dynamic graph algorithm
-    forAllVertices<initStreaming>(hornet, InitStreaming { deviceKatzData } );
+    forAllnumV(hornet, InitStreaming { hd_katzdata } );
 }
 
-void katzCentralityDynamic::release(){
-    gpu::free(hd_katzdata.new_paths_curr);
-    gpu::free(hd_katzdata.new_paths_prev);
-    gpu::free(hd_katzdata.active);
-    gpu::free(deviceKatzData);
+void KatzCentralityDynamic::release(){
+    gpu::free(hd_katzdata().new_paths_curr);
+    gpu::free(hd_katzdata().new_paths_prev);
+    gpu::free(hd_katzdata().active);
 }
 
 //==============================================================================
 
-int katzCentralityDynamic::get_iteration_count(){
-    return hd_katzdata.iteration;
-}
-
-void katzCentralityDynamic::batchUpdateInsertion(BatchUpdate &batch_update) {
-    processUpdate(batch_update, true);
-}
-
-void katzCentralityDynamic::batchUpdateDeleted(BatchUpdate &batch_update) {
-    processUpdate(batch_update, false);
-}
-
-void katzCentralityDynamic::processUpdate(BatchUpdate& batch_update,
+void KatzCentralityDynamic::processUpdate(BatchUpdate& batch_update,
                                           bool is_insert) {
     // Resetting the queue of the active vertices.
-    hd_katzdata.active_queue.clear();
-    hd_katzdata.iteration = 1;
+    hd_katzdata().active_queue.clear();
+    hd_katzdata().iteration = 1;
 
     // Initialization of insertions or deletions is slightly different.
-    if (is_insert) {
-        allEinA_TraverseEdges(hornet,
-                              setupInsertions { deviceKatzData, batch_update });
-    }
-    else {
-        allEinA_TraverseEdges(hornet,
-                              SetupDeletions { deviceKatzData, batch_update } );
-    }
-    syncHostWithDevice();
+    if (is_insert)
+        forAllEdges(hornet, batch_update, SetupInsertions { hd_katzdata });
+    else
+        forAllEdges(hornet, batch_update, SetupDeletions { hd_katzdata } );
+    hd_katzdata.sync();
 
-    hd_katzdata.iteration = 2;
-    hd_katzdata.num_active   = hd_katzdata.active_queue.getQueueEnd();
+    hd_katzdata().iteration = 2;
 
-    while (hd_katzdata.iteration < hd_katzdata.maxIteration &&
-           hd_katzdata.iteration < hd_katzdata.iteration_static) {
-        hd_katzdata.alphaI = std::pow(hd_katzdata.alpha, hd_katzdata.iteration);
+    while (hd_katzdata().iteration < hd_katzdata().max_iteration &&
+           hd_katzdata().iteration < hd_katzdata().iteration_static) {
+        hd_katzdata().alphaI = std::pow(hd_katzdata().alpha,
+                                        hd_katzdata().iteration);
 
-         /*is the same??*/
-        forAll(hornet, hd_katzdata.active_queue, hd_katzdata.num_active
-                    InitActiveNewPaths { deviceKatzData };
+        forAll(hd_katzdata().active_queue, //hd_katzdata().num_active
+               InitActiveNewPaths { hd_katzdata });
 
         // Undirected graphs and directed graphs need to be dealt with differently.
         if (!is_directed) {
-            forAllEdges(hornet, hd_katzdata.active_queue,
-                        FindNextActive {deviceKatzData}, load_balacing );
-            syncHostWithDevice(); // Syncing queue info
+            forAllEdges(hornet, hd_katzdata().active_queue,
+                        FindNextActive { hd_katzdata }, load_balacing);
+            hd_katzdata.sync(); // Syncing queue info
 
-            forAllEdges(hornet, hd_katzdata.active_queue,
-                        UpdateActiveNewPaths { deviceKatzData },
+            forAllEdges(hornet, hd_katzdata().active_queue,
+                        UpdateActiveNewPaths { hd_katzdata },
                         load_balacing );
         }
         else {
-            forAllEdges(*invertedGraph, hd_katzdata.active_queue,
-                        FindNextActive {deviceKatzData}, load_balacing);
-            syncHostWithDevice(); // Syncing queue info
-            forAllEdges(*invertedGraph, hd_katzdata.active_queue,
-                        UpdateActiveNewPaths {deviceKatzData}, load_balacing);
+            forAllEdges(inverted_graph, hd_katzdata().active_queue,
+                        FindNextActive { hd_katzdata }, load_balacing);
+            hd_katzdata.sync();
+            forAllEdges(inverted_graph, hd_katzdata().active_queue,
+                        UpdateActiveNewPaths { hd_katzdata }, load_balacing);
         }
-        syncHostWithDevice(); // Syncing queue info
+        hd_katzdata.sync(); // Syncing queue info
 
         // Checking if we are dealing with a batch of insertions or deletions.
-        if (is_insert)
-            allEinA_TraverseEdges<updateNewPathsBatchInsert>(hornet, deviceKatzData,batch_update);
-        }else{
-            allEinA_TraverseEdges<updateNewPathsBatchDelete>(hornet, deviceKatzData,batch_update);
+        if (is_insert) {
+            forAllEdges(hornet, batch_update,
+                        UpdateNewPathsBatchInsert { hd_katzdata });
         }
-        syncHostWithDevice();
+        else {
+            forAllEdges(hornet, batch_update,
+                        UpdateNewPathsBatchDelete { hd_katzdata });
+        }
+        hd_katzdata.sync();
 
-        hd_katzdata.num_active = hd_katzdata.active_queue.getQueueEnd();
-        allVinA_TraverseVertices<updatePrevWithCurr>(hornet, deviceKatzData, hd_katzdata.active_queue.getQueue(), hd_katzdata.num_active);
-        syncHostWithDevice();
+        forAll(hd_katzdata().active_queue, UpdatePrevWithCurr { hd_katzdata });
+        hd_katzdata.sync();
 
-        hd_katzdata.iteration++;
+        hd_katzdata().iteration++;
     }
 
-    if (hd_katzdata.iteration > 2) {
-        allVinA_TraverseVertices<updateLastIteration>(hornet, deviceKatzData, hd_katzdata.active_queue.getQueue(), hd_katzdata.num_active);
-        syncHostWithDevice();
+    if (hd_katzdata().iteration > 2) {
+        forAll(hd_katzdata().active_queue, //hd_katzdata().num_active?
+               UpdateLastIteration { hd_katzdata } );
+        hd_katzdata.sync();
     }
-    // Resetting the fields of the dynamic graph algorithm for all the vertices that were active
-    //hd_katzdata.num_active ??
-    forAllVertices(hornet, hd_katzdata.active_queue,
-                   InitStreaming {deviceKatzData});
+    // Resetting the fields of the dynamic graph algorithm for all the vertices
+    // that were active
+    //hd_katzdata().num_active ??
+    forAll(hd_katzdata().active_queue,  InitStreaming {hd_katzdata});
+}
+
+//------------------------------------------------------------------------------
+int KatzCentralityDynamic::get_iteration_count(){
+    return hd_katzdata().iteration;
+}
+
+void KatzCentralityDynamic::batchUpdateInserted(BatchUpdate &batch_update) {
+    processUpdate(batch_update, true);
+}
+
+void KatzCentralityDynamic::batchUpdateDeleted(BatchUpdate &batch_update) {
+    processUpdate(batch_update, false);
+}
+
+void KatzCentralityDynamic::copyKCToHost(double* host_array) {
+    kc_static.copyKCToHost(host_array);
+}
+
+void KatzCentralityDynamic::copyNumPathsToHost(ulong_t* host_array) {
+    kc_static.copyNumPathsToHost(host_array);
 }
 
 }// cuStingerAlgs namespace

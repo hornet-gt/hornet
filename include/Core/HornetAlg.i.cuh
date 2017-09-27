@@ -45,7 +45,7 @@ template<typename HornetClass>
 StaticAlgorithm<HornetClass>::~StaticAlgorithm() noexcept {
     cuFree(_d_ptr);
 }
-
+/*
 template<typename HornetClass>
 template<typename T>
 T* StaticAlgorithm<HornetClass>::register_data(T& data) noexcept {
@@ -73,5 +73,5 @@ void StaticAlgorithm<HornetClass>::syncDeviceWithHost() noexcept {
     SAFE_CALL( cudaMemcpyAsync(_d_ptr, _h_ptr, _data_size,
                                cudaMemcpyHostToDevice) )
 }
-
+*/
 } // namespace hornet_alg

@@ -48,11 +48,11 @@ void ptr2_t<T>::swap() noexcept {
 //------------------------------------------------------------------------------
 
 template<typename T>
-template<typename HronetClass>
-TwoLevelQueue<T>::TwoLevelQueue(const HronetClass& hornet,
+template<typename HornetClass>
+TwoLevelQueue<T>::TwoLevelQueue(const HornetClass& hornet,
                                 const float work_factor) noexcept :
                               _max_allocated_items(hornet.nV() * work_factor) {
-    static_assert(hornet::IsHornet<HronetClass>::value,
+    static_assert(hornet::IsHornet<HornetClass>::value,
                  "TwoLevelQueue paramenter is not an instance of Hornet Class");
     cuMalloc(_d_queue_ptrs.first, _max_allocated_items);
     cuMalloc(_d_queue_ptrs.second, _max_allocated_items);
@@ -73,6 +73,20 @@ TwoLevelQueue<T>::~TwoLevelQueue() noexcept {
     if (!_kernel_copy)
         cuFree(_d_queue_ptrs.first, _d_queue_ptrs.second, _d_counters);
 }
+
+template<typename T>
+template<typename HornetClass>
+void TwoLevelQueue<T>::initilize(const HornetClass& custinger,
+                                 const float work_factors) noexcept {
+    static_assert(hornet::IsHornet<HornetClass>::value,
+                 "TwoLevelQueue paramenter is not an instance of Hornet Class");
+    cuMalloc(_d_queue_ptrs.first, _max_allocated_items);
+    cuMalloc(_d_queue_ptrs.second, _max_allocated_items);
+    cuMalloc(_d_counters, 1);
+    cuMemset0x00(_d_counters);
+}
+
+//------------------------------------------------------------------------------
 
 template<typename T>
 __host__ __device__ __forceinline__

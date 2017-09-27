@@ -62,6 +62,8 @@ struct ptr2_t {
 template<typename T>
 class TwoLevelQueue {
 public:
+    explicit TwoLevelQueue() = default;
+
     /**
      * @brief Default costructor
      * @param[in] custinger reference to the custinger instance
@@ -75,6 +77,12 @@ public:
                            const float work_factor = 2.0f) noexcept;
 
     explicit TwoLevelQueue(size_t max_allocated_items) noexcept;
+
+    template<typename HornetClass>
+    void initilize(const HornetClass& custinger,
+                   const float work_factor = 2.0f) noexcept;
+
+    void initilize(size_t max_allocated_items) noexcept;
 
     TwoLevelQueue(const TwoLevelQueue<T>& obj) noexcept;
 

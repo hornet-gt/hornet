@@ -70,14 +70,14 @@ public:
     __host__ __device__ __forceinline__
     T& operator()() noexcept;
 
-    template<typename R>
+    /*template<typename R>
     friend inline
     typename std::enable_if<xlib::is_stream_insertable<R>::value,
                             std::ostream&>::type
     operator<<(std::ostream& os, const HostDeviceVar<R>& obj) {
         os << obj;
         return os;
-    }
+    }*/
 
 private:
     T    _value;

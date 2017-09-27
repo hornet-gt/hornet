@@ -115,8 +115,8 @@ public:
      * @remark the user must call this method in the costructor to enable
      *         the `syncDeviceWithHost()` and `syncHostWithDevice()` methods
      */
-    template<typename T>
-    T* register_data(T& data) noexcept final;
+    //template<typename T>
+    //T* register_data(T& data) noexcept final;
 
     /**
      * @brief Synchronize the Device with the Host
@@ -126,7 +126,7 @@ public:
      * @remark the user should call this method after the interaction with the
      *         device
      */
-    virtual void syncDeviceWithHost() noexcept final;
+    //virtual void syncDeviceWithHost() noexcept final;
 
     /**
      * @brief Synchronize the Host with the Device
@@ -136,7 +136,7 @@ public:
      * @remark the user should call this method before the interaction with the
      *         device
      */
-    virtual void syncHostWithDevice() noexcept final;
+    //virtual void syncHostWithDevice() noexcept final;
 
 protected:
     //the algorithm may change the data structure

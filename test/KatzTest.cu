@@ -1,12 +1,12 @@
 /**
- * @internal
- * @author Oded Green                                                  <br>
- *         Georgia Institute of Technology, Computational Science and Engineering                   <br>
- *         ogreen@gatech.edu
+ * @brief
+ * @author Oded Green                                                       <br>
+ *   Georgia Institute of Technology, Computational Science and Engineering <br>                   <br>
+ *   ogreen@gatech.edu
  * @date August, 2017
  * @version v2
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,8 @@
  *
  * @file
  */
-
 #include "Static/KatzCentrality/Katz.cuh"
-#include "Device/Timer.cuh"
+#include <Device/Timer.cuh>
 #include <GraphIO/GraphStd.hpp>
 
 int main(int argc, char* argv[]) {
@@ -73,6 +72,7 @@ int main(int argc, char* argv[]) {
     kcPostUpdate.run();
 
     TM.stop();
+
     auto total_time = TM.duration();
     std::cout << "The number of iterations   : "
               << kcPostUpdate.get_iteration_count()

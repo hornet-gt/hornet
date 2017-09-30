@@ -155,6 +155,11 @@ void copyFromDevice(const T* device_input, size_t num_items, T* host_output) {
 }
 
 template<typename T>
+void copyFromDevice(const T* device_input, T& host_output) {
+    cuMemcpyToHost(device_input, host_output);
+}
+
+template<typename T>
 void memsetZero(T* pointer, size_t num_items) {
     std::memset(pointer, 0x0, num_items * sizeof(T));
 }

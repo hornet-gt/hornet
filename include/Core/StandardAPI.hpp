@@ -104,6 +104,9 @@ template<typename T>
 void copyFromDevice(const T* device_input, size_t num_items, T* host_output);
 
 template<typename T>
+void copyFromDevice(const T* device_input, T& host_output);
+
+template<typename T>
 void memsetZero(T* pointer, size_t num_items = 1);
 
 template<typename T>

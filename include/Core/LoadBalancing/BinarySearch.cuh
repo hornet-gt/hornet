@@ -6,7 +6,7 @@
  * @date September, 2017
  * @version v2
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ class BinarySearch {
 public:
     /**
      * @brief Default costructor
-     * @param[in] hornet cuStinger instance
+     * @param[in] hornet Hornet instance
      */
     template<typename HornetClass>
     explicit BinarySearch(const HornetClass& hornet,

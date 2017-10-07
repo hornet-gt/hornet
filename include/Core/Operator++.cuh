@@ -1,12 +1,12 @@
 /**
- * @brief cuStinger C++11 operators
+ * @brief Hornet C++11 operators
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
  * @date April, 2017
  * @version v2
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -72,7 +72,7 @@ void forAll(const TwoLevelQueue<T>& queue,
  * @brief apply the `Operator` a number of times equal to the actual number of
  *        vertices in the graph
  * @tparam    Operator typename of the operator (deduced)
- * @param[in] custinger cuStinger instance
+ * @param[in] custinger Hornet instance
  * @param[in] op struct/lambda expression that implements the operator
  * @remark    all algorithm-dependent data must be capture by `op`
  */
@@ -84,7 +84,7 @@ void forAllnumV(HornetClass& hornet, const Operator& op);
  * @brief apply the `Operator` a number of times equal to the actual number of
  *        edges in the graph
  * @tparam    Operator typename of the operator (deduced)
- * @param[in] custinger cuStinger instance
+ * @param[in] custinger Hornet instance
  * @param[in] op struct/lambda expression that implements the operator
  * @remark    all algorithm-dependent data must be capture by `op`
  */
@@ -97,7 +97,7 @@ void forAllnumE(HornetClass& hornet, const Operator& op);
 /**
  * @brief apply the `Operator` to all vertices in the graph
  * @tparam    Operator typename of the operator (deduced)
- * @param[in] custinger cuStinger instance
+ * @param[in] custinger Hornet instance
  * @param[in] op struct/lambda expression that implements the operator
  * @remark    all algorithm-dependent data must be capture by `op`
  * @remark    the Operator typename must implement the method
@@ -110,7 +110,7 @@ void forAllVertices(HornetClass& hornet, const Operator& op);
 /**
  * @brief apply the `Operator` to all edges in the graph
  * @tparam    Operator typename of the operator (deduced)
- * @param[in] custinger cuStinger instance
+ * @param[in] custinger Hornet instance
  * @param[in] op struct/lambda expression that implements the operator
  * @remark    all algorithm-dependent data must be capture by `op`
  * @remark    the Operator typename must implement the method
@@ -157,7 +157,7 @@ void forAllEdges(HornetClass&         hornet,
 /**
  * @brief apply the `Operator` to all vertices in the graph
  * @tparam    Operator typename of the operator (deduced)
- * @param[in] custinger cuStinger instance
+ * @param[in] custinger Hornet instance
  * @param[in] op struct/lambda expression that implements the operator
  * @remark    all algorithm-dependent data must be capture by `op`
  * @remark    the Operator typename must implement the method

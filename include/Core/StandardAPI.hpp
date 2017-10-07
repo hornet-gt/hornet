@@ -5,7 +5,7 @@
  * @date August, 2017
  * @version v2
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -102,6 +102,9 @@ void copyToDevice(T host_value, T* device_output);
 
 template<typename T>
 void copyFromDevice(const T* device_input, size_t num_items, T* host_output);
+
+template<typename T>
+void copyFromDevice(const T* device_input, T& host_output);
 
 template<typename T>
 void memsetZero(T* pointer, size_t num_items = 1);

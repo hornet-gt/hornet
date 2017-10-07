@@ -1,14 +1,14 @@
 /**
- * @brief cuStinger Algorithms Umbrella header
+ * @brief Hornet Algorithms Umbrella header
  * @remark The users must include only this header to implement algorithm on top
- *        of cuStinger
+ *        of Hornet
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
  * @date April, 2017
  * @version v2
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without

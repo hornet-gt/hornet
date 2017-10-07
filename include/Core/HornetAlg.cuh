@@ -1,12 +1,12 @@
 /**
- * @brief cuStinger algorithms interface
+ * @brief Hornet algorithms interface
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
  * @date April, 2017
  * @version v2
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@
 #pragma once
 
 /**
- * @brief cuStinger algorithms namespace
+ * @brief Hornet algorithms namespace
  */
 namespace hornet_alg {
 
@@ -47,17 +47,17 @@ namespace hornet_alg {
                  __device__ __forceinline__                                    \
                  void operator()
 /**
- * @brief Abstract class for cuStinger static algorithms
+ * @brief Abstract class for Hornet static algorithms
  * @remark the user must extend this class to be full compliant with the
- *         cuStinger interface
+ *         Hornet interface
  */
 template<typename HornetClass>
 class StaticAlgorithm {
 public:
     /**
      * @brief Default costructor
-     * @param[in] hornet cuStinger instance on which the algorithm is run
-     * @remark the cuStinger instance reference can be used in also methods
+     * @param[in] hornet Hornet instance on which the algorithm is run
+     * @remark the Hornet instance reference can be used in also methods
      *          throws `hornet` field
      */
     explicit StaticAlgorithm(HornetClass& hornet) noexcept;
@@ -71,7 +71,7 @@ public:
     virtual ~StaticAlgorithm() noexcept = 0;
 
     /**
-     * @brief cuStinger static algorithm implementation
+     * @brief Hornet static algorithm implementation
      * @remark the user must implements the main part of the algorithm in this
      *         method
      */

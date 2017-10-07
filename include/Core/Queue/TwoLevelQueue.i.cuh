@@ -2,10 +2,9 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
- * @version v2
+ * @date October, 2017
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +34,7 @@
  */
 #include <Device/Definition.cuh>        //xlib::SMemPerBlock
 #include <Device/PrintExt.cuh>          //cu::printArray
+#include <Device/PTX.cuh>              //xlib::__msb
 #include <Device/SafeCudaAPI.cuh>       //cuMemcpyToDeviceAsync
 #include <BasicTypes.hpp>
 

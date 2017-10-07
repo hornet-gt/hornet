@@ -11,7 +11,7 @@ using triangle_t = unsigned int;
 
 
 struct TriangleData {
-    TriangleData(const custinger::cuStinger& custinger){
+    TriangleData(const custinger::Hornet& custinger){
         nv = custinger.nV();
         ne = custinger.nE();
         triPerVertex=NULL;
@@ -40,7 +40,7 @@ struct TriangleData {
 // Label propogation is based on the values from the previous iteration.
 class TriangleCounting : public StaticAlgorithm {
 public:
-    TriangleCounting(cuStinger& custinger);
+    TriangleCounting(Hornet& custinger);
     ~TriangleCounting();
 
     void reset()    override;

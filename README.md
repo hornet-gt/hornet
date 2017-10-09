@@ -3,7 +3,7 @@
 The repository provides the graph algorithms implemented on top Hornet
 data structure.
 
-For additional information concerning the data structure and its APIs please refer to [**Hornet repository**](github.com/FedericoUnivr/cuStinger).
+For additional information concerning the data structure and its APIs please refer to [**Hornet repository**](https://github.com/hornet-gt/hornet).
 
 ## Getting Started ##
 
@@ -35,8 +35,8 @@ The document is organized as follows:
 
 The following basic steps are required to build and execute the Hornet algorithms:
 ```bash
-git clone --recursive https://github.com/FedericoUnivr/cuStingerAlg.git
-cd cuStingerAlg/build
+git clone --recursive https://github.com/hornet-gt/hornetsnest
+cd hornetsnest/build
 cmake ..
 make -j
 ```
@@ -69,7 +69,7 @@ version installed on the system
 | (CC) Connected Components           |     yes       | on-going |
 | (SCC) Strongly Connected Components |    to-do      |  to-do   |
 | (MST) Minimum Spanning Tree         |    to-do      |  to-do   |
-| (BC) Betweeness Centrality          |     yes       | on-going |
+| (BC) Betweeness Centrality          |   on-going    | on-going |
 | (PG) Page Rank                      |     yes       | on-going |
 | (TC) Triangle Counting              |     yes       |   yes    |
 | (KC) Katz Centrality                |     yes       |   yes    |
@@ -82,7 +82,7 @@ version installed on the system
 | Temporal Motif Finding              |   on-going    |  to-do   |
 | Sparse Vector-Matrix Multiplication |     yes       |  to-do   |
 | Jaccard indices                     |    to-do      |  to-do   |
-| Energy/Parity Game                  |    to-do      |  to-do   |
+| Energy/Parity Game                  |   on-going    |  to-do   |
 
 ## Performance ##
 
@@ -144,7 +144,7 @@ We are also ready to engage in improving and extending the framework if you requ
 
 ## Publications ##
 
-* Oded Green, David A. Bader, **"Hornet: Supporting dynamic graph algorithms
+* Oded Green, David A. Bader, **"cuSTINGER: Supporting dynamic graph algorithms
   for GPUs"**,
   IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September,
   2016, Waltham, MA, USA, pp. 1-6.

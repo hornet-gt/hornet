@@ -167,18 +167,30 @@ vid_t&#160;</td><td class="memItemRight" valign="bottom"><b>max_in_degree_id</b>
 <tr class="memitem:aa526cb61973b25ba2e5fd6c5a913c67d"><td class="memItemLeft" align="right" valign="top"><a id="aa526cb61973b25ba2e5fd6c5a913c67d"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_directed</b> () const noexcept</td></tr>
 <tr class="separator:aa526cb61973b25ba2e5fd6c5a913c67d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9b47215902be8f2d9a9a6d6265460137"><td class="memItemLeft" align="right" valign="top"><a id="a9b47215902be8f2d9a9a6d6265460137"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_undirected</b> () const noexcept</td></tr>
+<tr class="separator:a9b47215902be8f2d9a9a6d6265460137"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a441d2f2ffa212202d207a4a6964866dc"><td class="memItemLeft" align="right" valign="top"><a id="a441d2f2ffa212202d207a4a6964866dc"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>print</b> () const noexcept override</td></tr>
 <tr class="separator:a441d2f2ffa212202d207a4a6964866dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab067d2149e15fdb4368e8d5ba129fb85"><td class="memItemLeft" align="right" valign="top"><a id="ab067d2149e15fdb4368e8d5ba129fb85"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>print_raw</b> () const noexcept override</td></tr>
 <tr class="separator:ab067d2149e15fdb4368e8d5ba129fb85"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8340f945bbac6b8ad2c02c6858818eba"><td class="memItemLeft" align="right" valign="top"><a id="a8340f945bbac6b8ad2c02c6858818eba"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>print_degree_distrib</b> () const noexcept</td></tr>
+<tr class="separator:a8340f945bbac6b8ad2c02c6858818eba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03b9b4ba0b844f86b57e47c81d2177e7"><td class="memItemLeft" align="right" valign="top"><a id="a03b9b4ba0b844f86b57e47c81d2177e7"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>print_degree_analysis</b> () const noexcept</td></tr>
+<tr class="separator:a03b9b4ba0b844f86b57e47c81d2177e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2e3bbd1df30e67b995af4d41eba66edf"><td class="memItemLeft" align="right" valign="top"><a id="a2e3bbd1df30e67b995af4d41eba66edf"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>writeBinary</b> (const std::string &amp;filename, bool print=true) const</td></tr>
 <tr class="separator:a2e3bbd1df30e67b995af4d41eba66edf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8f2ad00f352df295b97406da1ef47ea7"><td class="memItemLeft" align="right" valign="top"><a id="a8f2ad00f352df295b97406da1ef47ea7"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>writeMarket</b> (const std::string &amp;filename) const</td></tr>
-<tr class="separator:a8f2ad00f352df295b97406da1ef47ea7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a07f8f0600df320266e5ebf9b301bd941"><td class="memItemLeft" align="right" valign="top"><a id="a07f8f0600df320266e5ebf9b301bd941"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>writeMarket</b> (const std::string &amp;filename, bool print=true) const</td></tr>
+<tr class="separator:a07f8f0600df320266e5ebf9b301bd941"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae27d96215a12c23018f823fbe3e3e210"><td class="memItemLeft" align="right" valign="top"><a id="ae27d96215a12c23018f823fbe3e3e210"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>writeDimacs10th</b> (const std::string &amp;filename, bool print=true) const</td></tr>
+<tr class="separator:ae27d96215a12c23018f823fbe3e3e210"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a11a6a3beb59139855c3b1f08e2d8a810"><td class="memItemLeft" align="right" valign="top"><a id="a11a6a3beb59139855c3b1f08e2d8a810"></a>
 virtual vid_t&#160;</td><td class="memItemRight" valign="bottom"><b>nV</b> () const noexcept final</td></tr>
 <tr class="separator:a11a6a3beb59139855c3b1f08e2d8a810"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -207,7 +219,7 @@ Data Fields</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 31 2017 11:45:46 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Oct 9 2017 00:09:00 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

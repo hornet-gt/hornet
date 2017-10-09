@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Hornet: cuStinger</title>
+<title>Hornet: Hornet</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -68,10 +68,12 @@ $(function() {
 
 <div class="header">
   <div class="headertitle">
-<div class="title">cuStinger </div>  </div>
+<div class="title">Hornet </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><h2>Getting Started</h2>
+<div class="textblock"><p>The repository provides the Hornet data structute implementation.</p>
+<p>For additional information concerning the algorithms implemented on top of Hornet please refer to <a href="https://github.com/hornet-gt/hornetsnest"><b>HornetAlg repository</b></a>.</p>
+<h2>Getting Started</h2>
 <p>The document is organized as follows:</p>
 <ul>
 <li><a href="#requirements">Requirements</a></li>
@@ -82,23 +84,23 @@ $(function() {
 <li><a href="#additional-utilities">Additional Utilities</a></li>
 <li><a href="#reporting-bugs-and-contributing">Reporting bugs and contributing</a></li>
 <li><a href="#publications">Publications</a></li>
-<li><a href="#custinger-developers">cuStinger Developers</a></li>
+<li><a href="#hornet-developers">Hornet Developers</a></li>
 <li><a href="#acknowledgements">Acknowledgements</a></li>
 <li><a href="#licence">License</a></li>
 </ul>
-<p>** For cuStinger Algorithms please refer to **</p>
 <h3>Requirements</h3>
 <ul>
 <li><a href="https://developer.nvidia.com/cuda-gpus">Nvidia Modern GPU</a> (compute capability &ge; 3.0): Kerpler, Maxwell, Pascal, Volta architectures.</li>
 <li><a href="https://developer.nvidia.com/cuda-toolkit">CUDA toolkit</a> 9 or greater.</li>
 <li>GCC or <a href="https://clang.llvm.org">Clang</a> host compiler with support for C++14. Note: the compiler must be compatible with the related CUDA toolkit version. For more information see <a href="http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html">CUDA Installation Guide</a>.</li>
 <li><a href="https://cmake.org">CMake</a> v3.6 or greater.</li>
-<li>64-bit Operating System (Ubuntu tested).</li>
+<li>64-bit Operating System (Ubuntu 16.04 or above suggested).</li>
 </ul>
 <h3>Quick start</h3>
-<p>The following basic steps are required to build and execute cuStinger: </p><div class="fragment"><div class="line">git clone https://github.com/FedericoUnivr/cuStinger</div><div class="line">cd cuStinger/build</div><div class="line">cmake ..</div><div class="line">make -j</div><div class="line">./cuStingerTest &lt;input_graph&gt; &lt;options&gt;</div></div><!-- fragment --><p>The syntax and the input parameters of cuStinger are explained in details in the <code>docs/Syntax.txt</code> file or by typing <code>./cuStingerTest --help</code>.</p>
+<p>The following basic steps are required to build and execute Hornet: </p><div class="fragment"><div class="line">git clone https://github.com/hornet-gt/hornet</div><div class="line">cd hornet/build</div><div class="line">cmake ..</div><div class="line">make -j</div></div><!-- fragment --><p>By default the cuda compiler <code>nvcc</code> uses <code>gcc/g++</code> found in the current execution search path (<code>cc --version</code> to get the default compiler). To force a different host compiler to compile plain C++ files (<code>*.cpp</code>) set the following environment variables: </p><div class="fragment"><div class="line">CC=&lt;path_to_host_C_compiler&gt;</div><div class="line">CXX=&lt;path_to_host_C++_compiler&gt;</div></div><!-- fragment --><p>To force a different host compiler to compile host side <code>nvcc</code> code (<code>*.cu</code>) substitute <code>cmake ..</code> with </p><div class="fragment"><div class="line">cmake -DCUDAHC=&lt;path_to_host_C++_compiler&gt;</div></div><!-- fragment --><p> Note: host compiler and host side <code>nvcc</code> compiler may be different. The host side <code>nvcc</code> compiler must be compatible with the current CUDA toolkit version installed on the system (see <a href="http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html">CUDA Installation Guide</a>).</p>
+<p>The syntax and the input parameters of Hornet are explained in details in the <code>docs/Syntax.txt</code> file or by typing <code>./HornetTest --help</code>.</p>
 <h3>Supported graph formats</h3>
-<p>cuStinger supports the following graph input formats:</p>
+<p>Hornet supports the following graph input formats:</p>
 <ul>
 <li>Market (.mtx), <a href="http://www.cise.ufl.edu/research/sparse/matrices/">The University of Florida Sparse Matrix Collection</a></li>
 <li>Metis (.graph), <a href="http://www.cc.gatech.edu/dimacs10/">10th DIMACS Implementation Challenge</a></li>
@@ -108,24 +110,24 @@ $(function() {
 <li>Network Data Repository (.edges), <a href="http://networkrepository.com/index.php">Network Data Repository</a></li>
 <li>Binary (.bin)</li>
 </ul>
-<p>cuStinger directly deduces the graph structure (directed/undirected) from the input file header.</p>
-<p>cuStinger allows reading the input graph by using a fixed binary format to speed up the file loading. The binary file is generated by cuStinger with the <code>--binary</code> command line option.</p>
+<p>Hornet directly deduces the graph structure (directed/undirected) from the input file header.</p>
+<p>Hornet allows reading the input graph by using a fixed binary format to speed up the file loading. The binary file is generated by Hornet with the <code>--binary</code> command line option.</p>
 <h3>Code Documentation</h3>
-<p>The code documentation is located in the <code>docs</code> directory (<em>doxygen</em> html format). The documentation is also accessible online <a href="https://federicounivr.github.io/cuStinger/"><b>here</b>.</a></p>
+<p>The code documentation is located in the <code>docs</code> directory (<em>doxygen</em> html format). The documentation is also accessible online <a href="https://federicounivr.github.io/Hornet/"><b>here</b>.</a></p>
 <h3>Notes</h3>
 <ul>
 <li>The changelog can be found here: <a class="el" href="md_docs_History.html">history</a></li>
-<li>cuStinger has been written by adopting (when possible) the following coding styles:<ul>
+<li>Hornet has been written by adopting (when possible) the following coding styles:<ul>
 <li><a href="http://llvm.org/docs/CodingStandards.html">LLVM Coding Standards</a></li>
 <li><a href="https://google.github.io/styleguide/cppguide.html">Google C++ Style Guide</a></li>
 </ul>
 </li>
-<li>cuStinger has been checked with the following tools to ensure the code quality:<ul>
+<li>Hornet has been checked with the following tools to ensure the code quality:<ul>
 <li><a href="https://clang.llvm.org/docs/DiagnosticsReference.html">clang++ v4.0: warnings</a></li>
 <li><a href="http://clang.llvm.org/extra/clang-tidy/">clang-tidy</a>: warnings and code styles</li>
 </ul>
 </li>
-<li>cuStinger has been tested with the following tools: (see <a class="el" href="md_docs_CodeCheck.html">`CodeCheck`</a>)<ul>
+<li>Hornet has been tested with the following tools: (see <a class="el" href="md_docs_CodeCheck.html">`CodeCheck`</a>)<ul>
 <li><a href="http://docs.nvidia.com/cuda/cuda-memcheck/">cuda-memcheck</a></li>
 <li><a href="http://valgrind.org/">valgrind v3.13</a></li>
 <li><a href="https://clang-analyzer.llvm.org/">clang static analyzer v279</a></li>
@@ -134,20 +136,22 @@ $(function() {
 </ul>
 <h3>Additional Utilities</h3>
 <ul>
-<li><code>util/count_lines.sh</code> : some statistics about cuStinger code.</li>
+<li><code>util/count_lines.sh</code> : some statistics about Hornet code.</li>
 <li><code>util/uf_graph_download.sh</code> : simple script to download and extract University of Florida Sparse Matrix Collection graphs in a directory.</li>
 </ul>
 <h3>Reporting bugs and contributing</h3>
-<p>If you find any bugs please report them by using the repository (github <b>issues</b> panel). We are also ready to engage in improving and extending the framework if you request some new features.</p>
+<p>If you find any bugs please report them by using the repository (github <b>issues</b> panel). We are also ready to engage in improving and extending the framework if you request new features.</p>
 <h2>Publications</h2>
 <ul>
-<li>Oded Green, David A. Bader, <a href="https://www.researchgate.net/publication/308174457_cuSTINGER_Supporting_dynamic_graph_algorithms_for_GPUs">*"cuStinger: Supporting dynamic graph algorithms for GPUs"*</a>, IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September, 2016, Waltham, MA, USA, pp. 1-6.</li>
-<li>Oded Green, James Fox, Euna Kim, Federico Busato, Nicola Bombieri, Kartik Lakhotia, Shijie Zhou, Shreyas Singapura, Hanqing Zeng, Rajgopal Kannan, Viktor Prasanna, David A. Bader, **"Quickly Finding a Truss in a Haystack"**, IEEE/Amazon/DARPA Graph Challenge, **Innovation Awards** <hr/>
- <h3><center>If you find this software useful in academic work, please acknowledge cuStinger. </center></h3>
+<li>Oded Green, David A. Bader, **"cuSTINGER: Supporting dynamic graph algorithms
+  for GPUs"**, IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September, 2016, Waltham, MA, USA, pp. 1-6. <a href="https://www.researchgate.net/publication/308174457_cuSTINGER_Supporting_dynamic_graph_algorithms_for_GPUs">link</a></li>
+<li>Oded Green, James Fox, Euna Kim, Federico Busato, Nicola Bombieri, Kartik Lakhotia, Shijie Zhou, Shreyas Singapura, Hanqing Zeng, Rajgopal Kannan, Viktor Prasanna, David A. Bader, **"Quickly Finding a Truss in a Haystack"**, IEEE/Amazon/DARPA Graph Challenge, **Innovation Awards**.</li>
+<li>Devavret Makkar, David A. Bader, Oded Green, <b>Exact and Parallel Triangle Counting in Streaming Graphs</b>, IEEE Conference on High Performance Computing, Data, and Analytics (HiPC), 18-21 December 2017, Jaipur, India, pp. 1-10. <hr/>
+ <h3><center>If you find this software useful in academic work, please acknowledge Hornet. </center></h3>
 </li>
 </ul>
 <hr/>
-<h2>cuStinger 2.0 Developers</h2>
+<h2>Hornet Developers</h2>
 <h5>Data Structure</h5>
 <ul>
 <li><code>Federico Busato</code>, Ph.D. Student, University of Verona (Italy)</li>
@@ -160,6 +164,7 @@ $(function() {
 <li><code>James Fox</code>, Ph.D. Student, Georgia Institute of Technology : <em>Maximal Independent Set</em>, <em>Temporal Motif Finding</em></li>
 <li><code>Devavret Makkar</code>, Ph.D. Student, Georgia Institute of Technology : <em>Triangle Counting</em></li>
 <li><code>Elisabetta Bergamini</code>, Ph.D. Student, Karlsruhe Institute of Technology (Germany) : <em>Katz Centrality</em></li>
+<li><code>Euna Kim</code>, Ph.D. Student, Georgia Institute of Technology : <em>Dynamic PageRank</em></li>
 <li>...</li>
 </ul>
 <h2>Acknowledgements</h2>
@@ -169,7 +174,7 @@ $(function() {
 <h2>License</h2>
 <blockquote class="doxtable">
 <p>BSD 3-Clause License</p>
-<p>Copyright (c) 2017, cuStinger All rights reserved.</p>
+<p>Copyright (c) 2017, Hornet All rights reserved.</p>
 <p>Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:</p>
 <ul>
 <li>Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.</li>
@@ -181,7 +186,7 @@ $(function() {
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 31 2017 11:45:46 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Oct 9 2017 00:09:01 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

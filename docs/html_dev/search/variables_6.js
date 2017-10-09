@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['remove_5fduplicate',['REMOVE_DUPLICATE',['../BatchUpdate_8cuh.html#a003d7ea75f416d656cf0cc1535ab4f6e',1,'hornet::gpu::batch_property']]]
+  ['remove_5fbatch_5fduplicate',['REMOVE_BATCH_DUPLICATE',['../namespacehornet_1_1gpu_1_1batch__property.html#acb2013fb6bc95265b8b7350075df9957',1,'hornet::gpu::batch_property']]]
 ];

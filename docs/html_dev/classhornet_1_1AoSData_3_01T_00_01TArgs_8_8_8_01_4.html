@@ -92,9 +92,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a15fc399d0fc07d3a738c58135928ad57"><td class="memItemLeft" align="right" valign="top"><a id="a15fc399d0fc07d3a738c58135928ad57"></a>
 HOST_DEVICE&#160;</td><td class="memItemRight" valign="bottom"><b>AoSData</b> (const T &amp;value, const TArgs &amp;... args) noexcept</td></tr>
 <tr class="separator:a15fc399d0fc07d3a738c58135928ad57"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5c80357efaec5ab2ab50bef757fa7ec6"><td class="memItemLeft" align="right" valign="top"><a id="a5c80357efaec5ab2ab50bef757fa7ec6"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>AoSData</b> (const void *(&amp;array)[sizeof...(TArgs)+1], int index) noexcept</td></tr>
-<tr class="separator:a5c80357efaec5ab2ab50bef757fa7ec6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad7356104495553f3a098da2ef777ab8c"><td class="memTemplParams" colspan="2"><a id="ad7356104495553f3a098da2ef777ab8c"></a>
+template&lt;typename R , int SIZE&gt; </td></tr>
+<tr class="memitem:ad7356104495553f3a098da2ef777ab8c"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>AoSData</b> (const R *const (&amp;array)[SIZE], size_t index) noexcept</td></tr>
+<tr class="separator:ad7356104495553f3a098da2ef777ab8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4d6db992dda40d0fd9b014cd1e7f569a"><td class="memTemplParams" colspan="2"><a id="a4d6db992dda40d0fd9b014cd1e7f569a"></a>
 template&lt;typename R &gt; </td></tr>
 <tr class="memitem:a4d6db992dda40d0fd9b014cd1e7f569a"><td class="memTemplItemLeft" align="right" valign="top">HOST_DEVICE&#160;</td><td class="memTemplItemRight" valign="bottom"><b>AoSData</b> (const R ptr, size_t pitch, typename std::enable_if&lt; !std::is_array&lt; R &gt;::value &gt;::type *=0) noexcept</td></tr>
@@ -129,7 +130,7 @@ template&lt;typename... &gt; </td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 31 2017 11:45:46 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Oct 9 2017 00:09:00 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

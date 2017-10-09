@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Hornet: /home/fbusato/cuStingerAlg/include/Core/LoadBalancing/VertexBasedKernel.cuh File Reference</title>
+<title>Hornet: /home/fbusata3/HornetAlg/include/Core/LoadBalancing/VertexBasedKernel.cuh File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -78,8 +78,7 @@ $(function() {
 <div class="title">VertexBasedKernel.cuh File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;Core/cuStingerTypes.cuh&quot;</code><br />
-</div><table class="memberdecls">
+<table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
 Namespaces</h2></td></tr>
 <tr class="memitem:namespaceload__balacing"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceload__balacing.html">load_balacing</a></td></tr>
@@ -88,22 +87,22 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a8068729697fc234bd4292e0ccbd783fe"><td class="memTemplParams" colspan="2"><a id="a8068729697fc234bd4292e0ccbd783fe"></a>
-template&lt;typename Operator &gt; </td></tr>
-<tr class="memitem:a8068729697fc234bd4292e0ccbd783fe"><td class="memTemplItemLeft" align="right" valign="top">__global__ void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>vertexBasedKernel</b> (custinger::cuStingerDevice custinger, const custinger::vid_t *__restrict__ d_input, int num_vertices, Operator op)</td></tr>
-<tr class="separator:a8068729697fc234bd4292e0ccbd783fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a15c9b885122fa5de7a8498d93094c374"><td class="memTemplParams" colspan="2"><a id="a15c9b885122fa5de7a8498d93094c374"></a>
-template&lt;typename Operator &gt; </td></tr>
-<tr class="memitem:a15c9b885122fa5de7a8498d93094c374"><td class="memTemplItemLeft" align="right" valign="top">__global__ void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>vertexBasedKernel</b> (custinger::cuStingerDevice custinger, Operator op)</td></tr>
-<tr class="separator:a15c9b885122fa5de7a8498d93094c374"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaaf133485713c45aafecde22af6cff3a"><td class="memTemplParams" colspan="2"><a id="aaaf133485713c45aafecde22af6cff3a"></a>
+template&lt;unsigned VW_SIZE, typename HornetDevice , typename Operator &gt; </td></tr>
+<tr class="memitem:aaaf133485713c45aafecde22af6cff3a"><td class="memTemplItemLeft" align="right" valign="top">__global__ void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>vertexBasedKernel</b> (HornetDevice hornet, const vid_t *__restrict__ d_input, int num_vertices, Operator op)</td></tr>
+<tr class="separator:aaaf133485713c45aafecde22af6cff3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9f066484b85aa90639c96d937656a156"><td class="memTemplParams" colspan="2"><a id="a9f066484b85aa90639c96d937656a156"></a>
+template&lt;unsigned VW_SIZE, typename HornetDevice , typename Operator &gt; </td></tr>
+<tr class="memitem:a9f066484b85aa90639c96d937656a156"><td class="memTemplItemLeft" align="right" valign="top">__global__ void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>vertexBasedKernel</b> (HornetDevice hornet, Operator op)</td></tr>
+<tr class="separator:a9f066484b85aa90639c96d937656a156"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><dl class="section author"><dt>Author</dt><dd>Federico Busato <br />
  Univerity of Verona, Dept. of Computer Science <br />
  <a href="#" onclick="location.href='mai'+'lto:'+'fed'+'er'+'ico'+'.b'+'usa'+'to'+'@un'+'iv'+'r.i'+'t'; return false;">feder<span style="display: none;">.nosp@m.</span>ico.<span style="display: none;">.nosp@m.</span>busat<span style="display: none;">.nosp@m.</span>o@un<span style="display: none;">.nosp@m.</span>ivr.i<span style="display: none;">.nosp@m.</span>t</a> </dd></dl>
-<dl class="section date"><dt>Date</dt><dd>April, 2017 </dd></dl>
+<dl class="section date"><dt>Date</dt><dd>September, 2017 </dd></dl>
 <dl class="section version"><dt>Version</dt><dd>v2</dd></dl>
-<dl class="section copyright"><dt>Copyright</dt><dd>Copyright © 2017 cuStinger. All rights reserved.</dd></dl>
+<dl class="section copyright"><dt>Copyright</dt><dd>Copyright © 2017 Hornet. All rights reserved.</dd></dl>
 <dl class="section copyright">
 <dt>License</dt>
 <dd><blockquote class="doxtable">
@@ -120,7 +119,7 @@ template&lt;typename Operator &gt; </td></tr>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 31 2017 11:45:45 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Oct 9 2017 00:09:00 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

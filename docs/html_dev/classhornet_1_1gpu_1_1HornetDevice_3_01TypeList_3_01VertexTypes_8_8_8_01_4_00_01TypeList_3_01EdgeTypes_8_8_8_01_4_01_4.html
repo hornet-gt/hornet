@@ -67,11 +67,12 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="namespacehornet.html">hornet</a></li><li class="navelem"><a class="el" href="namespacehornet_1_1gpu.html">gpu</a></li><li class="navelem"><a class="el" href="classhornet_1_1gpu_1_1HornetDevice_3_01TypeList_3_01VertexTypes_8_8_8_01_4_00_01TypeList_3_01EdgeTypes_8_8_8_01_4_01_4.html">HornetDevice&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;</a></li>  </ul>
+<li class="navelem"><a class="el" href="namespacehornet.html">hornet</a></li><li class="navelem"><b>gpu</b></li><li class="navelem"><a class="el" href="classhornet_1_1gpu_1_1HornetDevice_3_01TypeList_3_01VertexTypes_8_8_8_01_4_00_01TypeList_3_01EdgeTypes_8_8_8_01_4_01_4.html">HornetDevice&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a>  </div>
   <div class="headertitle">
 <div class="title">HornetDevice&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt; Class Template Reference</div>  </div>
@@ -91,6 +92,15 @@ Inheritance diagram for HornetDevice&lt; TypeList&lt; VertexTypes... &gt;, TypeL
 </map>
  </div></div>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:a3e529b341443e8290ac8f4cf4f68c20f"><td class="memItemLeft" align="right" valign="top"><a id="a3e529b341443e8290ac8f4cf4f68c20f"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>EdgeT</b> = <a class="el" href="classhornet_1_1gpu_1_1Edge.html">Edge</a>&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;</td></tr>
+<tr class="separator:a3e529b341443e8290ac8f4cf4f68c20f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a13744988ef614553a8e10d2a0fcea7"><td class="memItemLeft" align="right" valign="top"><a id="a6a13744988ef614553a8e10d2a0fcea7"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>edgeit_t</b> = typename std::conditional&lt; xlib::IsVectorizable&lt; <a class="el" href="namespacehornet.html#a125d79d60910047509ac132d670bb912">vid_t</a>, EdgeTypes... &gt;::value, <a class="el" href="structhornet_1_1AoSData.html">AoSData</a>&lt; <a class="el" href="namespacehornet.html#a125d79d60910047509ac132d670bb912">vid_t</a>, EdgeTypes... &gt; *, <a class="el" href="namespacehornet.html#a125d79d60910047509ac132d670bb912">vid_t</a> * &gt;::type</td></tr>
+<tr class="separator:a6a13744988ef614553a8e10d2a0fcea7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a86fd5841b7cd640f26cc0c78cf523b6d"><td class="memItemLeft" align="right" valign="top"><a id="a86fd5841b7cd640f26cc0c78cf523b6d"></a>
@@ -102,9 +112,9 @@ HOST_DEVICE <a class="el" href="namespacehornet.html#a125d79d60910047509ac132d67
 <tr class="memitem:a5e480099fee8367a5c9ff4e42ebaa8bd"><td class="memItemLeft" align="right" valign="top"><a id="a5e480099fee8367a5c9ff4e42ebaa8bd"></a>
 HOST_DEVICE <a class="el" href="namespacehornet.html#adaddaaa82ec6ddecc658d41589bc5f46">eoff_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>nE</b> () const noexcept</td></tr>
 <tr class="separator:a5e480099fee8367a5c9ff4e42ebaa8bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a55f75f5731336e966fcb5bfd4ac51e12"><td class="memItemLeft" align="right" valign="top"><a id="a55f75f5731336e966fcb5bfd4ac51e12"></a>
-__device__ __forceinline__ <a class="el" href="classhornet_1_1gpu_1_1Vertex_3_01TypeList_3_01VertexTypes_8_8_8_01_4_00_01TypeList_3_01EdgeTypes_8_8_8_01_4_01_4.html">VertexT</a>&#160;</td><td class="memItemRight" valign="bottom"><b>vertex</b> (<a class="el" href="namespacehornet.html#a125d79d60910047509ac132d670bb912">vid_t</a> index) noexcept</td></tr>
-<tr class="separator:a55f75f5731336e966fcb5bfd4ac51e12"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0fb22dfb0e55472eea65335aa23127b5"><td class="memItemLeft" align="right" valign="top"><a id="a0fb22dfb0e55472eea65335aa23127b5"></a>
+__device__ __forceinline__ <a class="el" href="classhornet_1_1gpu_1_1Vertex_3_01TypeList_3_01VertexTypes_8_8_8_01_4_00_01TypeList_3_01EdgeTypes_8_8_8_01_4_01_4.html">VertexT</a>&#160;</td><td class="memItemRight" valign="bottom"><b>vertex</b> (<a class="el" href="namespacehornet.html#a125d79d60910047509ac132d670bb912">vid_t</a> index)</td></tr>
+<tr class="separator:a0fb22dfb0e55472eea65335aa23127b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><h3>template&lt;typename... VertexTypes, typename... EdgeTypes&gt;<br />
@@ -117,7 +127,7 @@ class hornet::gpu::HornetDevice&lt; TypeList&lt; VertexTypes... &gt;, TypeList&l
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 31 2017 11:45:46 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Oct 9 2017 00:09:00 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

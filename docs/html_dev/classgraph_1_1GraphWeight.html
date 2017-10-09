@@ -100,9 +100,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:add503dbc5ef3f6b38942a7395839722c"><td class="memItemLeft" align="right" valign="top"><a id="add503dbc5ef3f6b38942a7395839722c"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>GraphWeight</b> (<a class="el" href="classgraph_1_1StructureProp.html">StructureProp</a> structure, const char *filename, const <a class="el" href="classgraph_1_1ParsingProp.html">ParsingProp</a> &amp;property) noexcept</td></tr>
 <tr class="separator:add503dbc5ef3f6b38942a7395839722c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7d8aced9820ee66fe390059649934166"><td class="memItemLeft" align="right" valign="top"><a id="a7d8aced9820ee66fe390059649934166"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>GraphWeight</b> (const eoff_t *csr_offsets, vid_t nV, const vid_t *csr_edges, eoff_t nE) noexcept</td></tr>
-<tr class="separator:a7d8aced9820ee66fe390059649934166"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a48bc3cb5f908ad5eb26ec9fa59fddeff"><td class="memItemLeft" align="right" valign="top"><a id="a48bc3cb5f908ad5eb26ec9fa59fddeff"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>GraphWeight</b> (const eoff_t *csr_offsets, vid_t nV, const vid_t *csr_edges, eoff_t nE, const weight_t *csr_weights) noexcept</td></tr>
+<tr class="separator:a48bc3cb5f908ad5eb26ec9fa59fddeff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4457da8004a29f3f331efe4a00453104"><td class="memItemLeft" align="right" valign="top"><a id="a4457da8004a29f3f331efe4a00453104"></a>
 const coo_t *&#160;</td><td class="memItemRight" valign="bottom"><b>coo_array</b> () const noexcept</td></tr>
 <tr class="separator:a4457da8004a29f3f331efe4a00453104"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -169,12 +169,24 @@ vid_t&#160;</td><td class="memItemRight" valign="bottom"><b>max_in_degree_id</b>
 <tr class="memitem:aa526cb61973b25ba2e5fd6c5a913c67d"><td class="memItemLeft" align="right" valign="top"><a id="aa526cb61973b25ba2e5fd6c5a913c67d"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_directed</b> () const noexcept</td></tr>
 <tr class="separator:aa526cb61973b25ba2e5fd6c5a913c67d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9b47215902be8f2d9a9a6d6265460137"><td class="memItemLeft" align="right" valign="top"><a id="a9b47215902be8f2d9a9a6d6265460137"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_undirected</b> () const noexcept</td></tr>
+<tr class="separator:a9b47215902be8f2d9a9a6d6265460137"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8340f945bbac6b8ad2c02c6858818eba"><td class="memItemLeft" align="right" valign="top"><a id="a8340f945bbac6b8ad2c02c6858818eba"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>print_degree_distrib</b> () const noexcept</td></tr>
+<tr class="separator:a8340f945bbac6b8ad2c02c6858818eba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03b9b4ba0b844f86b57e47c81d2177e7"><td class="memItemLeft" align="right" valign="top"><a id="a03b9b4ba0b844f86b57e47c81d2177e7"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>print_degree_analysis</b> () const noexcept</td></tr>
+<tr class="separator:a03b9b4ba0b844f86b57e47c81d2177e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2e3bbd1df30e67b995af4d41eba66edf"><td class="memItemLeft" align="right" valign="top"><a id="a2e3bbd1df30e67b995af4d41eba66edf"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>writeBinary</b> (const std::string &amp;filename, bool print=true) const</td></tr>
 <tr class="separator:a2e3bbd1df30e67b995af4d41eba66edf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8f2ad00f352df295b97406da1ef47ea7"><td class="memItemLeft" align="right" valign="top"><a id="a8f2ad00f352df295b97406da1ef47ea7"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>writeMarket</b> (const std::string &amp;filename) const</td></tr>
-<tr class="separator:a8f2ad00f352df295b97406da1ef47ea7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a07f8f0600df320266e5ebf9b301bd941"><td class="memItemLeft" align="right" valign="top"><a id="a07f8f0600df320266e5ebf9b301bd941"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>writeMarket</b> (const std::string &amp;filename, bool print=true) const</td></tr>
+<tr class="separator:a07f8f0600df320266e5ebf9b301bd941"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae27d96215a12c23018f823fbe3e3e210"><td class="memItemLeft" align="right" valign="top"><a id="ae27d96215a12c23018f823fbe3e3e210"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>writeDimacs10th</b> (const std::string &amp;filename, bool print=true) const</td></tr>
+<tr class="separator:ae27d96215a12c23018f823fbe3e3e210"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a11a6a3beb59139855c3b1f08e2d8a810"><td class="memItemLeft" align="right" valign="top"><a id="a11a6a3beb59139855c3b1f08e2d8a810"></a>
 virtual vid_t&#160;</td><td class="memItemRight" valign="bottom"><b>nV</b> () const noexcept final</td></tr>
 <tr class="separator:a11a6a3beb59139855c3b1f08e2d8a810"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -203,7 +215,7 @@ Data Fields</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 31 2017 11:45:46 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Oct 9 2017 00:09:00 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

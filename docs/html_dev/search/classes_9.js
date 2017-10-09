@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['parsingprop',['ParsingProp',['../classgraph_1_1ParsingProp.html',1,'graph']]],
-  ['ptr2_5ft',['ptr2_t',['../structcustinger__alg_1_1ptr2__t.html',1,'custinger_alg']]],
-  ['ptr2_5ft_3c_20vid_5ft_20_3e',['ptr2_t&lt; vid_t &gt;',['../structcustinger__alg_1_1ptr2__t.html',1,'custinger_alg']]]
+  ['memorymanager',['MemoryManager',['../classhornet_1_1MemoryManager.html',1,'hornet']]],
+  ['memorymanager_3c_20edge_5ft_2c_20vid_5ft_2c_20false_20_3e',['MemoryManager&lt; edge_t, vid_t, false &gt;',['../classhornet_1_1MemoryManager.html',1,'hornet']]],
+  ['memorymanager_3c_20edgealloct_2c_20offsett_2c_20true_20_3e',['MemoryManager&lt; EdgeAllocT, OffsetT, true &gt;',['../classhornet_1_1MemoryManager.html',1,'hornet']]],
+  ['multilevelqueue',['MultiLevelQueue',['../classcustinger__alg_1_1MultiLevelQueue.html',1,'custinger_alg']]]
 ];

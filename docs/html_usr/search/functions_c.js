@@ -1,0 +1,5 @@
+var searchData=
+[
+  ['time_5fstamp1',['time_stamp1',['../classhornet_1_1gpu_1_1Edge_3_01TypeList_3_01VertexTypes_8_8_8_01_4_00_01TypeList_3_01EdgeTypes_8_8_8_01_4_01_4.html#a18612d7cbb991c63679cbd1c02474894',1,'hornet::gpu::Edge&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;::time_stamp1()'],['../classhornet_1_1csr_1_1Edge_3_01TypeList_3_01VertexTypes_8_8_8_01_4_00_01TypeList_3_01EdgeTypes_8_8_8_01_4_01_4.html#ab219ff7244d6eb746decbf2f9298af3f',1,'hornet::csr::Edge&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;::time_stamp1()']]],
+  ['time_5fstamp2',['time_stamp2',['../classhornet_1_1gpu_1_1Edge_3_01TypeList_3_01VertexTypes_8_8_8_01_4_00_01TypeList_3_01EdgeTypes_8_8_8_01_4_01_4.html#a79f50a19a79c86e30e9d8b20ceba02c2',1,'hornet::gpu::Edge&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;::time_stamp2()'],['../classhornet_1_1csr_1_1Edge_3_01TypeList_3_01VertexTypes_8_8_8_01_4_00_01TypeList_3_01EdgeTypes_8_8_8_01_4_01_4.html#a10230b47cc569bf53b71a96181b79e6b',1,'hornet::csr::Edge&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;::time_stamp2()']]]
+];

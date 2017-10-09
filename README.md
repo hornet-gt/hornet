@@ -2,7 +2,7 @@
 
 The repository provides the Hornet data structute implementation.
 
-For additional information concerning the algorithms implemented on top of Hornet please refer to [**HornetAlg repository**](github.com/FedericoUnivr/cuStingerAlg).
+For additional information concerning the algorithms implemented on top of Hornet please refer to [**HornetAlg repository**](https://github.com/hornet-gt/hornetsnest).
 
 ## Getting Started ##
 
@@ -34,8 +34,8 @@ The document is organized as follows:
 
 The following basic steps are required to build and execute Hornet:
 ```bash
-git clone https://github.com/FedericoUnivr/cuStinger
-cd cuStinger/build
+git clone https://github.com/hornet-gt/hornet
+cd hornet/build
 cmake ..
 make -j
 ```
@@ -110,7 +110,7 @@ We are also ready to engage in improving and extending the framework if you requ
 
 ## Publications ##
 
-* Oded Green, David A. Bader, **"Hornet: Supporting dynamic graph algorithms
+* Oded Green, David A. Bader, **"cuSTINGER: Supporting dynamic graph algorithms
   for GPUs"**,
   IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September,
   2016, Waltham, MA, USA, pp. 1-6.

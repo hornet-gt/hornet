@@ -1,7 +1,9 @@
 var searchData=
 [
-  ['memorymanager',['MemoryManager',['../classhornet_1_1MemoryManager.html',1,'hornet']]],
-  ['memorymanager_3c_20edge_5ft_2c_20vid_5ft_2c_20false_20_3e',['MemoryManager&lt; edge_t, vid_t, false &gt;',['../classhornet_1_1MemoryManager.html',1,'hornet']]],
-  ['memorymanager_3c_20edgealloct_2c_20vid_5ft_2c_20true_20_3e',['MemoryManager&lt; EdgeAllocT, vid_t, true &gt;',['../classhornet_1_1MemoryManager.html',1,'hornet']]],
-  ['multilevelqueue',['MultiLevelQueue',['../classcustinger__alg_1_1MultiLevelQueue.html',1,'custinger_alg']]]
+  ['katzcentrality',['KatzCentrality',['../classhornet__alg_1_1KatzCentrality.html',1,'hornet_alg']]],
+  ['katzcentralitydynamic',['KatzCentralityDynamic',['../classhornet__alg_1_1KatzCentralityDynamic.html',1,'hornet_alg']]],
+  ['katzdata',['KatzData',['../structhornet__alg_1_1KatzData.html',1,'hornet_alg']]],
+  ['katzdynamicdata',['KatzDynamicData',['../structhornet__alg_1_1KatzDynamicData.html',1,'hornet_alg']]],
+  ['ktruss',['KTruss',['../classcustinger__alg_1_1KTruss.html',1,'custinger_alg']]],
+  ['ktrussdata',['KTrussData',['../structcustinger__alg_1_1KTrussData.html',1,'custinger_alg']]]
 ];

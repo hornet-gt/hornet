@@ -1,13 +1,7 @@
 var searchData=
 [
-  ['scc',['SCC',['../classgraph_1_1SCC.html',1,'graph']]],
-  ['soa',['SoA',['../classhornet_1_1SoA.html',1,'hornet']]],
-  ['soa_3c_20targs_2e_2e_2e_20_3e',['SoA&lt; TArgs... &gt;',['../classhornet_1_1SoA.html',1,'hornet']]],
-  ['soadev',['SoAdev',['../classhornet_1_1SoAdev.html',1,'hornet']]],
-  ['soadev_3c_20targs_2e_2e_2e_20_3e',['SoAdev&lt; TArgs... &gt;',['../classhornet_1_1SoAdev.html',1,'hornet']]],
-  ['soadevpitch',['SoAdevPitch',['../classhornet_1_1SoAdevPitch.html',1,'hornet']]],
-  ['soadevpitch_3c_20pitch_2c_20targs_2e_2e_2e_20_3e',['SoAdevPitch&lt; PITCH, TArgs... &gt;',['../classhornet_1_1SoAdevPitch.html',1,'hornet']]],
-  ['soaref',['SoARef',['../classhornet_1_1SoARef.html',1,'hornet']]],
-  ['staticalgorithm',['StaticAlgorithm',['../classcustinger__alg_1_1StaticAlgorithm.html',1,'custinger_alg']]],
-  ['structureprop',['StructureProp',['../classgraph_1_1StructureProp.html',1,'graph']]]
+  ['parsingprop',['ParsingProp',['../classgraph_1_1ParsingProp.html',1,'graph']]],
+  ['ptr2_5ft',['ptr2_t',['../structhornet__alg_1_1ptr2__t.html',1,'hornet_alg']]],
+  ['ptr2_5ft_3c_20vid2_5ft_20_3e',['ptr2_t&lt; vid2_t &gt;',['../structhornet__alg_1_1ptr2__t.html',1,'hornet_alg']]],
+  ['ptr2_5ft_3c_20vid_5ft_20_3e',['ptr2_t&lt; vid_t &gt;',['../structhornet__alg_1_1ptr2__t.html',1,'hornet_alg']]]
 ];

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Hornet: VertexBased Class Reference</title>
+<title>Hornet: VertexBased&lt; VW_SIZE &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -74,28 +74,32 @@ $(function() {
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a>  </div>
   <div class="headertitle">
-<div class="title">VertexBased Class Reference</div>  </div>
+<div class="title">VertexBased&lt; VW_SIZE &gt; Class Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ad7584170ad8b7ad4e344fe8dac5f6361"><td class="memTemplParams" colspan="2"><a id="ad7584170ad8b7ad4e344fe8dac5f6361"></a>
-template&lt;typename Operator &gt; </td></tr>
-<tr class="memitem:ad7584170ad8b7ad4e344fe8dac5f6361"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>apply</b> (custinger::cuStinger &amp;custinger, const custinger::vid_t *d_input, int num_vertices, const Operator &amp;op) noexcept</td></tr>
-<tr class="separator:ad7584170ad8b7ad4e344fe8dac5f6361"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad71f77ef2df7f86faea11f22260e8524"><td class="memTemplParams" colspan="2"><a id="ad71f77ef2df7f86faea11f22260e8524"></a>
-template&lt;typename Operator &gt; </td></tr>
-<tr class="memitem:ad71f77ef2df7f86faea11f22260e8524"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>apply</b> (custinger::cuStinger &amp;custinger, const Operator &amp;op) noexcept</td></tr>
-<tr class="separator:ad71f77ef2df7f86faea11f22260e8524"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad5c45353f66ef583c6a170791da8008f"><td class="memTemplParams" colspan="2"><a id="ad5c45353f66ef583c6a170791da8008f"></a>
+template&lt;typename T &gt; </td></tr>
+<tr class="memitem:ad5c45353f66ef583c6a170791da8008f"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>VertexBased</b> (const T &amp;)</td></tr>
+<tr class="separator:ad5c45353f66ef583c6a170791da8008f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a28792ec74711353650d636cdac39c5d9"><td class="memTemplParams" colspan="2"><a id="a28792ec74711353650d636cdac39c5d9"></a>
+template&lt;typename HornetClass , typename Operator &gt; </td></tr>
+<tr class="memitem:a28792ec74711353650d636cdac39c5d9"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>apply</b> (const HornetClass &amp;hornet, const vid_t *d_input, int num_vertices, Operator &amp;&amp;op) const noexcept</td></tr>
+<tr class="separator:a28792ec74711353650d636cdac39c5d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a450286fa8cff919504547bca2dc5b9c8"><td class="memTemplParams" colspan="2"><a id="a450286fa8cff919504547bca2dc5b9c8"></a>
+template&lt;typename HornetClass , typename Operator &gt; </td></tr>
+<tr class="memitem:a450286fa8cff919504547bca2dc5b9c8"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>apply</b> (const HornetClass &amp;hornet, Operator &amp;&amp;op) const noexcept</td></tr>
+<tr class="separator:a450286fa8cff919504547bca2dc5b9c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>/home/fbusato/cuStingerAlg/include/Core/LoadBalancing/<a class="el" href="VertexBased_8cuh.html">VertexBased.cuh</a></li>
+<li>/home/fbusata3/HornetAlg/include/Core/LoadBalancing/<a class="el" href="VertexBased_8cuh.html">VertexBased.cuh</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 31 2017 11:45:46 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Oct 9 2017 00:09:00 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

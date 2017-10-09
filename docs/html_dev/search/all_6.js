@@ -1,9 +1,8 @@
 var searchData=
 [
-  ['gen_5finverse',['GEN_INVERSE',['../BatchUpdate_8cuh.html#a2bb9c298ad262a2483a77006421cfc9d',1,'hornet::gpu::batch_property']]],
+  ['gen_5finverse',['GEN_INVERSE',['../namespacehornet_1_1gpu_1_1batch__property.html#a2bb9c298ad262a2483a77006421cfc9d',1,'hornet::gpu::batch_property']]],
   ['get_5fblockarray_5fptr',['get_blockarray_ptr',['../classhornet_1_1MemoryManager.html#adcf4fc1cf00f784b1de1e2c732998792',1,'hornet::MemoryManager']]],
   ['ginfo',['GInfo',['../structgraph_1_1GInfo.html',1,'graph']]],
-  ['gpu',['gpu',['../namespacegpu.html',1,'']]],
   ['graphbase',['GraphBase',['../classgraph_1_1GraphBase.html',1,'graph']]],
   ['graphbase_2ehpp',['GraphBase.hpp',['../GraphBase_8hpp.html',1,'']]],
   ['graphstd',['GraphStd',['../classgraph_1_1GraphStd.html',1,'graph']]],

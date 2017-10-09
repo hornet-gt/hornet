@@ -69,7 +69,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Data Structures</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#typedef-members">Typedefs</a>  </div>
   <div class="headertitle">
 <div class="title">load_balacing Namespace Reference</div>  </div>
 </div><!--header-->
@@ -83,26 +83,38 @@ Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classload__balacing_1_1BinarySearch.html">BinarySearch</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The class implements the <a class="el" href="classload__balacing_1_1BinarySearch.html" title="The class implements the BinarySearch load balacing. ">BinarySearch</a> load balacing.  <a href="classload__balacing_1_1BinarySearch.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classload__balacing_1_1ScanBased.html">ScanBased</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classload__balacing_1_1VertexBased.html">VertexBased</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
-Functions</h2></td></tr>
-<tr class="memitem:a255313baaf374c318d8f5ebdbd34845e"><td class="memTemplParams" colspan="2"><a id="a255313baaf374c318d8f5ebdbd34845e"></a>
-template&lt;unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK, void(*)(custinger::Edge &amp;, void *) Operator&gt; </td></tr>
-<tr class="memitem:a255313baaf374c318d8f5ebdbd34845e"><td class="memTemplItemLeft" align="right" valign="top">__global__ void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>binarySearchKernel</b> (custinger::cuStingerDevice custinger, const custinger::vid_t *__restrict__ d_input, const int *__restrict__ d_work, int work_size, void *__restrict__ optional_data)</td></tr>
-<tr class="separator:a255313baaf374c318d8f5ebdbd34845e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a61cbfe64fa0dac72636d614dc76a89ff"><td class="memTemplParams" colspan="2"><a id="a61cbfe64fa0dac72636d614dc76a89ff"></a>
-template&lt;unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK, typename Operator &gt; </td></tr>
-<tr class="memitem:a61cbfe64fa0dac72636d614dc76a89ff"><td class="memTemplItemLeft" align="right" valign="top">__global__ void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>binarySearchKernel</b> (custinger::cuStingerDevice custinger, const custinger::vid_t *__restrict__ d_input, const int *__restrict__ d_work, int work_size, Operator op)</td></tr>
-<tr class="separator:a61cbfe64fa0dac72636d614dc76a89ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:ac73d5695b5cf293c80934fe7adcffbc3"><td class="memItemLeft" align="right" valign="top"><a id="ac73d5695b5cf293c80934fe7adcffbc3"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>VertexBased1</b> = <a class="el" href="classload__balacing_1_1VertexBased.html">VertexBased</a>&lt; 1 &gt;</td></tr>
+<tr class="separator:ac73d5695b5cf293c80934fe7adcffbc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46742b7502586a01a143981ebab557c0"><td class="memItemLeft" align="right" valign="top"><a id="a46742b7502586a01a143981ebab557c0"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>VertexBased2</b> = <a class="el" href="classload__balacing_1_1VertexBased.html">VertexBased</a>&lt; 2 &gt;</td></tr>
+<tr class="separator:a46742b7502586a01a143981ebab557c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a76e8889c56cb5398869e3c567ca235f3"><td class="memItemLeft" align="right" valign="top"><a id="a76e8889c56cb5398869e3c567ca235f3"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>VertexBased4</b> = <a class="el" href="classload__balacing_1_1VertexBased.html">VertexBased</a>&lt; 4 &gt;</td></tr>
+<tr class="separator:a76e8889c56cb5398869e3c567ca235f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a56225a46eabe833ced609b51fdcbbfa5"><td class="memItemLeft" align="right" valign="top"><a id="a56225a46eabe833ced609b51fdcbbfa5"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>VertexBased8</b> = <a class="el" href="classload__balacing_1_1VertexBased.html">VertexBased</a>&lt; 8 &gt;</td></tr>
+<tr class="separator:a56225a46eabe833ced609b51fdcbbfa5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d21372f1576b07dbfeb02032eeb3143"><td class="memItemLeft" align="right" valign="top"><a id="a7d21372f1576b07dbfeb02032eeb3143"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>VertexBased16</b> = <a class="el" href="classload__balacing_1_1VertexBased.html">VertexBased</a>&lt; 16 &gt;</td></tr>
+<tr class="separator:a7d21372f1576b07dbfeb02032eeb3143"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab9ce039ca7cb060bc8af7e6f9c95c6b1"><td class="memItemLeft" align="right" valign="top"><a id="ab9ce039ca7cb060bc8af7e6f9c95c6b1"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>VertexBased32</b> = <a class="el" href="classload__balacing_1_1VertexBased.html">VertexBased</a>&lt; 32 &gt;</td></tr>
+<tr class="separator:ab9ce039ca7cb060bc8af7e6f9c95c6b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The namespace provides all load balacing methods to traverse vertices. </p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 31 2017 11:45:46 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Oct 9 2017 00:09:00 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

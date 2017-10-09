@@ -67,7 +67,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_023f6699186d1cd7dde64fd4d36d06bb.html">include</a></li><li class="navelem"><a class="el" href="dir_0e76de40d5eae9aae2e6d5d2407c2288.html">Core</a></li><li class="navelem"><a class="el" href="dir_9da056f6f777d01835e34160675b2100.html">GPU</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_31612ce4da3d1a8599fc1adf1d2a058b.html">include</a></li><li class="navelem"><a class="el" href="dir_308ebed1195b888fc315381969e9e21e.html">Core</a></li><li class="navelem"><a class="el" href="dir_f24eb11af7940f2e975abd9b5999e148.html">GPU</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -95,8 +95,7 @@ Namespaces</h2></td></tr>
 <tr class="memitem:namespacehornet"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacehornet.html">hornet</a></td></tr>
 <tr class="memdesc:namespacehornet"><td class="mdescLeft">&#160;</td><td class="mdescRight">The namespace contanins all classes and methods related to the cuStinger data structure. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:namespacehornet_1_1gpu"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacehornet_1_1gpu.html">hornet::gpu</a></td></tr>
-<tr class="memdesc:namespacehornet_1_1gpu"><td class="mdescLeft">&#160;</td><td class="mdescRight">The namespace contains all classes and methods related to the GPU <a class="el" href="classhornet_1_1gpu_1_1Hornet.html">Hornet</a> data structure. <br /></td></tr>
+<tr class="memitem:namespacehornet_1_1gpu_1_1batch__property"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacehornet_1_1gpu_1_1batch__property.html">hornet::gpu::batch_property</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
@@ -104,10 +103,11 @@ Enumerations</h2></td></tr>
 <tr class="memitem:a1c0bd26c4e209637b1c38dd81ca89bcb"><td class="memItemLeft" align="right" valign="top"><a id="a1c0bd26c4e209637b1c38dd81ca89bcb"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>BatchPropEnum</b> { <br />
 &#160;&#160;<b>GEN_INVERSE</b> = 1, 
 <b>IN_PLACE</b> = 2, 
+<b>CSR</b> = 4, 
 <b>CSR_WIDE</b> = 8, 
-<b>REMOVE_DUPLICATE</b> = 16, 
 <br />
-&#160;&#160;<b>REMOVE_CROSS_DUPLICATE</b> = 32
+&#160;&#160;<b>REMOVE_BATCH_DUPLICATE</b> = 16, 
+<b>REMOVE_CROSS_DUPLICATE</b> = 32
 <br />
  }</td></tr>
 <tr class="separator:a1c0bd26c4e209637b1c38dd81ca89bcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -119,21 +119,24 @@ Enumerations</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:a2bb9c298ad262a2483a77006421cfc9d"><td class="memItemLeft" align="right" valign="top"><a id="a2bb9c298ad262a2483a77006421cfc9d"></a>
-const BatchProperty&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="BatchUpdate_8cuh.html#a2bb9c298ad262a2483a77006421cfc9d">GEN_INVERSE</a> (detail::BatchPropEnum::GEN_INVERSE)</td></tr>
+const BatchProperty&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacehornet_1_1gpu_1_1batch__property.html#a2bb9c298ad262a2483a77006421cfc9d">GEN_INVERSE</a> (detail::BatchPropEnum::GEN_INVERSE)</td></tr>
 <tr class="memdesc:a2bb9c298ad262a2483a77006421cfc9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate Inverse direction for each edge (0, 3) -&gt; (3, 0) <br /></td></tr>
 <tr class="separator:a2bb9c298ad262a2483a77006421cfc9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a707238df52ae411ee85ace5a54688811"><td class="memItemLeft" align="right" valign="top"><a id="a707238df52ae411ee85ace5a54688811"></a>
-const BatchProperty&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="BatchUpdate_8cuh.html#a707238df52ae411ee85ace5a54688811">IN_PLACE</a> (detail::BatchPropEnum::IN_PLACE)</td></tr>
+const BatchProperty&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacehornet_1_1gpu_1_1batch__property.html#a707238df52ae411ee85ace5a54688811">IN_PLACE</a> (detail::BatchPropEnum::IN_PLACE)</td></tr>
 <tr class="memdesc:a707238df52ae411ee85ace5a54688811"><td class="mdescLeft">&#160;</td><td class="mdescRight">Low memory (less performance) insertion and deletion. <br /></td></tr>
 <tr class="separator:a707238df52ae411ee85ace5a54688811"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9b934d17d6c148292718b8f4c2e0fb86"><td class="memItemLeft" align="right" valign="top"><a id="a9b934d17d6c148292718b8f4c2e0fb86"></a>
-const BatchProperty&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="BatchUpdate_8cuh.html#a9b934d17d6c148292718b8f4c2e0fb86">CSR_WIDE</a> (detail::BatchPropEnum::CSR_WIDE)</td></tr>
+const BatchProperty&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacehornet_1_1gpu_1_1batch__property.html#a9b934d17d6c148292718b8f4c2e0fb86">CSR_WIDE</a> (detail::BatchPropEnum::CSR_WIDE)</td></tr>
 <tr class="memdesc:a9b934d17d6c148292718b8f4c2e0fb86"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate 'Wide' CSR representation of the batch. The size of CSR offsets is graph.nV. <br /></td></tr>
 <tr class="separator:a9b934d17d6c148292718b8f4c2e0fb86"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a003d7ea75f416d656cf0cc1535ab4f6e"><td class="memItemLeft" align="right" valign="top"><a id="a003d7ea75f416d656cf0cc1535ab4f6e"></a>
-const BatchProperty&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="BatchUpdate_8cuh.html#a003d7ea75f416d656cf0cc1535ab4f6e">REMOVE_DUPLICATE</a> (detail::BatchPropEnum::REMOVE_DUPLICATE)</td></tr>
-<tr class="memdesc:a003d7ea75f416d656cf0cc1535ab4f6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove duplicate edges in the batch. <br /></td></tr>
-<tr class="separator:a003d7ea75f416d656cf0cc1535ab4f6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5b6dde27c80cd573f181e7aa5268163f"><td class="memItemLeft" align="right" valign="top"><a id="a5b6dde27c80cd573f181e7aa5268163f"></a>
+const BatchProperty&#160;</td><td class="memItemRight" valign="bottom"><b>CSR</b> (detail::BatchPropEnum::CSR)</td></tr>
+<tr class="separator:a5b6dde27c80cd573f181e7aa5268163f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb2013fb6bc95265b8b7350075df9957"><td class="memItemLeft" align="right" valign="top"><a id="acb2013fb6bc95265b8b7350075df9957"></a>
+const BatchProperty&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacehornet_1_1gpu_1_1batch__property.html#acb2013fb6bc95265b8b7350075df9957">REMOVE_BATCH_DUPLICATE</a> (detail::BatchPropEnum::REMOVE_BATCH_DUPLICATE)</td></tr>
+<tr class="memdesc:acb2013fb6bc95265b8b7350075df9957"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove duplicate edges in the batch. <br /></td></tr>
+<tr class="separator:acb2013fb6bc95265b8b7350075df9957"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a75aeb13f2c7ced7baf867a63c81c1f84"><td class="memItemLeft" align="right" valign="top"><a id="a75aeb13f2c7ced7baf867a63c81c1f84"></a>
 const BatchProperty&#160;</td><td class="memItemRight" valign="bottom"><b>REMOVE_CROSS_DUPLICATE</b> (detail::BatchPropEnum::REMOVE_CROSS_DUPLICATE)</td></tr>
 <tr class="separator:a75aeb13f2c7ced7baf867a63c81c1f84"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -142,7 +145,7 @@ const BatchProperty&#160;</td><td class="memItemRight" valign="bottom"><b>REMOVE
 <div class="textblock"><dl class="section author"><dt>Author</dt><dd>Federico Busato <br />
  Univerity of Verona, Dept. of Computer Science <br />
  <a href="#" onclick="location.href='mai'+'lto:'+'fed'+'er'+'ico'+'.b'+'usa'+'to'+'@un'+'iv'+'r.i'+'t'; return false;">feder<span style="display: none;">.nosp@m.</span>ico.<span style="display: none;">.nosp@m.</span>busat<span style="display: none;">.nosp@m.</span>o@un<span style="display: none;">.nosp@m.</span>ivr.i<span style="display: none;">.nosp@m.</span>t</a> </dd></dl>
-<dl class="section date"><dt>Date</dt><dd>August, 2017 </dd></dl>
+<dl class="section date"><dt>Date</dt><dd>September, 2017 </dd></dl>
 <dl class="section version"><dt>Version</dt><dd>v2</dd></dl>
 <dl class="section copyright"><dt>Copyright</dt><dd>Copyright © 2017 Hornet. All rights reserved.</dd></dl>
 <dl class="section copyright">
@@ -161,7 +164,7 @@ const BatchProperty&#160;</td><td class="memItemRight" valign="bottom"><b>REMOVE
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 31 2017 11:45:45 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Oct 9 2017 00:09:00 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

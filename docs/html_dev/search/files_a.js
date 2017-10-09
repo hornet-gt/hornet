@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['wcc_2ehpp',['WCC.hpp',['../WCC_8hpp.html',1,'']]]
+  ['vertexbased_2ecuh',['VertexBased.cuh',['../VertexBased_8cuh.html',1,'']]],
+  ['vertexbasedkernel_2ecuh',['VertexBasedKernel.cuh',['../VertexBasedKernel_8cuh.html',1,'']]]
 ];

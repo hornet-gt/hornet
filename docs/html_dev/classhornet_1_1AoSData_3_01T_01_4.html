@@ -84,13 +84,14 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a9cdf6d61e84085a06433faaef6ab4a4c"><td class="memItemLeft" align="right" valign="top"><a id="a9cdf6d61e84085a06433faaef6ab4a4c"></a>
 HOST_DEVICE&#160;</td><td class="memItemRight" valign="bottom"><b>AoSData</b> (const T &amp;value) noexcept</td></tr>
 <tr class="separator:a9cdf6d61e84085a06433faaef6ab4a4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aec4858202ab756382cdbc9c8dffa61ff"><td class="memTemplParams" colspan="2"><a id="aec4858202ab756382cdbc9c8dffa61ff"></a>
+<tr class="memitem:a79c12e1feed1f8b903b91f0071088526"><td class="memTemplParams" colspan="2"><a id="a79c12e1feed1f8b903b91f0071088526"></a>
 template&lt;typename R &gt; </td></tr>
-<tr class="memitem:aec4858202ab756382cdbc9c8dffa61ff"><td class="memTemplItemLeft" align="right" valign="top">HOST_DEVICE&#160;</td><td class="memTemplItemRight" valign="bottom"><b>AoSData</b> (const R ptr, size_t, typename std::enable_if&lt; !std::is_array&lt; R &gt;::value &gt;::type *=0) noexcept</td></tr>
-<tr class="separator:aec4858202ab756382cdbc9c8dffa61ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a84fdd925db496a3200623acf32d13682"><td class="memItemLeft" align="right" valign="top"><a id="a84fdd925db496a3200623acf32d13682"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>AoSData</b> (const void *(&amp;array)[1], int index) noexcept</td></tr>
-<tr class="separator:a84fdd925db496a3200623acf32d13682"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a79c12e1feed1f8b903b91f0071088526"><td class="memTemplItemLeft" align="right" valign="top">HOST_DEVICE&#160;</td><td class="memTemplItemRight" valign="bottom"><b>AoSData</b> (const R ptr, size_t, typename std::enable_if&lt; std::is_pointer&lt; R &gt;::value &gt;::type *=0) noexcept</td></tr>
+<tr class="separator:a79c12e1feed1f8b903b91f0071088526"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad7356104495553f3a098da2ef777ab8c"><td class="memTemplParams" colspan="2"><a id="ad7356104495553f3a098da2ef777ab8c"></a>
+template&lt;typename R , int SIZE&gt; </td></tr>
+<tr class="memitem:ad7356104495553f3a098da2ef777ab8c"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>AoSData</b> (const R *const (&amp;array)[SIZE], size_t index) noexcept</td></tr>
+<tr class="separator:ad7356104495553f3a098da2ef777ab8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3edf0effe014bfa76b56d30087caa5c3"><td class="memTemplParams" colspan="2"><a id="a3edf0effe014bfa76b56d30087caa5c3"></a>
 template&lt;int INDEX = 0&gt; </td></tr>
 <tr class="memitem:a3edf0effe014bfa76b56d30087caa5c3"><td class="memTemplItemLeft" align="right" valign="top">HOST_DEVICE const T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>get</b> () const noexcept</td></tr>
@@ -112,7 +113,7 @@ std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operato
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 31 2017 11:45:46 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Oct 9 2017 00:09:00 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

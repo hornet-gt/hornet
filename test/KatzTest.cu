@@ -1,12 +1,12 @@
 /**
- * @internal
- * @author Oded Green                                                  <br>
- *         Georgia Institute of Technology, Computational Science and Engineering                   <br>
- *         ogreen@gatech.edu
+ * @brief
+ * @author Oded Green                                                       <br>
+ *   Georgia Institute of Technology, Computational Science and Engineering <br>                   <br>
+ *   ogreen@gatech.edu
  * @date August, 2017
  * @version v2
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -36,60 +36,49 @@
  *
  * @file
  */
-
-#include "Static/KatzCentrality/katz.cuh"
-#include "Device/Timer.cuh"
-
-
-using namespace timer;
-using namespace custinger;
-using namespace custinger_alg;
+#include "Static/KatzCentrality/Katz.cuh"
+#include <Device/Timer.cuh>
+#include <GraphIO/GraphStd.hpp>
 
 int main(int argc, char* argv[]) {
     using namespace graph::structure_prop;
     using namespace graph::parsing_prop;
+    using namespace graph;
+    using namespace hornet_alg;
+    using namespace timer;
 
-	int device=0;
+    int max_iterations = 1000;
+    int           topK = 100;
 
-    cudaSetDevice(device);
-	cudaDeviceProp prop;
-	cudaGetDeviceProperties(&prop, device);
+    GraphStd<vid_t, eoff_t> graph(UNDIRECTED);
+    graph.read(argv[1], SORT | PRINT_INFO);
 
+    HornetInit hornet_init(graph.nV(), graph.nE(),
+                           graph.out_offsets_ptr(),
+                           graph.out_edges_ptr());
 
-	int maxIterations=1000;
-	int topK=100;
+    HornetGPU hornet_graph(hornet_init);
 
-    graph::GraphStd<vid_t, eoff_t> graph(UNDIRECTED);
-    graph.read(argv[1], SORT | PRINT);
+    // Finding largest vertex
+    degree_t max_degree_vertex = hornet_graph.max_degree_id();
+    std::cout << "Max degree vextex is " << max_degree_vertex << std::endl;
 
-	cuStingerInit custinger_init(graph.nV(), graph.nE(),
-                                 graph.out_offsets_ptr(),
-                                 graph.out_edges_ptr());
+    KatzCentrality kcPostUpdate(hornet_graph, max_iterations, topK,
+                                max_degree_vertex);
 
-	cuStinger custinger_graph(custinger_init);
+    Timer<DEVICE> TM;
+    TM.start();
 
+    kcPostUpdate.run();
 
-	// Finding largest vertex
-	degree_t   maxDeg		=custinger_graph.max_degree();
-	cout << "Max degree is " << maxDeg << endl;
+    TM.stop();
 
-	float totalTime;
-
-	custinger_alg::katzCentrality kcPostUpdate(custinger_graph);
-	kcPostUpdate.setInitParameters(maxIterations,topK,maxDeg,true);
-	kcPostUpdate.init();
-	kcPostUpdate.reset();
-	Timer<DEVICE> TM;
-	TM.start();
-	kcPostUpdate.run();
-	TM.stop();
-	totalTime = TM.duration();
-	cout << "The number of iterations      : " << kcPostUpdate.getIterationCount() << endl;
-	cout << "Total time for KC             : " << totalTime << endl;
-	cout << "Average time per iteartion    : " << totalTime/(float)kcPostUpdate.getIterationCount() << endl;
-
-	kcPostUpdate.release();
-
-    return 0;
-
+    auto total_time = TM.duration();
+    std::cout << "The number of iterations   : "
+              << kcPostUpdate.get_iteration_count()
+              << "\nTotal time for KC          : " << total_time
+              << "\nAverage time per iteartion : "
+              << total_time /
+                 static_cast<float>(kcPostUpdate.get_iteration_count())
+              << "\n";
 }

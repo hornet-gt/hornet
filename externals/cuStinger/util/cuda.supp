@@ -1,0 +1,27 @@
+
+{
+   CUDA1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   obj:*libcuda.so*
+   ...
+}
+
+{
+   CUDA2
+   Memcheck:Leak
+   match-leak-kinds: possible
+   ...
+   obj:*libcuda.so*
+   ...
+}
+
+{
+  CUDA3
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:*cudart*
+   ...
+}

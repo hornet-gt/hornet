@@ -2,10 +2,10 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date September, 2017
  * @version v2
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -35,43 +35,51 @@
  *
  * @file
  */
-#include "Core/cuStingerTypes.cuh"
-
 namespace load_balacing {
-namespace detail {
+namespace kernel {
+
 /**
  * @brief
  */
-template<typename Operator>
+template<unsigned VW_SIZE, typename HornetDevice, typename Operator>
 __global__
-void vertexBasedKernel(custinger::cuStingerDevice custinger,
-                       const custinger::vid_t* __restrict__ d_input,
-                       int num_vertices, Operator op) {
-    int     id = blockIdx.x * blockDim.x + threadIdx.x;
-    int stride = gridDim.x * blockDim.x;
+void vertexBasedKernel(HornetDevice              hornet,
+                       const vid_t* __restrict__ d_input,
+                       int                       num_vertices,
+                       Operator                  op) {
+    int   group_id = (blockIdx.x * blockDim.x + threadIdx.x) / VW_SIZE;
+    int     stride = (gridDim.x * blockDim.x) / VW_SIZE;
+    int group_lane = threadIdx.x % VW_SIZE;
 
-    for (int i = id; i < stride; i += stride) {
-        auto vertex = custinger.vertex(d_input[i]);
-        for (int j = 0; j < vertex.degree(); j++)
-            Operator(vertex.edge(j));
+    for (auto i = group_id; i < num_vertices; i += stride) {
+        __syncthreads();
+        const auto& vertex = hornet.vertex(d_input[i]);
+        for (auto j = group_lane; j < vertex.degree(); j += VW_SIZE) {
+            const auto& edge = vertex.edge(j);
+            op(vertex, edge);
+        }
+        __syncthreads();
     }
 }
 
 /**
  * @brief
  */
-template<typename Operator>
+template<unsigned VW_SIZE, typename HornetDevice, typename Operator>
 __global__
-void vertexBasedKernel(custinger::cuStingerDevice custinger, Operator op) {
-    int     id = blockIdx.x * blockDim.x + threadIdx.x;
-    int stride = gridDim.x * blockDim.x;
+void vertexBasedKernel(HornetDevice hornet, Operator op) {
+    int   group_id = (blockIdx.x * blockDim.x + threadIdx.x) / VW_SIZE;
+    int     stride = (gridDim.x * blockDim.x) / VW_SIZE;
+    int group_lane = threadIdx.x % VW_SIZE;
 
-    for (int i = id; i < stride; i += stride) {
-        auto vertex = custinger.vertex(i);
-        for (int j = 0; j < vertex.degree(); j++)
-            Operator(vertex.edge(j));
+    for (auto i = group_id; i < hornet.nV(); i += stride) {
+        const auto& vertex = hornet.vertex(i);
+        for (auto j = group_lane; j < vertex.degree();  j += VW_SIZE) {
+            const auto& edge = vertex.edge(j);
+            op(vertex, edge);
+        }
     }
 }
 
-} // detail
+} // kernel
 } // namespace load_balacing

@@ -1,12 +1,12 @@
 /**
- * @internal
- * @author Oded Green                                                  <br>
- *         Georgia Institute of Technology, Computational Science and Engineering                   <br>
- *         ogreen@gatech.edu
+ * @brief
+ * @author Oded Green                                                       <br>
+ *   Georgia Institute of Technology, Computational Science and Engineering <br>                   <br>
+ *   ogreen@gatech.edu
  * @date August, 2017
  * @version v2
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -36,183 +36,84 @@
  *
  * @file
  */
-
 #pragma once
 
-#include <cuda_runtime.h>
+#include "HornetAlg.hpp"
+#include "Core/LoadBalancing/VertexBased.cuh"
+#include "Core/LoadBalancing/ScanBased.cuh"
+#include "Core/LoadBalancing/BinarySearch.cuh"
+#include "Core/HostDeviceVar.cuh"
+#include <Core/GPUCsr/Csr.cuh>
+#include <Core/GPU/Hornet.cuh>
 
-#include "cuStingerAlg.hpp"
+namespace hornet_alg {
 
-using ulong_t = unsigned long long int;
+using HornetGPU = gpu::Hornet<EMPTY, EMPTY>;
+//using HornetGPU = csr::Hornet<EMPTY, EMPTY>;
 
-using namespace std;
+using ulong_t = long long unsigned;
 
-namespace custinger_alg {
+struct KatzData {
+    ulong_t*  num_paths_data;
+    ulong_t** num_paths; // Will be used for dynamic graph algorithm which
+                          // requires storing paths of all iterations.
 
-struct katzData{
-	ulong_t*   nPathsData;
-	ulong_t**  nPaths;     // Will be used for dynamic graph algorithm which requires storing paths of all iterations.
+    ulong_t*  num_paths_curr;
+    ulong_t*  num_paths_prev;
 
-	ulong_t*   nPathsCurr;
-	ulong_t*   nPathsPrev;
+    double*   KC;
+    double*   lower_bound;
+    double*   upper_bound;
 
-	double*     KC;
-	double*     lowerBound;
-	double*     upperBound;
+    double alpha;
+    double alphaI; // Alpha to the power of I  (being the iteration)
 
-	double alpha;
-	double alphaI; // Alpha to the power of I  (being the iteration)
+    double lower_bound_const;
+    double upper_bound_const;
 
-	double lowerBoundConst;
-	double upperBoundConst;
+    int K;
 
-	int32_t K;
+    int max_degree;
+    int iteration;
+    int max_iteration;
 
-	int32_t maxDegree;
-	int32_t iteration;
-	int32_t maxIteration;
-	// number of active vertices at each iteration
-	int32_t nActive;
-	int32_t nPrevActive;
-	int32_t nv;
+    int num_active;    // number of active vertices at each iteration
+    int num_prev_active;
+    int nV;
 
-	bool* isActive;
-	double*     lowerBoundUnsorted;
-	double*     lowerBoundSorted;
-	int32_t*    vertexArrayUnsorted; // Sorting
-	int32_t*    vertexArraySorted; // Sorting
-
+    bool*   is_active;
+    double* lower_bound_unsorted;
+    double* lower_bound_sorted;
+    int*    vertex_array_unsorted; // Sorting
+    int*    vertex_array_sorted;   // Sorting
 };
 
 // Label propogation is based on the values from the previous iteration.
-class katzCentrality final:public StaticAlgorithm{
+class KatzCentrality : public StaticAlgorithm<HornetGPU> {
 public:
-    explicit katzCentrality(cuStinger& custinger);
-    ~katzCentrality();
+    KatzCentrality(HornetGPU& hornet, int max_iteration,
+                   int K, int max_degree, bool is_static = true);
+    ~KatzCentrality();
 
-	void setInitParameters(int32_t maxIteration_,int32_t K_,int32_t maxDegree_, bool isStatic_=true);
-	void init();
-	void reset() override;
-	void run() override;
-	void release() override;
-    bool validate() override { return true; }
+    void reset()    override;
+    void run()      override;
+    void release()  override;
+    bool validate() override;
 
-	int32_t getIterationCount();
+    int get_iteration_count();
 
-	const katzData getHostKatzData(){return hostKatzData;}
-	const katzData* getDeviceKatzData(){return deviceKatzData;}
+    void copyKCToHost(double* host_array);
+    void copyNumPathsToHost(ulong_t* host_array);
 
-	virtual void copyKCToHost(double* hostArray){
-		gpu::copyDeviceToHost(hostKatzData.KC,hostKatzData.nv,hostArray);
-	}
-
-	virtual void copynPathsToHost(ulong_t* hostArray){
-		gpu::copyDeviceToHost(hostKatzData.nPathsData,hostKatzData.nv*hostKatzData.maxIteration,hostArray);
-		// copyArrayDeviceToHost(hostKatzData->nPathsData,hostArray, (hostKatzData->nv)*hostKatzData->maxIteration, sizeof(ulong_t));
-	}
-
-
-protected:
-	// katzData hostKatzData, *deviceKatzData;
-	katzData hostKatzData, *deviceKatzData;
+    KatzData katz_data();
 
 private:
-	void printKMostImportant();
-
     load_balacing::BinarySearch load_balacing;
-	// cusLoadBalance* cusLB;
-	bool isStatic;
-	ulong_t** hPathsPtr;  // Will be used to store pointers to all iterations of the Katz centrality results
+    HostDeviceVar<KatzData>     hd_katzdata;
+    ulong_t**                   h_paths_ptr;
+    bool                        is_static;
 
-	bool memReleased;
+    void printKMostImportant();
 };
 
-
-namespace katz_operators {
-
-
-// Used at the very beginning
-__device__ __forceinline__
-void init(Vertex& s, void* optional_field){
-	auto kd = reinterpret_cast<katzData*>(optional_field);
-	vid_t src = s.id();
-	kd->nPathsPrev[src]=1;
-	kd->nPathsCurr[src]=0;
-	kd->KC[src]=0.0;
-	kd->isActive[src]=true;
-}
-
-__device__ __forceinline__
-void initNumPathsPerIteration(Vertex& src, void* optional_field){
-	auto kd = reinterpret_cast<katzData*>(optional_field);
-	kd->nPathsCurr[src.id()]=0;
-}
-
-__device__ __forceinline__
-void updatePathCount(Vertex& src_, Edge& edge, void* optional_field){
-	auto kd = reinterpret_cast<katzData*>(optional_field);
-	auto dst = edge.dst_id();
-    auto src = src_.id();
-	atomicAdd(kd->nPathsCurr+src, kd->nPathsPrev[dst]);
-}
-
-
-__device__ __forceinline__
-void updateKatzAndBounds(Vertex& s, void* optional_field){
-	auto kd = reinterpret_cast<katzData*>(optional_field);
-    vid_t src = s.id();
-
-	kd->KC[src]=kd->KC[src] + kd->alphaI * (double)kd->nPathsCurr[src];
-	kd->lowerBound[src]=kd->KC[src] + kd->lowerBoundConst * (double)kd->nPathsCurr[src];
-	kd->upperBound[src]=kd->KC[src] + kd->upperBoundConst * (double)kd->nPathsCurr[src];
-
-	if(kd->isActive[src]){
-		int32_t pos = atomicAdd(&(kd -> nActive),1);
-		kd->vertexArrayUnsorted[pos] = src;
-		kd->lowerBoundUnsorted[pos]=kd->lowerBound[src];
-	}
-}
-
-
-__device__ __forceinline__
-void countActive(Vertex& s, void* optional_field){
-	auto kd = reinterpret_cast<katzData*>(optional_field);
-	vid_t src = s.id();
-	// if (kd->upperBound[src] > kd->lowerBound[kd->vertexArray[kd->K-1]]) {
-		// if (src==(kd->vertexArraySorted[kd->nPrevActive-(kd->K-1)]))
-		// 	printf("!!!%d %E\n",src,kd->upperBound[src]-kd->lowerBound[src]);
-
-	// printf("%d %lf: %lf %lf %e\n",src,kd->lowerBound[kd->vertexArraySorted[kd->nActive-(kd->K)]],kd->upperBound[src],kd->upperBound[src],kd->upperBound[src]-kd->lowerBound[kd->vertexArraySorted[kd->nActive-(kd->K)]]);
-
-
-	if (kd->upperBound[src] > kd->lowerBound[kd->vertexArraySorted[kd->nPrevActive-(kd->K)]]) {
-		atomicAdd(&(kd -> nActive),1);
-	}
-	else{
-		kd->isActive[src] = false;
-	}
-}
-
-
-// __device__ __forceinline__
-// void printPointers(cuStinger* custing,int32_t src, void* metadata){
-// 	katzData* kd = (katzData*)metadata;
-// 	if(threadIdx.x==0 && blockIdx.x==0 && src==0)
-// 		printf("\n@ %p %p %p %p %p %p %p %p @\n",kd->nPathsData,kd->nPaths, kd->nPathsPrev, kd->nPathsCurr, kd->KC,kd->lowerBound,kd->lowerBoundUnsorted,kd->upperBound);
-// }
-
-// __device__ __forceinline__
-// void printKID(cuStinger* custing,int32_t src, void* metadata){
-// 	katzData* kd = (katzData*)metadata;
-// 	if(kd->nPathsPrev[src]!=1)
-// 		printf("%d %ld\n ", src,kd->nPathsPrev[src]);
-// 	if(kd->nPathsCurr[src]!=0)
-// 		printf("%d %ld\n ", src,kd->nPathsCurr[src]);
-// }
-
-
-};
-
-
-
-} // cuStingerAlgs namespace
+} // hornetAlgs namespace

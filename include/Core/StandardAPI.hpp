@@ -5,7 +5,7 @@
  * @date August, 2017
  * @version v2
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@
  */
 #pragma once
 
+namespace hornet {
 namespace gpu {
 
 template<typename T>
@@ -45,31 +46,32 @@ template<typename T>
 void free(T* pointer);
 
 template<typename T>
-void copyDeviceToDevice(const T* source, size_t num_items, T* destination);
+void copyToDevice(const T* device_input, size_t num_items, T* device_output);
 
 template<typename T>
-void copyHostToDevice(const T* source, size_t num_items, T* destination);
+void copyToHost(const T* device_input, size_t num_items, T* host_output);
 
 template<typename T>
-void copyHostToDevice(T value, T* destination);
+void copyFromHost(const T* host_input, size_t num_items, T* device_output);
 
 template<typename T>
-void copyDeviceToHost(const T* source, size_t num_items, T* destination);
+void memsetZero(T* pointer, size_t num_items = 1);
 
 template<typename T>
-void copyDeviceToHost(const T* source, T& value);
-
-template<typename T>
-void memsetZero(const T* pointer, size_t num_items);
-
-template<typename T>
-void memsetOne(const T* pointer, size_t num_items);
+void memsetOne(T* pointer, size_t num_items = 1);
 
 template<typename T>
 T reduce(const T* input, size_t num_items);
 
 template<typename T>
 void excl_prefixsum(const T* input, size_t num_items, T* output);
+
+template<typename HostIterator, typename DeviceIterator>
+bool equal(HostIterator host_start, HostIterator host_end,
+           DeviceIterator device_start) noexcept;
+
+template<typename T>
+void print(const T* device_input, size_t num_items);
 
 } // namespace gpu
 
@@ -81,16 +83,34 @@ template<typename T>
 void allocate(T*& pointer, size_t num_items);
 
 template<typename T>
+void allocateNotPageable(T*& pointer, size_t num_items);
+
+template<typename T>
 void free(T*& pointer);
 
 template<typename T>
-void copyHostToHost(const T* input, size_t num_items, T* output);
+void freePageable(T*& pointer);
 
 template<typename T>
-void memsetZero(T* pointer, size_t num_items);
+void copyToHost(const T* host_input, size_t num_items, T* host_output);
 
 template<typename T>
-void memsetOne(T* pointer, size_t num_items);
+void copyToDevice(const T* host_input, size_t num_items, T* device_output);
+
+template<typename T>
+void copyToDevice(T host_value, T* device_output);
+
+template<typename T>
+void copyFromDevice(const T* device_input, size_t num_items, T* host_output);
+
+template<typename T>
+void copyFromDevice(const T* device_input, T& host_output);
+
+template<typename T>
+void memsetZero(T* pointer, size_t num_items = 1);
+
+template<typename T>
+void memsetOne(T* pointer, size_t num_items = 1);
 
 template<typename T>
 T reduce(const T* input, size_t num_items);
@@ -98,6 +118,10 @@ T reduce(const T* input, size_t num_items);
 template<typename T>
 void excl_prefixsum(const T* input, size_t num_items, T* output);
 
+template<typename T>
+void print(const T* host_input, size_t num_items);
+
 } // namespace host
+} // namespace hornet
 
 #include "Core/StandardAPI.i.hpp"

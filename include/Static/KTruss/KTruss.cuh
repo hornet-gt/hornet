@@ -7,7 +7,7 @@ using triangle_t = int;
 namespace custinger_alg {
 
 struct KTrussData {
-    KTrussData(const custinger::cuStinger& custinger) : activeQueue(custinger){}
+    KTrussData(const custinger::Hornet& custinger) : activeQueue(custinger){}
     int maxK;
 
     int tsp;
@@ -40,7 +40,7 @@ struct KTrussData {
 // Label propogation is based on the values from the previous iteration.
 class KTruss : public StaticAlgorithm {
 public:
-    KTruss(cuStinger& custinger, custinger::BatchUpdate& batch_update);
+    KTruss(Hornet& custinger, custinger::BatchUpdate& batch_update);
     ~KTruss();
 
     void reset()    override;
@@ -76,7 +76,7 @@ private:
 
 //==============================================================================
 
-void callDeviceDifferenceTriangles(const custinger::cuStinger& custinger,
+void callDeviceDifferenceTriangles(const custinger::Hornet& custinger,
                                    const custinger::BatchUpdate& batch_update,
                                    triangle_t* __restrict__ outPutTriangles,
                                    int threads_per_intersection,

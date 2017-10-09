@@ -1,9 +1,9 @@
-# cuStingerAlg #
+# HornetAlg #
 
-The repository provides the graph algorithms implemented over the cuStinger
+The repository provides the graph algorithms implemented on top Hornet
 data structure.
 
-For additional information please refer to [**cuStinger repository**]( https://github.com/FedericoUnivr/cuStinger).
+For additional information concerning the data structure and its APIs please refer to [**Hornet repository**](github.com/FedericoUnivr/cuStinger).
 
 ## Getting Started ##
 
@@ -11,13 +11,13 @@ The document is organized as follows:
 
 * [Requirements](#requirements)
 * [Quick start](#quick-start)
-* [cuStinger Algorithms](#custinger-algorithms)
+* [Hornet Algorithms](#hornet-algorithms)
 * [Performance](#performance)
-* [cuStinger Algorithms Lines of Code](#custinger-algorithms-lines-of-code)
+* [Hornet Algorithms Lines of Code](#hornet-algorithms-lines-of-code)
 * [Code Documentation](#code-documentation)
 * [Reporting bugs and contributing](#reporting-bugs-and-contributing)
 * [Publications](#publications)
-* [cuStinger Developers](#custinger-developers)
+* [Hornet Developers](#hornet-developers)
 * [Acknowledgements](#acknowledgements)
 * [License](#licence)
 
@@ -29,11 +29,11 @@ The document is organized as follows:
   Note: the compiler must be compatible with the related CUDA toolkit version.
   For more information see [CUDA Installation Guide](http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html).
 * [CMake](https://cmake.org) v3.6 or greater.
-* 64-bit Operating System (Ubuntu tested).
+* 64-bit Operating System (Ubuntu 16.04 or above suggested).
 
 ### Quick Start ###
 
-The following basic steps are required to build and execute the cuStinger algorithms:
+The following basic steps are required to build and execute the Hornet algorithms:
 ```bash
 git clone --recursive https://github.com/FedericoUnivr/cuStingerAlg.git
 cd cuStingerAlg/build
@@ -41,7 +41,26 @@ cmake ..
 make -j
 ```
 
-## cuStinger Algorithms ##
+By default the cuda compiler `nvcc` uses `gcc/g++` found in the current
+execution search path (`cc --version` to get the default compiler).
+To force a different host compiler to compile plain C++ files (`*.cpp`) set the
+following environment variables:
+ ```bash
+CC=<path_to_host_C_compiler>
+CXX=<path_to_host_C++_compiler>
+```
+
+To force a different host compiler to compile host side `nvcc` code (`*.cu`)
+substitute `cmake ..` with
+ ```bash
+cmake -DCUDAHC=<path_to_host_C++_compiler>
+```
+Note: host compiler and host side `nvcc` compiler may be different.
+The host side `nvcc` compiler must be compatible with the current CUDA toolkit
+version installed on the system
+(see [CUDA Installation Guide](http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html)).
+
+## Hornet Algorithms ##
 
 |           Algorithm                 |    Static     | Dynamic  |
 | :-----------------------------------|:-------------:|:--------:|
@@ -96,7 +115,7 @@ make -j
 | (TC) Triangle Counting              |                 |                  |          |
 | (KC) Katz Centrality                |                 |                  |          |
 
-## cuStinger Algorithms Lines of Code ##
+## Hornet Algorithms Lines of Code ##
 
 |         Algorithm                   | Static (A) | Static (B) | Dynamic (A) |
 | :-----------------------------------|:----------:|:----------:|:-----------:|
@@ -114,29 +133,37 @@ make -j
 
 ### Code Documentation ###
 
-The code documentation is located in the `docs` directory of cuStinger data
+The code documentation is located in the `docs` directory of Hornet data
 structure directory (*doxygen* html format).
-The documentation is also accessible online [**here**.](https://federicounivr.github.io/cuStinger/)
+The documentation is also accessible online [**here**.](https://federicounivr.github.io/Hornet/)
 
 ### Reporting bugs and contributing ###
 
 If you find any bugs please report them by using the repository (github **issues** panel).
-We are also ready to engage in improving and extending the framework if you request some new features.
-
+We are also ready to engage in improving and extending the framework if you request new features.
 
 ## Publications ##
 
-* Oded Green, David A. Bader, [*"cuStinger: Supporting dynamic graph algorithms for GPUs"*](https://www.researchgate.net/publication/308174457_cuSTINGER_Supporting_dynamic_graph_algorithms_for_GPUs),
-IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September, 2016, Waltham, MA, USA, pp. 1-6.
+* Oded Green, David A. Bader, **"Hornet: Supporting dynamic graph algorithms
+  for GPUs"**,
+  IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September,
+  2016, Waltham, MA, USA, pp. 1-6.
+  [link](https://www.researchgate.net/publication/308174457_cuSTINGER_Supporting_dynamic_graph_algorithms_for_GPUs)
 * Oded Green, James Fox, Euna Kim, Federico Busato, Nicola Bombieri,
   Kartik Lakhotia, Shijie Zhou, Shreyas Singapura, Hanqing Zeng,
-  Rajgopal Kannan, Viktor Prasanna, David A. Bader, **"Quickly Finding a Truss in a Haystack"**, IEEE/Amazon/DARPA Graph Challenge, \**Innovation Awards*\*
+  Rajgopal Kannan, Viktor Prasanna, David A. Bader,
+  **"Quickly Finding a Truss in a Haystack"**,
+  IEEE/Amazon/DARPA Graph Challenge, \**Innovation Awards*\*.
+* Devavret Makkar, David A. Bader, Oded Green,
+  **Exact and Parallel Triangle Counting in Streaming Graphs**,
+  IEEE Conference on High Performance Computing, Data, and Analytics (HiPC),
+  18-21 December 2017, Jaipur, India, pp. 1-10.
 
 ---
-### <center>If you find this software useful in academic work, please acknowledge cuStinger. </center> ###
+### <center>If you find this software useful in academic work, please acknowledge Hornet. </center> ###
 ***
 
-## cuStinger 2.0 Developers ##
+## Hornet Developers ##
 
 ##### Data Structure ######
 
@@ -150,6 +177,7 @@ IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September, 2016
 * `James Fox`, Ph.D. Student, Georgia Institute of Technology : *Maximal Independent Set*, *Temporal Motif Finding*
 * `Devavret Makkar`, Ph.D. Student, Georgia Institute of Technology : *Triangle Counting*
 * `Elisabetta Bergamini`, Ph.D. Student, Karlsruhe Institute of Technology (Germany) : *Katz Centrality*
+* `Euna Kim`, Ph.D. Student, Georgia Institute of Technology : *Dynamic PageRank*
 * ...
 
 ## Acknowledgements ##
@@ -160,7 +188,7 @@ IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September, 2016
 
 > BSD 3-Clause License
 >
-> Copyright (c) 2017, cuStinger
+> Copyright (c) 2017, Hornet
 > All rights reserved.
 >
 > Redistribution and use in source and binary forms, with or without

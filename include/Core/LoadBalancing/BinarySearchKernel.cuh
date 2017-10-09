@@ -2,10 +2,10 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date September, 2017
  * @version v2
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -35,56 +35,59 @@
  *
  * @file
  */
-#include <Core/cuStingerTypes.cuh>
 #include <Device/BinarySearchLB.cuh>
 
 /**
  * @brief
  */
 namespace load_balacing {
+namespace kernel {
 
-/**
- * @brief
- */
-template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
-         void (*Operator)(custinger::Edge&, void*)>
+template<bool = true>
 __global__
-void binarySearchKernel(custinger::cuStingerDevice           custinger,
-                        const custinger::vid_t* __restrict__ d_input,
-                        const int*              __restrict__ d_work,
-                        int                                  work_size,
-                        void*                   __restrict__ optional_data) {
-    using custinger::degree_t;
-    using custinger::Vertex;
-    __shared__ degree_t smem[ITEMS_PER_BLOCK];
-
-    auto lambda = [&](int pos, degree_t offset) {
-                        auto vertex = custinger.vertex(d_input[pos]);
-                        auto   edge = vertex.edge(offset);
-                        Operator(edge, optional_data);
-                    };
-    xlib::binarySearchLB<BLOCK_SIZE>(d_work, work_size, smem, lambda);
+void computeWorkKernel(const hornet::vid_t*    __restrict__ d_input,
+                       const hornet::degree_t* __restrict__ d_degrees,
+                       int                                  num_vertices,
+                       int*                    __restrict__ d_work) {
+    int     id = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
+    for (auto i = id; i < num_vertices; i += stride)
+        d_work[i] = d_degrees[ d_input[i] ];
 }
 
-//------------------------------------------------------------------------------
-
-template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK, typename Operator>
+template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
+         typename HornetDevice, typename Operator>
 __global__
-void binarySearchKernel(custinger::cuStingerDevice           custinger,
-                        const custinger::vid_t* __restrict__ d_input,
-                        const int*              __restrict__ d_work,
-                        int                                  work_size,
-                        Operator                             op) {
-    using custinger::degree_t;
-    using custinger::Vertex;
-    __shared__ degree_t smem[ITEMS_PER_BLOCK];
+void binarySearchKernel(HornetDevice              hornet,
+                        const vid_t* __restrict__ d_input,
+                        const int*   __restrict__ d_work,
+                        int                       work_size,
+                        Operator                  op) {
 
     const auto& lambda = [&](int pos, degree_t offset) {
-                                auto vertex = custinger.vertex(d_input[pos]);
-                                auto edge = vertex.edge(offset);
-                                op(edge);
+                            const auto& vertex = hornet.vertex(d_input[pos]);
+                            const auto&   edge = vertex.edge(offset);
+                            op(vertex, edge);
                         };
-    xlib::binarySearchLB<BLOCK_SIZE>(d_work, work_size, smem, lambda);
+    xlib::binarySearchLB<BLOCK_SIZE, ITEMS_PER_BLOCK / BLOCK_SIZE>
+        (d_work, work_size, xlib::dyn_smem, lambda);
 }
 
+template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
+         typename HornetDevice, typename Operator>
+__global__
+void binarySearchKernel(HornetDevice              hornet,
+                        const int*   __restrict__ d_work,
+                        int                       work_size,
+                        Operator                  op) {
+
+    const auto& lambda = [&](int pos, degree_t offset) {
+                            const auto& vertex = hornet.vertex(pos);
+                            const auto&   edge = vertex.edge(offset);
+                            op(vertex, edge);
+                        };
+    xlib::binarySearchLB<BLOCK_SIZE>(d_work, work_size, xlib::dyn_smem, lambda);
+}
+
+} // namespace kernel
 } // namespace load_balacing

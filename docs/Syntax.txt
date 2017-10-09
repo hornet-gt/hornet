@@ -16,7 +16,7 @@ Options:
 
     --no-info       Read the graph without printing any information
 
-    --device <num>  Select the device on which execute (defualt: 0)
+    --device <num>  Select the device on which execute (default: 0)
 
     --write_binary  Convert the input graph into a binary format and store it in
                     the same directory with the .bin extension

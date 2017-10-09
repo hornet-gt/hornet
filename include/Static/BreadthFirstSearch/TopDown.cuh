@@ -1,12 +1,13 @@
 /**
- * @brief Top-Down implementation of Breadth-first Search by using C-Style APIs
- * @author Oded Green, Federico Busato                                      <br>
+ * @brief Top-Down implementation of Breadth-first Search by using C++11-Style
+ *        APIs
+ * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date September, 2017
  * @version v2
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -38,36 +39,40 @@
  */
 #pragma once
 
-#include "cuStingerAlg.hpp"
+#include "HornetAlg.hpp"
+#include "Core/LoadBalancing/VertexBased.cuh"
+#include "Core/LoadBalancing/ScanBased.cuh"
+#include "Core/LoadBalancing/BinarySearch.cuh"
+#include <Core/GPUCsr/Csr.cuh>
+#include <Core/GPU/Hornet.cuh>
 
-namespace custinger_alg {
+namespace hornet_alg {
+
+using HornetGPU = csr::Hornet<EMPTY, EMPTY>;
+//using HornetGPU = gpu::Hornet<EMPTY, EMPTY>;
 
 using dist_t = int;
 
-struct BfsData {
-    BfsData(cuStinger& custinger) : queue(custinger) {}
-
-	TwoLevelQueue<vid_t> queue;
-    dist_t* distances;
-	dist_t  current_level;
-};
-
-class BfsTopDown final : public StaticAlgorithm {
+class BfsTopDown : public StaticAlgorithm<HornetGPU> {
 public:
-    explicit BfsTopDown(cuStinger& custinger);
+    BfsTopDown(HornetGPU& hornet);
     ~BfsTopDown();
 
     void reset()    override;
-	void run()      override;
-	void release()  override;
+    void run()      override;
+    void release()  override;
     bool validate() override;
 
     void set_parameters(vid_t source);
+    void run2();
 private:
+    TwoLevelQueue<vid_t>        queue;
     load_balacing::BinarySearch load_balacing;
-	BfsData  host_bfs_data;
-	BfsData* device_bfs_data { nullptr };
-    vid_t    bfs_source      { 0 };
+    //load_balacing::VertexBased1 load_balacing;
+    //load_balacing::ScanBased load_balacing;
+    dist_t* d_distances   { nullptr };
+    vid_t   bfs_source    { 0 };
+    dist_t  current_level { 0 };
 };
 
-} // namespace custinger_alg
+} // namespace hornet_alg

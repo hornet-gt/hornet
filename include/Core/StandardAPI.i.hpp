@@ -5,7 +5,7 @@
  * @date August, 2017
  * @version v2
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,13 @@
  */
 #pragma once
 
+#include <Device/Algorithm.cuh>
 #include "Device/SafeCudaAPI.cuh"
+#include "Device/CubWrapper.cuh"
 #include <omp.h>
+#include <cstring>
 
+namespace hornet {
 namespace gpu {
 
 template<typename T>
@@ -52,15 +56,20 @@ void free(T* pointer) {
 }
 
 template<typename T>
-void copyDeviceToDevice(const T* source, size_t num_items, T* destination) {
-    cuMemcpyDeviceToDevice(source, num_items, destination);
+void copyToDevice(const T* device_input, size_t num_items, T* device_output) {
+    cuMemcpyDeviceToDevice(device_input, num_items, device_output);
 }
 
 template<typename T>
-void copyHostToDevice(const T* source, size_t num_items, T* destination) {
-    cuMemcpyToDevice(source, num_items, destination);
+void copyToHost(const T* device_input, size_t num_items, T* host_output) {
+    cuMemcpyToHost(device_input, num_items, host_output);
 }
 
+template<typename T>
+void copyFromHost(const T* host_input, size_t num_items, T* device_output) {
+    cuMemcpyToDevice(host_input, num_items, device_output);
+}
+/*
 template<typename T>
 void copyHostToDevice(T value, T* destination) {
     cuMemcpyToDevice(value, destination);
@@ -74,15 +83,15 @@ void copyDeviceToHost(const T* source, size_t num_items, T* destination) {
 template<typename T>
 void copyDeviceToHost(const T* source, T& value) {
     cuMemcpyToHost(source, value);
-}
+}*/
 
 template<typename T>
-void memsetZero(const T* pointer, size_t num_items) {
+void memsetZero(T* pointer, size_t num_items) {
     cuMemset0x00(pointer, num_items);
 }
 
 template<typename T>
-void memsetOne(const T* pointer, size_t num_items) {
+void memsetOne(T* pointer, size_t num_items) {
     cuMemset0xFF(pointer, num_items);
 }
 
@@ -96,6 +105,17 @@ template<typename T>
 void excl_prefixsum(const T* input, size_t num_items, T* output) {
     xlib::CubExclusiveSum<T> cub_prefixsum(input, num_items, output);
     cub_prefixsum.run();
+}
+
+template<typename HostIterator, typename DeviceIterator>
+bool equal(HostIterator host_start, HostIterator host_end,
+           DeviceIterator device_start) noexcept {
+    return cu::equal(host_start, host_end, device_start);
+}
+
+template<typename T>
+void print(const T* device_input, size_t num_items) {
+    cu::printArray(device_input, num_items);
 }
 
 } // namespace gpu
@@ -115,8 +135,28 @@ void free(T*& pointer) {
 }
 
 template<typename T>
-void copyHostToHost(const T* input, size_t num_items, T* output) {
-    std::copy(input, input + num_items, output);
+void copyToHost(const T* host_input, size_t num_items, T* host_output) {
+    std::copy(host_input, host_input + num_items, host_output);
+}
+
+template<typename T>
+void copyToDevice(const T* host_input, size_t num_items, T* device_output) {
+    cuMemcpyToDevice(host_input, num_items, device_output);
+}
+
+template<typename T>
+void copyToDevice(T host_value, T* device_output) {
+    cuMemcpyToDevice(host_value, device_output);
+}
+
+template<typename T>
+void copyFromDevice(const T* device_input, size_t num_items, T* host_output) {
+    cuMemcpyToHost(device_input, num_items, host_output);
+}
+
+template<typename T>
+void copyFromDevice(const T* device_input, T& host_output) {
+    cuMemcpyToHost(device_input, host_output);
 }
 
 template<typename T>
@@ -170,4 +210,10 @@ void excl_prefixsum(const T* input, size_t num_items, T* output) {
     }
 }
 
+template<typename T>
+void print(const T* host_input, size_t num_items) {
+    xlib::printArray(host_input, num_items);
+}
+
 } // namespace host
+} // namespace hornet

@@ -6,7 +6,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,7 @@ namespace detail {
 template<typename T>
 class QueueBase {
 public:
+    QueueBase()                          = default;
     QueueBase(const QueueBase&)      = delete;
     void operator=(const QueueBase&) = delete;
 protected:
@@ -55,7 +56,6 @@ protected:
     size_t _size  { 0 };
     T*     _array { nullptr };
 
-    explicit QueueBase()            noexcept;
     explicit QueueBase(size_t size) noexcept;
     virtual ~QueueBase()            noexcept;
 
@@ -82,7 +82,7 @@ class Queue;
 template<typename T>
 class Queue<T, QueuePolicy::FIFO> final : public detail::QueueBase<T> {
 public:
-    explicit Queue()                  noexcept;
+    Queue() = default;
     explicit Queue(size_t size)       noexcept;
 
     T&         tail()                 noexcept;
@@ -109,7 +109,7 @@ private:
 template<typename T>
 class Queue<T, QueuePolicy::LIFO> final : public detail::QueueBase<T> {
 public:
-    explicit Queue()            noexcept;
+    Queue() = default;
     explicit Queue(size_t size) noexcept;
 
     T&         top() noexcept;
@@ -148,7 +148,7 @@ protected:
     size_t _right { 0 };
     T _array[SIZE];
 
-    explicit QueueStackBase() noexcept = default;
+    //explicit QueueStackBase() noexcept = default;
 
     void             clear()         noexcept;
     void             insert(T value) noexcept;
@@ -182,7 +182,6 @@ private:
     using detail::QueueStackBase<T, SIZE>::_left;
     using detail::QueueStackBase<T, SIZE>::_array;
     using detail::QueueStackBase<T, SIZE>::_right;
-    using detail::QueueStackBase<T, SIZE>::_size;
 };
 
 
@@ -200,7 +199,6 @@ private:
     using detail::QueueStackBase<T, SIZE>::_array;
     using detail::QueueStackBase<T, SIZE>::_left;
     using detail::QueueStackBase<T, SIZE>::_right;
-    using detail::QueueStackBase<T, SIZE>::_size;
 };
 
 } // namespace xlib

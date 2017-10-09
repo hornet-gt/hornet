@@ -6,7 +6,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@
  */
 #pragma once
 
-#include "Host/Basic.hpp"
+#include "Device/Definition.cuh"
 
 namespace xlib {
 
@@ -46,22 +46,22 @@ template<int WARP_SZ = 32>
 struct WarpInclusiveScan {
     /// @cond
     static_assert(xlib::is_power2(WARP_SZ) &&
-                  WARP_SZ >= 1 && WARP_SZ <= 32,
+                  WARP_SZ >= 1 && WARP_SZ <= WARP_SIZE,
                   "WarpInclusiveScan : WARP_SZ must be a power of 2\
-                                       and 2 <= WARP_SZ <= 32");
+                                       and 2 <= WARP_SZ <= WARP_SIZE");
     /// @endcond
 
     template<typename T>
-    static __device__ __forceinline__ void Add(T& value);
+    __device__ __forceinline__
+    static void add(T& value);
 
     template<typename T>
-    static __device__ __forceinline__ void Add(T& value, T& total);
+    __device__ __forceinline__
+    static void add(T& value, T& total);
 
-    template<typename T>
-    static __device__ __forceinline__ void AddBcast(T& value, T& total_ptr);
-
-    template<typename T>
-    static __device__ __forceinline__ void Add(T& value, T* total_ptr);
+    template<typename T, typename R>
+    __device__ __forceinline__
+    static void add(T& value, R* total_ptr);
 };
 
 //------------------------------------------------------------------------------
@@ -82,13 +82,14 @@ template<int WARP_SZ = 32>
 struct WarpExclusiveScan {
     /// @cond
     static_assert(xlib::is_power2(WARP_SZ) &&
-                  WARP_SZ >= 2 && WARP_SZ <= 32,
+                  WARP_SZ >= 2 && WARP_SZ <= WARP_SIZE,
                   "WarpExclusiveScan : WARP_SZ must be a power of 2\
-                             and 2 <= WARP_SZ <= 32");
+                             and 2 <= WARP_SZ <= WARP_SIZE");
     /// @endcond
 
     template<typename T>
-    static __device__ __forceinline__ void Add(T& value);
+     __device__ __forceinline__
+    static void add(T& value);
 
     /** @fn void Add(T& value, T& total)
      *  \brief warp sum
@@ -97,7 +98,8 @@ struct WarpExclusiveScan {
      *  \warning only the last thread in the WARP_SZ group has the total sum
      */
     template<typename T>
-    static __device__ __forceinline__ void Add(T& value, T& total);
+     __device__ __forceinline__
+    static void add(T& value, T& total);
 
     /** @fn void AddBcast(T& value, T& total)
      *  \brief warp sum
@@ -106,8 +108,9 @@ struct WarpExclusiveScan {
      *  @param[in] value    input value of each thread
      *  @param[out] total   total sum of all values
      */
-    template<typename T>
-    static __device__ __forceinline__ void AddBcast(T& value, T& total);
+    /*template<typename T>
+     __device__ __forceinline__
+    static void addAll(T& value, T& total);*/
 
     /** @fn void Add(T& value, T* total_ptr)
      *  \brief warp sum
@@ -116,8 +119,9 @@ struct WarpExclusiveScan {
      *  @param[in] value    input value of each thread
      *  @param[out] total_ptr   ptr to store the sum of all values
      */
-    template<typename T>
-    static __device__ __forceinline__ void Add(T& value, T* total_ptr);
+    template<typename T, typename R>
+    __device__ __forceinline__
+    static void add(T& value, R* total_ptr);
 
     /** @fn T AddAtom(T& value, T* total_ptr)
      *  \brief warp sum
@@ -129,12 +133,13 @@ struct WarpExclusiveScan {
      *  @param[out] total_ptr   ptr to store the sum of all values
      *  @return old value of total_ptr before atomicAdd operation
      */
-    template<typename T>
-    static __device__ __forceinline__ T AtomicAdd(T& value, T* total_ptr);
+    template<typename T, typename R>
+     __device__ __forceinline__
+    static T atomicAdd(T& value, R* total_ptr);
 
-    template<typename T>
-    static __device__ __forceinline__
-    T AtomicAdd(T& value, T* total_ptr, T& total);
+    template<typename T, typename R>
+     __device__ __forceinline__
+    static T atomicAdd(T& value, R* total_ptr, T& total);
 
     /** @fn void Add(T* in_ptr, T* total_ptr)
      *  \brief warp sum
@@ -146,10 +151,11 @@ struct WarpExclusiveScan {
      *  @param[in,out] in_ptr  input/output values
      *  @param[out] total_ptr  ptr to store the sum of all values
      */
-    template<typename T>
-    static __device__ __forceinline__ void Add(T* in_ptr, T* total_ptr);
+    template<typename T, typename R>
+     __device__ __forceinline__
+    static void add(T* in_ptr, R* total_ptr);
 };
 
 } // namespace xlib
 
-#include "impl/WarpScan.i.cuh"
+#include "impl/WarpScan2.i.cuh"

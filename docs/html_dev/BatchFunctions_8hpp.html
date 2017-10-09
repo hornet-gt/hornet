@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>cuStinger: include/Util/BatchFunctions.hpp File Reference</title>
+<title>Hornet: include/Util/BatchFunctions.hpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -28,7 +28,7 @@
  <tr style="height: 56px;">
   <td id="projectlogo"><img alt="Logo" src="logo.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">cuStinger
+   <div id="projectname">Hornet
    &#160;<span id="projectnumber">v2</span>
    </div>
    <div id="projectbrief">High-Performance Streaming Graph Analytics on GPUs</div>
@@ -73,34 +73,67 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Data Structures</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#enum-members">Enumerations</a> &#124;
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
 <div class="title">BatchFunctions.hpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="GraphStd_8hpp_source.html">GraphIO/GraphStd.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="Core_2RawTypes_8hpp_source.html">Core/RawTypes.hpp</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;BasicTypes.hpp&quot;</code><br />
+<code>#include &quot;<a class="el" href="GraphStd_8hpp_source.html">GraphIO/GraphStd.hpp</a>&quot;</code><br />
 </div>
 <p><a href="BatchFunctions_8hpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Data Structures</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structBatchProperty.html">BatchProperty</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classhornet_1_1BatchGenProperty.html">BatchGenProperty</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:namespacehornet"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacehornet.html">hornet</a></td></tr>
+<tr class="memdesc:namespacehornet"><td class="mdescLeft">&#160;</td><td class="mdescRight">The namespace contanins all classes and methods related to the cuStinger data structure. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:adbdad4ca9a77b99b44ad5fb444e10007"><td class="memItemLeft" align="right" valign="top"><a id="adbdad4ca9a77b99b44ad5fb444e10007"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>BatchGenEnum</b> { <b>WEIGHTED</b> = 1, 
+<b>PRINT</b> = 2, 
+<b>UNIQUE</b> = 4
+ }</td></tr>
+<tr class="separator:adbdad4ca9a77b99b44ad5fb444e10007"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3a15ed116933d7464063fa869bd03ee3"><td class="memItemLeft" align="right" valign="top"><a id="a3a15ed116933d7464063fa869bd03ee3"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>BatchGenType</b> { <b>INSERT</b>, 
+<b>REMOVE</b>
+ }</td></tr>
+<tr class="separator:a3a15ed116933d7464063fa869bd03ee3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ab951d2faad98877276a46f44c2596170"><td class="memItemLeft" align="right" valign="top"><a id="ab951d2faad98877276a46f44c2596170"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>generateInsertBatch</b> (<a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">custinger::vid_t</a> *batch_src, <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">custinger::vid_t</a> *batch_dest, int batch_size, const <a class="el" href="classgraph_1_1GraphStd.html">graph::GraphStd</a>&lt;&gt; &amp;graph, <a class="el" href="structBatchProperty.html">BatchProperty</a> prop=<a class="el" href="structBatchProperty.html">BatchProperty</a>())</td></tr>
-<tr class="separator:ab951d2faad98877276a46f44c2596170"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a768c7442e1965ff69cf22925dc40ffeb"><td class="memItemLeft" align="right" valign="top"><a id="a768c7442e1965ff69cf22925dc40ffeb"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>generateBatch</b> (const <a class="el" href="classgraph_1_1GraphStd.html">graph::GraphStd</a>&lt;&gt; &amp;graph, int &amp;batch_size, <a class="el" href="namespacehornet.html#a125d79d60910047509ac132d670bb912">hornet::vid_t</a> *batch_src, <a class="el" href="namespacehornet.html#a125d79d60910047509ac132d670bb912">hornet::vid_t</a> *batch_dest, const BatchGenType &amp;batch_type, const BatchGenProperty &amp;prop=BatchGenProperty())</td></tr>
+<tr class="separator:a768c7442e1965ff69cf22925dc40ffeb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:a1463a4bbc39e9a37d7ada029a1b8f0ac"><td class="memItemLeft" align="right" valign="top"><a id="a1463a4bbc39e9a37d7ada029a1b8f0ac"></a>
+const BatchGenProperty&#160;</td><td class="memItemRight" valign="bottom"><b>WEIGHTED</b> (detail::BatchGenEnum::WEIGHTED)</td></tr>
+<tr class="separator:a1463a4bbc39e9a37d7ada029a1b8f0ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada386e476df70a124afa2d2877a900bd"><td class="memItemLeft" align="right" valign="top"><a id="ada386e476df70a124afa2d2877a900bd"></a>
+const BatchGenProperty&#160;</td><td class="memItemRight" valign="bottom"><b>PRINT</b> (detail::BatchGenEnum::PRINT)</td></tr>
+<tr class="separator:ada386e476df70a124afa2d2877a900bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af4cb9b83edaab9c49c1b63b596cd5591"><td class="memItemLeft" align="right" valign="top"><a id="af4cb9b83edaab9c49c1b63b596cd5591"></a>
+const BatchGenProperty&#160;</td><td class="memItemRight" valign="bottom"><b>UNIQUE</b> (detail::BatchGenEnum::UNIQUE)</td></tr>
+<tr class="separator:af4cb9b83edaab9c49c1b63b596cd5591"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><dl class="section author"><dt>Author</dt><dd>Federico Busato <br />
  Univerity of Verona, Dept. of Computer Science <br />
  <a href="#" onclick="location.href='mai'+'lto:'+'fed'+'er'+'ico'+'.b'+'usa'+'to'+'@un'+'iv'+'r.i'+'t'; return false;">feder<span style="display: none;">.nosp@m.</span>ico.<span style="display: none;">.nosp@m.</span>busat<span style="display: none;">.nosp@m.</span>o@un<span style="display: none;">.nosp@m.</span>ivr.i<span style="display: none;">.nosp@m.</span>t</a> </dd></dl>
-<dl class="section date"><dt>Date</dt><dd>April, 2017 </dd></dl>
-<dl class="section version"><dt>Version</dt><dd>v1.3</dd></dl>
-<dl class="section copyright"><dt>Copyright</dt><dd>Copyright © 2017 cuStinger. All rights reserved.</dd></dl>
+<dl class="section date"><dt>Date</dt><dd>August, 2017 </dd></dl>
+<dl class="section version"><dt>Version</dt><dd>v2</dd></dl>
+<dl class="section copyright"><dt>Copyright</dt><dd>Copyright © 2017 Hornet. All rights reserved.</dd></dl>
 <dl class="section copyright">
 <dt>License</dt>
 <dd><blockquote class="doxtable">
@@ -117,7 +150,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>generateInsertBatch</
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon May 15 2017 12:34:49 for cuStinger by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Aug 31 2017 11:45:45 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

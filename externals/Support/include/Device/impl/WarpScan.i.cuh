@@ -1,12 +1,10 @@
 /**
- * @internal
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
- * @version v1.3
+ * @date October, 2017
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -34,15 +32,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Device/Definition.cuh"
+#include "Device/Atomic.cuh"
+#include "Device/Basic.cuh"
+#include "Device/PTX.cuh"
 
 namespace xlib {
 namespace detail {
 
 #define warpInclusiveScanMACRO(ASM_OP, ASM_T, ASM_CL)                          \
     const int MASK = ((-1 << Log2<WARP_SZ>::value) & 31) << 8;                 \
-    const unsigned member_mask = WARP_SZ == WARP_SIZE ? 0xFFFFFFFF :           \
-              (0xFFFFFFFF >> (32 - WARP_SZ)) << (xlib::lane_id() / WARP_SZ);   \
+    const unsigned member_mask = xlib::member_mask<WARP_SZ>();                 \
     _Pragma("unroll")                                                          \
     for (int STEP = 1; STEP <= WARP_SZ / 2; STEP = STEP * 2) {                 \
         asm(                                                                   \
@@ -61,61 +60,81 @@ namespace detail {
 
 template<int WARP_SZ, bool BROADCAST, typename T>
 struct WarpInclusiveScanHelper {
-    static __device__ __forceinline__ void Add(T& value);
+    __device__ __forceinline__
+    static void add(T& value);
 };
 
 template<int WARP_SZ, bool BROADCAST>
 struct WarpInclusiveScanHelper<WARP_SZ, BROADCAST, int> {
-    static __device__ __forceinline__ void Add(int& value) {
+    __device__ __forceinline__
+    static void add(int& value) {
         warpInclusiveScanMACRO(add, s32, r)
     }
 };
 
 template<int WARP_SZ, bool BROADCAST>
 struct WarpInclusiveScanHelper<WARP_SZ, BROADCAST, float> {
-    static __device__ __forceinline__ void Add(float& value) {
+    __device__ __forceinline__
+    static void add(float& value) {
         warpInclusiveScanMACRO(add, f32, f)
     }
 };
+
+template<int WARP_SZ, bool BROADCAST>
+struct WarpInclusiveScanHelper<WARP_SZ, BROADCAST, double> {
+    __device__ __forceinline__
+    static void add(double& value) {
+        warpInclusiveScanMACRO(add, f64, d)
+    }
+};
+
 #undef warpInclusiveScanMACRO
+
 } // namespace detail
 
 //==============================================================================
+///////////////////////
+// WarpInclusiveScan //
+///////////////////////
 
 template<int WARP_SZ>
 template<typename T>
 __device__ __forceinline__
-void WarpInclusiveScan<WARP_SZ>::Add(T& value) {
-    detail::WarpInclusiveScanHelper<WARP_SZ, false, T>::Add(value);
+void WarpInclusiveScan<WARP_SZ>::add(T& value) {
+    detail::WarpInclusiveScanHelper<WARP_SZ, false, T>::add(value);
 }
 
 template<int WARP_SZ>
 template<typename T>
 __device__ __forceinline__
-void WarpInclusiveScan<WARP_SZ>::Add(T& value, T& total) {
-    detail::WarpInclusiveScanHelper<WARP_SZ, true, T>::Add(value);
-    total = __shfl(value, WARP_SZ - 1, WARP_SZ);
+void WarpInclusiveScan<WARP_SZ>::addAll(T& value, T& total) {
+    const unsigned member_mask =  xlib::member_mask<WARP_SZ>();
+    detail::WarpInclusiveScanHelper<WARP_SZ, true, T>::add(value);
+    total = __shfl_sync(member_mask, value, WARP_SZ - 1, WARP_SZ);
 }
 
-template<int WARP_SZ>
-template<typename T>
+template<>
+template<typename T, typename R>
 __device__ __forceinline__
-void WarpInclusiveScan<WARP_SZ>::Add(T& value, T* pointer) {
-    detail::WarpInclusiveScanHelper<WARP_SZ, false, T>::Add(value);
-    if (xlib::lane_id() == WARP_SZ - 1)
+void WarpInclusiveScan<WARP_SIZE>::add(T& value, R* pointer) {
+    detail::WarpInclusiveScanHelper<WARP_SIZE, false, T>::add(value);
+    if (xlib::lane_id() == WARP_SIZE - 1)
         *pointer = value;
 }
 
 //==============================================================================
+///////////////////////
+// WarpExclusiveScan //
+///////////////////////
 
 template<int WARP_SZ>
 template<typename T>
 __device__ __forceinline__
-void WarpExclusiveScan<WARP_SZ>::Add(T& value) {
-    detail::WarpInclusiveScanHelper<WARP_SZ, false, T>::Add(value);
+void WarpExclusiveScan<WARP_SZ>::add(T& value) {
+    detail::WarpInclusiveScanHelper<WARP_SZ, false, T>::add(value);
+
     const int MASK = ((-1 << Log2<WARP_SZ>::value) & 31) << 8;
-    const unsigned member_mask = WARP_SZ == WARP_SIZE ? 0xFFFFFFFF :
-                (0xFFFFFFFF >> (32 - WARP_SZ)) << (xlib::lane_id() / WARP_SZ);
+    const unsigned member_mask =  xlib::member_mask<WARP_SZ>();
     asm(
         "{"
         ".reg .pred p;"
@@ -129,11 +148,11 @@ void WarpExclusiveScan<WARP_SZ>::Add(T& value) {
 template<int WARP_SZ>
 template<typename T>
 __device__ __forceinline__
-void WarpExclusiveScan<WARP_SZ>::Add(T& value, T& total) {
-    detail::WarpInclusiveScanHelper<WARP_SZ, false, T>::Add(value);
+void WarpExclusiveScan<WARP_SZ>::add(T& value, T& total) {
+    detail::WarpInclusiveScanHelper<WARP_SZ, false, T>::add(value);
+
     const int MASK = ((-1 << Log2<WARP_SZ>::value) & 31) << 8;
-    const unsigned member_mask = WARP_SZ == WARP_SIZE ? 0xFFFFFFFF :
-                (0xFFFFFFFF >> (32 - WARP_SZ)) << (xlib::lane_id() / WARP_SZ);
+    const unsigned member_mask =  xlib::member_mask<WARP_SZ>();
     total = value;
     asm(
         "{"
@@ -147,11 +166,10 @@ void WarpExclusiveScan<WARP_SZ>::Add(T& value, T& total) {
 template<int WARP_SZ>
 template<typename T>
 __device__ __forceinline__
-void WarpExclusiveScan<WARP_SZ>::AddBcast(T& value, T& total) {
-    const unsigned member_mask = WARP_SZ == WARP_SIZE ? 0xFFFFFFFF :
-                (0xFFFFFFFF >> (32 - WARP_SZ)) << (xlib::lane_id() / WARP_SZ);
+void WarpExclusiveScan<WARP_SZ>::addAll(T& value, T& total) {
+    detail::WarpInclusiveScanHelper<WARP_SZ, false, T>::add(value);
 
-    detail::WarpInclusiveScanHelper<WARP_SZ, false, T>::Add(value);
+    const unsigned member_mask =  xlib::member_mask<WARP_SZ>();
     total = __shfl_sync(member_mask, value, WARP_SZ - 1, WARP_SZ);
     const int MASK = ((-1 << Log2<WARP_SZ>::value) & 31) << 8;
     asm(
@@ -166,47 +184,45 @@ void WarpExclusiveScan<WARP_SZ>::AddBcast(T& value, T& total) {
 //------------------------------------------------------------------------------
 
 template<int WARP_SZ>
-template<typename T>
+template<typename T, typename R>
 __device__ __forceinline__
-void WarpExclusiveScan<WARP_SZ>::Add(T& value, T* total_ptr) {
+void WarpExclusiveScan<WARP_SZ>::add(T& value, R* total_ptr) {
     T total;
-    WarpExclusiveScan<WARP_SZ>::Add(value, total);
+    WarpExclusiveScan<WARP_SZ>::add(value, total);
     if (xlib::lane_id() == WARP_SZ - 1)
         *total_ptr = total;
 }
 
-template<int WARP_SZ>
-template<typename T>
+template<>
+template<typename T, typename R>
 __device__ __forceinline__
-T WarpExclusiveScan<WARP_SZ>::AtomicAdd(T& value, T* total_ptr) {
-    const unsigned member_mask = WARP_SZ == WARP_SIZE ? 0xFFFFFFFF :
-                (0xFFFFFFFF >> (32 - WARP_SZ)) << (xlib::lane_id() / WARP_SZ);
+T WarpExclusiveScan<WARP_SIZE>::atomicAdd(T& value, R* total_ptr) {
+    const unsigned member_mask =  xlib::member_mask<WARP_SZ>();
     T total, old;
-    WarpExclusiveScan<WARP_SZ>::Add(value, total);
-    if (xlib::lane_id() == WARP_SZ - 1)
-        old = atomicAdd(total_ptr, total);
-    return __shfl_sync(member_mask, old, WARP_SZ - 1);
+    WarpExclusiveScan<WARP_SIZE>::add(value, total);
+    if (xlib::lane_id() == WARP_SIZE - 1)
+        old = xlib::atomic::add(total_ptr, total);
+    return __shfl_sync(member_mask, old, WARP_SIZE - 1);
 }
 
-template<int WARP_SZ>
-template<typename T>
+template<>
+template<typename T, typename R>
 __device__ __forceinline__
-T WarpExclusiveScan<WARP_SZ>::AtomicAdd(T& value, T* total_ptr, T& total) {
-    const unsigned member_mask = WARP_SZ == WARP_SIZE ? 0xFFFFFFFF :
-                (0xFFFFFFFF >> (32 - WARP_SZ)) << (xlib::lane_id() / WARP_SZ);
+T WarpExclusiveScan<WARP_SIZE>::atomicAdd(T& value, R* total_ptr, T& total) {
+    const unsigned member_mask =  xlib::member_mask<WARP_SZ>();
     T old;
-    WarpExclusiveScan<WARP_SZ>::AddBcast(value, total);
-    if (xlib::lane_id() == WARP_SZ - 1)
-        old = atomicAdd(total_ptr, total);
-    return __shfl_sync(member_mask, old, WARP_SZ - 1);
+    WarpExclusiveScan<WARP_SIZE>::addAll(value, total);
+    if (xlib::lane_id() == WARP_SIZE - 1)
+        old = atomicadd(total_ptr, total);
+    return __shfl_sync(member_mask, old, WARP_SIZE - 1);
 }
 
-template<int WARP_SZ>
-template<typename T>
+template<>
+template<typename T, typename R>
 __device__ __forceinline__
-void WarpExclusiveScan<WARP_SZ>::Add(T* in_ptr, T* total_ptr) {
+void WarpExclusiveScan<WARP_SIZE>::add(T* in_ptr, R* total_ptr) {
     T value = in_ptr[xlib::lane_id()];
-    WarpExclusiveScan<WARP_SZ>::Add(value, total_ptr);
+    WarpExclusiveScan<WARP_SIZE>::add(value, total_ptr);
     in_ptr[xlib::lane_id()] = value;
 }
 

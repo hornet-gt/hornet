@@ -5,7 +5,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -65,7 +65,7 @@ void printArray(const T* array, size_t size, const std::string& str, char sep)
                 noexcept {
     std::cout << str;
     if (size == 0)
-        std::cout << "empty";
+        std::cout << "<empty>";
     for (size_t i = 0; i < size; i++)
         std::cout << array[i] << sep;
     std::cout << "\n" << std::endl;
@@ -164,6 +164,24 @@ void printBits(T* array, int size) {
         printf(" ");
     }
     printf("\n");
+}
+
+template<typename T>
+HOST_DEVICE void
+printBits(const T& value) {
+    const auto T_SIZE = sizeof(T) * 8;
+    using R = typename std::conditional<sizeof(T) == sizeof(unsigned),
+                                        unsigned,
+              typename std::conditional<sizeof(T) == sizeof(uint64_t),
+                                        uint64_t, T>::type>::type;
+
+    char bits[T_SIZE + 1] = {};
+    #pragma unroll
+    for (int i = 0; i < T_SIZE; i++) {
+        bits[i] = reinterpret_cast<R>(value) & static_cast<R>(1 << i) ?
+                  '1' : '0';
+    }
+    printf("%s\n", bits);
 }
 
 } // namespace xlib

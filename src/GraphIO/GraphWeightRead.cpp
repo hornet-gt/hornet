@@ -119,6 +119,17 @@ void GraphWeight<vid_t, eoff_t, weight_t>
 
 //------------------------------------------------------------------------------
 
+template<typename vid_t, typename eoff_t, typename weight_t>
+void GraphWeight<vid_t, eoff_t, weight_t>
+::readMPG(std::ifstream& fin, bool print) {
+    auto ginfo = GraphBase<vid_t, eoff_t>::getMPGHeader(fin);
+    allocate(ginfo);
+
+    /// TO IMPLEMENT
+}
+
+//------------------------------------------------------------------------------
+
 #if defined(__linux__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-conversion"

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['nv',['nV',['../structcustinger_1_1cuStingerDevData.html#ab2e039b272718e72eb99a2ddea4e491e',1,'custinger::cuStingerDevData']]]
+  ['in_5fplace',['IN_PLACE',['../BatchUpdate_8cuh.html#a707238df52ae411ee85ace5a54688811',1,'hornet::gpu::batch_property']]]
 ];

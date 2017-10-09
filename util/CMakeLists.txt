@@ -143,7 +143,7 @@ find_library(
 )
 
 
-if (CUDAHC)
+if (DEFINED CUDAHC)
     if (QUIET_SUBMODULE)
         message("\n==> Cuda Host compiler: " ${CUDAHC})
     endif()
@@ -215,11 +215,11 @@ endif()
 if (QUIET_SUBMODULE)
 if(NOT SM STREQUAL "")
     message("\n==> GPU architecture: CC ${GPU_ARCH}"
-            " with ${SM} streaming multiprocessors\n")
+            " with ${SM} streaming multiprocessors")
 
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DSM=${SM}")
 else()
-    message("\n==> GPU architecture: ${GPU_ARCH}\n")
+    message("\n==> GPU architecture: ${GPU_ARCH}")
 endif()
 endif()
 #-------------------------------------------------------------------------------
@@ -275,10 +275,10 @@ elseif (CMAKE_BUILD_TYPE STREQUAL "ReleaseEx")
 elseif (CMAKE_BUILD_TYPE STREQUAL "Info")
     file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/build/TMP)
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-lineinfo" "-keep" "--use_fast_math"
-        #"-DNDEBUG"
+        "-DNDEBUG"
          "--resource-usage"
         "-keep-dir" "${PROJECT_SOURCE_DIR}/build/TMP"
-        #"-Xcompiler=-DNDEBUG"
+        "-Xcompiler=-DNDEBUG"
     )
 
 elseif (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -359,17 +359,28 @@ endif()
 CHECK_CXX_COMPILER_FLAG("-march=native" ARCH_FLAG)
 if (ARCH_FLAG)
     set(H_MARCH "-march=native")
+else()
+    set(H_MARCH "-mtune=native")
 endif()
 
-set(CMAKE_CXX_FLAGS_INFO "-O3 ${H_MARCH} -mtune=native ${FLTO} \
--funroll-loops") # -DNDEBUG")
-#Not all compilers support -march=native for all architecuteres -> -mtune
+if (CMAKE_BUILD_TYPE STREQUAL "Info")
+    set(CMAKE_CXX_FLAGS "-O3 ${H_MARCH} ${FLTO} \
+    -funroll-loops") # -DNDEBUG")
+    #Not all compilers support -march=native for all architecuteres -> -mtune
 
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 ${H_MARCH} -mtune=native ${FLTO} \
--funroll-loops -DNDEBUG")
+elseif (CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(CMAKE_CXX_FLAGS "-O3 ${H_MARCH} ${FLTO} \
+    -funroll-loops -DNDEBUG")
 
-set(CMAKE_CXX_FLAGS_RELEASE_EX "-O3 ${H_MARCH} -mtune=native ${FLTO} \
--funroll-loops -DNDEBUG -DNO_CHECK_CUDA_ERROR")
+elseif (CMAKE_BUILD_TYPE STREQUAL "ReleaseEx")
+    set(CMAKE_CXX_FLAGS "-O3 ${H_MARCH} ${FLTO} \
+    -funroll-loops -DNDEBUG -DNO_CHECK_CUDA_ERROR")
+
+elseif (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_CXX_FLAGS "-g")
+else()
+    message(FATAL_ERROR "CMAKE_BUILD_TYPE not defined")
+endif()
 
 #===============================================================================
 #################
@@ -381,6 +392,8 @@ add_custom_target(rm rm -rf * COMMENT "Clear build directory")
 
 add_custom_target(ptx cp ${PROJECT_SOURCE_DIR}/build/TMP/*.ptx
                          ${PROJECT_SOURCE_DIR}/build
+                #COMMAND nvdisasm -c -g -sf
+                #         ${PROJECT_SOURCE_DIR}/build/TMP/*.cubin > p.txt
                   COMMENT "PTX")
 
 add_custom_target(valgrind cp ${CMAKE_CURRENT_LIST_DIR}/valgrind.sh

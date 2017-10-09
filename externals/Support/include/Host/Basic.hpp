@@ -6,7 +6,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -44,38 +44,11 @@
 #include <iostream>                 //std::cout
 #include <string>                   //std::string
 
-#if !defined(__NVCC__)
-
-#define ERROR(...) {                                                           \
-    std::cerr << xlib::Color::FG_RED << "\nHOST error\n"                       \
-              << xlib::Color::FG_DEFAULT;                                      \
-    xlib::detail::printRecursive(__VA_ARGS__);                                 \
-    std::cerr << "\n" << std::endl;                                            \
-    assert(false);                                                  /*NOLINT*/ \
-    std::exit(EXIT_FAILURE);                                                   \
-}
-
-#define ERROR_LINE {                                                           \
-    std::cerr << xlib::Color::FG_RED << "\nHOST error\n"                       \
-              << xlib::Color::FG_DEFAULT << xlib::Emph::SET_UNDERLINE          \
-              << __FILE__ << xlib::Emph::SET_RESET  << "(" << __LINE__ << ")"  \
-              << " [ " << xlib::Color::FG_L_CYAN << __func__                   \
-              << xlib::Color::FG_DEFAULT << " ]\n" << std::endl;               \
-    assert(false);                                                 /*NOLINT*/  \
-    std::exit(EXIT_FAILURE);                                                   \
-}
-
+#if defined(__NVCC__)
+    #define ATEXIT std::atexit(reinterpret_cast<void(*)()>(cudaDeviceReset));
 #else
-
-#define ERROR(...) {                                                           \
-    std::cerr << xlib::Color::FG_RED << "\nHOST error\n"                       \
-              << xlib::Color::FG_DEFAULT;                                      \
-    xlib::detail::printRecursive(__VA_ARGS__);                                 \
-    std::cerr << "\n" << std::endl;                                            \
-    assert(false);                                                  /*NOLINT*/ \
-    std::atexit(reinterpret_cast<void(*)()>(cudaDeviceReset));                 \
-    std::exit(EXIT_FAILURE);                                                   \
-}
+    #define ATEXIT
+#endif
 
 #define ERROR_LINE {                                                           \
     std::cerr << xlib::Color::FG_RED << "\nHOST error\n"                       \
@@ -84,11 +57,38 @@
               << " [ " << xlib::Color::FG_L_CYAN << __func__                   \
               << xlib::Color::FG_DEFAULT << " ]\n" << std::endl;               \
     assert(false);                                                  /*NOLINT*/ \
-    std::atexit(reinterpret_cast<void(*)()>(cudaDeviceReset));                 \
+    ATEXIT                                                                     \
+    std::exit(EXIT_FAILURE);                                                   \
+}
+/*
+#if !defined(NDEBUG)
+
+#define ERROR(...) {                                                           \
+    std::cerr << xlib::Color::FG_RED << "\nHOST error\n"                       \
+              << xlib::Color::FG_DEFAULT;                                      \
+    xlib::detail::printRecursive(__VA_ARGS__);                                 \
+    std::cerr << "\n" << std::endl;                                            \
+    assert(false);                                                  \
+    ATEXIT                                                                     \
     std::exit(EXIT_FAILURE);                                                   \
 }
 
-#endif
+#else*/
+
+#define ERROR(...) {                                                           \
+    std::cerr << xlib::Color::FG_RED << "\nHOST error\n"                       \
+              << xlib::Color::FG_DEFAULT << xlib::Emph::SET_UNDERLINE          \
+              << __FILE__ << xlib::Emph::SET_RESET  << "(" << __LINE__ << ")"  \
+              << " [ " << xlib::Color::FG_L_CYAN << __func__                   \
+              << xlib::Color::FG_DEFAULT << " ]\n" << std::endl;               \
+    xlib::detail::printRecursive(__VA_ARGS__);                                 \
+    std::cerr << "\n" << std::endl;                                            \
+    assert(false);                                              /*NOLINT*/     \
+    ATEXIT                                                                     \
+    std::exit(EXIT_FAILURE);                                                   \
+}
+
+//#endif
 
 #define WARNING(...) {                                                         \
     std::cerr << xlib::Color::FG_L_YELLOW << "\nWarning\t"                     \
@@ -133,19 +133,6 @@ const size_t KB = 1024llu;
 const size_t MB = 1024llu * 1024llu;
 const size_t GB = 1024llu * 1024llu * 1024llu;
 const size_t TB = 1024llu * 1024llu * 1024llu * 1024llu;
-
-template<typename>
-struct get_arity;
-
-template<typename R, typename... Args>
-struct get_arity<R(*)(Args...)> {
-    static const int value = sizeof...(Args);
-};
-
-template<typename R, typename C, typename... Args>
-struct get_arity<R(C::*)(Args...)> {
-    static const int value = sizeof...(Args);
-};
 
 template <class T>
 std::string type_name(T Obj);

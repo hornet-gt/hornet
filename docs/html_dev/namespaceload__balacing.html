@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>cuStinger: load_balacing Namespace Reference</title>
+<title>Hornet: load_balacing Namespace Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -28,7 +28,7 @@
  <tr style="height: 56px;">
   <td id="projectlogo"><img alt="Logo" src="logo.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">cuStinger
+   <div id="projectname">Hornet
    &#160;<span id="projectnumber">v2</span>
    </div>
    <div id="projectbrief">High-Performance Streaming Graph Analytics on GPUs</div>
@@ -88,25 +88,21 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a47aad0f1b51526ec29e517cd58d9c9d5"><td class="memTemplParams" colspan="2"><a id="a47aad0f1b51526ec29e517cd58d9c9d5"></a>
-template&lt;unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK, void(*)(const custinger::Vertex &amp;, const custinger::Edge &amp;, void *) Operator&gt; </td></tr>
-<tr class="memitem:a47aad0f1b51526ec29e517cd58d9c9d5"><td class="memTemplItemLeft" align="right" valign="top">__global__ void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>binarySearchKernel</b> (<a class="el" href="structcustinger_1_1cuStingerDevData.html">custinger::cuStingerDevData</a> data, const <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">custinger::vid_t</a> *__restrict__ d_input, const int *__restrict__ d_work, int work_size, void *__restrict__ optional_field)</td></tr>
-<tr class="separator:a47aad0f1b51526ec29e517cd58d9c9d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae15fafd8e7207faab0c7f0eaceb4ef7d"><td class="memTemplParams" colspan="2"><a id="ae15fafd8e7207faab0c7f0eaceb4ef7d"></a>
-template&lt;unsigned BLOCK_SIZE, void(*)(custinger::Vertex, custinger::Edge, void *) Operator&gt; </td></tr>
-<tr class="memitem:ae15fafd8e7207faab0c7f0eaceb4ef7d"><td class="memTemplItemLeft" align="right" valign="top">__global__ void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>VertexBasedKernel</b> (const <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">custinger::vid_t</a> *__restrict__ d_input, int num_vertices, void *__restrict__ optional_field)</td></tr>
-<tr class="separator:ae15fafd8e7207faab0c7f0eaceb4ef7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0de83f919c652a441f5eee3968f3fd51"><td class="memTemplParams" colspan="2"><a id="a0de83f919c652a441f5eee3968f3fd51"></a>
-template&lt;unsigned BLOCK_SIZE, typename Operator &gt; </td></tr>
-<tr class="memitem:a0de83f919c652a441f5eee3968f3fd51"><td class="memTemplItemLeft" align="right" valign="top">__global__ void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>VertexBasedKernel</b> (const <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">custinger::vid_t</a> *__restrict__ d_input, int num_vertices, Operator op)</td></tr>
-<tr class="separator:a0de83f919c652a441f5eee3968f3fd51"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a255313baaf374c318d8f5ebdbd34845e"><td class="memTemplParams" colspan="2"><a id="a255313baaf374c318d8f5ebdbd34845e"></a>
+template&lt;unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK, void(*)(custinger::Edge &amp;, void *) Operator&gt; </td></tr>
+<tr class="memitem:a255313baaf374c318d8f5ebdbd34845e"><td class="memTemplItemLeft" align="right" valign="top">__global__ void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>binarySearchKernel</b> (custinger::cuStingerDevice custinger, const custinger::vid_t *__restrict__ d_input, const int *__restrict__ d_work, int work_size, void *__restrict__ optional_data)</td></tr>
+<tr class="separator:a255313baaf374c318d8f5ebdbd34845e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a61cbfe64fa0dac72636d614dc76a89ff"><td class="memTemplParams" colspan="2"><a id="a61cbfe64fa0dac72636d614dc76a89ff"></a>
+template&lt;unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK, typename Operator &gt; </td></tr>
+<tr class="memitem:a61cbfe64fa0dac72636d614dc76a89ff"><td class="memTemplItemLeft" align="right" valign="top">__global__ void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>binarySearchKernel</b> (custinger::cuStingerDevice custinger, const custinger::vid_t *__restrict__ d_input, const int *__restrict__ d_work, int work_size, Operator op)</td></tr>
+<tr class="separator:a61cbfe64fa0dac72636d614dc76a89ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The namespace provides all load balacing methods to traverse vertices. </p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon May 15 2017 12:34:49 for cuStinger by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Aug 31 2017 11:45:46 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

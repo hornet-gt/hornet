@@ -5,7 +5,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -48,25 +48,38 @@ class BFS;
 template<typename vid_t, typename eoff_t>
 class WCC;
 
+template<typename vid_t, typename eoff_t, typename weight_t>
+class BellmanFord;
+
+template<typename vid_t, typename eoff_t, typename weight_t>
+class Dijkstra;
+
+template<typename vid_t, typename eoff_t, typename weight_t>
+class Brim;
+
 template<typename vid_t = int, typename eoff_t = int, typename weight_t = int>
 class GraphWeight : public GraphStd<vid_t, eoff_t> {
     using    coo_t = typename std::tuple<vid_t, vid_t, weight_t>;
     using degree_t = int;
     friend class BFS<vid_t, eoff_t>;
     friend class WCC<vid_t, eoff_t>;
+    friend class BellmanFord<vid_t, eoff_t, weight_t>;
+    friend class Dijkstra<vid_t, eoff_t, weight_t>;
+    friend class Brim<vid_t, eoff_t, weight_t>;
 
 public:
     explicit GraphWeight(StructureProp structure = StructureProp()) noexcept;
 
     explicit GraphWeight(const char* filename,
                          const ParsingProp& property
-                             = ParsingProp(parsing_prop::PRINT)) noexcept;
+                             = ParsingProp(parsing_prop::PRINT_INFO)) noexcept;
 
     explicit GraphWeight(StructureProp structure, const char* filename,
                          const ParsingProp& property) noexcept;
 
     explicit GraphWeight(const eoff_t* csr_offsets, vid_t nV,
-                         const vid_t* csr_edges, eoff_t nE) noexcept;
+                         const vid_t* csr_edges, eoff_t nE,
+                         const weight_t* csr_weights) noexcept;
 
     virtual ~GraphWeight() noexcept final;                              //NOLINT
     //--------------------------------------------------------------------------
@@ -80,9 +93,9 @@ public:
     using GraphStd<vid_t, eoff_t>::out_degrees_ptr;
     using GraphStd<vid_t, eoff_t>::in_degrees_ptr;
 
-    const coo_t*     coo_array()         const noexcept;
-    const weight_t*  out_weights_array() const noexcept;
-    const weight_t*  in_weights_array()  const noexcept;
+    const coo_t*    coo_array()         const noexcept;
+    const weight_t* out_weights_array() const noexcept;
+    const weight_t* in_weights_array()  const noexcept;
 
     using GraphStd<vid_t, eoff_t>::max_out_degree;
     using GraphStd<vid_t, eoff_t>::max_in_degree;
@@ -128,6 +141,7 @@ private:
     void readSnap    (std::ifstream& fin, bool print)   override;
     void readKonect  (std::ifstream& fin, bool print)   override;
     void readNetRepo (std::ifstream& fin)               override;
+    void readMPG     (std::ifstream& fin, bool print)   override;
     void readBinary  (const char* filename, bool print) override;
 
     void COOtoCSR() noexcept override;

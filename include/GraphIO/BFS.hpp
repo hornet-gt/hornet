@@ -5,7 +5,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -58,14 +58,13 @@ public:
     void run(const vid_t* sources, int num_sources) noexcept;
     void reset() noexcept;
 
-    const dist_t* distances() const noexcept;
+    const dist_t* result() const noexcept;
 
     vid_t  visited_nodes() const noexcept;
     eoff_t visited_edges() const noexcept;
     dist_t eccentricity()  const noexcept;
 
     std::vector<std::array<vid_t, 4>> statistics(vid_t source) noexcept;
-    //std::vector<vid_t> weaklyConnectedComponents() noexcept;
 
     vid_t radius() noexcept;
     vid_t diameter() noexcept;
@@ -76,7 +75,7 @@ private:
     xlib::Bitmask                   _bitmask;
     xlib::Queue<vid_t>              _queue;
     dist_t*                         _distances { nullptr };
-    bool                            _reset     { true };
+    bool                            _reset     { false };
 };
 
 } // namespace graph

@@ -6,7 +6,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -53,6 +53,53 @@ void printArray(const T (&d_array)[SIZE], const std::string& str = "",
 
 template<class T>
 void printSymbol(const T& d_symbol, const std::string& str = "") noexcept;
+
+//------------------------------------------------------------------------------
+struct Cout {};
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, const char* string)       noexcept;
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, uint64_t value)           noexcept;
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, int64_t value)            noexcept;
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, long long int value)      noexcept;
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, long long unsigned value) noexcept;
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, int value)                noexcept;
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, unsigned value)           noexcept;
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, short value)              noexcept;
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, unsigned short value)     noexcept;
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, char value)               noexcept;
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, unsigned char value)      noexcept;
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, float value)              noexcept;
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, double value)             noexcept;
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<std::is_pointer<T>::value, const Cout&>::type
+operator<<(const Cout& obj, const T pointer) noexcept;
 
 } // namespace cu
 

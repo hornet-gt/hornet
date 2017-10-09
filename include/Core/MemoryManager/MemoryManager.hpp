@@ -6,7 +6,7 @@
  * @date August, 2017
  * @version v2
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -38,21 +38,24 @@
  */
 #pragma once
 
-///@brief Eanble B+Tree container for BitTree
-//#define B_PLUS_TREE
-
+#include "BasicTypes.hpp"
 #include "Core/MemoryManager/BitTree.hpp"
 #include "Core/MemoryManager/MemoryManagerConf.hpp"
 
 #if defined(B_PLUS_TREE)
     #include <btree_map.h>
     #define  SC_MACRO second.
+#elif defined(RB_TREE)
+    #include <map>
+    #define  SC_MACRO second.
 #else
     #include <vector>
     #define  SC_MACRO
 #endif
 
-namespace custinger {
+//#define EXPERIMENTAL
+
+namespace hornet {
 
 /**
  * @brief Container for a set of *BlockArrays* of the same sime
@@ -60,15 +63,21 @@ namespace custinger {
 #if defined(B_PLUS_TREE)
     template<typename T>
     using Container = btree::btree_map<byte_t*, T>;
+#elif defined(RB_TREE)
+    template<typename T>
+    using Container = std::map<byte_t*, T>;
 #else
     template<typename T>
     using Container = std::vector<T>;
 #endif
+
 /**
  * @brief The `MemoryManager` class provides the infrastructure to organize
  *        the set of *BlockArrays*
  */
+template<typename block_t, typename offset_t, bool DEVICE>
 class MemoryManager {
+
 public:
     explicit MemoryManager() noexcept;
 
@@ -105,7 +114,7 @@ public:
      *          efficiency (used/allocated), and the number of *blocks* for each
      *          level
      */
-    void statistics() noexcept;
+    void statistics() const noexcept;
 
     /**
      * @brief Get the base pointer of a specific *BlockArrays*
@@ -129,17 +138,28 @@ public:
     void clear() noexcept;
 
 private:
+    using ContainerT = Container<BitTree<block_t, offset_t, DEVICE>>;
+
     int _num_blockarrays    { 0 };
 
     int _num_inserted_edges { 0 };
 
     static constexpr int MM_LOG_LIMIT = 32;
 
-    Container<BitTree> bit_tree_set[MM_LOG_LIMIT];
+    ContainerT bit_tree_set[MM_LOG_LIMIT];
+
+#if defined(EXPERIMENTAL)
+    ContainerT zero_container;
+#endif
 
     int find_bin(degree_t degree) const noexcept;
+
+    std::pair<byte_t*, byte_t*> insert_aux(ContainerT& container,
+                                           int index = 0) noexcept;
 };
 
-} // namespace custinger
+} // namespace hornet
 
 #include "MemoryManager.i.hpp"
+
+#undef EXPERIMENTAL

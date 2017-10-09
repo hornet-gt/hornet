@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>cuStinger: load_balacing::BinarySearch Class Reference</title>
+<title>Hornet: BinarySearch Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -28,7 +28,7 @@
  <tr style="height: 56px;">
   <td id="projectlogo"><img alt="Logo" src="logo.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">cuStinger
+   <div id="projectname">Hornet
    &#160;<span id="projectnumber">v2</span>
    </div>
    <div id="projectbrief">High-Performance Streaming Graph Analytics on GPUs</div>
@@ -74,7 +74,7 @@ $(function() {
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a>  </div>
   <div class="headertitle">
-<div class="title">load_balacing::BinarySearch Class Reference</div>  </div>
+<div class="title">BinarySearch Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -83,35 +83,31 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a5b42e56fd74efda31f247a730a56267c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classload__balacing_1_1BinarySearch.html#a5b42e56fd74efda31f247a730a56267c">BinarySearch</a> (const <a class="el" href="classcustinger_1_1cuStinger.html">custinger::cuStinger</a> &amp;custinger) noexcept</td></tr>
-<tr class="memdesc:a5b42e56fd74efda31f247a730a56267c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default costructor.  <a href="#a5b42e56fd74efda31f247a730a56267c">More...</a><br /></td></tr>
-<tr class="separator:a5b42e56fd74efda31f247a730a56267c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4f67dccd2fa6c29b1f7b03ff31a08f6c"><td class="memItemLeft" align="right" valign="top"><a id="a4f67dccd2fa6c29b1f7b03ff31a08f6c"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classload__balacing_1_1BinarySearch.html#a4f67dccd2fa6c29b1f7b03ff31a08f6c">~BinarySearch</a> () noexcept</td></tr>
-<tr class="memdesc:a4f67dccd2fa6c29b1f7b03ff31a08f6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decostructor. <br /></td></tr>
-<tr class="separator:a4f67dccd2fa6c29b1f7b03ff31a08f6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac3fcd71da083e398165e8fa3688786e5"><td class="memTemplParams" colspan="2">template&lt;void(*)(const custinger::Vertex &amp;, const custinger::Edge &amp;, void *) Operator&gt; </td></tr>
-<tr class="memitem:ac3fcd71da083e398165e8fa3688786e5"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classload__balacing_1_1BinarySearch.html#ac3fcd71da083e398165e8fa3688786e5">traverse_edges</a> (const <a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html">custinger_alg::TwoLevelQueue</a>&lt; <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">custinger::vid_t</a> &gt; &amp;queue, void *optional_field) noexcept</td></tr>
-<tr class="memdesc:ac3fcd71da083e398165e8fa3688786e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Traverse the edges in a vertex queue (C-Style API)  <a href="#ac3fcd71da083e398165e8fa3688786e5">More...</a><br /></td></tr>
-<tr class="separator:ac3fcd71da083e398165e8fa3688786e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa3f7fc0152c8f5870864ee0be91cb786"><td class="memTemplParams" colspan="2">template&lt;void(*)(const custinger::Vertex &amp;, const custinger::Edge &amp;, void *) Operator&gt; </td></tr>
-<tr class="memitem:aa3f7fc0152c8f5870864ee0be91cb786"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classload__balacing_1_1BinarySearch.html#aa3f7fc0152c8f5870864ee0be91cb786">traverse_edges</a> (const <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">custinger::vid_t</a> *d_input, int num_vertices, void *optional_field) noexcept</td></tr>
-<tr class="memdesc:aa3f7fc0152c8f5870864ee0be91cb786"><td class="mdescLeft">&#160;</td><td class="mdescRight">Traverse the edges in a device vertex array (C-Style API)  <a href="#aa3f7fc0152c8f5870864ee0be91cb786">More...</a><br /></td></tr>
-<tr class="separator:aa3f7fc0152c8f5870864ee0be91cb786"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2e5a622595304407bf535a7895baa7a6"><td class="memTemplParams" colspan="2">template&lt;typename Operator &gt; </td></tr>
-<tr class="memitem:a2e5a622595304407bf535a7895baa7a6"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classload__balacing_1_1BinarySearch.html#a2e5a622595304407bf535a7895baa7a6">traverse_edges</a> (const <a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html">custinger_alg::TwoLevelQueue</a>&lt; <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">custinger::vid_t</a> &gt; &amp;queue, Operator op) noexcept</td></tr>
-<tr class="memdesc:a2e5a622595304407bf535a7895baa7a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Traverse the edges in a vertex queue (C++11-Style API)  <a href="#a2e5a622595304407bf535a7895baa7a6">More...</a><br /></td></tr>
-<tr class="separator:a2e5a622595304407bf535a7895baa7a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aef86c442dce2fd644d84f9ab9d5349e5"><td class="memTemplParams" colspan="2">template&lt;typename Operator &gt; </td></tr>
-<tr class="memitem:aef86c442dce2fd644d84f9ab9d5349e5"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classload__balacing_1_1BinarySearch.html#aef86c442dce2fd644d84f9ab9d5349e5">traverse_edges</a> (const <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">custinger::vid_t</a> *d_input, int num_vertices, Operator op) noexcept</td></tr>
-<tr class="memdesc:aef86c442dce2fd644d84f9ab9d5349e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Traverse the edges in a vertex array (C++11-Style API)  <a href="#aef86c442dce2fd644d84f9ab9d5349e5">More...</a><br /></td></tr>
-<tr class="separator:aef86c442dce2fd644d84f9ab9d5349e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2681d5909d9aef8c568d66b227776d0c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classload__balacing_1_1BinarySearch.html#a2681d5909d9aef8c568d66b227776d0c">BinarySearch</a> (custinger::cuStinger &amp;custinger) noexcept</td></tr>
+<tr class="memdesc:a2681d5909d9aef8c568d66b227776d0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default costructor.  <a href="#a2681d5909d9aef8c568d66b227776d0c">More...</a><br /></td></tr>
+<tr class="separator:a2681d5909d9aef8c568d66b227776d0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad8bb29f7cc74d6e6c86cc5699b750b27"><td class="memItemLeft" align="right" valign="top"><a id="ad8bb29f7cc74d6e6c86cc5699b750b27"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classload__balacing_1_1BinarySearch.html#ad8bb29f7cc74d6e6c86cc5699b750b27">~BinarySearch</a> () noexcept</td></tr>
+<tr class="memdesc:ad8bb29f7cc74d6e6c86cc5699b750b27"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decostructor. <br /></td></tr>
+<tr class="separator:ad8bb29f7cc74d6e6c86cc5699b750b27"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1771e9aa4bf08772a68f5a8f270504cb"><td class="memTemplParams" colspan="2">template&lt;typename Operator &gt; </td></tr>
+<tr class="memitem:a1771e9aa4bf08772a68f5a8f270504cb"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classload__balacing_1_1BinarySearch.html#a1771e9aa4bf08772a68f5a8f270504cb">apply</a> (const custinger::vid_t *d_input, int num_vertices, const Operator &amp;op) noexcept</td></tr>
+<tr class="memdesc:a1771e9aa4bf08772a68f5a8f270504cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Traverse the edges in a vertex queue (C-Style API)  <a href="#a1771e9aa4bf08772a68f5a8f270504cb">More...</a><br /></td></tr>
+<tr class="separator:a1771e9aa4bf08772a68f5a8f270504cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00e17d7c30e90be90ac32471c665fc3c"><td class="memTemplParams" colspan="2"><a id="a00e17d7c30e90be90ac32471c665fc3c"></a>
+template&lt;typename Operator &gt; </td></tr>
+<tr class="memitem:a00e17d7c30e90be90ac32471c665fc3c"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>apply</b> (const Operator &amp;op) noexcept</td></tr>
+<tr class="separator:a00e17d7c30e90be90ac32471c665fc3c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac22fa37cd299c232e03bff58f0010420"><td class="memTemplParams" colspan="2"><a id="ac22fa37cd299c232e03bff58f0010420"></a>
+template&lt;void(*)(custinger::Edge &amp;, void *) Operator&gt; </td></tr>
+<tr class="memitem:ac22fa37cd299c232e03bff58f0010420"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>apply</b> (const custinger::vid_t *d_input, int num_vertices, void *optional_data) noexcept</td></tr>
+<tr class="separator:ac22fa37cd299c232e03bff58f0010420"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The class implements the <a class="el" href="classload__balacing_1_1BinarySearch.html" title="The class implements the BinarySearch load balacing. ">BinarySearch</a> load balacing. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a5b42e56fd74efda31f247a730a56267c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5b42e56fd74efda31f247a730a56267c">&#9670;&nbsp;</a></span>BinarySearch()</h2>
+<a id="a2681d5909d9aef8c568d66b227776d0c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2681d5909d9aef8c568d66b227776d0c">&#9670;&nbsp;</a></span>BinarySearch()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -120,9 +116,9 @@ Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">load_balacing::BinarySearch::BinarySearch </td>
+          <td class="memname"><a class="el" href="classload__balacing_1_1BinarySearch.html">BinarySearch</a> </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classcustinger_1_1cuStinger.html">custinger::cuStinger</a> &amp;&#160;</td>
+          <td class="paramtype">custinger::cuStinger &amp;&#160;</td>
           <td class="paramname"><em>custinger</em></td><td>)</td>
           <td></td>
         </tr>
@@ -145,28 +141,32 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="ac3fcd71da083e398165e8fa3688786e5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac3fcd71da083e398165e8fa3688786e5">&#9670;&nbsp;</a></span>traverse_edges() <span class="overload">[1/4]</span></h2>
+<a id="a1771e9aa4bf08772a68f5a8f270504cb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1771e9aa4bf08772a68f5a8f270504cb">&#9670;&nbsp;</a></span>apply()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;void(*)(const custinger::Vertex &amp;, const custinger::Edge &amp;, void *) Operator&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void load_balacing::BinarySearch::traverse_edges </td>
+          <td class="memname">void apply </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html">custinger_alg::TwoLevelQueue</a>&lt; <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">custinger::vid_t</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>queue</em>, </td>
+          <td class="paramtype">const custinger::vid_t *&#160;</td>
+          <td class="paramname"><em>d_input</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>optional_field</em>&#160;</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>num_vertices</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const Operator &amp;&#160;</td>
+          <td class="paramname"><em>op</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -191,56 +191,10 @@ template&lt;void(*)(const custinger::Vertex &amp;, const custinger::Edge &amp;, 
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">queue</td><td>input vertex queue </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">optional_field</td><td>algorithm-dependent data </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">optional_field</td><td>algorithm-dependent data Traverse the edges in a device vertex array (C-Style API) </td></tr>
   </table>
   </dd>
 </dl>
-
-</div>
-</div>
-<a id="aa3f7fc0152c8f5870864ee0be91cb786"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa3f7fc0152c8f5870864ee0be91cb786">&#9670;&nbsp;</a></span>traverse_edges() <span class="overload">[2/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;void(*)(const custinger::Vertex &amp;, const custinger::Edge &amp;, void *) Operator&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void load_balacing::BinarySearch::traverse_edges </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">custinger::vid_t</a> *&#160;</td>
-          <td class="paramname"><em>d_input</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>num_vertices</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>optional_field</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Traverse the edges in a device vertex array (C-Style API) </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">Operator</td><td>function to apply to each edge and to <code>optional_data</code> </td></tr>
@@ -251,50 +205,10 @@ template&lt;void(*)(const custinger::Vertex &amp;, const custinger::Edge &amp;, 
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">d_input</td><td>device vertex array </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">num_vertices</td><td>number of vertices in the input array </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">optional_field</td><td>algorithm-dependent data </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">optional_field</td><td>algorithm-dependent data Traverse the edges in a vertex queue (C++11-Style API) </td></tr>
   </table>
   </dd>
 </dl>
-
-</div>
-</div>
-<a id="a2e5a622595304407bf535a7895baa7a6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2e5a622595304407bf535a7895baa7a6">&#9670;&nbsp;</a></span>traverse_edges() <span class="overload">[3/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename Operator &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void load_balacing::BinarySearch::traverse_edges </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html">custinger_alg::TwoLevelQueue</a>&lt; <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">custinger::vid_t</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>queue</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Operator&#160;</td>
-          <td class="paramname"><em>op</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Traverse the edges in a vertex queue (C++11-Style API) </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">Operator</td><td>function to apply at each edge </td></tr>
@@ -314,76 +228,13 @@ the Operator typename must implement the method <code>void operator()(Vertex, Ed
 
 </div>
 </div>
-<a id="aef86c442dce2fd644d84f9ab9d5349e5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aef86c442dce2fd644d84f9ab9d5349e5">&#9670;&nbsp;</a></span>traverse_edges() <span class="overload">[4/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename Operator &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void load_balacing::BinarySearch::traverse_edges </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">custinger::vid_t</a> *&#160;</td>
-          <td class="paramname"><em>d_input</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>num_vertices</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Operator&#160;</td>
-          <td class="paramname"><em>op</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Traverse the edges in a vertex array (C++11-Style API) </p>
-<dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname">Operator</td><td>function to apply at each edge </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">d_input</td><td>vertex array </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">num_vertices</td><td>number of vertices in the queue </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">op</td><td>struct/lambda expression that implements the operator </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section remark"><dt>Remarks</dt><dd>all algorithm-dependent data must be capture by <code>op</code> </dd>
-<dd>
-the Operator typename must implement the method <code>void operator()(Vertex, Edge)</code> or the lambda expression <code>[=](Vertex, Edge){}</code> </dd></dl>
-
-</div>
-</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>/home/fbusata3/cuStingerAlg/include/Core/LoadBalancing/<a class="el" href="BinarySearch_8cuh.html">BinarySearch.cuh</a></li>
+<li>/home/fbusato/cuStingerAlg/include/Core/LoadBalancing/<a class="el" href="BinarySearch_8cuh.html">BinarySearch.cuh</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon May 15 2017 12:34:49 for cuStinger by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Aug 31 2017 11:45:46 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

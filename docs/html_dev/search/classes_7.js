@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['iosflagsaver',['IosFlagSaver',['../classxlib_1_1IosFlagSaver.html',1,'xlib']]],
-  ['ispower2',['IsPower2',['../structxlib_1_1IsPower2.html',1,'xlib']]]
+  ['ktruss',['KTruss',['../classcustinger__alg_1_1KTruss.html',1,'custinger_alg']]],
+  ['ktrussdata',['KTrussData',['../structcustinger__alg_1_1KTrussData.html',1,'custinger_alg']]]
 ];

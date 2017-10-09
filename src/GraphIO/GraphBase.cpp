@@ -53,12 +53,8 @@ bool ParsingProp::is_randomize() const noexcept {
     return *this & parsing_prop::RANDOMIZE;
 }
 
-bool ParsingProp::is_remove_duplicates() const noexcept {
-    return *this & parsing_prop::REMOVE_DUPLICATES;
-}
-
 bool ParsingProp::is_print() const noexcept {
-    return *this & parsing_prop::PRINT;
+    return *this & parsing_prop::PRINT_INFO;
 }
 //------------------------------------------------------------------------------
 
@@ -123,14 +119,16 @@ void GraphBase<vid_t, eoff_t>::read(const char* filename,               //NOLINT
     _prop       = prop;
 
     if (prop.is_print()) {
-        std::cout << "\nGraph File:\t" << _graph_name
-                  << "       Size: " <<  xlib::format(size / xlib::MB) << " MB";
+        std::cout << "\nGraph File: " << std::setw(12) << std::left
+                  << _graph_name << "       Size: " << std::setw(12)
+                  << xlib::format(size / xlib::MB) + " MB"
+                  << "format: " << std::right;
     }
 
     std::string file_ext = xlib::extract_file_extension(filename);
     if (file_ext == ".bin") {
         if (prop.is_print())
-            std::cout << "            (Binary)Reading...   \n";
+            std::cout << "(Binary)\n";
         if (prop.is_print() && (prop.is_randomize() || prop.is_sort()))
             std::cerr << "#input sort/randomize ignored on binary format\n";
         readBinary(filename, prop.is_print());
@@ -152,32 +150,32 @@ void GraphBase<vid_t, eoff_t>::read(const char* filename,               //NOLINT
 
     if (file_ext == ".mtx" && first_str == "%%MatrixMarket") {
         if (prop.is_print())
-            std::cout << "            (Market)\n";
+            std::cout << "(Market)\n";
         readMarket(fin, prop.is_print());
     }
     else if (file_ext == ".graph") {
         if (prop.is_print())
-            std::cout << "        (Dimacs10th)\n";
+            std::cout << "(Dimacs10th)\n";
         readDimacs10(fin, prop.is_print());
     }
     else if (file_ext == ".gr" && (first_str == "c"|| first_str == "p")) {
         if (prop.is_print())
-            std::cout << "         (Dimacs9th)\n";
+            std::cout << "(Dimacs9th)\n";
         readDimacs9(fin, prop.is_print());
     }
     else if (file_ext == ".txt" && first_str == "#") {
         if (prop.is_print())
-            std::cout << "              (SNAP)\n";
+            std::cout << "(SNAP)\n";
         readSnap(fin, prop.is_print());
     }
     else if (file_ext == ".edges") {
         if (prop.is_print())
-            std::cout << "    (Net Repository)\n";
+            std::cout << "(Net Repository)\n";
         readNetRepo(fin);
     }
     else if (first_str == "%") {
         if (prop.is_print())
-            std::cout << "            (Konect)\n";
+            std::cout << "(Konect)\n";
         readKonect(fin, prop.is_print());
     } else
         ERROR("Graph type not recognized");
@@ -244,6 +242,8 @@ GInfo GraphBase<vid_t, eoff_t>::getDimacs10Header(std::ifstream& fin) {
         fin >> flag;
         direction = flag == "100" ? structure_prop::DIRECTED
                                   : structure_prop::UNDIRECTED;
+        if (flag == "1")
+            ERROR("Weighted Dimacs10th graphs not supported")
         xlib::skip_lines(fin);
     }
     if (direction == structure_prop::UNDIRECTED)
@@ -307,6 +307,14 @@ GInfo GraphBase<vid_t, eoff_t>::getSnapHeader(std::ifstream& fin) {
                                                                : num_lines;
     _stored_undirected = direction == structure_prop::UNDIRECTED;
     return { num_vertices, num_edges, num_lines, direction };
+}
+
+//------------------------------------------------------------------------------
+
+
+template<typename vid_t, typename eoff_t>
+GInfo GraphBase<vid_t, eoff_t>::getMPGHeader(std::ifstream& fin) {
+    return { 0, 0, 0, structure_prop::UNDIRECTED };
 }
 
 //------------------------------------------------------------------------------

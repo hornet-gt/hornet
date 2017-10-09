@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['numeric_2ehpp',['Numeric.hpp',['../Numeric_8hpp.html',1,'']]]
+  ['wcc_2ehpp',['WCC.hpp',['../WCC_8hpp.html',1,'']]]
 ];

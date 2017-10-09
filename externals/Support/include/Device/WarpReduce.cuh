@@ -3,10 +3,9 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date August, 2017
- * @version v2
+ * @date October, 2017
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -38,72 +37,70 @@
  */
 #pragma once
 
-#include "Base/Host/Basic.hpp"
+#include "Device/Definition.cuh"
 
 namespace xlib {
 
-template<int WARP_SZ = 32>//!!!!!!!!!!!!! if WARP_SZ == 1
+template<int WARP_SZ = 32>  //VW_SIZE == 1  --> SPECIALIZATION
 struct WarpReduce {
     static_assert(xlib::is_power2(WARP_SZ) &&
-                  WARP_SZ >= 1 && WARP_SZ <= 32,
+                  WARP_SZ >= 1 && WARP_SZ <= WARP_SIZE,
                   "WarpReduce : WARP_SZ must be a power of 2 and\
-                                2 <= WARP_SZ <= 32");
+                                2 <= WARP_SZ <= WARP_SIZE");
 
     template<typename T>
-    static __device__ __forceinline__ void add(T& value);
-
-    template<typename T>
-    static __device__ __forceinline__ void min(T& value);
-
-    template<typename T>
-    static __device__ __forceinline__ void max(T& value);
-
-    //--------------------------------------------------------------------------
-
-    template<typename T>
-    static __device__ __forceinline__ void addAll(T& value);
-
-    template<typename T>
-    static __device__ __forceinline__ void minAll(T& value);
-
-    template<typename T>
-    static __device__ __forceinline__ void maxAll(T& value);
-
-    //--------------------------------------------------------------------------
-
-    template<typename T>
-    static __device__ __forceinline__ void add(T& value, T* pointer);
-
-    template<typename T>
-    static __device__ __forceinline__ void min(T& value, T* pointer);
-
-    template<typename T>
-    static __device__ __forceinline__ void max(T& value, T* pointer);
-
-    //--------------------------------------------------------------------------
-
-    //template<typename T>
-    //static __device__ __forceinline__ T atomicAdd(const T& value, T* pointer);
-
-    template<typename T>
-    static __device__ __forceinline__ T atomicAdd(const T& value, T* pointer);
-
-    //template<typename T>
-    //static __device__ __forceinline__ T rAtomicAdd(T& value, T* pointer);
-
-    template<typename T>
-    static __device__ __forceinline__
-    void atomicMin(const T& value, T* pointer);
-
-    template<typename T>
-    static __device__ __forceinline__
-    void atomicMax(const T& value, T* pointer);
-
-    //--------------------------------------------------------------------------
-
-    /*template<typename T>
     __device__ __forceinline__
-    static void atomicadd(T& value1, T* pointer1, T& value2, T* pointer2);*/
+    static void add(T& value);
+
+    template<typename T>
+    __device__ __forceinline__
+    static void min(T& value);
+
+    template<typename T>
+    __device__ __forceinline__
+    static void max(T& value);
+
+    //--------------------------------------------------------------------------
+
+    template<typename T>
+    __device__ __forceinline__
+    static void addAll(T& value);
+
+    template<typename T>
+    __device__ __forceinline__
+    static void minAll(T& value);
+
+    template<typename T>
+    __device__ __forceinline__
+    static void maxAll(T& value);
+
+    //--------------------------------------------------------------------------
+
+    template<typename T, typename R>
+    __device__ __forceinline__
+    static void add(T& value, R* pointer);
+
+    template<typename T, typename R>
+    __device__ __forceinline__
+    static void min(T& value, R* pointer);
+
+    template<typename T, typename R>
+    __device__ __forceinline__
+    static void max(T& value, R* pointer);
+
+    //--------------------------------------------------------------------------
+
+    template<typename T, typename R>
+    __device__ __forceinline__
+    static T atomicAdd(const T& value, R* pointer);
+
+    template<typename T, typename R>
+    __device__ __forceinline__
+    static void atomicMin(const T& value, R* pointer);
+
+    template<typename T, typename R>
+    __device__ __forceinline__
+    static void atomicMax(const T& value, R* pointer);
 };
 
 } // namespace xlib

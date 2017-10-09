@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>cuStinger: cuStinger</title>
+<title>Hornet: cuStinger</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -28,7 +28,7 @@
  <tr style="height: 56px;">
   <td id="projectlogo"><img alt="Logo" src="logo.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">cuStinger
+   <div id="projectname">Hornet
    &#160;<span id="projectnumber">v2</span>
    </div>
    <div id="projectbrief">High-Performance Streaming Graph Analytics on GPUs</div>
@@ -86,16 +86,15 @@ $(function() {
 <li><a href="#acknowledgements">Acknowledgements</a></li>
 <li><a href="#licence">License</a></li>
 </ul>
-<p>** For cuStinger Graph Algorithms please refer to **</p>
+<p>** For cuStinger Algorithms please refer to **</p>
 <h3>Requirements</h3>
 <ul>
-<li><a href="https://developer.nvidia.com/cuda-gpus">Nvidia Modern GPU</a> (compute capability &gt;= 3.0): Kerpler, Maxwell, Pascal architectures.</li>
-<li><a href="https://developer.nvidia.com/cuda-toolkit">CUDA toolkit</a> v7.5 or greater. (CUDA toolkit v8.0 recommended, CUDA toolkit v7.0 supported but not tested)</li>
-<li>GCC or <a href="https://clang.llvm.org">Clang</a> host compiler with support for C++11<sup>*</sup>.</li>
-<li><a href="https://cmake.org">CMake</a> v3.5 or greater.</li>
+<li><a href="https://developer.nvidia.com/cuda-gpus">Nvidia Modern GPU</a> (compute capability &ge; 3.0): Kerpler, Maxwell, Pascal, Volta architectures.</li>
+<li><a href="https://developer.nvidia.com/cuda-toolkit">CUDA toolkit</a> 9 or greater.</li>
+<li>GCC or <a href="https://clang.llvm.org">Clang</a> host compiler with support for C++14. Note: the compiler must be compatible with the related CUDA toolkit version. For more information see <a href="http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html">CUDA Installation Guide</a>.</li>
+<li><a href="https://cmake.org">CMake</a> v3.6 or greater.</li>
 <li>64-bit Operating System (Ubuntu tested).</li>
 </ul>
-<p><sup>*The next release will support C++14 (CUDA Toolkit v8.5). </sup></p>
 <h3>Quick start</h3>
 <p>The following basic steps are required to build and execute cuStinger: </p><div class="fragment"><div class="line">git clone https://github.com/FedericoUnivr/cuStinger</div><div class="line">cd cuStinger/build</div><div class="line">cmake ..</div><div class="line">make -j</div><div class="line">./cuStingerTest &lt;input_graph&gt; &lt;options&gt;</div></div><!-- fragment --><p>The syntax and the input parameters of cuStinger are explained in details in the <code>docs/Syntax.txt</code> file or by typing <code>./cuStingerTest --help</code>.</p>
 <h3>Supported graph formats</h3>
@@ -128,7 +127,7 @@ $(function() {
 </li>
 <li>cuStinger has been tested with the following tools: (see <a class="el" href="md_docs_CodeCheck.html">`CodeCheck`</a>)<ul>
 <li><a href="http://docs.nvidia.com/cuda/cuda-memcheck/">cuda-memcheck</a></li>
-<li><a href="http://valgrind.org/">valgrind v3.12</a></li>
+<li><a href="http://valgrind.org/">valgrind v3.13</a></li>
 <li><a href="https://clang-analyzer.llvm.org/">clang static analyzer v279</a></li>
 </ul>
 </li>
@@ -143,21 +142,22 @@ $(function() {
 <h2>Publications</h2>
 <ul>
 <li>Oded Green, David A. Bader, <a href="https://www.researchgate.net/publication/308174457_cuSTINGER_Supporting_dynamic_graph_algorithms_for_GPUs">*"cuStinger: Supporting dynamic graph algorithms for GPUs"*</a>, IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September, 2016, Waltham, MA, USA, pp. 1-6.</li>
+<li>Oded Green, James Fox, Euna Kim, Federico Busato, Nicola Bombieri, Kartik Lakhotia, Shijie Zhou, Shreyas Singapura, Hanqing Zeng, Rajgopal Kannan, Viktor Prasanna, David A. Bader, **"Quickly Finding a Truss in a Haystack"**, IEEE/Amazon/DARPA Graph Challenge, **Innovation Awards** <hr/>
+ <h3><center>If you find this software useful in academic work, please acknowledge cuStinger. </center></h3>
+</li>
 </ul>
 <hr/>
- <h3><center>If you find this software useful in academic work, please acknowledge cuStinger. </center></h3>
-<hr/>
-<h2>cuStinger Developers</h2>
+<h2>cuStinger 2.0 Developers</h2>
 <h5>Data Structure</h5>
 <ul>
-<li><code>Oded Green</code>, Researcher, Georgia Institute of Technology</li>
 <li><code>Federico Busato</code>, Ph.D. Student, University of Verona (Italy)</li>
+<li><code>Oded Green</code>, Researcher, Georgia Institute of Technology</li>
 </ul>
 <h5>Algorithms</h5>
 <ul>
-<li><code>Oded Green</code>, Researcher, Georgia Institute of Technology</li>
 <li><code>Federico Busato</code>, Ph.D. Student, University of Verona (Italy)</li>
-<li><code>James Fox</code>, Ph.D. Student, Georgia Institute of Technology : <em>Temporal Motif Finding</em></li>
+<li><code>Oded Green</code>, Researcher, Georgia Institute of Technology</li>
+<li><code>James Fox</code>, Ph.D. Student, Georgia Institute of Technology : <em>Maximal Independent Set</em>, <em>Temporal Motif Finding</em></li>
 <li><code>Devavret Makkar</code>, Ph.D. Student, Georgia Institute of Technology : <em>Triangle Counting</em></li>
 <li><code>Elisabetta Bergamini</code>, Ph.D. Student, Karlsruhe Institute of Technology (Germany) : <em>Katz Centrality</em></li>
 <li>...</li>
@@ -181,7 +181,7 @@ $(function() {
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon May 15 2017 12:34:50 for cuStinger by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Aug 31 2017 11:45:46 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

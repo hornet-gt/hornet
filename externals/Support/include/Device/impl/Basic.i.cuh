@@ -6,7 +6,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Device/PTX.cuh"
-
 namespace xlib {
 
 template<int SIZE, typename T>
@@ -85,16 +83,27 @@ __device__ __forceinline__ void swap(T*& A, T*& B) {
     A = B;
     B = tmp;
 }
-
+/*
 template<int BlockSize, THREAD_GROUP GRP>
-__device__ __forceinline__ void syncthreads() {
+__device__ __forceinline__
+void syncthreads() {
     if (BlockSize != 32 && GRP != WARP)
         __syncthreads();
 }
 
 template<bool CONDITION>
-__device__ __forceinline__ void syncthreads() {
+__device__ __forceinline__
+void syncthreads() {
     if (CONDITION)
+        __syncthreads();
+}*/
+
+template<int NUM_THREADS>
+__device__ __forceinline__
+void sync() {
+    if (NUM_THREADS <= xlib::WARP_SIZE)
+        __syncwarp();
+    else
         __syncthreads();
 }
 

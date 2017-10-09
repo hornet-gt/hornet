@@ -6,7 +6,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -40,12 +40,12 @@
 
 #include "GraphIO/GraphStd.hpp"     //graph::GraphStd
 
-namespace custinger {
+namespace hornet {
 
 struct CommandLineParam {
     template<typename T, typename R>
     CommandLineParam(graph::GraphStd<T, R>& graph, int argc, char* argv[],
-                     bool check_unknown = true) noexcept;
+                     bool exit_if_unknown = true) noexcept;
 };
 
-} // namespace custinger
+} // namespace hornet

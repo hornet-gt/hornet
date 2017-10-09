@@ -48,8 +48,13 @@ namespace graph {
 template<typename vid_t, typename eoff_t, typename weight_t>
 GraphWeight<vid_t, eoff_t, weight_t>
 ::GraphWeight(const eoff_t* csr_offsets, vid_t nV,
-              const vid_t* csr_edges, eoff_t nE) noexcept :
-                    GraphStd<vid_t, eoff_t>(csr_offsets, nV, csr_edges, nE) {}
+              const vid_t* csr_edges, eoff_t nE,
+              const weight_t* csr_weights) noexcept :
+                  GraphStd<vid_t, eoff_t>(csr_offsets, nV, csr_edges, nE) {
+    _out_weights = new weight_t[ _nE ];
+    _in_weights = _out_weights;
+    std::copy(csr_weights, csr_weights + nE, _out_weights);
+}
 
 template<typename vid_t, typename eoff_t, typename weight_t>
 GraphWeight<vid_t, eoff_t, weight_t>

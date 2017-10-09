@@ -5,7 +5,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -304,6 +304,11 @@ GraphStd<vid_t, eoff_t>::vertex(vid_t index) const noexcept {
 template<typename vid_t, typename eoff_t>
 inline bool GraphStd<vid_t, eoff_t>::is_directed() const noexcept {
     return _structure.is_directed();
+}
+
+template<typename vid_t, typename eoff_t>
+inline bool GraphStd<vid_t, eoff_t>::is_undirected() const noexcept {
+    return _structure.is_undirected();
 }
 
 } //namespace graph

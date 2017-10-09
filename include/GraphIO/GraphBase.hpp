@@ -6,7 +6,7 @@
  * @date June, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -44,8 +44,7 @@
 namespace graph {
 
 namespace detail {
-    enum class ParsingEnum { RANDOMIZE = 1, SORT = 2, REMOVE_DUPLICATES = 4,
-                             PRINT = 8 };
+    enum class ParsingEnum { RANDOMIZE = 1, SORT = 2, PRINT_INFO = 4 };
 } // namespace detail
 
 class ParsingProp : public xlib::PropertyClass<detail::ParsingEnum,
@@ -59,16 +58,14 @@ public:
 private:
     bool is_sort()              const noexcept;
     bool is_randomize()         const noexcept;
-    bool is_remove_duplicates() const noexcept;
     bool is_print()             const noexcept;
 };
 
 namespace parsing_prop {
 
-const ParsingProp         RANDOMIZE( detail::ParsingEnum::RANDOMIZE );
-const ParsingProp              SORT( detail::ParsingEnum::SORT );
-const ParsingProp REMOVE_DUPLICATES( detail::ParsingEnum::REMOVE_DUPLICATES );
-const ParsingProp             PRINT( detail::ParsingEnum::PRINT );
+const ParsingProp  RANDOMIZE( detail::ParsingEnum::RANDOMIZE );
+const ParsingProp       SORT( detail::ParsingEnum::SORT );
+const ParsingProp PRINT_INFO( detail::ParsingEnum::PRINT_INFO );
 
 } // namespace parsing_prop
 
@@ -124,7 +121,7 @@ public:
 
     virtual void read(const char* filename,
                       const ParsingProp& prop =
-                            ParsingProp(parsing_prop::PRINT)) final;    //NOLINT
+                            ParsingProp(parsing_prop::PRINT_INFO)) final;    //NOLINT
 
     virtual void print()     const noexcept = 0;
     virtual void print_raw() const noexcept = 0;
@@ -155,6 +152,7 @@ protected:
     virtual void   readSnap     (std::ifstream& fin, bool print)   = 0;
     virtual void   readKonect   (std::ifstream& fin, bool print)   = 0;
     virtual void   readNetRepo  (std::ifstream& fin)               = 0;
+    virtual void   readMPG      (std::ifstream& fin, bool print)   = 0;
     virtual void   readBinary   (const char* filename, bool print) = 0;
 
     virtual GInfo  getMarketHeader   (std::ifstream& fin) final;
@@ -163,6 +161,7 @@ protected:
     virtual GInfo  getKonectHeader   (std::ifstream& fin) final;
     virtual void   getNetRepoHeader  (std::ifstream& fin) final;
     virtual GInfo  getSnapHeader     (std::ifstream& fin) final;
+    virtual GInfo  getMPGHeader      (std::ifstream& fin) final;
 
     virtual void COOtoCSR() noexcept = 0;
     //virtual void CSRtoCOO() noexcept = 0;

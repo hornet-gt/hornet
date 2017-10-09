@@ -5,7 +5,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -77,26 +77,62 @@ int DeviceProperty::NUM_OF_STREAMING_MULTIPROCESSOR = 0;                //NOLINT
 
 int DeviceProperty::num_SM() {
     if (NUM_OF_STREAMING_MULTIPROCESSOR == 0) {
-        cudaDeviceProp dev_prop;
-        SAFE_CALL( cudaGetDeviceProperties(&dev_prop, 0) );
-        NUM_OF_STREAMING_MULTIPROCESSOR = dev_prop.multiProcessorCount;
+        cudaDeviceProp prop;
+        SAFE_CALL( cudaGetDeviceProperties(&prop, 0) );
+        NUM_OF_STREAMING_MULTIPROCESSOR = prop.multiProcessorCount;
     }
     return NUM_OF_STREAMING_MULTIPROCESSOR;
 }
 
-void device_info() {
-    cudaDeviceProp dev_prop;
-    SAFE_CALL( cudaGetDeviceProperties(&dev_prop, 0) )
 
-    std::cout << "\n     Graphic Card: " << dev_prop.name
-              << " (cc: " << dev_prop.major << "."  << dev_prop.minor << ")\n"
-              << "     # SM: "  << dev_prop.multiProcessorCount
-              << "    Threads per SM: " << dev_prop.maxThreadsPerMultiProcessor
-              << "    Resident Threads: " << dev_prop.multiProcessorCount *
-                                            dev_prop.maxThreadsPerMultiProcessor
+void device_info(int device_id) {
+    xlib::IosFlagSaver tmp1;
+    xlib::ThousandSep  tmp2;
+
+   /* std::cout << "\n     Graphic Card: " << prop.name
+              << " (CC: " << prop.major << "."  << prop.minor << ")\n"
+              << "     # SM: "  << prop.multiProcessorCount
+              << "    Threads per SM: " << prop.maxThreadsPerMultiProcessor
+              << "    Resident Threads: " << prop.multiProcessorCount *
+                                            prop.maxThreadsPerMultiProcessor
               << "    Global Mem: "
-              << (std::to_string(dev_prop.totalGlobalMem / xlib::MB) + " MB\n")
-              << std::endl;
+              << (std::to_string(prop.totalGlobalMem / xlib::MB) + " MB")
+              << std::endl;*/
+
+    int dev_peak_clock;
+    cudaDeviceGetAttribute(&dev_peak_clock, cudaDevAttrClockRate, device_id);
+    cudaDeviceProp prop;
+    SAFE_CALL( cudaGetDeviceProperties(&prop, device_id) )
+
+    auto smem = std::to_string(prop.sharedMemPerMultiprocessor /xlib::KB)
+                       + " KB";
+    auto gmem = xlib::format(prop.totalGlobalMem /xlib::MB) + " MB";
+    auto smem_thread = prop.sharedMemPerMultiprocessor /
+                        prop.maxThreadsPerMultiProcessor;
+    auto  thread_regs = prop.regsPerMultiprocessor /
+                        prop.maxThreadsPerMultiProcessor;
+    auto      l2cache = std::to_string(prop.l2CacheSize / xlib::MB) + " MB";
+
+    std::cout << std::boolalpha << std::setprecision(1) << std::left
+              << std::fixed << "\n"
+    << "    GPU: " << prop.name
+    << "   CC: "   << prop.major << "." << prop.minor
+    << "   #SM: "  << prop.multiProcessorCount
+    << "   @"      << (prop.clockRate / 1000) << "/"
+                   << (dev_peak_clock / 1000) << " MHz\n"
+    << "           Threads (SM): " << std::setw(13)
+                                   << prop.maxThreadsPerMultiProcessor
+    << "Registers (thread): "      << thread_regs << "\n"
+    << "        Shared Mem (SM): " << std::setw(12) << smem
+    << "Shared Mem (thread): "     << smem_thread << " B\n"
+    << "             Global Mem: " << std::setw(15) << gmem
+    << "Resident threads: "        << prop.multiProcessorCount *
+                                      prop.maxThreadsPerMultiProcessor
+    << "\n"
+    << "               L2 cache: "  << std::setw(15) << l2cache
+    << "L1 caching (l/g): "        << prop.localL1CacheSupported << "/"
+                                   << prop.globalL1CacheSupported
+    << "\n" << std::endl;
 }
 
 } // namespace xlib

@@ -1,10 +1,9 @@
 var searchData=
 [
-  ['edge',['Edge',['../classcustinger_1_1Edge.html',1,'custinger::Edge'],['../classcsr_1_1Edge.html',1,'csr::Edge'],['../classgraph_1_1GraphStd_1_1Edge.html',1,'graph::GraphStd&lt; vid_t, eoff_t &gt;::Edge'],['../classcustinger_1_1Vertex.html#a8c34c2eb904aaeb5e2c962e48a99e2a8',1,'custinger::Vertex::edge()'],['../classcsr_1_1Vertex.html#a883e05ff1ea071fd0543bb20d3eb0bc2',1,'csr::Vertex::edge()']]],
-  ['edgeit',['EdgeIt',['../classcustinger_1_1EdgeIt.html',1,'custinger::EdgeIt'],['../classgraph_1_1GraphStd_1_1EdgeIt.html',1,'graph::GraphStd&lt; vid_t, eoff_t &gt;::EdgeIt']]],
-  ['edges_5fper_5fblockarray',['EDGES_PER_BLOCKARRAY',['../namespacecustinger.html#aef4c140e39e99adbdfbd2e76ecf2f60d',1,'custinger']]],
+  ['edge',['Edge',['../classhornet_1_1gpu_1_1Edge.html',1,'Edge&lt; typename, typename &gt;'],['../classhornet_1_1csr_1_1Edge.html',1,'Edge&lt; typename, typename &gt;'],['../classgraph_1_1GraphStd_1_1Edge.html',1,'GraphStd&lt; vid_t, eoff_t &gt;::Edge'],['../classhornet_1_1gpu_1_1Vertex_3_01TypeList_3_01VertexTypes_8_8_8_01_4_00_01TypeList_3_01EdgeTypes_8_8_8_01_4_01_4.html#ab6b76e928ae094f0f451ca88efdd7719',1,'hornet::gpu::Vertex&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;::edge()'],['../classhornet_1_1csr_1_1Vertex_3_01TypeList_3_01VertexTypes_8_8_8_01_4_00_01TypeList_3_01EdgeTypes_8_8_8_01_4_01_4.html#a24d13aa184ce979b6438c7776bee62dd',1,'hornet::csr::Vertex&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;::edge()']]],
+  ['edge_3c_20typelist_3c_20vertextypes_2e_2e_2e_20_3e_2c_20typelist_3c_20edgetypes_2e_2e_2e_20_3e_20_3e',['Edge&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;',['../classhornet_1_1gpu_1_1Edge_3_01TypeList_3_01VertexTypes_8_8_8_01_4_00_01TypeList_3_01EdgeTypes_8_8_8_01_4_01_4.html',1,'Edge&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;'],['../classhornet_1_1csr_1_1Edge_3_01TypeList_3_01VertexTypes_8_8_8_01_4_00_01TypeList_3_01EdgeTypes_8_8_8_01_4_01_4.html',1,'Edge&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;']]],
+  ['edgeit',['EdgeIt',['../classgraph_1_1GraphStd_1_1EdgeIt.html',1,'graph::GraphStd']]],
+  ['edges_5fper_5fblockarray',['EDGES_PER_BLOCKARRAY',['../namespacehornet.html#a6a2fad51d3be3a828d0c019c1b911e80',1,'hornet']]],
   ['edgescontainer',['EdgesContainer',['../classgraph_1_1GraphStd_1_1EdgesContainer.html',1,'graph::GraphStd']]],
-  ['edgetypes',['EdgeTypes',['../config_8inc.html#ab300394cffafe3ccbd52b9dfab63f444',1,'config.inc']]],
-  ['eoff_5ft',['eoff_t',['../config_8inc.html#adaddaaa82ec6ddecc658d41589bc5f46',1,'config.inc']]],
-  ['expandcontractkernel_2ecuh',['ExpandContractKernel.cuh',['../ExpandContractKernel_8cuh.html',1,'']]]
+  ['eoff_5ft',['eoff_t',['../namespacehornet.html#adaddaaa82ec6ddecc658d41589bc5f46',1,'hornet']]]
 ];

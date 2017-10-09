@@ -6,7 +6,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@
  */
 #pragma once
 
-#include "Host/Metaprogramming.hpp"
+#include "Host/Numeric.hpp"
 
 namespace xlib {
 
@@ -80,6 +80,7 @@ const unsigned      WARP_SIZE = 32;
     class SMemPerThread {
         static_assert(BLOCK_SIZE == 0 || xlib::is_power2(BLOCK_SIZE),
                       "BLOCK_SIZE must be a power of 2");
+
         static const unsigned _BLOCK_SIZE = BLOCK_SIZE == 0 ? MAX_BLOCK_SIZE :
                                             BLOCK_SIZE;
         static const unsigned SMEM_PER_THREAD = SMEM_PER_SM / SM_THREADS;

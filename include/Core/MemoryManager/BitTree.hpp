@@ -7,7 +7,7 @@
  * @date August, 2017
  * @version v2
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -39,10 +39,12 @@
  */
 #pragma once
 
-#include "Host/Metaprogramming.hpp"
-#include <utility>  //std::pair
+#include "BasicTypes.hpp"                           //xlib::byte
+#include "Core/MemoryManager/MemoryManagerConf.hpp" //EDGES_PER_BLOCKARRAY
+#include "Host/Metaprogramming.hpp"                 //xlib::GeometricSerie
+#include <utility>                                  //std::pair
 
-namespace custinger {
+namespace hornet {
 
 /**
  * @brief **Vectorized Bit Tree**
@@ -53,8 +55,9 @@ namespace custinger {
  *
  * @remark 1 means *block* available, 0 *block* used
  */
-class BitTree {
-public:
+template<typename block_t>
+class BitTreeBase {
+protected:
     /**
      * @brief Default Costrustor
      * @details Build a empty *BitTree* with `blockarray_items` bits.
@@ -67,12 +70,124 @@ public:
      *                          single *BlockArray*
      * @pre BLOCK_ITEMS \f$\le\f$ BLOCKARRAY_ITEMS
      */
-    BitTree(int block_items, int blockarray_items) noexcept;
+    explicit BitTreeBase(int block_items, int blockarray_items) noexcept;
 
     /**
      * @brief Move constructor
      */
-    BitTree(BitTree&& obj) noexcept;
+    explicit BitTreeBase(BitTreeBase&& obj) noexcept;
+
+    /**
+     * @brief Insert a new *block*
+     * @details Find the first empty *block* within the *BlockArray*
+     * @return pointers to the *BlockArray*
+     *         < `host_block_ptr`, `device_block_ptr` >
+     */
+    int insert_aux() noexcept;
+
+    void remove_aux(unsigned diff) noexcept;
+
+    /**
+     * @brief Size of the *BitTree*
+     * @return number of used blocks within the *BlockArray*
+     */
+    int size() const noexcept;
+
+    /**
+     * @brief Check if the *BitTree* is full
+     * @return `true` if *BitTree* is full, `false` otherwise
+     */
+    bool full() const noexcept;
+
+    /**
+     * @brief Print BitTree internal representation
+     */
+    void print() const noexcept;
+
+    /**
+     * @brief Print BitTree statistics
+     */
+    void statistics() const noexcept;
+
+#if defined(B_PLUS_TREE)
+
+    /**
+     * @brief Default constructor
+     */
+    explicit BitTreeBase() noexcept;
+
+    /**
+     * @brief Copy constructor
+     * @warning Internally replaced with the move constructor
+     */
+    explicit BitTreeBase(const BitTreeBase& obj) noexcept;
+
+    /**
+     * @brief Assignment operator
+     */
+    BitTreeBase& operator=(BitTreeBase&& obj) noexcept;
+
+#elif defined(RB_TREE)
+
+    explicit BitTreeBase(const BitTreeBase& obj) noexcept;
+
+    BitTreeBase& operator=(const BitTreeBase& obj) = delete;
+#else
+
+    BitTreeBase& operator=(BitTreeBase&& obj) noexcept;
+
+    BitTreeBase(BitTreeBase& obj) = delete;
+#endif
+
+    //--------------------------------------------------------------------------
+    const int _blockarray_bytes;
+    const int _log_block_items;
+private:
+    using word_t = unsigned;
+
+    static const unsigned   WORD_SIZE = sizeof(word_t) * 8;
+    static const unsigned  NUM_BLOCKS = EDGES_PER_BLOCKARRAY /
+                                        MIN_EDGES_PER_BLOCK;
+    static const auto      NUM_LEVELS = xlib::max(1u,
+                                   xlib::CeilLog<NUM_BLOCKS, WORD_SIZE>::value);
+    //  WORD_SIZE^1 + WORD_SIZE^2 + ... + WORD_SIZE^(NUM_LEVELS - 1)
+    using GS = typename xlib::GeometricSerie<WORD_SIZE, NUM_LEVELS - 1>;
+    static const auto   INTERNAL_BITS = GS::value - 1;           //-1 : for root
+    static const auto  INTERNAL_WORDS = xlib::CeilDiv<INTERNAL_BITS,
+                                                      WORD_SIZE>::value;
+    static const auto EXTERNAL_WORLDS = xlib::CeilDiv<NUM_BLOCKS,
+                                                      WORD_SIZE>::value;
+    static const auto   MAX_NUM_WORDS = INTERNAL_WORDS + EXTERNAL_WORLDS;
+
+    const int _block_items;
+    const int _blockarray_items;
+    const int _num_blocks;
+    const int _num_levels;
+    const int _internal_bits;
+    const int _internal_words;
+    const int _external_words;
+    const int _num_words;
+    const int _total_bits;
+
+    word_t  _array[MAX_NUM_WORDS];
+    word_t* _last_level { nullptr };
+    size_t  _size       { 0 };
+
+    template<typename Lambda>
+    void parent_traverse(int index, const Lambda& lambda) noexcept;
+};
+
+//==============================================================================
+
+template<typename block_t, typename offset_t, bool DEVICE>
+class BitTree : public BitTreeBase<block_t> {};
+
+template<typename block_t, typename offset_t>
+class BitTree<block_t, offset_t, true> : public BitTreeBase<block_t> {
+public:
+     explicit BitTree(int block_items, int blockarray_items) noexcept;
+
+     explicit BitTree(BitTree&& obj) noexcept;
 
     /**
      * @brief Decostructor
@@ -93,24 +208,12 @@ public:
      */
     std::pair<byte_t*, byte_t*> insert() noexcept;
 
-    /**
-     * @brief Remove a *block*
-     * @details Remove the *block* pointed by `device_ptr` pointer
-     * @param[in] device_ptr pointer to the *block* to delete
-     */
     void remove(void* device_ptr) noexcept;
 
-    /**
-     * @brief Size of the *BitTree*
-     * @return number of used blocks within the *BlockArray*
-     */
-    int size() const noexcept;
-
-    /**
-     * @brief Check if the *BitTree* is full
-     * @return `true` if *BitTree* is full, `false` otherwise
-     */
-    bool full() const noexcept;
+    using BitTreeBase<block_t>::full;
+    using BitTreeBase<block_t>::size;
+    using BitTreeBase<block_t>::statistics;
+    using BitTreeBase<block_t>::print;
 
     /**
      * @brief Base address of the *BlockArray*
@@ -127,80 +230,66 @@ public:
      */
     bool belong_to(void* device_ptr) const noexcept;
 
-    /**
-     * @brief Print BitTree internal representation
-     */
-    void print() const noexcept;
+#if defined(B_PLUS_TREE)
+    explicit BitTree() noexcept {}
 
-    /**
-     * @brief Print BitTree statistics
-     */
-    void statistics() const noexcept;
+    BitTree(const BitTree& obj) noexcept;   //no explicit for btree::btree_map
 
-    /**
-     * @brief Assignment operator (required by vector::erase())
-     */
     BitTree& operator=(BitTree&& obj) noexcept;
 
-#if defined(B_PLUS_TREE)
+#elif defined(RB_TREE)
+    BitTree(const BitTree& obj) noexcept;   //no explicit for std::map
 
-    /**
-     * @brief Default constructor
-     */
-    BitTree();
-
-    /**
-     * @brief Copy constructor
-     * @warning Internally replaced with the move constructor
-     */
-    BitTree(const BitTree& obj) noexcept;
-
+    BitTree& operator=(const BitTree& obj) = delete;
 #else
     BitTree(BitTree& obj)                  = delete;
+
+    BitTree& operator=(BitTree&& obj) noexcept; //for vector.erase
 #endif
-    BitTree& operator=(const BitTree& obj) = delete;
 
 private:
-    using word_t = unsigned;
-
-    static const unsigned   WORD_SIZE = sizeof(word_t) * 8;
-    static const unsigned  NUM_BLOCKS = EDGES_PER_BLOCKARRAY /
-                                        MIN_EDGES_PER_BLOCK;
-    static const auto      NUM_LEVELS = xlib::max(1u,
-                                   xlib::CeilLog<NUM_BLOCKS, WORD_SIZE>::value);
-    //  WORD_SIZE^1 + WORD_SIZE^2 + ... + WORD_SIZE^(NUM_LEVELS - 1)
-    using GS = typename xlib::GeometricSerie<WORD_SIZE, NUM_LEVELS - 1>;
-    static const auto   INTERNAL_BITS = GS::value - 1;           //-1 : for root
-    static const auto  INTERNAL_WORDS = xlib::CeilDiv<INTERNAL_BITS,
-                                                      WORD_SIZE>::value;
-    static const auto EXTERNAL_WORLDS = xlib::CeilDiv<NUM_BLOCKS,
-                                                      WORD_SIZE>::value;
-    static const auto   MAX_NUM_WORDS = INTERNAL_WORDS + EXTERNAL_WORLDS;
-
-    const int _block_items;
-    const int _blockarray_items;
-    const int _log_block_items;
-    const int _blockarray_bytes;
-    const int _num_blocks;
-    const int _num_levels;
-    const int _internal_bits;
-    const int _internal_words;
-    const int _external_words;
-    const int _num_words;
-    const int _total_bits;
-
-    word_t  _array[MAX_NUM_WORDS];
-    word_t* _last_level { nullptr };
-    byte_t* _h_ptr      { nullptr };
-    byte_t* _d_ptr      { nullptr };
-    size_t  _size       { 0 };
-
-    int remove_aux(void* device_ptr) noexcept;
-
-    template<typename Lambda>
-    void parent_traverse(int index, const Lambda& lambda) noexcept;
+    using BitTreeBase<block_t>::_blockarray_bytes;
+    using BitTreeBase<block_t>::_log_block_items;
+    byte_t* _h_ptr { nullptr };
+    byte_t* _d_ptr { nullptr };
 };
 
-} // namespace custinger
+//------------------------------------------------------------------------------
+
+template<typename block_t, typename offset_t>
+class BitTree<block_t, offset_t, false> : public BitTreeBase<block_t> {
+public:
+    explicit BitTree(int block_items, int blockarray_items) noexcept;
+
+    explicit BitTree(BitTree&& obj) noexcept;
+
+    ~BitTree() noexcept;
+
+    /**
+     * @brief Insert a new *block*
+     * @details Find the first empty *block* within the *BlockArray*
+     * @return pointers to the *BlockArray*
+     *         < `host_block_ptr`, `device_block_ptr` >
+     */
+    byte_t* insert() noexcept;
+
+    void remove(void* device_ptr) noexcept;
+
+    using BitTreeBase<block_t>::full;
+    using BitTreeBase<block_t>::size;
+    using BitTreeBase<block_t>::statistics;
+    using BitTreeBase<block_t>::print;
+
+    byte_t* base_address() const noexcept;
+
+    bool belong_to(void* host_ptr) const noexcept;
+
+private:
+    using BitTreeBase<block_t>::_blockarray_bytes;
+    using BitTreeBase<block_t>::_log_block_items;
+    byte_t* _h_ptr { nullptr };
+};
+
+} // namespace hornet
 
 #include "BitTree.i.hpp"

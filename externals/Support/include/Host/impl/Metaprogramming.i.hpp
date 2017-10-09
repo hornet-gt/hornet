@@ -5,7 +5,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -81,39 +81,6 @@ struct Pow<N, 0> {
     static const unsigned value = 1;
 };
 
-template<unsigned N>
-struct RoundUpPow2 {
-private:
-    static const unsigned V = N - 1;
-public:
-    static const unsigned value = (V | (V >> 1) | (V >> 2) |
-                                  (V >> 4) | (V >> 8) | (V >> 16)) + 1;
-};
-template<uint64_t N>
-struct RoundUpPow2Ull {
-private:
-    static const uint64_t V = N - 1;
-public:
-    static const uint64_t value = (V | (V >> 1) | (V >> 2) |
-                                  (V >> 4) | (V >> 8) | (V >> 16)) + 1;
-};
-
-template<unsigned N>
-struct RoundDownPow2 {
-private:
-    static const unsigned V = RoundUpPow2<N>::value;
-public:
-    static const unsigned value = V == N ? N : V >> 1;
-};
-
-template<uint64_t N>
-struct RoundDownPow2Ull {
-private:
-    static const uint64_t V = RoundUpPow2Ull<N>::value;
-public:
-    static const uint64_t value = V == N ? N : V >> 1;
-};
-
 //------------------------------------------------------------------------------
 
 //lower bound
@@ -152,11 +119,12 @@ struct Log2Ull {
 
 template<unsigned N>
 struct CeilLog2 {
-    static const unsigned value = Log2<RoundUpPow2<N>::value>::value;
+    static const unsigned value = Log2<xlib::roundup_pow2(N)>::value;
 };
+
 template<uint64_t N>
 struct CeilLog2Ull {
-    static const uint64_t value = Log2Ull<RoundUpPow2Ull<N>::value>::value;
+    static const uint64_t value = Log2Ull<xlib::roundup_pow2(N)>::value;
 };
 
 template<unsigned N, unsigned BASE>
@@ -196,6 +164,147 @@ struct BinomialCoeff<N ,N> {
 template<unsigned N, unsigned HIGH>
 struct GeometricSerie {
     static const unsigned value = (Pow<N, HIGH + 1>::value - 1) / (N - 1);
+};
+
+//==============================================================================
+
+template<typename T1, typename T2, typename... TArgs>
+struct SameSize<T1, T2, TArgs...> {
+    static const bool value = sizeof(T1) == sizeof(T2) &&
+                              SameSize<T2, TArgs...>::value;
+};
+
+template<typename T>
+struct SameSize<T> : std::true_type {};
+
+template<typename T, typename... TArgs>
+struct SizeSum<T, TArgs...> {
+    static const unsigned value = sizeof(T) + SizeSum<TArgs...>::value;
+};
+
+template<typename T>
+struct SizeSum<T> {
+    static const unsigned value = sizeof(T);
+};
+
+template<typename... TArgs>
+struct MaxSize {
+    static const unsigned value = xlib::max(sizeof(TArgs)...);
+};
+
+template<typename T>
+struct MaxSize<T> {
+    static const unsigned value = sizeof(T);
+};
+
+template<int N, typename T, typename... TArgs>
+struct SelectType<N, T, TArgs...> {
+    using type = typename SelectType<N - 1, TArgs...>::type;
+};
+
+template<typename T, typename... TArgs>
+struct SelectType<0, T, TArgs...> {
+    using type = T;
+};
+
+//------------------------------------------------------------------------------
+
+template<unsigned... Is>
+constexpr unsigned Seq<Is...>::size() {
+    return sizeof...(Is);
+}
+
+template<unsigned... Is>
+constexpr unsigned Seq<Is...>::operator[](int index) const {
+    return value[index];
+}
+
+template<unsigned... Is>
+constexpr unsigned Seq<Is...>::value[];                                //NOTLINT
+
+//------------------------------------------------------------------------------
+
+template<unsigned, typename, typename>
+struct PrefixSumAux;
+
+template<unsigned... Is>
+struct IncPrefixSum<Seq<Is...>> :
+    PrefixSumAux<sizeof...(Is), Seq<>, Seq<Is...>> {};
+
+template<unsigned... Is>
+struct ExcPrefixSum<Seq<Is...>> :
+    PrefixSumAux<sizeof...(Is) + 1, Seq<>, Seq<0, Is...>> {};
+
+template<unsigned INDEX, unsigned I1, unsigned I2, unsigned... Is2>
+struct PrefixSumAux<INDEX, Seq<>, Seq<I1, I2, Is2...>> :
+       PrefixSumAux<INDEX - 1, Seq<I1, I1 + I2>,  Seq<I1 + I2, Is2...>> {};
+
+template<unsigned INDEX, unsigned... Is1,
+         unsigned I1, unsigned I2, unsigned... Is2>
+struct PrefixSumAux<INDEX, Seq<Is1...>, Seq<I1, I2, Is2...>> :
+   PrefixSumAux<INDEX - 1, Seq<Is1..., I1 + I2>,  Seq<I1 + I2, Is2...>> {};
+
+template<unsigned... Is1, unsigned... Is2>
+struct PrefixSumAux<1, Seq<Is1...>, Seq<Is2...>> {
+    using type = Seq<Is1...>;
+};
+
+//------------------------------------------------------------------------------
+
+template<typename, typename>
+struct tuple_rm_pointers_aux;
+
+template<typename... TArgs>
+struct tuple_rm_pointers<std::tuple<TArgs...>> {
+    using type = typename tuple_rm_pointers_aux<std::tuple<>,
+                                                std::tuple<TArgs...>>::type;
+};
+
+template<typename... TArgs1, typename T2, typename... TArgs2>
+struct tuple_rm_pointers_aux<std::tuple<TArgs1...>, std::tuple<T2, TArgs2...>> :
+    tuple_rm_pointers_aux<std::tuple<TArgs1...,
+                                     typename std::remove_pointer<T2>::type>,
+                          std::tuple<TArgs2...>> {};
+
+template<typename... TArgs>
+struct tuple_rm_pointers_aux<std::tuple<TArgs...>, std::tuple<>> {
+    using type = std::tuple<TArgs...>;
+};
+
+//------------------------------------------------------------------------------
+
+template<typename... TArgs1, typename... TArgs2>
+struct TupleConcat<std::tuple<TArgs1...>, std::tuple<TArgs2...>> {
+    using type = std::tuple<TArgs1..., TArgs2...>;
+};
+
+//------------------------------------------------------------------------------
+
+template<typename T1, typename... TArgs1, typename T2, typename... TArgs2>
+struct tuple_compare<std::tuple<T1, TArgs1...>, std::tuple<T2, TArgs2...>> {
+    static const bool value =
+            std::is_same<typename std::remove_cv<T1>::type,
+                         typename std::remove_cv<T2>::type>::value &&
+            tuple_compare<std::tuple<TArgs1...>, std::tuple<TArgs2...>>::value;
+};
+
+template<>
+struct tuple_compare<std::tuple<>, std::tuple<>> : std::true_type {};
+
+//------------------------------------------------------------------------------
+
+template<typename... TArgs>
+struct TupleToTypeSizeSeq<std::tuple<TArgs...>> {
+   using type = Seq<sizeof(TArgs)...>;
+};
+
+//==============================================================================
+
+template<typename... TArgs>
+struct IsVectorizable {
+    static const bool value = xlib::SameSize<TArgs...>::value &&
+                              xlib::SizeSum<TArgs...>::value <= 16 &&
+                              sizeof...(TArgs) <= 4;
 };
 
 } // namespace xlib

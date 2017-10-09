@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>cuStinger: include/GraphIO/GraphBase.hpp File Reference</title>
+<title>Hornet: include/GraphIO/GraphBase.hpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -28,7 +28,7 @@
  <tr style="height: 56px;">
   <td id="projectlogo"><img alt="Logo" src="logo.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">cuStinger
+   <div id="projectname">Hornet
    &#160;<span id="projectnumber">v2</span>
    </div>
    <div id="projectbrief">High-Performance Streaming Graph Analytics on GPUs</div>
@@ -72,34 +72,78 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Data Structures</a>  </div>
+<a href="#nested-classes">Data Structures</a> &#124;
+<a href="#enum-members">Enumerations</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
 <div class="title">GraphBase.hpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;string&gt;</code><br />
-<code>#include &quot;GraphBase.i.hpp&quot;</code><br />
+<div class="textblock"><code>#include &quot;Host/Basic.hpp&quot;</code><br />
+<code>#include &lt;string&gt;</code><br />
 </div>
 <p><a href="GraphBase_8hpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Data Structures</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraph_1_1Property.html">graph::Property</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraph_1_1ParsingProp.html">ParsingProp</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraph_1_1Structure.html">graph::Structure</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraph_1_1StructureProp.html">StructureProp</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structgraph_1_1GInfo.html">graph::GInfo</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structgraph_1_1GInfo.html">GInfo</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraph_1_1GraphBase.html">graph::GraphBase&lt; vid_t, eoff_t &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraph_1_1GraphBase.html">GraphBase&lt; vid_t, eoff_t &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:a4cba9dd7a2e9d18b6b8479727cca6b0c"><td class="memItemLeft" align="right" valign="top"><a id="a4cba9dd7a2e9d18b6b8479727cca6b0c"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>ParsingEnum</b> { <b>RANDOMIZE</b> = 1, 
+<b>SORT</b> = 2, 
+<b>REMOVE_DUPLICATES</b> = 4, 
+<b>PRINT_INFO</b> = 8
+ }</td></tr>
+<tr class="separator:a4cba9dd7a2e9d18b6b8479727cca6b0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af1b8b142b5fb54225d121566cc8725a6"><td class="memItemLeft" align="right" valign="top"><a id="af1b8b142b5fb54225d121566cc8725a6"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>StructureEnum</b> { <b>DIRECTED</b> = 1, 
+<b>UNDIRECTED</b> = 2, 
+<b>REVERSE</b> = 4, 
+<b>COO</b> = 8
+ }</td></tr>
+<tr class="separator:af1b8b142b5fb54225d121566cc8725a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:a0e48ecb14214228858e2f40c6d65e185"><td class="memItemLeft" align="right" valign="top"><a id="a0e48ecb14214228858e2f40c6d65e185"></a>
+const ParsingProp&#160;</td><td class="memItemRight" valign="bottom"><b>RANDOMIZE</b> (detail::ParsingEnum::RANDOMIZE)</td></tr>
+<tr class="separator:a0e48ecb14214228858e2f40c6d65e185"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa089248ca10a469e0bd85bb6d6b08949"><td class="memItemLeft" align="right" valign="top"><a id="aa089248ca10a469e0bd85bb6d6b08949"></a>
+const ParsingProp&#160;</td><td class="memItemRight" valign="bottom"><b>SORT</b> (detail::ParsingEnum::SORT)</td></tr>
+<tr class="separator:aa089248ca10a469e0bd85bb6d6b08949"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa755a9f8991b98097e05b9b01996c1be"><td class="memItemLeft" align="right" valign="top"><a id="aa755a9f8991b98097e05b9b01996c1be"></a>
+const ParsingProp&#160;</td><td class="memItemRight" valign="bottom"><b>REMOVE_DUPLICATES</b> (detail::ParsingEnum::REMOVE_DUPLICATES)</td></tr>
+<tr class="separator:aa755a9f8991b98097e05b9b01996c1be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a53c6dd1f09d3657571bf7877a1860f22"><td class="memItemLeft" align="right" valign="top"><a id="a53c6dd1f09d3657571bf7877a1860f22"></a>
+const ParsingProp&#160;</td><td class="memItemRight" valign="bottom"><b>PRINT_INFO</b> (detail::ParsingEnum::PRINT_INFO)</td></tr>
+<tr class="separator:a53c6dd1f09d3657571bf7877a1860f22"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7359e38502035d5c8ec1b57929dbd8b8"><td class="memItemLeft" align="right" valign="top"><a id="a7359e38502035d5c8ec1b57929dbd8b8"></a>
+const StructureProp&#160;</td><td class="memItemRight" valign="bottom"><b>DIRECTED</b> (detail::StructureEnum::DIRECTED)</td></tr>
+<tr class="separator:a7359e38502035d5c8ec1b57929dbd8b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4c1eac1b5ef6aede386270a4c581ad9c"><td class="memItemLeft" align="right" valign="top"><a id="a4c1eac1b5ef6aede386270a4c581ad9c"></a>
+const StructureProp&#160;</td><td class="memItemRight" valign="bottom"><b>UNDIRECTED</b> (detail::StructureEnum::UNDIRECTED)</td></tr>
+<tr class="separator:a4c1eac1b5ef6aede386270a4c581ad9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abaa0bf8f76f868e4bd38b006781cc507"><td class="memItemLeft" align="right" valign="top"><a id="abaa0bf8f76f868e4bd38b006781cc507"></a>
+const StructureProp&#160;</td><td class="memItemRight" valign="bottom"><b>REVERSE</b> (detail::StructureEnum::REVERSE)</td></tr>
+<tr class="separator:abaa0bf8f76f868e4bd38b006781cc507"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2729b1b677d7dd46fde9fde004fca06"><td class="memItemLeft" align="right" valign="top"><a id="ae2729b1b677d7dd46fde9fde004fca06"></a>
+const StructureProp&#160;</td><td class="memItemRight" valign="bottom"><b>COO</b> (detail::StructureEnum::COO)</td></tr>
+<tr class="separator:ae2729b1b677d7dd46fde9fde004fca06"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><dl class="section author"><dt>Author</dt><dd>Federico Busato <br />
  Univerity of Verona, Dept. of Computer Science <br />
  <a href="#" onclick="location.href='mai'+'lto:'+'fed'+'er'+'ico'+'.b'+'usa'+'to'+'@un'+'iv'+'r.i'+'t'; return false;">feder<span style="display: none;">.nosp@m.</span>ico.<span style="display: none;">.nosp@m.</span>busat<span style="display: none;">.nosp@m.</span>o@un<span style="display: none;">.nosp@m.</span>ivr.i<span style="display: none;">.nosp@m.</span>t</a> </dd></dl>
-<dl class="section date"><dt>Date</dt><dd>April, 2017 </dd></dl>
+<dl class="section date"><dt>Date</dt><dd>June, 2017 </dd></dl>
 <dl class="section version"><dt>Version</dt><dd>v1.3</dd></dl>
-<dl class="section copyright"><dt>Copyright</dt><dd>Copyright © 2017 cuStinger. All rights reserved.</dd></dl>
+<dl class="section copyright"><dt>Copyright</dt><dd>Copyright © 2017 Hornet. All rights reserved.</dd></dl>
 <dl class="section copyright">
 <dt>License</dt>
 <dd><blockquote class="doxtable">
@@ -116,7 +160,7 @@ Data Structures</h2></td></tr>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon May 15 2017 12:34:49 for cuStinger by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Aug 31 2017 11:45:45 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

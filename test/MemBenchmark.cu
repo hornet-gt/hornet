@@ -9,33 +9,33 @@
 
 using namespace timer;
 using xlib::byte_t;
+using ttime_t = float;
 
 int main() {
-    auto seed = std::chrono::high_resolution_clock::now().time_since_epoch()
-                .count();
-    std::mt19937_64 gen(seed);
-    //std::generate(v.begin(), v.end(), std::rand);
-    std::uniform_int_distribution<unsigned char>
-        distribution(0, std::numeric_limits<unsigned char>::max());
-
     size_t size = 1024;
     Timer<DEVICE> TM;
 
-    std::vector<float> H2D_time;
-    std::vector<float> H2D_pinned_time;
-    std::vector<float> D2D_time;
-    std::vector<float> memcpy_kernel_time;
-    std::vector<float> memset_time;
-    std::vector<float> memset_kernel_time;
+    std::vector<ttime_t> allocation_time;
+    std::vector<ttime_t> allocation_pinned_time;
+    std::vector<ttime_t> H2D_time;
+    std::vector<ttime_t> H2D_pinned_time;
+    std::vector<ttime_t> D2D_time;
+    std::vector<ttime_t> memset_time;
+    byte_t* d_array, *h_array_pinned;
+
     std::cout << "Computing";
 
     while (true) {
         std::cout << "." << std::flush;
         //======================================================================
-        byte_t* d_array;
+        TM.start();
+
         if (cudaMalloc(&d_array, size) != cudaSuccess)
             break;
 
+        TM.stop();
+        allocation_time.push_back(TM.duration());
+        //----------------------------------------------------------------------
         auto h_array = new byte_t[size];
         TM.start();
 
@@ -45,11 +45,17 @@ int main() {
         delete[] h_array;
         H2D_time.push_back(TM.duration());
         //----------------------------------------------------------------------
-        byte_t* h_array_pinned;
-        cudaMallocHost(&h_array_pinned, size);
         TM.start();
 
-        cuMemcpyToDevice(h_array_pinned, size, d_array);
+        cudaMallocHost(&h_array_pinned, size);
+
+        TM.stop();
+
+        allocation_pinned_time.push_back(TM.duration());
+        //----------------------------------------------------------------------
+        TM.start();
+
+        cuMemcpyToDeviceAsync(h_array_pinned, size, d_array);
 
         TM.stop();
         cudaFreeHost(h_array_pinned);
@@ -62,15 +68,6 @@ int main() {
         TM.stop();
         memset_time.push_back(TM.duration());
         //----------------------------------------------------------------------
-        TM.start();
-
-        cu::memset(reinterpret_cast<unsigned char*>(d_array), size,
-                   (unsigned char) 0);
-
-        TM.stop();
-        CHECK_CUDA_ERROR
-        memset_kernel_time.push_back(TM.duration());
-        //----------------------------------------------------------------------
         byte_t* d_array2;
         if (cudaMalloc(&d_array2, size) == cudaSuccess) {
             TM.start();
@@ -79,18 +76,10 @@ int main() {
 
             TM.stop();
             D2D_time.push_back(TM.duration());
-        //----------------------------------------------------------------------
-            TM.start();
-
-            cu::memcpy(d_array, size, d_array2);
-
-            TM.stop();
-            memcpy_kernel_time.push_back(TM.duration());
             cuFree(d_array2);
         }
         else {
             D2D_time.push_back(std::nan(""));
-            memcpy_kernel_time.push_back(std::nan(""));
         }
         cuFree(d_array);
         //----------------------------------------------------------------------
@@ -99,22 +88,46 @@ int main() {
     size = 1024;
     std::cout << "\n\n" << std::setprecision(2) << std::right << std::fixed
               << std::setw(8)  << "SIZE"
+              << std::setw(12) << "cudaMalloc"
+              << std::setw(18) << "cudaMallocPinned"
               << std::setw(11) << "MemcpyHtD"
               << std::setw(14) << "MemcpyHtDPin"
               << std::setw(11) << "MemcpyDtD"
-              << std::setw(14) << "MemcpyKernel"
-              << std::setw(8)  << "Memset"
-              << std::setw(14) << "MemsetKernel" << std::endl;
+              << std::setw(8)  << "Memset" << std::endl;
     xlib::char_sequence('-', 80);
 
     for (size_t i = 0; i < H2D_time.size(); i++) {
         std::cout << std::setw(8)  << xlib::human_readable(size)
+                  << std::setw(12) << allocation_time[i]
+                  << std::setw(18) << allocation_pinned_time[i]
                   << std::setw(11) << H2D_time[i]
                   << std::setw(14) << H2D_pinned_time[i]
                   << std::setw(11) << D2D_time[i]
-                  << std::setw(14) << memcpy_kernel_time[i]
-                  << std::setw(8)  << memset_time[i]
-                  << std::setw(14) << memset_kernel_time[i] << "\n";
+                  << std::setw(8)  << memset_time[i] << "\n";
         size *= 2;
     }
+    //==========================================================================
+    Timer<DEVICE> TM2(2);
+
+    xlib::byte_t array[4 * xlib::MB];
+    cudaMalloc(&d_array, 4 * xlib::MB);
+    cudaMallocHost(&h_array_pinned, 4 * xlib::MB);
+
+    TM2.start();
+
+    cudaMemcpy(array, d_array, 4 * xlib::MB, cudaMemcpyDeviceToHost);
+
+    TM2.stop();
+    TM2.print("Stack");
+
+    TM2.start();
+
+    cudaMemcpyAsync(h_array_pinned, d_array, 4 * xlib::MB,
+                    cudaMemcpyDeviceToHost);
+
+    TM2.stop();
+    TM2.print("Pinned");
+
+    cudaFree(d_array);
+    cudaFreeHost(h_array_pinned);
 }

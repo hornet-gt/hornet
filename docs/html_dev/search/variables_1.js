@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['d_5fvertex_5fptrs',['d_vertex_ptrs',['../structcustinger_1_1cuStingerDevData.html#a7371f663af4e122be010b24b2eff62c8',1,'custinger::cuStingerDevData']]]
+  ['csr_5fwide',['CSR_WIDE',['../BatchUpdate_8cuh.html#a9b934d17d6c148292718b8f4c2e0fb86',1,'hornet::gpu::batch_property']]]
 ];

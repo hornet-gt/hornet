@@ -6,7 +6,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -89,7 +89,7 @@ void __safe_call(cudaError_t error, const char* file, int line,
 
 void __cudaErrorHandler(cudaError_t error, const char* error_message,
                         const char* file, int line, const char* func_name);
-                        
+
 class DeviceProperty {
     public:
         static int num_SM();
@@ -107,7 +107,7 @@ private:
     const std::array<void*, SIZE> _tmp;
 };
 
-void device_info();
+void device_info(int device_id = 0);
 
 } // namespace xlib
 

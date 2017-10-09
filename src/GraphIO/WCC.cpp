@@ -58,7 +58,7 @@ void WCC<vid_t, eoff_t>::run() noexcept {
         ERROR("WCC cannot be repeated")
     flag = true;
 
-    vid_t    wcc_count = 0;
+    vid_t wcc_count = 0;
     for (vid_t source = 0; source < _graph.nV(); source++) {
         if (_color[source] != NO_COLOR) continue;
 
@@ -146,6 +146,18 @@ void WCC<vid_t, eoff_t>::print_histogram() const noexcept {
                   << std::string(stars, '*') << "\n";
     }
     std::cout << std::endl;
+}
+
+template<typename vid_t, typename eoff_t>
+void WCC<vid_t, eoff_t>::print_statistics() const noexcept {
+    auto ratio_largest = xlib::per_cent(largest(), _graph.nV());
+    auto ratio_trivial = xlib::per_cent(num_trivial(),  _graph.nV());
+    std::cout << "\n        Number CC: " << xlib::format(size())
+              << "\n       Largest CC: " << xlib::format(ratio_largest, 1)
+              << " %"
+              << "\n    N. Trivial CC: " << xlib::format(num_trivial())
+              << "\n       Trivial CC: " << xlib::format(ratio_trivial, 1)
+              << " %" << std::endl;
 }
 //------------------------------------------------------------------------------
 

@@ -5,7 +5,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -63,6 +63,95 @@ void printSymbol(const T& d_symbol, const std::string& str) noexcept {
     cuMemcpyFromSymbol(d_symbol, h_data);
 
     std::cout << str << h_data << std::endl;
+}
+
+//------------------------------------------------------------------------------
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, const char* string) noexcept {
+    printf("%s", string);
+    return obj;
+}
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, uint64_t value) noexcept {
+    printf("%llu", value);
+    return obj;
+}
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, int64_t value) noexcept {
+    printf("%lld", value);
+    return obj;
+}
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, long long int value) noexcept {
+    printf("%lld", value);
+    return obj;
+}
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, long long unsigned value)
+                             noexcept {
+    printf("%llu", value);
+    return obj;
+}
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, int value) noexcept {
+    printf("%d", value);
+    return obj;
+}
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, unsigned value) noexcept {
+    printf("%u", value);
+    return obj;
+}
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, short value) noexcept {
+    printf("%hd", value);
+    return obj;
+}
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, unsigned short value) noexcept {
+    printf("%hu", value);
+    return obj;
+}
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, char value) noexcept {
+    printf("%c", value);
+    return obj;
+}
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, unsigned char value) noexcept {
+    printf("%hhu", value);
+    return obj;
+}
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, float value) noexcept {
+    printf("%f", value);
+    return obj;
+}
+
+__device__ __forceinline__
+const Cout& operator<<(const Cout& obj, double value) noexcept {
+    printf("%f", value);
+    return obj;
+}
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<std::is_pointer<T>::value, const Cout&>::type
+operator<<(const Cout& obj, const T pointer) noexcept {
+    printf("0x%llX", pointer);
+    return obj;
 }
 
 } // namespace cu

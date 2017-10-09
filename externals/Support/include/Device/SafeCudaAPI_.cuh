@@ -6,7 +6,7 @@
  * @date August, 2017
  * @version v2
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @brief Improved CUDA APIs
  * @details Advatages:                                                      <br>

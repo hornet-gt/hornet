@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>cuStinger: graph::GraphStd&lt; vid_t, eoff_t &gt; Class Template Reference</title>
+<title>Hornet: GraphStd&lt; vid_t, eoff_t &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -28,7 +28,7 @@
  <tr style="height: 56px;">
   <td id="projectlogo"><img alt="Logo" src="logo.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">cuStinger
+   <div id="projectname">Hornet
    &#160;<span id="projectnumber">v2</span>
    </div>
    <div id="projectbrief">High-Performance Streaming Graph Analytics on GPUs</div>
@@ -76,16 +76,17 @@ $(function() {
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Data Fields</a>  </div>
   <div class="headertitle">
-<div class="title">graph::GraphStd&lt; vid_t, eoff_t &gt; Class Template Reference</div>  </div>
+<div class="title">GraphStd&lt; vid_t, eoff_t &gt; Class Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 <div class="dynheader">
-Inheritance diagram for graph::GraphStd&lt; vid_t, eoff_t &gt;:</div>
+Inheritance diagram for GraphStd&lt; vid_t, eoff_t &gt;:</div>
 <div class="dyncontent">
  <div class="center">
-  <img src="classgraph_1_1GraphStd.png" usemap="#graph::GraphStd_3C_20vid_5Ft_2C_20eoff_5Ft_20_3E_map" alt=""/>
-  <map id="graph::GraphStd_3C_20vid_5Ft_2C_20eoff_5Ft_20_3E_map" name="graph::GraphStd_3C_20vid_5Ft_2C_20eoff_5Ft_20_3E_map">
-<area href="classgraph_1_1GraphBase.html" alt="graph::GraphBase&lt; vid_t, eoff_t &gt;" shape="rect" coords="0,0,206,24"/>
+  <img src="classgraph_1_1GraphStd.png" usemap="#GraphStd_3C_20vid_5Ft_2C_20eoff_5Ft_20_3E_map" alt=""/>
+  <map id="GraphStd_3C_20vid_5Ft_2C_20eoff_5Ft_20_3E_map" name="GraphStd_3C_20vid_5Ft_2C_20eoff_5Ft_20_3E_map">
+<area href="classgraph_1_1GraphBase.html" alt="GraphBase&lt; vid_t, eoff_t &gt;" shape="rect" coords="0,0,232,24"/>
+<area href="classgraph_1_1GraphWeight.html" alt="GraphWeight&lt; vid_t, eoff_t, weight_t &gt;" shape="rect" coords="0,112,232,136"/>
 </map>
  </div></div>
 <table class="memberdecls">
@@ -106,99 +107,99 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a34ad246565dbaedba2728cd63a45c91d"><td class="memItemLeft" align="right" valign="top"><a id="a34ad246565dbaedba2728cd63a45c91d"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>GraphStd</b> (Structure::Enum <a class="el" href="classgraph_1_1Structure.html">Structure</a>) noexcept</td></tr>
-<tr class="separator:a34ad246565dbaedba2728cd63a45c91d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae5489c15a58319f90bce54a378da377c"><td class="memItemLeft" align="right" valign="top"><a id="ae5489c15a58319f90bce54a378da377c"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>GraphStd</b> (const char *filename, <a class="el" href="classgraph_1_1Property.html">Property</a> prop) noexcept</td></tr>
-<tr class="separator:ae5489c15a58319f90bce54a378da377c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5492cd3e5aa287c7fa9e4c936f9fe343"><td class="memItemLeft" align="right" valign="top"><a id="a5492cd3e5aa287c7fa9e4c936f9fe343"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>GraphStd</b> (Structure::Enum <a class="el" href="classgraph_1_1Structure.html">Structure</a>, const char *filename, <a class="el" href="classgraph_1_1Property.html">Property</a> property) noexcept</td></tr>
-<tr class="separator:a5492cd3e5aa287c7fa9e4c936f9fe343"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac62fdfe8452a5e2d889f01272b6f17c8"><td class="memItemLeft" align="right" valign="top"><a id="ac62fdfe8452a5e2d889f01272b6f17c8"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>GraphStd</b> (const <a class="el" href="config_8inc.html#adaddaaa82ec6ddecc658d41589bc5f46">eoff_t</a> *csr_offsets, <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">vid_t</a> nV, const <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">vid_t</a> *csr_edges, <a class="el" href="config_8inc.html#adaddaaa82ec6ddecc658d41589bc5f46">eoff_t</a> nE) noexcept</td></tr>
-<tr class="separator:ac62fdfe8452a5e2d889f01272b6f17c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a04a3f1c566bdf048fcc61b121b51561f"><td class="memItemLeft" align="right" valign="top"><a id="a04a3f1c566bdf048fcc61b121b51561f"></a>
-<a class="el" href="classgraph_1_1GraphStd_1_1Vertex.html">Vertex</a>&#160;</td><td class="memItemRight" valign="bottom"><b>get_vertex</b> (<a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">vid_t</a> index) const noexcept</td></tr>
-<tr class="separator:a04a3f1c566bdf048fcc61b121b51561f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4c94463497c9df4e1aea39ab04cd980b"><td class="memItemLeft" align="right" valign="top"><a id="a4c94463497c9df4e1aea39ab04cd980b"></a>
-<a class="el" href="classgraph_1_1GraphStd_1_1Edge.html">Edge</a>&#160;</td><td class="memItemRight" valign="bottom"><b>get_edge</b> (<a class="el" href="config_8inc.html#adaddaaa82ec6ddecc658d41589bc5f46">eoff_t</a> index) const noexcept</td></tr>
-<tr class="separator:a4c94463497c9df4e1aea39ab04cd980b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a85aa111c9d29af6602967daec95b09bf"><td class="memItemLeft" align="right" valign="top"><a id="a85aa111c9d29af6602967daec95b09bf"></a>
-degree_t&#160;</td><td class="memItemRight" valign="bottom"><b>out_degree</b> (<a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">vid_t</a> index) const noexcept</td></tr>
-<tr class="separator:a85aa111c9d29af6602967daec95b09bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a43db215f5520d1ad9fbdc442dda1fb0e"><td class="memItemLeft" align="right" valign="top"><a id="a43db215f5520d1ad9fbdc442dda1fb0e"></a>
-degree_t&#160;</td><td class="memItemRight" valign="bottom"><b>in_degree</b> (<a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">vid_t</a> index) const noexcept</td></tr>
-<tr class="separator:a43db215f5520d1ad9fbdc442dda1fb0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3d0cd061db464057bca724f0923931e3"><td class="memItemLeft" align="right" valign="top"><a id="a3d0cd061db464057bca724f0923931e3"></a>
+<tr class="memitem:a466cbc5974306b61ae05eaa4657247b1"><td class="memItemLeft" align="right" valign="top"><a id="a466cbc5974306b61ae05eaa4657247b1"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>GraphStd</b> (<a class="el" href="classgraph_1_1StructureProp.html">StructureProp</a> structure=<a class="el" href="classgraph_1_1StructureProp.html">StructureProp</a>()) noexcept</td></tr>
+<tr class="separator:a466cbc5974306b61ae05eaa4657247b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab803a17df8e599d43794bda261388762"><td class="memItemLeft" align="right" valign="top"><a id="ab803a17df8e599d43794bda261388762"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>GraphStd</b> (const char *filename, const <a class="el" href="classgraph_1_1ParsingProp.html">ParsingProp</a> &amp;property=<a class="el" href="classgraph_1_1ParsingProp.html">ParsingProp</a>(parsing_prop::PRINT_INFO)) noexcept</td></tr>
+<tr class="separator:ab803a17df8e599d43794bda261388762"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b66b79d92047e0b0aba16339dabb762"><td class="memItemLeft" align="right" valign="top"><a id="a1b66b79d92047e0b0aba16339dabb762"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>GraphStd</b> (<a class="el" href="classgraph_1_1StructureProp.html">StructureProp</a> structure, const char *filename, const <a class="el" href="classgraph_1_1ParsingProp.html">ParsingProp</a> &amp;property) noexcept</td></tr>
+<tr class="separator:a1b66b79d92047e0b0aba16339dabb762"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a65bdfd8ba5acdd27847946ce10b0276a"><td class="memItemLeft" align="right" valign="top"><a id="a65bdfd8ba5acdd27847946ce10b0276a"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>GraphStd</b> (const eoff_t *csr_offsets, vid_t nV, const vid_t *csr_edges, eoff_t nE) noexcept</td></tr>
+<tr class="separator:a65bdfd8ba5acdd27847946ce10b0276a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8484e4aff2e4b0584d9a139470ecb0b8"><td class="memItemLeft" align="right" valign="top"><a id="a8484e4aff2e4b0584d9a139470ecb0b8"></a>
+<a class="el" href="classgraph_1_1GraphStd_1_1Vertex.html">Vertex</a>&#160;</td><td class="memItemRight" valign="bottom"><b>vertex</b> (vid_t index) const noexcept</td></tr>
+<tr class="separator:a8484e4aff2e4b0584d9a139470ecb0b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af294be5dbda991718b8c1d6b2863c03d"><td class="memItemLeft" align="right" valign="top"><a id="af294be5dbda991718b8c1d6b2863c03d"></a>
+<a class="el" href="classgraph_1_1GraphStd_1_1Edge.html">Edge</a>&#160;</td><td class="memItemRight" valign="bottom"><b>edge</b> (eoff_t index) const noexcept</td></tr>
+<tr class="separator:af294be5dbda991718b8c1d6b2863c03d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a775fdfb4aeb22c16affd3016e2cfc44c"><td class="memItemLeft" align="right" valign="top"><a id="a775fdfb4aeb22c16affd3016e2cfc44c"></a>
+degree_t&#160;</td><td class="memItemRight" valign="bottom"><b>out_degree</b> (vid_t index) const noexcept</td></tr>
+<tr class="separator:a775fdfb4aeb22c16affd3016e2cfc44c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a16ed4c07969655ef90bc523fb33bb95d"><td class="memItemLeft" align="right" valign="top"><a id="a16ed4c07969655ef90bc523fb33bb95d"></a>
+degree_t&#160;</td><td class="memItemRight" valign="bottom"><b>in_degree</b> (vid_t index) const noexcept</td></tr>
+<tr class="separator:a16ed4c07969655ef90bc523fb33bb95d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4457da8004a29f3f331efe4a00453104"><td class="memItemLeft" align="right" valign="top"><a id="a4457da8004a29f3f331efe4a00453104"></a>
 const coo_t *&#160;</td><td class="memItemRight" valign="bottom"><b>coo_array</b> () const noexcept</td></tr>
-<tr class="separator:a3d0cd061db464057bca724f0923931e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8f10cfc4c4ee8245a1fe1327f6eec1fe"><td class="memItemLeft" align="right" valign="top"><a id="a8f10cfc4c4ee8245a1fe1327f6eec1fe"></a>
-const <a class="el" href="config_8inc.html#adaddaaa82ec6ddecc658d41589bc5f46">eoff_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>out_offsets</b> () const noexcept</td></tr>
-<tr class="separator:a8f10cfc4c4ee8245a1fe1327f6eec1fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6028b56a2d286348ba09ddbf8dc40c08"><td class="memItemLeft" align="right" valign="top"><a id="a6028b56a2d286348ba09ddbf8dc40c08"></a>
-const <a class="el" href="config_8inc.html#adaddaaa82ec6ddecc658d41589bc5f46">eoff_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>in_offsets</b> () const noexcept</td></tr>
-<tr class="separator:a6028b56a2d286348ba09ddbf8dc40c08"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a62386bed9702aac4451507eacf969f9c"><td class="memItemLeft" align="right" valign="top"><a id="a62386bed9702aac4451507eacf969f9c"></a>
-const <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">vid_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>out_edges</b> () const noexcept</td></tr>
-<tr class="separator:a62386bed9702aac4451507eacf969f9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4b1040c02be37ec659b97275a484e28b"><td class="memItemLeft" align="right" valign="top"><a id="a4b1040c02be37ec659b97275a484e28b"></a>
-const <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">vid_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>in_edges</b> () const noexcept</td></tr>
-<tr class="separator:a4b1040c02be37ec659b97275a484e28b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeacb1ca0b2822f69659dc57079439f74"><td class="memItemLeft" align="right" valign="top"><a id="aeacb1ca0b2822f69659dc57079439f74"></a>
-const degree_t *&#160;</td><td class="memItemRight" valign="bottom"><b>out_degrees</b> () const noexcept</td></tr>
-<tr class="separator:aeacb1ca0b2822f69659dc57079439f74"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab932f110b75b22d28371e12ee76836be"><td class="memItemLeft" align="right" valign="top"><a id="ab932f110b75b22d28371e12ee76836be"></a>
-const degree_t *&#160;</td><td class="memItemRight" valign="bottom"><b>in_degrees</b> () const noexcept</td></tr>
-<tr class="separator:ab932f110b75b22d28371e12ee76836be"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aba547105d3cb638ae179489647c06752"><td class="memItemLeft" align="right" valign="top"><a id="aba547105d3cb638ae179489647c06752"></a>
+<tr class="separator:a4457da8004a29f3f331efe4a00453104"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af00d47953ba648c9317e4b46bd42635a"><td class="memItemLeft" align="right" valign="top"><a id="af00d47953ba648c9317e4b46bd42635a"></a>
+const eoff_t *&#160;</td><td class="memItemRight" valign="bottom"><b>out_offsets_ptr</b> () const noexcept</td></tr>
+<tr class="separator:af00d47953ba648c9317e4b46bd42635a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aef253b65c083212519735c2e7c64900c"><td class="memItemLeft" align="right" valign="top"><a id="aef253b65c083212519735c2e7c64900c"></a>
+const eoff_t *&#160;</td><td class="memItemRight" valign="bottom"><b>in_offsets_ptr</b> () const noexcept</td></tr>
+<tr class="separator:aef253b65c083212519735c2e7c64900c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2bb4258b69bbfa011bebde30dc462b4"><td class="memItemLeft" align="right" valign="top"><a id="ab2bb4258b69bbfa011bebde30dc462b4"></a>
+const vid_t *&#160;</td><td class="memItemRight" valign="bottom"><b>out_edges_ptr</b> () const noexcept</td></tr>
+<tr class="separator:ab2bb4258b69bbfa011bebde30dc462b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a016d15fbe119d7b87e62d6a72a4d6886"><td class="memItemLeft" align="right" valign="top"><a id="a016d15fbe119d7b87e62d6a72a4d6886"></a>
+const vid_t *&#160;</td><td class="memItemRight" valign="bottom"><b>in_edges_ptr</b> () const noexcept</td></tr>
+<tr class="separator:a016d15fbe119d7b87e62d6a72a4d6886"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ccaa70cd8c754de692c17d5da03e43e"><td class="memItemLeft" align="right" valign="top"><a id="a5ccaa70cd8c754de692c17d5da03e43e"></a>
+const degree_t *&#160;</td><td class="memItemRight" valign="bottom"><b>out_degrees_ptr</b> () const noexcept</td></tr>
+<tr class="separator:a5ccaa70cd8c754de692c17d5da03e43e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac2e8115878f6b1153c5ebbb1222b13ab"><td class="memItemLeft" align="right" valign="top"><a id="ac2e8115878f6b1153c5ebbb1222b13ab"></a>
+const degree_t *&#160;</td><td class="memItemRight" valign="bottom"><b>in_degrees_ptr</b> () const noexcept</td></tr>
+<tr class="separator:ac2e8115878f6b1153c5ebbb1222b13ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afc0879ec4983b93b630e8956c5986aa3"><td class="memItemLeft" align="right" valign="top"><a id="afc0879ec4983b93b630e8956c5986aa3"></a>
 degree_t&#160;</td><td class="memItemRight" valign="bottom"><b>max_out_degree</b> () const noexcept</td></tr>
-<tr class="separator:aba547105d3cb638ae179489647c06752"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2915932053b6e7f91573837775a8d736"><td class="memItemLeft" align="right" valign="top"><a id="a2915932053b6e7f91573837775a8d736"></a>
+<tr class="separator:afc0879ec4983b93b630e8956c5986aa3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7b87fa5ba83ce205fb941d25cd4991e"><td class="memItemLeft" align="right" valign="top"><a id="af7b87fa5ba83ce205fb941d25cd4991e"></a>
 degree_t&#160;</td><td class="memItemRight" valign="bottom"><b>max_in_degree</b> () const noexcept</td></tr>
-<tr class="separator:a2915932053b6e7f91573837775a8d736"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a98172762c860172eb106b9114e47740d"><td class="memItemLeft" align="right" valign="top"><a id="a98172762c860172eb106b9114e47740d"></a>
-<a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">vid_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>max_out_degree_vertex</b> () const noexcept</td></tr>
-<tr class="separator:a98172762c860172eb106b9114e47740d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a342e1e98495363ff17996f4bc0919549"><td class="memItemLeft" align="right" valign="top"><a id="a342e1e98495363ff17996f4bc0919549"></a>
-<a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">vid_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>max_in_degree_vertex</b> () const noexcept</td></tr>
-<tr class="separator:a342e1e98495363ff17996f4bc0919549"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a498f9d49696b57bc68e43970d5cb3718"><td class="memItemLeft" align="right" valign="top"><a id="a498f9d49696b57bc68e43970d5cb3718"></a>
+<tr class="separator:af7b87fa5ba83ce205fb941d25cd4991e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a59203b7d02fc6551341105f49f93a65e"><td class="memItemLeft" align="right" valign="top"><a id="a59203b7d02fc6551341105f49f93a65e"></a>
+vid_t&#160;</td><td class="memItemRight" valign="bottom"><b>max_out_degree_id</b> () const noexcept</td></tr>
+<tr class="separator:a59203b7d02fc6551341105f49f93a65e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5cbcd8c89253bb39ab311b3ac75eed6e"><td class="memItemLeft" align="right" valign="top"><a id="a5cbcd8c89253bb39ab311b3ac75eed6e"></a>
+vid_t&#160;</td><td class="memItemRight" valign="bottom"><b>max_in_degree_id</b> () const noexcept</td></tr>
+<tr class="separator:a5cbcd8c89253bb39ab311b3ac75eed6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa526cb61973b25ba2e5fd6c5a913c67d"><td class="memItemLeft" align="right" valign="top"><a id="aa526cb61973b25ba2e5fd6c5a913c67d"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_directed</b> () const noexcept</td></tr>
-<tr class="separator:a498f9d49696b57bc68e43970d5cb3718"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ace6b53f2e9012573cc1e7d1189d7806b"><td class="memItemLeft" align="right" valign="top"><a id="ace6b53f2e9012573cc1e7d1189d7806b"></a>
+<tr class="separator:aa526cb61973b25ba2e5fd6c5a913c67d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a441d2f2ffa212202d207a4a6964866dc"><td class="memItemLeft" align="right" valign="top"><a id="a441d2f2ffa212202d207a4a6964866dc"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>print</b> () const noexcept override</td></tr>
-<tr class="separator:ace6b53f2e9012573cc1e7d1189d7806b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abeba8238ca8a6eaf8d993a544e2ab478"><td class="memItemLeft" align="right" valign="top"><a id="abeba8238ca8a6eaf8d993a544e2ab478"></a>
+<tr class="separator:a441d2f2ffa212202d207a4a6964866dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab067d2149e15fdb4368e8d5ba129fb85"><td class="memItemLeft" align="right" valign="top"><a id="ab067d2149e15fdb4368e8d5ba129fb85"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>print_raw</b> () const noexcept override</td></tr>
-<tr class="separator:abeba8238ca8a6eaf8d993a544e2ab478"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a97722fd9c66532cd43a136f057bda73d"><td class="memItemLeft" align="right" valign="top"><a id="a97722fd9c66532cd43a136f057bda73d"></a>
+<tr class="separator:ab067d2149e15fdb4368e8d5ba129fb85"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2e3bbd1df30e67b995af4d41eba66edf"><td class="memItemLeft" align="right" valign="top"><a id="a2e3bbd1df30e67b995af4d41eba66edf"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>writeBinary</b> (const std::string &amp;filename, bool print=true) const</td></tr>
-<tr class="separator:a97722fd9c66532cd43a136f057bda73d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a445fe65268f93ea4551aa852ab5aa60f"><td class="memItemLeft" align="right" valign="top"><a id="a445fe65268f93ea4551aa852ab5aa60f"></a>
+<tr class="separator:a2e3bbd1df30e67b995af4d41eba66edf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8f2ad00f352df295b97406da1ef47ea7"><td class="memItemLeft" align="right" valign="top"><a id="a8f2ad00f352df295b97406da1ef47ea7"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>writeMarket</b> (const std::string &amp;filename) const</td></tr>
-<tr class="separator:a445fe65268f93ea4551aa852ab5aa60f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af7ee511c71d40db77d79daed31016289"><td class="memItemLeft" align="right" valign="top"><a id="af7ee511c71d40db77d79daed31016289"></a>
-virtual <a class="el" href="config_8inc.html#a125d79d60910047509ac132d670bb912">vid_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>nV</b> () const noexcept final</td></tr>
-<tr class="separator:af7ee511c71d40db77d79daed31016289"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab2456e25bd4cd72ab058521eb5dbadd2"><td class="memItemLeft" align="right" valign="top"><a id="ab2456e25bd4cd72ab058521eb5dbadd2"></a>
-virtual <a class="el" href="config_8inc.html#adaddaaa82ec6ddecc658d41589bc5f46">eoff_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>nE</b> () const noexcept final</td></tr>
-<tr class="separator:ab2456e25bd4cd72ab058521eb5dbadd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a85a8a76c1b434e38e2f3feacd4aebb39"><td class="memItemLeft" align="right" valign="top"><a id="a85a8a76c1b434e38e2f3feacd4aebb39"></a>
+<tr class="separator:a8f2ad00f352df295b97406da1ef47ea7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a11a6a3beb59139855c3b1f08e2d8a810"><td class="memItemLeft" align="right" valign="top"><a id="a11a6a3beb59139855c3b1f08e2d8a810"></a>
+virtual vid_t&#160;</td><td class="memItemRight" valign="bottom"><b>nV</b> () const noexcept final</td></tr>
+<tr class="separator:a11a6a3beb59139855c3b1f08e2d8a810"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a344b4fb9e52251f3892ececeb3583baa"><td class="memItemLeft" align="right" valign="top"><a id="a344b4fb9e52251f3892ececeb3583baa"></a>
+virtual eoff_t&#160;</td><td class="memItemRight" valign="bottom"><b>nE</b> () const noexcept final</td></tr>
+<tr class="separator:a344b4fb9e52251f3892ececeb3583baa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e279872d3c3319ae7fe9db173773963"><td class="memItemLeft" align="right" valign="top"><a id="a3e279872d3c3319ae7fe9db173773963"></a>
 virtual const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>name</b> () const noexcept final</td></tr>
-<tr class="separator:a85a8a76c1b434e38e2f3feacd4aebb39"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3f19164cf082162025413533d0260305"><td class="memItemLeft" align="right" valign="top"><a id="a3f19164cf082162025413533d0260305"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>read</b> (const char *filename, <a class="el" href="classgraph_1_1Property.html">Property</a> prop=<a class="el" href="classgraph_1_1Property.html">Property</a>(Property::PRINT)) final</td></tr>
-<tr class="separator:a3f19164cf082162025413533d0260305"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:a3e279872d3c3319ae7fe9db173773963"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa02523321d497d1ae349a3ab8a4138ef"><td class="memItemLeft" align="right" valign="top"><a id="aa02523321d497d1ae349a3ab8a4138ef"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>read</b> (const char *filename, const <a class="el" href="classgraph_1_1ParsingProp.html">ParsingProp</a> &amp;prop=<a class="el" href="classgraph_1_1ParsingProp.html">ParsingProp</a>(parsing_prop::PRINT_INFO)) final</td></tr>
+<tr class="separator:aa02523321d497d1ae349a3ab8a4138ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Data Fields</h2></td></tr>
-<tr class="memitem:a3c34baae75fa3a9e718bf795789c6160"><td class="memItemLeft" align="right" valign="top"><a id="a3c34baae75fa3a9e718bf795789c6160"></a>
+<tr class="memitem:a26dbee3f01d910d7cac3e323680243ba"><td class="memItemLeft" align="right" valign="top"><a id="a26dbee3f01d910d7cac3e323680243ba"></a>
 <a class="el" href="classgraph_1_1GraphStd_1_1VerticesContainer.html">VerticesContainer</a>&#160;</td><td class="memItemRight" valign="bottom"><b>V</b> { *this }</td></tr>
-<tr class="separator:a3c34baae75fa3a9e718bf795789c6160"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2dac23e171d75072be73ecbdffee4b22"><td class="memItemLeft" align="right" valign="top"><a id="a2dac23e171d75072be73ecbdffee4b22"></a>
+<tr class="separator:a26dbee3f01d910d7cac3e323680243ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab25b5ef1f2743a0a7e5fda83bb1b0510"><td class="memItemLeft" align="right" valign="top"><a id="ab25b5ef1f2743a0a7e5fda83bb1b0510"></a>
 <a class="el" href="classgraph_1_1GraphStd_1_1EdgesContainer.html">EdgesContainer</a>&#160;</td><td class="memItemRight" valign="bottom"><b>E</b> { *this }</td></tr>
-<tr class="separator:a2dac23e171d75072be73ecbdffee4b22"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:ab25b5ef1f2743a0a7e5fda83bb1b0510"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>include/GraphIO/<a class="el" href="GraphStd_8hpp_source.html">GraphStd.hpp</a></li>
@@ -206,7 +207,7 @@ Data Fields</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon May 15 2017 12:34:49 for cuStinger by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Aug 31 2017 11:45:46 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

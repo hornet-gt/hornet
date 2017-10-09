@@ -5,7 +5,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,6 @@
  */
 #include "Host/Basic.hpp"
 #include "Host/Metaprogramming.hpp"
-#if defined(__NVCC__)
-    #include "Device/PTX.cuh"
-#endif
 #include <cassert>      //assert
 #include <chrono>       //std::chrono
 #include <cmath>        //std::abs
@@ -89,6 +86,11 @@ void check_overflow(T value) {
 
 //------------------------------------------------------------------------------
 template<typename T>
+constexpr T min(const T& a) noexcept {
+    return a;
+}
+
+template<typename T>
 constexpr T min(const T& a, const T& b) noexcept {
     return a < b ? a : b;
 }
@@ -101,13 +103,18 @@ constexpr T min(const T& a, const T& b, const TArgs&... args) noexcept {
 }
 
 template<typename T>
+constexpr T max(const T& a) noexcept {
+    return a;
+}
+
+template<typename T>
 constexpr T max(const T& a, const T& b) noexcept {
     return a > b ? a : b;
 }
 
 template<typename T, typename... TArgs>
 constexpr T max(const T& a, const T& b, const TArgs&... args) noexcept {
-    const auto& max_args = xlib::max(args...);
+    const auto&  max_args = xlib::max(args...);
     const auto& max_value = xlib::max(a, b);
     return max_value > max_args ? max_value : max_args;
 }
@@ -363,33 +370,32 @@ HOST_DEVICE void delete_bits(T* array, R start, R end) noexcept {
 template<typename T>
 HOST_DEVICE
 constexpr T roundup_pow2(T value) noexcept {
-    const bool is_integral = std::is_integral<T>::value;
-    using R = typename std::conditional<is_integral, T, uint64_t>::type;
-    auto  v = static_cast<R>(value);
-    v--;
-    v |= v >> 1;
-    v |= v >> 2;
-    v |= v >> 4;
-    v |= v >> 8;
-    v |= v >> 16;
-    v++;
-    return v;
+    static_assert(std::is_integral<T>::value, "T must be integral");
+    //const bool is_integral = std::is_integral<T>::value;
+    //using R = typename std::conditional<is_integral, T, uint64_t>::type;
+    //auto  v = static_cast<R>(value);
+    value--;
+    value |= value >> 1;
+    value |= value >> 2;
+    value |= value >> 4;
+    value |= value >> 8;
+    value |= value >> 16;
+    value++;
+    return value;
 }
 
-/*
 template<typename T>
-HOST_DEVICE CONST_EXPR T rounddown_pow2(T value) noexcept {
-    const bool is_integral = std::is_integral<T>::value;
-    using R = typename std::conditional<is_integral, T, uint64_t>::type;
-    R v = static_cast<R>(value);
-    v |= (v >> 1);
-    v |= (v >> 2);
-    v |= (v >> 4);
-    v |= (v >> 8);
-    v |= (v >> 16);
-    return(v & ~(v >> 1));
-}*/
-
+HOST_DEVICE
+constexpr T rounddown_pow2(T value) noexcept {
+    static_assert(std::is_integral<T>::value, "T must be integral");
+    value |= (value >> 1);
+    value |= (value >> 2);
+    value |= (value >> 4);
+    value |= (value >> 8);
+    value |= (value >> 16);
+    return (value & ~(value >> 1));
+}
+/*
 template<typename T>
 HOST_DEVICE
 int log2(T value) noexcept {
@@ -405,6 +411,44 @@ int log2(T value) noexcept {
         return sizeof(T) < 8 ? 31 - __builtin_clz(value_unsigned) :
                                63 - __builtin_clzll(value_unsigned);
     #endif
+}*/
+
+template<typename T>
+HOST_DEVICE
+typename std::enable_if<sizeof(T) <= 4, int>::type
+log2_aux(T value) noexcept {
+    static_assert(std::is_integral<T>::value, "T must be intergral");
+    assert(value > 0);
+
+    #if defined(__CUDA_ARCH__)
+        unsigned ret;
+        asm ("bfind.u32 %0, %1;" : "=r"(ret) : "r"(value));
+        return ret;
+    #else
+        return 31 - __builtin_clz(value);
+    #endif
+}
+
+template<typename T>
+HOST_DEVICE
+typename std::enable_if<sizeof(T) == 8, int>::type
+log2_aux(T value) noexcept {
+    static_assert(std::is_integral<T>::value, "T must be intergral");
+    assert(value > 0);
+
+    #if defined(__CUDA_ARCH__)
+        unsigned ret;
+        asm ("bfind.u64 %0, %1;" : "=r"(ret) : "l"(value));
+        return ret;
+    #else
+        return 63 - __builtin_clzll(value);
+    #endif
+}
+
+template<typename T>
+HOST_DEVICE
+int log2(T value) noexcept {
+    return log2_aux(value);
 }
 
 template<typename T>
@@ -499,8 +543,8 @@ constexpr unsigned geometric_serie(unsigned repetition) noexcept {
     return (xlib::pow<N>(repetition + 1) - 1) / (N - 1);
 };
 
-template<typename T>
-float per_cent(T part, T max) noexcept {
+template<typename T, typename R>
+float per_cent(T part, R max) noexcept {
     return (static_cast<float>(part) / static_cast<float>(max)) * 100.0f;
 }
 /*

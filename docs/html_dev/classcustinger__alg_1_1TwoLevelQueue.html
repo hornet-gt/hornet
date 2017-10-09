@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>cuStinger: custinger_alg::TwoLevelQueue&lt; T &gt; Class Template Reference</title>
+<title>Hornet: TwoLevelQueue&lt; T &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -28,7 +28,7 @@
  <tr style="height: 56px;">
   <td id="projectlogo"><img alt="Logo" src="logo.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">cuStinger
+   <div id="projectname">Hornet
    &#160;<span id="projectnumber">v2</span>
    </div>
    <div id="projectbrief">High-Performance Streaming Graph Analytics on GPUs</div>
@@ -72,9 +72,10 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#pub-methods">Public Member Functions</a>  </div>
+<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-attribs">Data Fields</a>  </div>
   <div class="headertitle">
-<div class="title">custinger_alg::TwoLevelQueue&lt; T &gt; Class Template Reference</div>  </div>
+<div class="title">TwoLevelQueue&lt; T &gt; Class Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -83,50 +84,58 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a80906b5d3826b8a7c1eee93747ed3b9c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#a80906b5d3826b8a7c1eee93747ed3b9c">TwoLevelQueue</a> (const <a class="el" href="classcustinger_1_1cuStinger.html">custinger::cuStinger</a> &amp;custinger, bool enable_traverse=false, size_t max_allocated_items=0) noexcept</td></tr>
-<tr class="memdesc:a80906b5d3826b8a7c1eee93747ed3b9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default costructor.  <a href="#a80906b5d3826b8a7c1eee93747ed3b9c">More...</a><br /></td></tr>
-<tr class="separator:a80906b5d3826b8a7c1eee93747ed3b9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad6363605caf1932153b914ec81829466"><td class="memItemLeft" align="right" valign="top"><a id="ad6363605caf1932153b914ec81829466"></a>
+<tr class="memitem:acf924cc26d73e45cc5283c2146e29afb"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#acf924cc26d73e45cc5283c2146e29afb">TwoLevelQueue</a> (const custinger::cuStinger &amp;custinger) noexcept</td></tr>
+<tr class="memdesc:acf924cc26d73e45cc5283c2146e29afb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default costructor.  <a href="#acf924cc26d73e45cc5283c2146e29afb">More...</a><br /></td></tr>
+<tr class="separator:acf924cc26d73e45cc5283c2146e29afb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae3ed0f051cbf23e3570752ae2d65eccf"><td class="memItemLeft" align="right" valign="top"><a id="ae3ed0f051cbf23e3570752ae2d65eccf"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>TwoLevelQueue</b> (size_t max_allocated_items) noexcept</td></tr>
+<tr class="separator:ae3ed0f051cbf23e3570752ae2d65eccf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ba88eed7bf4fd77a32df14e37f69f3d"><td class="memItemLeft" align="right" valign="top"><a id="a6ba88eed7bf4fd77a32df14e37f69f3d"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>TwoLevelQueue</b> (const <a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html">TwoLevelQueue</a>&lt; T &gt; &amp;obj) noexcept</td></tr>
-<tr class="separator:ad6363605caf1932153b914ec81829466"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae82d51cda21fd9e1305ca2a9babe7f33"><td class="memItemLeft" align="right" valign="top"><a id="ae82d51cda21fd9e1305ca2a9babe7f33"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#ae82d51cda21fd9e1305ca2a9babe7f33">~TwoLevelQueue</a> () noexcept</td></tr>
-<tr class="memdesc:ae82d51cda21fd9e1305ca2a9babe7f33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default Decostructor. <br /></td></tr>
-<tr class="separator:ae82d51cda21fd9e1305ca2a9babe7f33"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a835b9f834474dec7dee122ed92aa94ad"><td class="memItemLeft" align="right" valign="top">__host__ __device__ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#a835b9f834474dec7dee122ed92aa94ad">insert</a> (const T &amp;item) noexcept</td></tr>
-<tr class="memdesc:a835b9f834474dec7dee122ed92aa94ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">insert an item in the queue  <a href="#a835b9f834474dec7dee122ed92aa94ad">More...</a><br /></td></tr>
-<tr class="separator:a835b9f834474dec7dee122ed92aa94ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae7addb2cefeb91259047304c9493706b"><td class="memItemLeft" align="right" valign="top">__host__ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#ae7addb2cefeb91259047304c9493706b">insert</a> (const T *items_array, int num_items) noexcept</td></tr>
-<tr class="memdesc:ae7addb2cefeb91259047304c9493706b"><td class="mdescLeft">&#160;</td><td class="mdescRight">insert a set of items in the queue  <a href="#ae7addb2cefeb91259047304c9493706b">More...</a><br /></td></tr>
-<tr class="separator:ae7addb2cefeb91259047304c9493706b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4e7fc7c2ef68eb11839d082411bcb589"><td class="memItemLeft" align="right" valign="top">__host__ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#a4e7fc7c2ef68eb11839d082411bcb589">swap</a> () noexcept</td></tr>
-<tr class="memdesc:a4e7fc7c2ef68eb11839d082411bcb589"><td class="mdescLeft">&#160;</td><td class="mdescRight">swap input and output queue  <a href="#a4e7fc7c2ef68eb11839d082411bcb589">More...</a><br /></td></tr>
-<tr class="separator:a4e7fc7c2ef68eb11839d082411bcb589"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3c9c358f864255c2843c6b4602ac5fb1"><td class="memItemLeft" align="right" valign="top">__host__ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#a3c9c358f864255c2843c6b4602ac5fb1">clear</a> () noexcept</td></tr>
-<tr class="memdesc:a3c9c358f864255c2843c6b4602ac5fb1"><td class="mdescLeft">&#160;</td><td class="mdescRight">reset the queue  <a href="#a3c9c358f864255c2843c6b4602ac5fb1">More...</a><br /></td></tr>
-<tr class="separator:a3c9c358f864255c2843c6b4602ac5fb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeb6219e6d89826b8d7a3389fa12003ab"><td class="memItemLeft" align="right" valign="top">__host__ int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#aeb6219e6d89826b8d7a3389fa12003ab">size</a> () const noexcept</td></tr>
-<tr class="memdesc:aeb6219e6d89826b8d7a3389fa12003ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">size of the queue at the input queue  <a href="#aeb6219e6d89826b8d7a3389fa12003ab">More...</a><br /></td></tr>
-<tr class="separator:aeb6219e6d89826b8d7a3389fa12003ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adb130b0d3e341c31c03aa370469b36d0"><td class="memItemLeft" align="right" valign="top">__host__ const T *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#adb130b0d3e341c31c03aa370469b36d0">device_ptr_q1</a> () const noexcept</td></tr>
-<tr class="memdesc:adb130b0d3e341c31c03aa370469b36d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">device pointer of the input queue  <a href="#adb130b0d3e341c31c03aa370469b36d0">More...</a><br /></td></tr>
-<tr class="separator:adb130b0d3e341c31c03aa370469b36d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a52dbe36624dfa79997ad1a2d97bf472f"><td class="memItemLeft" align="right" valign="top">__host__ const T *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#a52dbe36624dfa79997ad1a2d97bf472f">device_ptr_q2</a> () const noexcept</td></tr>
-<tr class="memdesc:a52dbe36624dfa79997ad1a2d97bf472f"><td class="mdescLeft">&#160;</td><td class="mdescRight">device pointer of the output queue  <a href="#a52dbe36624dfa79997ad1a2d97bf472f">More...</a><br /></td></tr>
-<tr class="separator:a52dbe36624dfa79997ad1a2d97bf472f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0ba24ff0a9078844f99d24933c363e47"><td class="memItemLeft" align="right" valign="top">__host__ const T *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#a0ba24ff0a9078844f99d24933c363e47">host_data</a> () noexcept</td></tr>
-<tr class="memdesc:a0ba24ff0a9078844f99d24933c363e47"><td class="mdescLeft">&#160;</td><td class="mdescRight">host pointer of the data stored in the output device queue  <a href="#a0ba24ff0a9078844f99d24933c363e47">More...</a><br /></td></tr>
-<tr class="separator:a0ba24ff0a9078844f99d24933c363e47"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac05097106363e6087d61e7220077cb4c"><td class="memItemLeft" align="right" valign="top">__host__ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#ac05097106363e6087d61e7220077cb4c">print1</a> () noexcept</td></tr>
-<tr class="memdesc:ac05097106363e6087d61e7220077cb4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">print the items stored at the output queue  <a href="#ac05097106363e6087d61e7220077cb4c">More...</a><br /></td></tr>
-<tr class="separator:ac05097106363e6087d61e7220077cb4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a41114a18682ee439db619453770b901c"><td class="memItemLeft" align="right" valign="top">__host__ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#a41114a18682ee439db619453770b901c">print2</a> () noexcept</td></tr>
-<tr class="memdesc:a41114a18682ee439db619453770b901c"><td class="mdescLeft">&#160;</td><td class="mdescRight">print the items stored at the output queue  <a href="#a41114a18682ee439db619453770b901c">More...</a><br /></td></tr>
-<tr class="separator:a41114a18682ee439db619453770b901c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0293bbe049ce36c9fee67e69c503d583"><td class="memTemplParams" colspan="2">template&lt;typename Operator &gt; </td></tr>
-<tr class="memitem:a0293bbe049ce36c9fee67e69c503d583"><td class="memTemplItemLeft" align="right" valign="top">__host__ void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#a0293bbe049ce36c9fee67e69c503d583">traverse_edges</a> (Operator op) noexcept</td></tr>
-<tr class="memdesc:a0293bbe049ce36c9fee67e69c503d583"><td class="mdescLeft">&#160;</td><td class="mdescRight">traverse the edges of queue vertices  <a href="#a0293bbe049ce36c9fee67e69c503d583">More...</a><br /></td></tr>
-<tr class="separator:a0293bbe049ce36c9fee67e69c503d583"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:a6ba88eed7bf4fd77a32df14e37f69f3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa034de1d0fd1d0f0eb264a0caaba9698"><td class="memItemLeft" align="right" valign="top"><a id="aa034de1d0fd1d0f0eb264a0caaba9698"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#aa034de1d0fd1d0f0eb264a0caaba9698">~TwoLevelQueue</a> () noexcept</td></tr>
+<tr class="memdesc:aa034de1d0fd1d0f0eb264a0caaba9698"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default Decostructor. <br /></td></tr>
+<tr class="separator:aa034de1d0fd1d0f0eb264a0caaba9698"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a16adcb5d6d4ca98eada7209ac58a5461"><td class="memItemLeft" align="right" valign="top">__host__ __device__ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#a16adcb5d6d4ca98eada7209ac58a5461">insert</a> (const T &amp;item) noexcept</td></tr>
+<tr class="memdesc:a16adcb5d6d4ca98eada7209ac58a5461"><td class="mdescLeft">&#160;</td><td class="mdescRight">insert an item in the queue  <a href="#a16adcb5d6d4ca98eada7209ac58a5461">More...</a><br /></td></tr>
+<tr class="separator:a16adcb5d6d4ca98eada7209ac58a5461"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a653321127e00c621f3f95d450157a55c"><td class="memItemLeft" align="right" valign="top">__host__ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#a653321127e00c621f3f95d450157a55c">insert</a> (const T *items_array, int num_items) noexcept</td></tr>
+<tr class="memdesc:a653321127e00c621f3f95d450157a55c"><td class="mdescLeft">&#160;</td><td class="mdescRight">insert a set of items in the queue  <a href="#a653321127e00c621f3f95d450157a55c">More...</a><br /></td></tr>
+<tr class="separator:a653321127e00c621f3f95d450157a55c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe41c2f02db237f7cb61a7afc2f85bf3"><td class="memItemLeft" align="right" valign="top">__host__ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#abe41c2f02db237f7cb61a7afc2f85bf3">swap</a> () noexcept</td></tr>
+<tr class="memdesc:abe41c2f02db237f7cb61a7afc2f85bf3"><td class="mdescLeft">&#160;</td><td class="mdescRight">swap input and output queue  <a href="#abe41c2f02db237f7cb61a7afc2f85bf3">More...</a><br /></td></tr>
+<tr class="separator:abe41c2f02db237f7cb61a7afc2f85bf3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa008e92db2816cceec7482cdf13636f5"><td class="memItemLeft" align="right" valign="top">__host__ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#aa008e92db2816cceec7482cdf13636f5">clear</a> () noexcept</td></tr>
+<tr class="memdesc:aa008e92db2816cceec7482cdf13636f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">reset the queue  <a href="#aa008e92db2816cceec7482cdf13636f5">More...</a><br /></td></tr>
+<tr class="separator:aa008e92db2816cceec7482cdf13636f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c7e6d1f8eca6b2fdb1839ac7ed38e94"><td class="memItemLeft" align="right" valign="top">__host__ int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#a6c7e6d1f8eca6b2fdb1839ac7ed38e94">size</a> () noexcept</td></tr>
+<tr class="memdesc:a6c7e6d1f8eca6b2fdb1839ac7ed38e94"><td class="mdescLeft">&#160;</td><td class="mdescRight">size of the queue at the input queue  <a href="#a6c7e6d1f8eca6b2fdb1839ac7ed38e94">More...</a><br /></td></tr>
+<tr class="separator:a6c7e6d1f8eca6b2fdb1839ac7ed38e94"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac30b87fb46137b6aa97b57dcd26d029e"><td class="memItemLeft" align="right" valign="top"><a id="ac30b87fb46137b6aa97b57dcd26d029e"></a>
+__host__ int&#160;</td><td class="memItemRight" valign="bottom"><b>output_size</b> () noexcept</td></tr>
+<tr class="separator:ac30b87fb46137b6aa97b57dcd26d029e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ab21b2fb2cb777a008b68ea374b806b"><td class="memItemLeft" align="right" valign="top">__host__ const T *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#a6ab21b2fb2cb777a008b68ea374b806b">device_input_ptr</a> () const noexcept</td></tr>
+<tr class="memdesc:a6ab21b2fb2cb777a008b68ea374b806b"><td class="mdescLeft">&#160;</td><td class="mdescRight">device pointer of the input queue  <a href="#a6ab21b2fb2cb777a008b68ea374b806b">More...</a><br /></td></tr>
+<tr class="separator:a6ab21b2fb2cb777a008b68ea374b806b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03af0dad89c8b47e8b363b1e3232d86b"><td class="memItemLeft" align="right" valign="top">__host__ const T *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#a03af0dad89c8b47e8b363b1e3232d86b">device_output_ptr</a> () const noexcept</td></tr>
+<tr class="memdesc:a03af0dad89c8b47e8b363b1e3232d86b"><td class="mdescLeft">&#160;</td><td class="mdescRight">device pointer of the output queue  <a href="#a03af0dad89c8b47e8b363b1e3232d86b">More...</a><br /></td></tr>
+<tr class="separator:a03af0dad89c8b47e8b363b1e3232d86b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e6cb796d05f577689966bf240fba34a"><td class="memItemLeft" align="right" valign="top">__host__ const T *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#a1e6cb796d05f577689966bf240fba34a">host_data</a> () noexcept</td></tr>
+<tr class="memdesc:a1e6cb796d05f577689966bf240fba34a"><td class="mdescLeft">&#160;</td><td class="mdescRight">host pointer of the data stored in the output device queue  <a href="#a1e6cb796d05f577689966bf240fba34a">More...</a><br /></td></tr>
+<tr class="separator:a1e6cb796d05f577689966bf240fba34a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa65845571520e1bab47eed8fcf72976e"><td class="memItemLeft" align="right" valign="top">__host__ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#aa65845571520e1bab47eed8fcf72976e">print_input</a> () noexcept</td></tr>
+<tr class="memdesc:aa65845571520e1bab47eed8fcf72976e"><td class="mdescLeft">&#160;</td><td class="mdescRight">print the items stored at the output queue  <a href="#aa65845571520e1bab47eed8fcf72976e">More...</a><br /></td></tr>
+<tr class="separator:aa65845571520e1bab47eed8fcf72976e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae50dcd2667af71fbcd54adc2d45b9fa7"><td class="memItemLeft" align="right" valign="top">__host__ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html#ae50dcd2667af71fbcd54adc2d45b9fa7">print_output</a> () noexcept</td></tr>
+<tr class="memdesc:ae50dcd2667af71fbcd54adc2d45b9fa7"><td class="mdescLeft">&#160;</td><td class="mdescRight">print the items stored at the output queue  <a href="#ae50dcd2667af71fbcd54adc2d45b9fa7">More...</a><br /></td></tr>
+<tr class="separator:ae50dcd2667af71fbcd54adc2d45b9fa7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
+Data Fields</h2></td></tr>
+<tr class="memitem:ae889a40f6cd1d8793537adb97a40b575"><td class="memItemLeft" align="right" valign="top"><a id="ae889a40f6cd1d8793537adb97a40b575"></a>
+const custinger::cuStinger &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>custinger</b></td></tr>
+<tr class="separator:ae889a40f6cd1d8793537adb97a40b575"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><h3>template&lt;typename T&gt;<br />
@@ -140,39 +149,21 @@ class custinger_alg::TwoLevelQueue&lt; T &gt;</h3>
   </dd>
 </dl>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a80906b5d3826b8a7c1eee93747ed3b9c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a80906b5d3826b8a7c1eee93747ed3b9c">&#9670;&nbsp;</a></span>TwoLevelQueue()</h2>
+<a id="acf924cc26d73e45cc5283c2146e29afb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acf924cc26d73e45cc5283c2146e29afb">&#9670;&nbsp;</a></span>TwoLevelQueue()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;typename T&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html">custinger_alg::TwoLevelQueue</a>&lt; T &gt;::<a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html">TwoLevelQueue</a> </td>
+          <td class="memname"><a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html">TwoLevelQueue</a> </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classcustinger_1_1cuStinger.html">custinger::cuStinger</a> &amp;&#160;</td>
-          <td class="paramname"><em>custinger</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype">const custinger::cuStinger &amp;&#160;</td>
+          <td class="paramname"><em>custinger</em></td><td>)</td>
           <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>enable_traverse</em> = <code>false</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>max_allocated_items</em> = <code>0</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -195,19 +186,17 @@ template&lt;typename T&gt; </div>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a835b9f834474dec7dee122ed92aa94ad"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a835b9f834474dec7dee122ed92aa94ad">&#9670;&nbsp;</a></span>insert() <span class="overload">[1/2]</span></h2>
+<a id="a16adcb5d6d4ca98eada7209ac58a5461"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a16adcb5d6d4ca98eada7209ac58a5461">&#9670;&nbsp;</a></span>insert() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;typename T&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">__host__ __device__ void <a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html">custinger_alg::TwoLevelQueue</a>&lt; T &gt;::insert </td>
+          <td class="memname">__host__ __device__ void insert </td>
           <td>(</td>
           <td class="paramtype">const T &amp;&#160;</td>
           <td class="paramname"><em>item</em></td><td>)</td>
@@ -234,19 +223,17 @@ the method may expensive on host, cheap on device </dd></dl>
 
 </div>
 </div>
-<a id="ae7addb2cefeb91259047304c9493706b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae7addb2cefeb91259047304c9493706b">&#9670;&nbsp;</a></span>insert() <span class="overload">[2/2]</span></h2>
+<a id="a653321127e00c621f3f95d450157a55c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a653321127e00c621f3f95d450157a55c">&#9670;&nbsp;</a></span>insert() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;typename T&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">__host__ void <a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html">custinger_alg::TwoLevelQueue</a>&lt; T &gt;::insert </td>
+          <td class="memname">__host__ void insert </td>
           <td>(</td>
           <td class="paramtype">const T *&#160;</td>
           <td class="paramname"><em>items_array</em>, </td>
@@ -284,19 +271,17 @@ the method may be expensive </dd></dl>
 
 </div>
 </div>
-<a id="a4e7fc7c2ef68eb11839d082411bcb589"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4e7fc7c2ef68eb11839d082411bcb589">&#9670;&nbsp;</a></span>swap()</h2>
+<a id="abe41c2f02db237f7cb61a7afc2f85bf3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abe41c2f02db237f7cb61a7afc2f85bf3">&#9670;&nbsp;</a></span>swap()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;typename T&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">__host__ void <a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html">custinger_alg::TwoLevelQueue</a>&lt; T &gt;::swap </td>
+          <td class="memname">__host__ void swap </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -314,19 +299,17 @@ template&lt;typename T&gt; </div>
 
 </div>
 </div>
-<a id="a3c9c358f864255c2843c6b4602ac5fb1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3c9c358f864255c2843c6b4602ac5fb1">&#9670;&nbsp;</a></span>clear()</h2>
+<a id="aa008e92db2816cceec7482cdf13636f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa008e92db2816cceec7482cdf13636f5">&#9670;&nbsp;</a></span>clear()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;typename T&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">__host__ void <a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html">custinger_alg::TwoLevelQueue</a>&lt; T &gt;::clear </td>
+          <td class="memname">__host__ void clear </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -344,22 +327,20 @@ template&lt;typename T&gt; </div>
 
 </div>
 </div>
-<a id="aeb6219e6d89826b8d7a3389fa12003ab"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aeb6219e6d89826b8d7a3389fa12003ab">&#9670;&nbsp;</a></span>size()</h2>
+<a id="a6c7e6d1f8eca6b2fdb1839ac7ed38e94"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6c7e6d1f8eca6b2fdb1839ac7ed38e94">&#9670;&nbsp;</a></span>size()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;typename T&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">__host__ int <a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html">custinger_alg::TwoLevelQueue</a>&lt; T &gt;::size </td>
+          <td class="memname">__host__ int size </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> const</td>
+          <td></td>
         </tr>
       </table>
   </td>
@@ -375,19 +356,17 @@ template&lt;typename T&gt; </div>
 
 </div>
 </div>
-<a id="adb130b0d3e341c31c03aa370469b36d0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adb130b0d3e341c31c03aa370469b36d0">&#9670;&nbsp;</a></span>device_ptr_q1()</h2>
+<a id="a6ab21b2fb2cb777a008b68ea374b806b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6ab21b2fb2cb777a008b68ea374b806b">&#9670;&nbsp;</a></span>device_input_ptr()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;typename T&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">__host__ const T* <a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html">custinger_alg::TwoLevelQueue</a>&lt; T &gt;::device_ptr_q1 </td>
+          <td class="memname">__host__ const T* device_input_ptr </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -406,19 +385,17 @@ template&lt;typename T&gt; </div>
 
 </div>
 </div>
-<a id="a52dbe36624dfa79997ad1a2d97bf472f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a52dbe36624dfa79997ad1a2d97bf472f">&#9670;&nbsp;</a></span>device_ptr_q2()</h2>
+<a id="a03af0dad89c8b47e8b363b1e3232d86b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a03af0dad89c8b47e8b363b1e3232d86b">&#9670;&nbsp;</a></span>device_output_ptr()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;typename T&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">__host__ const T* <a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html">custinger_alg::TwoLevelQueue</a>&lt; T &gt;::device_ptr_q2 </td>
+          <td class="memname">__host__ const T* device_output_ptr </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -437,19 +414,17 @@ template&lt;typename T&gt; </div>
 
 </div>
 </div>
-<a id="a0ba24ff0a9078844f99d24933c363e47"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0ba24ff0a9078844f99d24933c363e47">&#9670;&nbsp;</a></span>host_data()</h2>
+<a id="a1e6cb796d05f577689966bf240fba34a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1e6cb796d05f577689966bf240fba34a">&#9670;&nbsp;</a></span>host_data()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;typename T&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">__host__ const T* <a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html">custinger_alg::TwoLevelQueue</a>&lt; T &gt;::host_data </td>
+          <td class="memname">__host__ const T* host_data </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -468,19 +443,17 @@ template&lt;typename T&gt; </div>
 
 </div>
 </div>
-<a id="ac05097106363e6087d61e7220077cb4c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac05097106363e6087d61e7220077cb4c">&#9670;&nbsp;</a></span>print1()</h2>
+<a id="aa65845571520e1bab47eed8fcf72976e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa65845571520e1bab47eed8fcf72976e">&#9670;&nbsp;</a></span>print_input()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;typename T&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">__host__ void <a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html">custinger_alg::TwoLevelQueue</a>&lt; T &gt;::print1 </td>
+          <td class="memname">__host__ void print_input </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -498,19 +471,17 @@ template&lt;typename T&gt; </div>
 
 </div>
 </div>
-<a id="a41114a18682ee439db619453770b901c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a41114a18682ee439db619453770b901c">&#9670;&nbsp;</a></span>print2()</h2>
+<a id="ae50dcd2667af71fbcd54adc2d45b9fa7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae50dcd2667af71fbcd54adc2d45b9fa7">&#9670;&nbsp;</a></span>print_output()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;typename T&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">__host__ void <a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html">custinger_alg::TwoLevelQueue</a>&lt; T &gt;::print2 </td>
+          <td class="memname">__host__ void print_output </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -525,63 +496,16 @@ template&lt;typename T&gt; </div>
 
 <p>print the items stored at the output queue </p>
 <dl class="section remark"><dt>Remarks</dt><dd>the method may be expensive </dd></dl>
-
-</div>
-</div>
-<a id="a0293bbe049ce36c9fee67e69c503d583"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0293bbe049ce36c9fee67e69c503d583">&#9670;&nbsp;</a></span>traverse_edges()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T&gt; </div>
-<div class="memtemplate">
-template&lt;typename Operator &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">__host__ void <a class="el" href="classcustinger__alg_1_1TwoLevelQueue.html">custinger_alg::TwoLevelQueue</a>&lt; T &gt;::traverse_edges </td>
-          <td>(</td>
-          <td class="paramtype">Operator&#160;</td>
-          <td class="paramname"><em>op</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>traverse the edges of queue vertices </p>
-<dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname">Operator</td><td>typename of the operator (deduced) </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">op</td><td>struct/lambda expression that implements the operator </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section remark"><dt>Remarks</dt><dd>the Operator typename must implement the method <code>bool operator()(Vertex, Edge)</code> or the lambda expression <code>[=](Vertex, Edge){ return bool }</code>. The method must return <code>true</code> if the actual vertex is active in the next iteration, <code>false</code> otherwise </dd>
-<dd>
-the method is enabled only if the queue type is <code>vid_t</code> </dd></dl>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>/home/fbusata3/cuStingerAlg/include/Core/Queue/<a class="el" href="TwoLevelQueue_8cuh.html">TwoLevelQueue.cuh</a></li>
+<li>/home/fbusato/cuStingerAlg/include/Core/Queue/<a class="el" href="TwoLevelQueue_8cuh.html">TwoLevelQueue.cuh</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon May 15 2017 12:34:49 for cuStinger by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Aug 31 2017 11:45:45 for Hornet by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

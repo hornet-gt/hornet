@@ -6,7 +6,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -59,16 +59,7 @@ template<uint64_t N, uint64_t DIV>      struct CeilDivUll;
  */
 template<unsigned N, unsigned DIV>      struct RoundDiv;
 
-template<unsigned N, unsigned MUL>      struct UpperApprox;
-template<uint64_t N, uint64_t MUL>      struct UpperApproxUll;
-template<unsigned N, unsigned MUL>      struct LowerApprox;
-template<uint64_t N, uint64_t MUL>      struct LowerApproxUll;
-
 template<unsigned N, unsigned EXP>      struct Pow;
-template<unsigned N>                    struct RoundUpPow2;
-template<uint64_t N>                    struct RoundUpPow2Ull;
-template<unsigned N>                    struct RoundDownPow2;
-template<uint64_t N>                    struct RoundDownPow2Ull;
 
 template<unsigned N>                    struct Log2;
 template<uint64_t N>                    struct Log2Ull;
@@ -81,20 +72,33 @@ template<unsigned LOW, unsigned HIGH>   struct ProductSequence;
 template<unsigned N, unsigned HIGH>     struct GeometricSerie;
 //------------------------------------------------------------------------------
 
-template<unsigned... Is>
-struct Seq {
-    static constexpr unsigned value[] = { Is... };
+template<typename... TArgs>
+struct SameSize;
 
-    static constexpr unsigned size() {
-        return sizeof...(Is);
-    }
+template<typename... TArgs>
+struct SizeSum;
 
-    constexpr unsigned operator[](int index) const {
-        return value[index];
-    }
+template<typename... TArgs>
+struct MaxSize;
+
+template<int N, typename... TArgs>
+struct SelectType {
+    using type = int;
 };
+//------------------------------------------------------------------------------
+
 template<unsigned... Is>
-constexpr unsigned Seq<Is...>::value[];                                //NOTLINT
+class Seq {
+public:
+    static constexpr unsigned size();
+
+    constexpr unsigned operator[](int index) const;
+private:
+    static constexpr unsigned value[] = { Is... };
+};
+
+//------------------------------------------------------------------------------
+
 ///@cond
 
 /*
@@ -112,99 +116,69 @@ struct GenerateSeq<fun, MAX, MAX, Is...>  {
     using type = Seq<Is...>;
 };
 
-template<unsigned, typename, typename>
-struct PrefixSumAux;
-
-template<typename>
+template<typename Seq>
 struct IncPrefixSum;
 
-template<unsigned... Is>
-struct IncPrefixSum<Seq<Is...>> :
-    PrefixSumAux<sizeof...(Is), Seq<>, Seq<Is...>> {};
-
-template<typename>
+template<typename Seq>
 struct ExcPrefixSum;
 
-template<unsigned... Is>
-struct ExcPrefixSum<Seq<Is...>> :
-    PrefixSumAux<sizeof...(Is) + 1, Seq<>, Seq<0, Is...>> {};
-
-template<unsigned INDEX, unsigned I1, unsigned I2, unsigned... Is2>
-struct PrefixSumAux<INDEX, Seq<>, Seq<I1, I2, Is2...>> :
-       PrefixSumAux<INDEX - 1, Seq<I1, I1 + I2>,  Seq<I1 + I2, Is2...>> {};
-
-template<unsigned INDEX, unsigned... Is1,
-         unsigned I1, unsigned I2, unsigned... Is2>
-struct PrefixSumAux<INDEX, Seq<Is1...>, Seq<I1, I2, Is2...>> :
-   PrefixSumAux<INDEX - 1, Seq<Is1..., I1 + I2>,  Seq<I1 + I2, Is2...>> {};
-
-template<unsigned... Is1, unsigned... Is2>
-struct PrefixSumAux<1, Seq<Is1...>, Seq<Is2...>> {
-    using type = Seq<Is1...>;
-};
 //@endcond
 
 //==============================================================================
 
-template<int N, typename... TArgs>
-using NthTypeOf = typename std::tuple_element<N, std::tuple<TArgs...>>::type;
+//template<int N, typename... TArgs>
+//using NthTypeOf = typename std::tuple_element<N, std::tuple<TArgs...>>::type;
 
-template<typename, typename>
+template<typename Tuple1, typename Tuple2>
 struct TupleConcat;
 
-template<typename... TArgs1, typename... TArgs2>
-struct TupleConcat<std::tuple<TArgs1...>, std::tuple<TArgs2...>> {
-    using type = std::tuple<TArgs1..., TArgs2...>;
-};
-
-template<typename, typename>
+template<typename Tuple1, typename Tuple2>
 struct tuple_compare;
 
-template<typename T1, typename... TArgs1, typename T2, typename... TArgs2>
-struct tuple_compare<std::tuple<T1, TArgs1...>, std::tuple<T2, TArgs2...>> {
-    static const bool value =
-            std::is_same<typename std::remove_cv<T1>::type,
-                         typename std::remove_cv<T2>::type>::value &&
-            tuple_compare<std::tuple<TArgs1...>, std::tuple<TArgs2...>>::value;
-};
-
-template<>
-struct tuple_compare<std::tuple<>, std::tuple<>> : std::true_type {};
-
-//==============================================================================
-
-template<typename>
+template<typename Tuple>
 struct tuple_rm_pointers;
 
-template<typename, typename>
-struct tuple_rm_pointers_aux;
+template<typename Tuple>
+struct TupleToTypeSizeSeq;
 
-template<typename... TArgs>
-struct tuple_rm_pointers<std::tuple<TArgs...>> {
-    using type = typename tuple_rm_pointers_aux<std::tuple<>,
-                                                std::tuple<TArgs...>>::type;
+//==============================================================================
+//https://stackoverflow.com/a/27867127/6585879
+
+template <typename T>
+struct get_arity : get_arity<decltype(&T::operator())> {};
+
+template<typename R, typename... Args>
+struct get_arity<R(Args...)> {
+    static const unsigned value = sizeof...(Args);
 };
 
-template<typename... TArgs1, typename T2, typename... TArgs2>
-struct tuple_rm_pointers_aux<std::tuple<TArgs1...>, std::tuple<T2, TArgs2...>> :
-    tuple_rm_pointers_aux<std::tuple<TArgs1...,
-                                     typename std::remove_pointer<T2>::type>,
-                          std::tuple<TArgs2...>> {};
-
-template<typename... TArgs>
-struct tuple_rm_pointers_aux<std::tuple<TArgs...>, std::tuple<>> {
-    using type = std::tuple<TArgs...>;
+template<typename R, typename... Args>
+struct get_arity<R(*)(Args...)> {
+    static const unsigned value = sizeof...(Args);
 };
 
-//------------------------------------------------------------------------------
-
-template<typename>
-struct TupleToTypeSize;
-
-template<typename... TArgs>
-struct TupleToTypeSize<std::tuple<TArgs...>> {
-   using type = Seq<sizeof(TArgs)...>;
+template<typename R, typename C, typename... Args>
+struct get_arity<R(C::*)(Args...)> {
+    static const unsigned value = sizeof...(Args);
 };
+
+template<typename R, typename C, typename... Args>
+struct get_arity<R(C::*)(Args...) const> {
+    static const unsigned value = sizeof...(Args);
+};
+
+//==============================================================================
+//https://stackoverflow.com/a/12982320/6585879
+
+template<typename T>
+using Enable = decltype(
+                     std::declval<std::ostream&>() << std::declval<const T&>());
+
+template<typename T, typename = std::ostream&>
+struct is_stream_insertable : std:: false_type {};
+
+template<typename T>
+struct is_stream_insertable<T, Enable<T>> : std:: true_type {};
 
 } // namespace xlib
 

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['basic',['basic',['../namespacebasic.html',1,'']]]
+  ['custinger_5falg',['custinger_alg',['../namespacecustinger__alg.html',1,'']]]
 ];

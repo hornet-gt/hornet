@@ -5,7 +5,7 @@
  * @date April, 2017
  * @version v2
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -91,7 +91,7 @@ template<typename T, int SIZE>
 __device__ __forceinline__
 void DeviceQueue<T, SIZE>::store_localqueue_aux() {
     int thread_offset = _size;
-    int   warp_offset = xlib::WarpExclusiveScan<>::AtomicAdd(thread_offset,
+    int   warp_offset = xlib::WarpExclusiveScan<>::atomicAdd(thread_offset,
                                                              _size_ptr);
     T* ptr = _queue_ptr + warp_offset + thread_offset;
     for (int i = 0; i < _size; i++)
@@ -107,12 +107,29 @@ void DeviceQueue<T, SIZE>::store_ballot() {
     int warp_offset;
     if (xlib::lane_id() == elected_lane)
         warp_offset = atomicAdd(_size_ptr, __popc(ballot));
-    int offset = __popc(ballot & xlib::LaneMaskLT()) +
+    int offset = __popc(ballot & xlib::lanemask_lt()) +
                  __shfl_sync(0xFFFFFFFF, warp_offset, elected_lane);
     if (_size) {
         _queue_ptr[offset] = _queue[0];
         _size = 0;
     }
+}
+
+//------------------------------------------------------------------------------
+
+__device__ __forceinline__
+DeviceQueueOffset::DeviceQueueOffset(int* __restrict__ size_ptr) :
+                                        _size_ptr(size_ptr) {}
+
+__device__ __forceinline__
+int DeviceQueueOffset::offset() {
+    unsigned       ballot = __activemask();
+    unsigned elected_lane = xlib::__msb(ballot);
+    int warp_offset;
+    if (xlib::lane_id() == elected_lane)
+        warp_offset = atomicAdd(_size_ptr, __popc(ballot));
+    return  __popc(ballot & xlib::lanemask_lt()) +
+            __shfl_sync(0xFFFFFFFF, warp_offset, elected_lane);
 }
 
 } // namespace xlib

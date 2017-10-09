@@ -6,7 +6,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,12 @@ namespace xlib {
 // nearest multiple of 4 : ((n-1)|3) + 1
 
 // ==================== CONST EXPR TIME numeric methods ========================
+
+template<typename T>
+constexpr T max(const T& a, const T& b) noexcept;
+
+template<typename T>
+constexpr T min(const T& a, const T& b) noexcept;
 
 template<typename T, typename... TArgs>
 constexpr T min(const T& a, const T& b, const TArgs&... args) noexcept;
@@ -147,6 +153,10 @@ template<typename T>
 HOST_DEVICE
 constexpr T roundup_pow2(T value) noexcept;
 
+template<typename T>
+HOST_DEVICE
+constexpr T rounddown_pow2(T value) noexcept;
+
 /** @fn T log2(const T value)
  *  @brief calculate the integer logarithm of 'value'
  *  @return &lfloor; log2 ( value ) &rfloor;
@@ -185,8 +195,8 @@ constexpr T pow(unsigned exp, T value) noexcept;
 template<unsigned N>
 constexpr unsigned geometric_serie(unsigned repetition) noexcept;
 
-template<typename T>
-float per_cent(T part, T max) noexcept;
+template<typename T, typename R>
+float per_cent(T part, R max) noexcept;
 
 template<typename R>
 struct CompareFloatABS;

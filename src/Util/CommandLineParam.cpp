@@ -40,15 +40,15 @@
 #include <cuda_runtime.h>                   //cudaSetDevice
 #include <fstream>                          //std::ifstream
 
-namespace custinger {
+namespace hornet {
 
 template<typename T, typename R>
 CommandLineParam::CommandLineParam(graph::GraphStd<T, R>& graph,
-                                   int argc, char* argv[], bool check_unknown)
+                                   int argc, char* argv[], bool exit_if_unknown)
                                    noexcept {
     using namespace graph::parsing_prop;
     using namespace graph::structure_prop;
-    graph::ParsingProp prop(PRINT);
+    graph::ParsingProp prop(PRINT_INFO);
     bool write_binary = false;
     if (argc == 1) {
 L1:     std::ifstream syntax_file("../docs/Syntax.txt");
@@ -67,7 +67,7 @@ L1:     std::ifstream syntax_file("../docs/Syntax.txt");
         else if (str == "--randomize-id")
             prop += RANDOMIZE;
         else if (str == "--no-info")
-            prop -= PRINT;
+            prop -= PRINT_INFO;
         else if (str == "--write-binary")
             write_binary = true;
         else if (str == "--device-info")
@@ -158,12 +158,14 @@ L1:     std::ifstream syntax_file("../docs/Syntax.txt");
         }*/
         else if (str == "--help")
             goto L1;
-        else if (check_unknown)
-            ERROR("Invalid parameter: ", str, "\n")
+        else if (exit_if_unknown)
+            ERROR("Invalid parameter: ", str, "      see ", argv[0], " --help")
     }
     graph.read(argv[1], prop);
-    if (write_binary)
+    if (write_binary) {
         graph.writeBinary(xlib::extract_filepath_noextension(argv[1]) + ".bin");
+        std::exit(EXIT_SUCCESS);
+    }
 }
 
 template CommandLineParam::CommandLineParam(graph::GraphStd<int, int>&,
@@ -171,4 +173,4 @@ template CommandLineParam::CommandLineParam(graph::GraphStd<int, int>&,
 template CommandLineParam::CommandLineParam(graph::GraphStd<int64_t, int64_t>&,
                                             int, char* argv[], bool);
 
-} // namespace custinger
+} // namespace hornet

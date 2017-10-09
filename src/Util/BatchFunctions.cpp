@@ -2,7 +2,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date July, 2017
+ * @date August, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 cuStinger. All rights reserved.
@@ -39,16 +39,17 @@
 #include <random>
 #include <utility>
 
+namespace hornet {
+
 BatchGenProperty::BatchGenProperty(const detail::BatchGenEnum& obj) noexcept :
              xlib::PropertyClass<detail::BatchGenEnum, BatchGenProperty>(obj) {}
 
 //------------------------------------------------------------------------------
 
 void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
-                   custinger::vid_t* batch_src, custinger::vid_t* batch_dst,
+                   vid_t* batch_src, vid_t* batch_dst,
                    const BatchGenType& batch_type,
                    const BatchGenProperty& prop) {
-    using custinger::vid_t;
     using vid_distribution = std::uniform_int_distribution<vid_t>;
 
     if (batch_type == BatchGenType::REMOVE) {
@@ -97,7 +98,7 @@ void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
             auto    it = std::unique(tmp_batch, tmp_batch + batch_size);
             batch_size = std::distance(tmp_batch, it);
             for (int i = 0; i < batch_size; i++) {
-                batch_src[i]  = tmp_batch[i].first;
+                batch_src[i] = tmp_batch[i].first;
                 batch_dst[i] = tmp_batch[i].second;
             }
         }
@@ -112,3 +113,5 @@ void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
         delete[] tmp_batch;
     }
 }
+
+} // namespace hornet

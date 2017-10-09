@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['min_5fedges_5fper_5fblock',['MIN_EDGES_PER_BLOCK',['../namespacecustinger.html#ae077624bf0727b0384cb5cc8967a742e',1,'custinger']]]
+  ['gen_5finverse',['GEN_INVERSE',['../BatchUpdate_8cuh.html#a2bb9c298ad262a2483a77006421cfc9d',1,'hornet::gpu::batch_property']]]
 ];

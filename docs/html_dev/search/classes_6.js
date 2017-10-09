@@ -1,11 +1,8 @@
 var searchData=
 [
-  ['geometricserie',['GeometricSerie',['../structxlib_1_1GeometricSerie.html',1,'xlib']]],
-  ['get_5farity',['get_arity',['../structxlib_1_1get__arity.html',1,'xlib']]],
-  ['get_5farity_3c_20r_28_2a_29_28args_2e_2e_2e_29_3e',['get_arity&lt; R(*)(Args...)&gt;',['../structxlib_1_1get__arity_3_01R_07_5_08_07Args_8_8_8_08_4.html',1,'xlib']]],
-  ['get_5farity_3c_20r_28c_3a_3a_2a_29_28args_2e_2e_2e_29_3e',['get_arity&lt; R(C::*)(Args...)&gt;',['../structxlib_1_1get__arity_3_01R_07C_1_1_5_08_07Args_8_8_8_08_4.html',1,'xlib']]],
-  ['ginfo',['GInfo',['../structgraph_1_1GInfo.html',1,'graph']]],
-  ['graphbase',['GraphBase',['../classgraph_1_1GraphBase.html',1,'graph']]],
-  ['graphstd',['GraphStd',['../classgraph_1_1GraphStd.html',1,'graph']]],
-  ['graphweight',['GraphWeight',['../classgraph_1_1GraphWeight.html',1,'graph']]]
+  ['hornet',['Hornet',['../classhornet_1_1gpu_1_1Hornet.html',1,'Hornet&lt; typename, typename &gt;'],['../classhornet_1_1csr_1_1Hornet.html',1,'Hornet&lt; typename, typename &gt;'],['../classhornet_1_1mc_1_1Hornet.html',1,'Hornet&lt; typename, typename &gt;']]],
+  ['hornet_3c_20typelist_3c_20vertextypes_2e_2e_2e_20_3e_2c_20typelist_3c_20edgetypes_2e_2e_2e_20_3e_20_3e',['Hornet&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;',['../classhornet_1_1gpu_1_1Hornet_3_01TypeList_3_01VertexTypes_8_8_8_01_4_00_01TypeList_3_01EdgeTypes_8_8_8_01_4_01_4.html',1,'Hornet&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;'],['../classhornet_1_1csr_1_1Hornet_3_01TypeList_3_01VertexTypes_8_8_8_01_4_00_01TypeList_3_01EdgeTypes_8_8_8_01_4_01_4.html',1,'Hornet&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;'],['../classhornet_1_1mc_1_1Hornet_3_01TypeList_3_01VertexTypes_8_8_8_01_4_00_01TypeList_3_01EdgeTypes_8_8_8_01_4_01_4.html',1,'Hornet&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;']]],
+  ['hornetdevice',['HornetDevice',['../classhornet_1_1gpu_1_1HornetDevice.html',1,'HornetDevice&lt; typename, typename &gt;'],['../classhornet_1_1csr_1_1HornetDevice.html',1,'HornetDevice&lt; typename, typename &gt;']]],
+  ['hornetdevice_3c_20typelist_3c_20vertextypes_2e_2e_2e_20_3e_2c_20typelist_3c_20edgetypes_2e_2e_2e_20_3e_20_3e',['HornetDevice&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;',['../classhornet_1_1gpu_1_1HornetDevice_3_01TypeList_3_01VertexTypes_8_8_8_01_4_00_01TypeList_3_01EdgeTypes_8_8_8_01_4_01_4.html',1,'hornet::gpu']]],
+  ['hornetinit',['HornetInit',['../classhornet_1_1HornetInit.html',1,'hornet']]]
 ];

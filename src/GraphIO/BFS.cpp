@@ -43,7 +43,7 @@ BFS<vid_t, eoff_t>::BFS(const GraphStd<vid_t, eoff_t>& graph) noexcept :
                                             _bitmask(graph.nV()),
                                             _queue(graph.nV()) {
     _distances = new int[graph.nV()];
-    std::fill(_distances, _distances + graph.nV(), INF);
+    reset();
 }
 
 template<typename vid_t, typename eoff_t>
@@ -103,7 +103,7 @@ eoff_t BFS<vid_t, eoff_t>::visited_edges() const noexcept {
 
 template<typename vid_t, typename eoff_t>
 const typename BFS<vid_t, eoff_t>::dist_t*
-BFS<vid_t, eoff_t>::distances() const noexcept {
+BFS<vid_t, eoff_t>::result() const noexcept {
     if (_reset)
         ERROR("BFS not ready")
     return _distances;
@@ -157,48 +157,6 @@ BFS<vid_t, eoff_t>::statistics(vid_t source) noexcept {
     _reset = false;
     return statistics;
 }
-/*
-template<typename vid_t, typename eoff_t>
-std::vector<vid_t> BFS<vid_t, eoff_t>::weaklyConnectedComponents() noexcept {
-    if (!_reset)
-        ERROR("BFS must be reset before the next run")
-    std::vector<vid_t> wcc_distr;
-
-    for (vid_t source = 0; source < _graph.nV(); source++) {
-        if (_bitmask[source]) continue;
-
-        vid_t       count = 0;
-        _bitmask[source] = true;
-        _queue.insert(source);
-
-        while (!_queue.empty()) {
-            vid_t current = _queue.extract();
-            count++;
-
-            for (eoff_t i = _graph._out_offsets[current];
-                 i < _graph._out_offsets[current + 1]; i++) {
-
-                vid_t dest = _graph._out_edges[i];
-                if (!_bitmask[dest]) {
-                    _bitmask[dest] = true;
-                    _queue.insert(dest);
-                }
-            }
-            for (eoff_t i = _graph._in_offsets[current];
-                i < _graph._in_offsets[current + 1]; i++) {
-
-                vid_t incoming = _graph._in_edges[i];
-                if (!_bitmask[incoming]) {
-                    _bitmask[incoming] = true;
-                    _queue.insert(incoming);
-                }
-            }
-        }
-        wcc_distr.push_back(count);
-    }
-    _reset = false;
-    return wcc_distr;
-}*/
 
 template class BFS<int, int>;
 template class BFS<int64_t, int64_t>;

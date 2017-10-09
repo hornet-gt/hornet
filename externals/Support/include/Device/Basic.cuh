@@ -6,7 +6,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@
  */
 #pragma once
 
-#include "Device/CudaUtil.cuh"
+#include "Device/PTX.cuh"   //xlib::__msb, Definition.cuh: xlib::WARP_SIZE
 
 /** @namespace basic
  *  provide basic cuda functions
@@ -55,7 +55,8 @@ using Pad = typename std::conditional<SIZE == 16, int4,
             char>::type>::type>::type>::type;
 
 template<int SIZE, typename T>
- __device__ __forceinline__ void reg_fill(T (&reg)[SIZE], T value);
+ __device__ __forceinline__
+ void reg_fill(T (&reg)[SIZE], T value);
 
 template<int SIZE, typename T>
  __device__ __forceinline__
@@ -67,13 +68,16 @@ template<int SIZE, typename T>
  *  Provide the warp ID within the current block.
  *  @return warp ID in the range 0 &le; ID &le; 32
  */
-__device__ __forceinline__ unsigned warp_id();
+__device__ __forceinline__
+unsigned warp_id();
 
 template<unsigned BLOCK_SIZE, unsigned VIRTUAL_WARP = 1>
-__device__ __forceinline__ unsigned global_id();
+__device__ __forceinline__
+unsigned global_id();
 
 template<unsigned BLOCK_SIZE, unsigned VIRTUAL_WARP = 1>
-__device__ __forceinline__ unsigned global_stride();
+__device__ __forceinline__
+unsigned global_stride();
 
 /**
  *  @brief return the warp ID within the block
@@ -81,8 +85,9 @@ __device__ __forceinline__ unsigned global_stride();
  *  Provide the warp ID within the current block.
  *  @return warp ID in the range 0 &le; ID &le; (blockDim.x / WARP_SIZE)
  */
-template<unsigned WARP_SZ = WARP_SIZE>
-__device__ __forceinline__ unsigned warp_base();
+template<unsigned WARP_SZ = xlib::WARP_SIZE>
+__device__ __forceinline__
+unsigned warp_base();
 
 /** @fn T WarpBroadcast(T value, int predicate)
  *  @brief broadcast 'value' of the last lane that evaluates 'predicate' to true
@@ -90,7 +95,8 @@ __device__ __forceinline__ unsigned warp_base();
  *  @return 'value' of the last lane that evaluates 'predicate' to true
  */
 template<typename T>
-__device__ __forceinline__ T warp_broadcast(T value, int predicate);
+__device__ __forceinline__ T
+warp_broadcast(T value, int predicate);
 
 template<unsigned VW_SIZE>
 struct VWarp {
@@ -116,14 +122,14 @@ namespace detail {
 
 template<typename T, typename Lambda>
 __device__ __forceinline__
-T generic_shfl(const T& var, int src_lane, int width, const Lambda& lambda) {
+T generic_shfl(const T& var, const Lambda& lambda) {
     const int NUM = (sizeof(T) + sizeof(int) - 1) / sizeof(int);
 
     int tmp[NUM];
     reinterpret_cast<T&>(tmp) = var;
     #pragma unroll
     for (int i = 0; i < NUM; i++)
-        tmp[i] = lambda(tmp[i], src_lane, width);
+        tmp[i] = lambda(tmp[i]);
     return reinterpret_cast<T&>(tmp);
 }
 
@@ -131,38 +137,38 @@ T generic_shfl(const T& var, int src_lane, int width, const Lambda& lambda) {
 
 template<typename T>
 __device__ __forceinline__
-T shfl(const T& var, int src_lane, int width = 32) {
-    const auto& lambda = [](const int& value, int src_lane, int width) {
-                            return __shfl(value, src_lane, width);
-                        };
-    return detail::generic_shfl(var, src_lane, width, lambda);
+T shfl(unsigned member_mask, const T& var, int src_lane, int width = 32) {
+    const auto& lambda = [&](int value) {
+                       return __shfl_sync(member_mask, value, src_lane, width);
+                    };
+    return detail::generic_shfl(var, lambda);
 }
 
 template<typename T>
 __device__ __forceinline__
-T shfl_xor(const T& var, int src_lane, int width = 32) {
-    const auto& lambda = [](const int& value, int src_lane, int width) {
-                            return __shfl_xor(value, src_lane, width);
-                        };
-    return detail::generic_shfl(var, src_lane, width, lambda);
+T shfl_xor(unsigned member_mask, const T& var, int src_lane, int width = 32) {
+    const auto& lambda = [&](int value) {
+                    return __shfl_xor_sync(member_mask, value, src_lane, width);
+                };
+    return detail::generic_shfl(var, lambda);
 }
 
 template<typename T>
 __device__ __forceinline__
-T shfl_up(const T& var, int src_lane, int width = 32) {
-    const auto& lambda = [](const int& value, int src_lane, int width) {
-                            return __shfl_up(value, src_lane, width);
-                        };
-    return detail::generic_shfl(var, src_lane, width, lambda);
+T shfl_up(unsigned member_mask, const T& var, int src_lane, int width = 32) {
+    const auto& lambda = [&](int value) {
+                     return __shfl_up_sync(member_mask, value, src_lane, width);
+                };
+    return detail::generic_shfl(var, lambda);
 }
 
 template<typename T>
 __device__ __forceinline__
-T shfl_down(const T& var, int src_lane, int width = 32) {
-    const auto& lambda = [](const int& value, int src_lane, int width) {
-                            return __shfl_down(value, src_lane, width);
-                        };
-    return detail::generic_shfl(var, src_lane, width, lambda);
+T shfl_down(unsigned member_mask, const T& var, int src_lane, int width = 32) {
+    const auto& lambda = [&](int value) {
+                   return __shfl_down_sync(member_mask, value, src_lane, width);
+               };
+    return detail::generic_shfl(var, lambda);
 }
 
 
@@ -170,13 +176,46 @@ T shfl_down(const T& var, int src_lane, int width = 32) {
  *  @brief swap A and B
  */
 template<typename T>
-__device__ __forceinline__ void swap(T& A, T& B);
-
+__device__ __forceinline__
+void swap(T& A, T& B);
+/*
 template<int BlockSize, THREAD_GROUP GRP>
-__device__ __forceinline__ void syncthreads();
+__device__ __forceinline__
+//[[deprecated]]
+void syncthreads();
 
 template<bool CONDITION>
-__device__ __forceinline__ void syncthreads();
+__device__ __forceinline__
+//[[deprecated]]
+void syncthreads();*/
+
+template<int NUM_THREADS>
+__device__ __forceinline__
+void sync();
+
+template<unsigned WARP_SZ = xlib::WARP_SIZE>
+__device__ __forceinline__
+constexpr unsigned member_mask() {
+    return WARP_SZ == xlib::WARP_SIZE ? 0xFFFFFFFF :
+          (0xFFFFFFFF >> (32 - WARP_SZ)) << (xlib::lane_id() / WARP_SZ);
+}
+
+template<typename T>
+unsigned discontinuity_mask(const T& value, unsigned member_mask = 0xFFFFFFFF) {
+    T tmp = xlib::shfl_up(member_mask, value, 1);
+    return __ballot_sync(member_mask, tmp != value);
+}
+
+__device__ __forceinline__
+unsigned max_lane(unsigned mask) {
+    return __clz(__brev((xlib::lanemask_gt() & mask))) - 1;
+}
+
+__device__ __forceinline__
+unsigned min_lane(unsigned mask) {
+    unsigned tmp = xlib::lanemask_le() & mask;
+    return tmp ? 31 - __clz(tmp) : 0;
+}
 
 } // namespace xlib
 

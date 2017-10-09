@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['hostdevice_2ehpp',['HostDevice.hpp',['../HostDevice_8hpp.html',1,'']]]
+  ['scc_2ehpp',['SCC.hpp',['../SCC_8hpp.html',1,'']]]
 ];

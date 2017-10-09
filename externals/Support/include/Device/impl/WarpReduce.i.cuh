@@ -1,12 +1,10 @@
 /**
- * @internal
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date August, 2017
- * @version v2
+ * @date October, 2017
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -33,317 +31,386 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
- *
- * @file
  */
-#include "Base/Device/Util/PTX.cuh"
-#include "Base/Device/Util/Atomic.cuh"
-#include "Base/Host/Basic.hpp"
+#include "Device/Atomic.cuh"        //xlib::atomicAdd
+#include "Device/Basic.cuh"         //xlib::member_mask, xlib::shfl_xor
+#include "Device/PTX.cuh"           //xlib::lane_id
+#include "Host/Metaprogramming.hpp" //xlib::Log2
 
 namespace xlib {
 namespace detail {
 
-#define warpReduceMACRO(ASM_OP, ASM_T, ASM_CL)                                 \
-_Pragma("unroll")                                                              \
-for (int STEP = 0; STEP < Log2<WARP_SZ>::value; STEP++) {                      \
-    const int MASK_WARP = (1 << (STEP + 1)) - 1;                               \
-    const int C = ((31 - MASK_WARP) << 8) | (MASK_WARP) ;                      \
-    asm(                                                                       \
-        "{"                                                                    \
-        ".reg ."#ASM_T" r1;"                                                   \
-        ".reg .pred p;"                                                        \
-        "shfl.down.b32 r1|p, %1, %2, %3;"                                      \
-        "@p "#ASM_OP"."#ASM_T" r1, r1, %1;"                                    \
-        "mov."#ASM_T" %0, r1;"                                                 \
-        "}"                                                                    \
-        : "="#ASM_CL(value) : #ASM_CL(value), "r"(1 << STEP), "r"(C));         \
-}                                                                              \
-if (BROADCAST)                                                                 \
-    value = __shfl(value, 0, WARP_SZ);
+#define WARP_REDUCE_MACRO(ASM_OP, ASM_T, ASM_CL)                               \
+    const unsigned member_mask = xlib::member_mask<VW_SIZE>();                 \
+    _Pragma("unroll")                                                          \
+    for (int STEP = 0; STEP < Log2<VW_SIZE>::value; STEP++) {                  \
+        const int    MASK_WARP = (1 << (STEP + 1)) - 1;                        \
+        const int MIN_MAX_LANE = ((31 - MASK_WARP) << 8) | MASK_WARP;          \
+        asm(                                                                   \
+            "{"                                                                \
+            ".reg ."#ASM_T" r1;"                                               \
+            ".reg .pred p;"                                                    \
+            "shfl.sync.down.b32 r1|p, %1, %2, %3, %4;"                         \
+            "@p "#ASM_OP"."#ASM_T" r1, r1, %1;"                                \
+            "mov.b32 %0, r1;"                                                  \
+            "}"                                                                \
+            : "="#ASM_CL(value) : #ASM_CL(value), "r"(1 << STEP),              \
+              "r"(MIN_MAX_LANE), "r"(member_mask));                            \
+    }
 
-#define warpReduceMACRO2(ASM_OP1, ASM_T1, ASM_CL1, ASM_OP2, ASM_T2, ASM_CL2)   \
-_Pragma("unroll")                                                              \
-for (int STEP = 0; STEP < Log2<WARP_SZ>::value; STEP++) {                      \
-    const int MASK_WARP = (1 << (STEP + 1)) - 1;                               \
-    const int C = ((31 - MASK_WARP) << 8) | (MASK_WARP) ;                      \
-    asm(                                                                       \
-        "{"                                                                    \
-        ".reg ."#ASM_T1" r1;"                                                  \
-        ".reg ."#ASM_T2" r2;"                                                  \
-        ".reg .pred p;"                                                        \
-        ".reg .pred q;"                                                        \
-        "shfl.down.b32 r1|p, %2, %4, %5;"                                      \
-        "shfl.down.b32 r2|q, %3, %4, %5;"                                      \
-        "@p "#ASM_OP1"."#ASM_T1" r1, r1, %2;"                                  \
-        "@q "#ASM_OP2"."#ASM_T2" r2, r2, %3;"                                  \
-        "mov."#ASM_T1" %0, r1;"                                                \
-        "mov."#ASM_T2" %1, r2;"                                                \
-        "}"                                                                    \
-        : "="#ASM_CL1(value1), "="#ASM_CL2(value2) :                           \
-             #ASM_CL1(value1), #ASM_CL2(value2), "r"(1 << STEP), "r"(C));      \
-}                                                                              \
-if (BROADCAST) {                                                               \
-    value1 = __shfl(value1, 0, WARP_SZ);                                       \
-    value2 = __shfl(value2, 0, WARP_SZ);                                       \
+#define WARP_REDUCE_MACRO2(ASM_OP, ASM_T, ASM_CL)                              \
+    const unsigned member_mask = xlib::member_mask<VW_SIZE>();                 \
+    _Pragma("unroll")                                                          \
+    for (int STEP = 0; STEP < Log2<VW_SIZE>::value; STEP++) {                  \
+        const int    MASK_WARP = (1 << (STEP + 1)) - 1;                        \
+        const int MIN_MAX_LANE = ((31 - MASK_WARP) << 8) | MASK_WARP;          \
+        asm(                                                                   \
+            "{"                                                                \
+            ".reg .u32 lo;"                                                    \
+            ".reg .u32 hi;"                                                    \
+            ".reg .pred p;"                                                    \
+            "mov.b64 {lo, hi}, %1;"                                            \
+            "shfl.sync.down.b32 lo|p, lo, %2, %3, %4;"                         \
+            "shfl.sync.down.b32 hi|p, hi, %2, %3, %4;"                         \
+            "mov.b64 %0, {lo, hi};"                                            \
+            "@p "#ASM_OP"."#ASM_T" %0, %0, %1;"                                \
+            "}"                                                                \
+            : "="#ASM_CL(value) : #ASM_CL(value), "r"(1 << STEP),              \
+              "r"(MIN_MAX_LANE), "r"(member_mask));                            \
 }
 
 //==============================================================================
 
-template<int WARP_SZ, bool BROADCAST, typename T>
+template<unsigned VW_SIZE, typename T>
 struct WarpReduceHelper {
-    static __device__ __forceinline__ void add(T& value) {
+
+    __device__ __forceinline__
+    static void add(T& value) {
+        const unsigned member_mask = xlib::member_mask<VW_SIZE>();
         #pragma unroll
-        for (int i = WARP_SIZE / 2; i >= 1; i /= 2)
-            value += xlib::shfl_xor(value, i);
+        for (int STEP = 1; STEP <= VW_SIZE / 2; STEP = STEP * 2)
+            value += xlib::shfl_xor(member_mask, value, STEP);
     }
 
-    static __device__ __forceinline__ void min(T& value) {
+    __device__ __forceinline__
+    static void min(T& value) {
+        const unsigned member_mask = xlib::member_mask<VW_SIZE>();
         #pragma unroll
-        for (int i = WARP_SIZE / 2; i >= 1; i /= 2) {
-            auto tmp = xlib::shfl_xor(value, i);
+        for (int STEP = 1; STEP <= VW_SIZE / 2; STEP = STEP * 2) {
+            auto tmp = xlib::shfl_xor(member_mask, value, STEP);
             value    = tmp < value ? tmp : value;
         }
     }
 
-    static __device__ __forceinline__ void max(T& value) {
+    __device__ __forceinline__
+    static void max(T& value) {
+        const unsigned member_mask = xlib::member_mask<VW_SIZE>();
         #pragma unroll
-        for (int i = WARP_SIZE / 2; i >= 1; i /= 2) {
-            auto tmp = xlib::shfl_xor(value, i);
+        for (int STEP = 1; STEP <= VW_SIZE / 2; STEP = STEP * 2) {
+            auto tmp = xlib::shfl_xor(member_mask, value, STEP);
             value    = tmp > value ? tmp : value;
         }
     }
 
-    /*template<typename Lambda>
-    static __device__ __forceinline__ void apply(T& value,
-                                                 const Lambda& lambda) {
+    template<typename Lambda>
+     __device__ __forceinline__
+    static void apply(T& value, const Lambda& lambda) {
+        const unsigned member_mask = xlib::member_mask<VW_SIZE>();
         #pragma unroll
-        for (int i = WARP_SIZE / 2; i >= 1; i /= 2) {
-            auto tmp = xlib::shfl_xor(value, i);
-            lambda(value, tmp);
+        for (int STEP = 1; STEP <= VW_SIZE / 2; STEP = STEP * 2) {
+            auto tmp = xlib::shfl_xor(member_mask, value, STEP);
+            value    = lambda(value, tmp);
         }
-    }*/
-};
-
-template<int WARP_SZ, bool BROADCAST>
-struct WarpReduceHelper<WARP_SZ, BROADCAST, int> {
-    static __device__ __forceinline__ void add(int& value) {
-        warpReduceMACRO(add, s32, r)
-    }
-
-    static __device__ __forceinline__ void min(int& value) {
-        warpReduceMACRO(min, s32, r)
-    }
-
-    static __device__ __forceinline__ void max(int& value) {
-        warpReduceMACRO(max, s32, r)
-    }
-
-    /*static __device__ __forceinline__ void add(int& value1, int& value2) {
-        warpReduceMACRO2(add, s32, r, add, s32, r)
-    }*/
-};
-
-template<int WARP_SZ, bool BROADCAST>
-struct WarpReduceHelper<WARP_SZ, BROADCAST, float> {
-    static __device__ __forceinline__ void add(float& value) {
-        warpReduceMACRO(add, f32, f)
-    }
-
-    static __device__ __forceinline__ void min(float& value) {
-        warpReduceMACRO(min, f32, f)
-    }
-
-    static __device__ __forceinline__ void max(float& value) {
-        warpReduceMACRO(max, f32, f)
     }
 };
 
-template<int WARP_SZ, bool BROADCAST>
-struct WarpReduceHelper<WARP_SZ, BROADCAST, unsigned> {
-    static __device__ __forceinline__ void add(unsigned& value) {
-        warpReduceMACRO(add, u32, r)
+//------------------------------------------------------------------------------
+
+template<unsigned VW_SIZE>
+struct WarpReduceHelper<VW_SIZE, int> {
+
+    __device__ __forceinline__
+    static void add(int& value) {
+        WARP_REDUCE_MACRO(add, s32, r)
     }
 
-    static __device__ __forceinline__ void min(unsigned& value) {
-        warpReduceMACRO(min, u32, r)
+    __device__ __forceinline__
+    static void min(int& value) {
+        WARP_REDUCE_MACRO(min, s32, r)
     }
 
-    static __device__ __forceinline__ void max(unsigned& value) {
-        warpReduceMACRO(max, u32, r)
+    __device__ __forceinline__
+    static void max(int& value) {
+        WARP_REDUCE_MACRO(max, s32, r)
     }
 };
 
-#undef warpReduceMACRO
-#undef warpReduceMACRO2
+//------------------------------------------------------------------------------
+
+template<unsigned VW_SIZE>
+struct WarpReduceHelper<VW_SIZE, unsigned> {
+
+    __device__ __forceinline__
+    static void add(unsigned& value) {
+        WARP_REDUCE_MACRO(add, u32, r)
+    }
+
+    __device__ __forceinline__
+    static void min(unsigned& value) {
+        WARP_REDUCE_MACRO(min, u32, r)
+    }
+
+    __device__ __forceinline__
+    static void max(unsigned& value) {
+        WARP_REDUCE_MACRO(max, u32, r)
+    }
+};
+
+//------------------------------------------------------------------------------
+
+template<unsigned VW_SIZE>
+struct WarpReduceHelper<VW_SIZE, float> {
+
+    __device__ __forceinline__
+    static void add(float& value) {
+        WARP_REDUCE_MACRO(add, f32, f)
+    }
+
+    __device__ __forceinline__
+    static void min(float& value) {
+        WARP_REDUCE_MACRO(min, f32, f)
+    }
+
+    __device__ __forceinline__
+    static void max(float& value) {
+        WARP_REDUCE_MACRO(max, f32, f)
+    }
+};
+
+//------------------------------------------------------------------------------
+
+template<unsigned VW_SIZE>
+struct WarpReduceHelper<VW_SIZE, double> {
+
+    __device__ __forceinline__
+    static  void add(double& value) {
+        WARP_REDUCE_MACRO2(add, f64, d)
+    }
+
+    __device__ __forceinline__
+    static void min(double& value) {
+        WARP_REDUCE_MACRO2(min, f64, d)
+    }
+
+    __device__ __forceinline__
+    static void max(double& value) {
+        WARP_REDUCE_MACRO2(max, f64, d)
+    }
+};
+
+//------------------------------------------------------------------------------
+
+template<unsigned VW_SIZE>
+struct WarpReduceHelper<VW_SIZE, long int> {
+
+    __device__ __forceinline__
+    static  void add(long int& value) {
+        WARP_REDUCE_MACRO2(add, s64, l)
+    }
+
+    __device__ __forceinline__
+    static void min(long int& value) {
+        WARP_REDUCE_MACRO2(min, s64, l)
+    }
+
+    __device__ __forceinline__
+    static void max(long int& value) {
+        WARP_REDUCE_MACRO2(max, s64, l)
+    }
+};
+
+//------------------------------------------------------------------------------
+
+template<unsigned VW_SIZE>
+struct WarpReduceHelper<VW_SIZE, long long int> {
+
+    __device__ __forceinline__
+    static  void add(long long int& value) {
+        WARP_REDUCE_MACRO2(add, s64, l)
+    }
+
+    __device__ __forceinline__
+    static void min(long long int& value) {
+        WARP_REDUCE_MACRO2(min, s64, l)
+    }
+
+    __device__ __forceinline__
+    static void max(long long int& value) {
+        WARP_REDUCE_MACRO2(max, s64, l)
+    }
+};
+
+//------------------------------------------------------------------------------
+
+template<unsigned VW_SIZE>
+struct WarpReduceHelper<VW_SIZE, long unsigned> {
+
+    __device__ __forceinline__
+    static  void add(long unsigned& value) {
+        WARP_REDUCE_MACRO2(add, u64, l)
+    }
+
+    __device__ __forceinline__
+    static void min(long unsigned& value) {
+        WARP_REDUCE_MACRO2(min, u64, l)
+    }
+
+    __device__ __forceinline__
+    static void max(long unsigned& value) {
+        WARP_REDUCE_MACRO2(max, u64, l)
+    }
+};
+
+//------------------------------------------------------------------------------
+
+template<unsigned VW_SIZE>
+struct WarpReduceHelper<VW_SIZE, long long unsigned> {
+
+    __device__ __forceinline__
+    static  void add(long long unsigned& value) {
+        WARP_REDUCE_MACRO2(add, u64, l)
+    }
+
+    __device__ __forceinline__
+    static void min(long long unsigned& value) {
+        WARP_REDUCE_MACRO2(min, u64, l)
+    }
+
+    __device__ __forceinline__
+    static void max(long long unsigned& value) {
+        WARP_REDUCE_MACRO2(max, u64, l)
+    }
+};
+
+#undef WARP_REDUCE_MACRO
+#undef WARP_REDUCE_MACRO2
+
 } // namespace detail
 
 //==============================================================================
+//==============================================================================
 
-template<int WARP_SZ>
-template<typename T>
-__device__ __forceinline__ void WarpReduce<WARP_SZ>::add(T& value) {
-    detail::WarpReduceHelper<WARP_SZ, false, T>::add(value);
-}
-
-template<int WARP_SZ>
-template<typename T>
-__device__ __forceinline__ void WarpReduce<WARP_SZ>::min(T& value) {
-    detail::WarpReduceHelper<WARP_SZ, false, T>::min(value);
-}
-
-template<int WARP_SZ>
-template<typename T>
-__device__ __forceinline__ void WarpReduce<WARP_SZ>::max(T& value) {
-    detail::WarpReduceHelper<WARP_SZ, false, T>::max(value);
-}
-
-//------------------------------------------------------------------------------
-
-template<int WARP_SZ>
-template<typename T>
-__device__ __forceinline__ void WarpReduce<WARP_SZ>::addAll(T& value) {
-    detail::WarpReduceHelper<WARP_SZ, true, T>::add(value);
-}
-
-template<int WARP_SZ>
-template<typename T>
-__device__ __forceinline__ void WarpReduce<WARP_SZ>::minAll(T& value) {
-    detail::WarpReduceHelper<WARP_SZ, true, T>::min(value);
-}
-
-template<int WARP_SZ>
-template<typename T>
-__device__ __forceinline__ void WarpReduce<WARP_SZ>::maxAll(T& value) {
-    detail::WarpReduceHelper<WARP_SZ, true, T>::max(value);
-}
-
-//------------------------------------------------------------------------------
-
-template<int WARP_SZ>
+template<int VW_SIZE>
 template<typename T>
 __device__ __forceinline__
-void WarpReduce<WARP_SZ>::add(T& value, T* pointer) {
-    detail::WarpReduceHelper<WARP_SZ, false, T>::add(value);
-    if (lane_id() == 0)
+void WarpReduce<VW_SIZE>::add(T& value) {
+    detail::WarpReduceHelper<VW_SIZE, T>::add(value);
+}
+
+template<int VW_SIZE>
+template<typename T>
+__device__ __forceinline__
+void WarpReduce<VW_SIZE>::min(T& value) {
+    detail::WarpReduceHelper<VW_SIZE, T>::min(value);
+}
+
+template<int VW_SIZE>
+template<typename T>
+__device__ __forceinline__
+void WarpReduce<VW_SIZE>::max(T& value) {
+    detail::WarpReduceHelper<VW_SIZE, T>::max(value);
+}
+
+//==============================================================================
+
+template<int VW_SIZE>
+template<typename T>
+__device__ __forceinline__
+void WarpReduce<VW_SIZE>::addAll(T& value) {
+    const unsigned member_mask = xlib::member_mask<VW_SIZE>();
+    detail::WarpReduceHelper<VW_SIZE, T>::add(value);
+    value = xlib::shfl(member_mask, value, 0, VW_SIZE);
+}
+
+template<int VW_SIZE>
+template<typename T>
+__device__ __forceinline__
+void WarpReduce<VW_SIZE>::minAll(T& value) {
+    const unsigned member_mask = xlib::member_mask<VW_SIZE>();
+    detail::WarpReduceHelper<VW_SIZE, T>::min(value);
+    value = xlib::shfl(member_mask, value, 0, VW_SIZE);
+}
+
+template<int VW_SIZE>
+template<typename T>
+__device__ __forceinline__
+void WarpReduce<VW_SIZE>::maxAll(T& value) {
+    const unsigned member_mask = xlib::member_mask<VW_SIZE>();
+    detail::WarpReduceHelper<VW_SIZE, T>::max(value);
+    value = xlib::shfl(member_mask, value, 0, VW_SIZE);
+}
+
+//==============================================================================
+
+template<int VW_SIZE>
+template<typename T, typename R>
+__device__ __forceinline__
+void WarpReduce<VW_SIZE>::add(T& value, R* pointer) {
+    detail::WarpReduceHelper<VW_SIZE, T>::add(value);
+    if (lane_id<VW_SIZE>() == 0)
         *pointer = value;
 }
 
-template<int WARP_SZ>
-template<typename T>
+template<int VW_SIZE>
+template<typename T, typename R>
 __device__ __forceinline__
-void WarpReduce<WARP_SZ>::min(T& value, T* pointer) {
-    detail::WarpReduceHelper<WARP_SZ, false, T>::min(value);
-    if (lane_id() == 0)
+void WarpReduce<VW_SIZE>::min(T& value, R* pointer) {
+    detail::WarpReduceHelper<VW_SIZE, T>::min(value);
+    if (lane_id<VW_SIZE>() == 0)
         *pointer = value;
 }
 
-template<int WARP_SZ>
-template<typename T>
+template<int VW_SIZE>
+template<typename T, typename R>
 __device__ __forceinline__
-void WarpReduce<WARP_SZ>::max(T& value, T* pointer) {
-    detail::WarpReduceHelper<WARP_SZ, false, T>::max(value);
-    if (lane_id() == 0)
+void WarpReduce<VW_SIZE>::max(T& value, R* pointer) {
+    detail::WarpReduceHelper<VW_SIZE, T>::max(value);
+    if (lane_id<VW_SIZE>() == 0)
         *pointer = value;
 }
 
-//------------------------------------------------------------------------------
-/*
-template<int WARP_SZ>
-template<typename T>
-__device__ __forceinline__
-void WarpReduce<WARP_SZ>::AtomicAdd(T& value, T* pointer) {
-    detail::WarpReduceHelper<WARP_SZ, false, T>::Add(value);
-    if (lane_id() == 0)
-        atomicAdd(pointer, value);
-}*/
+//==============================================================================
 
-template<int WARP_SZ>
-template<typename T>
+template<int VW_SIZE>
+template<typename T, typename R>
 __device__ __forceinline__
-T WarpReduce<WARP_SZ>::atomicAdd(const T& value, T* pointer) {
-    T old;
-    auto value_tmp = value;
-    detail::WarpReduceHelper<WARP_SZ, false, T>::add(value_tmp);
-    if (lane_id() == 0)
-        old = xlib::atomic::max(value_tmp, pointer); //::atomicAdd(pointer, value_tmp);
-    return __shfl(old, 0, WARP_SZ);
+T WarpReduce<VW_SIZE>::atomicAdd(const T& value, R* pointer) {
+    const unsigned member_mask = xlib::member_mask<VW_SIZE>();
+    T old, value_tmp = value;
+    detail::WarpReduceHelper<VW_SIZE, T>::add(value_tmp);
+    if (lane_id<VW_SIZE>() == 0)
+        old = atomic::add(value_tmp, pointer);
+    return xlib::shfl(member_mask, old, 0, VW_SIZE);
 }
 
-/*
-template<int WARP_SZ>
-template<typename T>
+template<int VW_SIZE>
+template<typename T, typename R>
 __device__ __forceinline__
-T WarpReduce<WARP_SZ>::rAtomicAdd(T& value, T* pointer) {
-    T old;
-    detail::WarpReduceHelper<WARP_SZ, false, T>::Add(value);
-    if (lane_id() == 0)
-        old = atomicAdd(pointer, value);
-    return __shfl(old, 0, WARP_SZ);
-}*/
-
-template<int WARP_SZ>
-template<typename T>
-__device__ __forceinline__
-void WarpReduce<WARP_SZ>::atomicMin(const T& value, T* pointer) {
-    static_assert(sizeof(T) == 4 || sizeof(T) == 8,
-     "Atomic operations on types of size different from 4/8 are not supported");
-
-    auto value_tmp = value;
-    detail::WarpReduceHelper<WARP_SZ, false, T>::min(value_tmp);
-    if (lane_id() == 0)
-        xlib::atomic::min(value_tmp, pointer);
-}
-/*
-template<int WARP_SZ>
-template<typename T>
-__device__ __forceinline__
-void WarpReduce<WARP_SZ>::AtomicMax(T& value, T* pointer) {
-    static_assert(sizeof(T) == 4 || sizeof(T) == 8,
-     "Atomic operations on types of size different from 4/8 are not supported");
-    using T_nocv = typename std::remove_cv<T>::type;
-
-    detail::WarpReduceHelper<WARP_SZ, false, T>::Max(value);
-    if (lane_id() == 0) {
-        if (std::is_same<T_nocv, int>::value) {
-            atomicMax(reinterpret_cast<int*>(pointer),
-                      reinterpret_cast<int&>(value));
-        }
-        else if (sizeof (T) == 4) {
-            atomicMax(reinterpret_cast<unsigned int*>(pointer),
-                      reinterpret_cast<unsigned int&>(value));
-        }
-        else if (sizeof(T) == 8) {
-            atomicMax(reinterpret_cast<long long unsigned int*>(pointer),
-                      reinterpret_cast<long long unsigned int&>(value));
-        }
-    }
-}*/
-
-template<int WARP_SZ>
-template<typename T>
-__device__ __forceinline__
-void WarpReduce<WARP_SZ>::atomicMax(const T& value, T* pointer) {
-    static_assert(sizeof(T) == 4 || sizeof(T) == 8,
-     "Atomic operations on types of size different from 4/8 are not supported");
-
-    auto value_tmp = value;
-    detail::WarpReduceHelper<WARP_SZ, false, T>::max(value_tmp);
-    if (lane_id() == 0)
-        xlib::atomic::max(value_tmp, pointer);
+void WarpReduce<VW_SIZE>::atomicMin(const T& value, R* pointer) {
+    T value_tmp = value;
+    detail::WarpReduceHelper<VW_SIZE, T>::min(value_tmp);
+    if (lane_id<VW_SIZE>() == 0)
+        atomic::min(value_tmp, pointer);
 }
 
-//------------------------------------------------------------------------------
-/*
-template<int WARP_SZ>
-template<typename T>
+template<int VW_SIZE>
+template<typename T, typename R>
 __device__ __forceinline__
-void WarpReduce<WARP_SZ>::AtomicAdd(T& value1, T* pointer1,
-                                    T& value2, T* pointer2) {
-    detail::WarpReduceHelper<WARP_SZ, false, T>::Add(value1, value2);
-    if (lane_id() == 0) {
-        atomicAdd(pointer1, value1);
-        atomicAdd(pointer2, value2);
-    }
-}*/
+void WarpReduce<VW_SIZE>::atomicMax(const T& value, R* pointer) {
+    T value_tmp = value;
+    detail::WarpReduceHelper<VW_SIZE, T>::max(value_tmp);
+    if (lane_id<VW_SIZE>() == 0)
+        atomic::max(value_tmp, pointer);
+}
 
 } // namespace xlib

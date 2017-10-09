@@ -2,10 +2,9 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
- * @version v1.3
+ * @date October, 2017
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -33,34 +32,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Host/Numeric.hpp"
+#include "Device/Definition.cuh"
 
 namespace xlib {
 
-__device__ __forceinline__ unsigned lane_id() {
+template<unsigned WARP_SZ>
+__device__ __forceinline__
+unsigned lane_id() {
     unsigned ret;
     asm ("mov.u32 %0, %laneid;" : "=r"(ret) );
-    return ret;
+    return WARP_SZ == xlib::WARP_SIZE ? ret : ret % WARP_SZ;
 }
 
-__device__ __forceinline__ void thread_exit() {
-    asm ("exit;");
-}
-
-// Three-operand add    // MAXWELL
 __device__ __forceinline__
-unsigned int IADD3(unsigned int x, unsigned int y, unsigned int z) {
-    unsigned int ret;
-    asm ("vadd.u32.u32.u32.add %0, %1, %2, %3;" :
-         "=r"(ret) : "r"(x), "r"(y), "r"(z));
-    return ret;
+void thread_exit() {
+    asm ("exit;");
 }
 
 //==============================================================================
 
 template<typename T>
 __device__ __forceinline__
-typename std::enable_if<sizeof(T) != 8, unsigned>::type
+typename std::enable_if<sizeof(T) <= 4, unsigned>::type
 __msb(T word) {
     unsigned ret;
     asm ("bfind.u32 %0, %1;" : "=r"(ret) : "r"(word));
@@ -163,31 +156,36 @@ __bfi(T& dword, long long unsigned bitmask, unsigned pos, unsigned length) {
 
 //------------------------------------------------------------------------------
 
-__device__ __forceinline__ unsigned int LaneMaskEQ() {
+__device__ __forceinline__
+unsigned int lanemask_eq() {
     unsigned int ret;
     asm("mov.u32 %0, %lanemask_eq;" : "=r"(ret) );
     return ret;
 }
 
-__device__ __forceinline__ unsigned int LaneMaskLT() {
+__device__ __forceinline__
+unsigned int lanemask_lt() {
     unsigned int ret;
     asm("mov.u32 %0, %lanemask_lt;" : "=r"(ret) );
     return ret;
 }
 
-__device__ __forceinline__ unsigned int LaneMaskLE() {
+__device__ __forceinline__
+unsigned int lanemask_le() {
     unsigned int ret;
     asm("mov.u32 %0, %lanemask_le;" : "=r"(ret) );
     return ret;
 }
 
-__device__ __forceinline__ unsigned int LaneMaskGT() {
+__device__ __forceinline__
+unsigned int lanemask_gt() {
     unsigned int ret;
     asm("mov.u32 %0, %lanemask_gt;" : "=r"(ret) );
     return ret;
 }
 
-__device__ __forceinline__ unsigned int LaneMaskGE() {
+__device__ __forceinline__
+unsigned int lanemask_ge() {
     unsigned int ret;
     asm("mov.u32 %0, %lanemask_ge;" : "=r"(ret) );
     return ret;

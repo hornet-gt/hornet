@@ -2,10 +2,10 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date July, 2017
+ * @date August, 2017
  * @version v2
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@
  */
 #pragma once
 
-namespace custinger {
+namespace hornet {
 
 /**
  * @brief
@@ -54,11 +54,19 @@ const size_t MIN_EDGES_PER_BLOCK = 1;
  * @brief number of edges for a **BlockArray**
  * @remark `EDGES_PER_BLOCKARRAY` must be a power of two
  */
-const size_t EDGES_PER_BLOCKARRAY = 262144;
+const size_t EDGES_PER_BLOCKARRAY = 1 << 18;
+
+///@brief Eanble B+Tree container for BitTree
+//#define B_PLUS_TREE
+
+///@brief Eanble RedBlack-Tree container for BitTree
+//#define RB_TREE
+
+//------------------------------------------------------------------------------
 
 static_assert(xlib::is_power2(MIN_EDGES_PER_BLOCK)  &&
               xlib::is_power2(EDGES_PER_BLOCKARRAY) &&
               MIN_EDGES_PER_BLOCK <= EDGES_PER_BLOCKARRAY,
               "Memory Management Constrains");
 
-} // namespace custinger
+} // namespace hornet

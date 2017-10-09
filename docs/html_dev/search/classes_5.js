@@ -1,4 +1,7 @@
 var searchData=
 [
-  ['factorail',['Factorail',['../structxlib_1_1Factorail.html',1,'xlib']]]
+  ['ginfo',['GInfo',['../structgraph_1_1GInfo.html',1,'graph']]],
+  ['graphbase',['GraphBase',['../classgraph_1_1GraphBase.html',1,'graph']]],
+  ['graphstd',['GraphStd',['../classgraph_1_1GraphStd.html',1,'graph']]],
+  ['graphweight',['GraphWeight',['../classgraph_1_1GraphWeight.html',1,'graph']]]
 ];

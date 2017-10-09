@@ -5,7 +5,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -52,13 +52,13 @@ namespace xlib {
 inline Progress::Progress(size_t total) noexcept :
                      _float_chunk(static_cast<double>(total - 1) / 100.0),
                      _total(total),
-                     _next_chunk(static_cast<size_t>(_float_chunk)),
-                     _to_print(1) {}
+                     _next_chunk(static_cast<size_t>(_float_chunk)) {}
 
 inline void Progress::next(size_t progress) noexcept {
-    if (progress == 0) {
+    if (progress == 0 || _first) {
         std::cout << ((_next_chunk == 0) ? "   100%\n" : "     0%")
                   << std::flush;
+        _first = false;
     }
     else if (progress == _next_chunk) {
         std::cout << "\b\b\b\b\b\b\b" << std::setw(6) << _to_print++
@@ -71,8 +71,9 @@ inline void Progress::next(size_t progress) noexcept {
 }
 
 inline void Progress::per_cent(size_t progress) const noexcept {
-    if (progress == 0) {
+    if (progress == 0 || _first) {
         std::cout << "     0%" << std::flush;
+        _first = false;
         return;
     }
     std::cout << "\b\b\b\b\b\b\b" << std::setw(6)
@@ -81,7 +82,8 @@ inline void Progress::per_cent(size_t progress) const noexcept {
         std::cout << std::endl;
 }
 
-//------------------------------------------------------------------------------
+//==============================================================================
+//==============================================================================
 
 #if defined(__linux__)
 
@@ -117,20 +119,37 @@ inline MemoryMapped::~MemoryMapped() noexcept {
         ERROR("MemoryMapped: file partially read/write");
 }
 
-template<typename, typename... Ts>
-void MemoryMapped::write() const noexcept {
-    if (_print)
-        _progress.per_cent(_partial);
-}
-
-template<typename, typename... Ts>
-void MemoryMapped::read() const noexcept {
-    if (_print)
-        _progress.per_cent(_partial);
-}
-
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-conversion"
+
+template<typename T, typename... Ts>
+void MemoryMapped::read(T* data, size_t size, Ts... args) {
+    if (_print)
+        _progress.per_cent(_partial);
+    std::copy(reinterpret_cast<T*>(_mmap_ptr + _partial),               //NOLINT
+              reinterpret_cast<T*>(_mmap_ptr + _partial) + size, data); //NOLINT
+    _partial += size * sizeof(T);
+    assert(_partial <= _file_size);
+    read(args...);
+}
+
+inline void MemoryMapped::read() const noexcept {
+    if (_print)
+        _progress.per_cent(_partial);
+}
+
+template<typename T, typename... Ts>
+void MemoryMapped::read_noprint(T* data, size_t size, Ts... args) {
+    std::copy(reinterpret_cast<T*>(_mmap_ptr + _partial),               //NOLINT
+              reinterpret_cast<T*>(_mmap_ptr + _partial) + size, data); //NOLINT
+    _partial += size * sizeof(T);
+    assert(_partial <= _file_size);
+    read_noprint(args...);
+}
+
+inline void MemoryMapped::read_noprint() const noexcept {}
+
+//------------------------------------------------------------------------------
 
 template<typename T, typename... Ts>
 void MemoryMapped::write(const T* data, size_t size, Ts... args) {
@@ -143,16 +162,21 @@ void MemoryMapped::write(const T* data, size_t size, Ts... args) {
     write(args...);
 }
 
-template<typename T, typename... Ts>
-void MemoryMapped::read(T* data, size_t size, Ts... args) {
+inline void MemoryMapped::write() const noexcept {
     if (_print)
         _progress.per_cent(_partial);
-    std::copy(reinterpret_cast<T*>(_mmap_ptr + _partial),               //NOLINT
-              reinterpret_cast<T*>(_mmap_ptr + _partial) + size, data); //NOLINT
+}
+
+template<typename T, typename... Ts>
+void MemoryMapped::write_noprint(const T* data, size_t size, Ts... args) {
+    std::copy(data, data + size,                                        //NOLINT
+              reinterpret_cast<T*>(_mmap_ptr + _partial));              //NOLINT
     _partial += size * sizeof(T);
     assert(_partial <= _file_size);
-    read(args...);
+    write_noprint(args...);
 }
+
+inline void MemoryMapped::write_noprint() const noexcept {}
 
 #pragma clang diagnostic pop
 #endif

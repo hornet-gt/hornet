@@ -51,6 +51,7 @@ void GraphStd<vid_t, eoff_t>::readMarket(std::ifstream& fin, bool print) {
     for (size_t lines = 0; lines < ginfo.num_lines; lines++) {
         vid_t index1, index2;
         fin >> index1 >> index2;
+        assert(index1 <= _nV && index2 <= _nV);
         _coo_edges[lines] = { index1 - 1, index2 - 1 };
 
         if (print)
@@ -175,25 +176,32 @@ void GraphStd<vid_t, eoff_t>::readSnap(std::ifstream& fin, bool print) {
 
 //------------------------------------------------------------------------------
 
+template<typename vid_t, typename eoff_t>
+void GraphStd<vid_t, eoff_t>::readMPG(std::ifstream&, bool) {
+    ERROR("readMPG is not valid for GraphStd");
+}
+
+//------------------------------------------------------------------------------
+
 #if defined(__linux__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-conversion"
 
 template<typename vid_t, typename eoff_t>
-void GraphStd<vid_t, eoff_t>::readBinary(const char* filename, bool print){
+void GraphStd<vid_t, eoff_t>::readBinary(const char* filename, bool print) {
     size_t file_size = xlib::file_size(filename);
     xlib::MemoryMapped memory_mapped(filename, file_size,
                                      xlib::MemoryMapped::READ, print);
 
     std::string class_id = xlib::type_name<vid_t>() + xlib::type_name<eoff_t>();
     auto tmp = new char[class_id.size()];
-    memory_mapped.read(tmp, class_id.size());
+    memory_mapped.read_noprint(tmp, class_id.size());
 
     if (!std::equal(tmp, tmp + class_id.size(), class_id.begin()))
         ERROR("Different class identifier")
     delete[] tmp;
 
-    memory_mapped.read(&_nV, 1, &_nE, 1, &_structure, 1);
+    memory_mapped.read_noprint(&_nV, 1, &_nE, 1, &_structure, 1);
     auto direction = _structure.is_directed() ? structure_prop::DIRECTED
                                               : structure_prop::UNDIRECTED;
     allocate({static_cast<size_t>(_nV), static_cast<size_t>(_nE),
@@ -212,6 +220,7 @@ void GraphStd<vid_t, eoff_t>::readBinary(const char* filename, bool print){
         _out_degrees[i] = _out_offsets[i + 1] - _out_offsets[i - 1];
     //if (_structure.is_coo())
     //
+    std::cout << std::endl;
 }
 
 #pragma clang diagnostic pop

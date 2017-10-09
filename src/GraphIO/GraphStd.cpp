@@ -34,13 +34,15 @@
  * </blockquote>}
  */
 #include "GraphIO/GraphStd.hpp"
-#include "Host/Basic.hpp"     //ERROR
-#include "Host/FileUtil.hpp"  //xlib::MemoryMapped
-#include "Host/PrintExt.hpp"  //xlib::printArray
-#include <algorithm>          //std::iota, std::shuffle
-#include <cassert>            //assert
-#include <chrono>             //std::chrono
-#include <random>             //std::mt19937_64
+#include "Host/Basic.hpp"      //ERROR
+#include "Host/FileUtil.hpp"   //xlib::MemoryMapped
+#include "Host/Numeric.hpp"    //xlib::per_cent
+#include "Host/PrintExt.hpp"   //xlib::printArray
+#include "Host/Statistics.hpp" //xlib::average
+#include <algorithm>           //std::iota, std::shuffle
+#include <cassert>             //assert
+#include <chrono>              //std::chrono
+#include <random>              //std::mt19937_64
 
 namespace graph {
 
@@ -107,22 +109,21 @@ void GraphStd<vid_t, eoff_t>::allocate(const GInfo& ginfo) noexcept {
         const char* graph_dir = ginfo.direction == structure_prop::UNDIRECTED
                                     ? dir[0] : dir[1];
         auto avg = static_cast<double>(ginfo.num_edges) / _nV;
-        std::cout << "\n@File   Nodes: " << std::left << std::setw(10)
-                  << xlib::format(_nV)  << "Edges: " << std::setw(13)
+        std::cout << "\n@File    V: " << std::left << std::setw(14)
+                  << xlib::format(_nV)  << "E: " << std::setw(14)
                   << xlib::format(ginfo.num_edges) << graph_dir
-                  << "avg. degree: " << xlib::format(avg, 1) << std::right;
+                  << "avg. deg: " << xlib::format(avg, 1);
         if (_directed_to_undirected || _undirected_to_directed) {
             graph_dir =  _structure.is_undirected() ? dir[0] : dir[1];
             avg = static_cast<double>(new_num_edges) / _nV;
-            std::cout << "\n@User   Nodes: "  << std::left << std::setw(10)
-                      << xlib::format(_nV) << "Edges: " << std::setw(13)
+            std::cout << "\n@User    V: "  << std::left << std::setw(14)
+                      << xlib::format(_nV) << "E: " << std::setw(14)
                       << xlib::format(new_num_edges) << graph_dir
-                      << "avg. degree: " << xlib::format(avg) << "\n"
-                      << std::right;
+                      << "avg. deg: " << xlib::format(avg) << "\n";
         }
         else
             assert(new_num_edges == ginfo.num_edges);
-        std::cout << std::endl;
+        std::cout << std::right << std::endl;
     }
 
     try {
@@ -163,12 +164,23 @@ template<typename vid_t, typename eoff_t>
 void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
     if (_directed_to_undirected || _stored_undirected) {
         eoff_t half = _nE / 2;
-        for (eoff_t i = 0; i < half; i++)
-            _coo_edges[i + half] = {_coo_edges[i].second, _coo_edges[i].first};
+        auto      k = half;
+        for (eoff_t i = 0; i < half; i++) {
+            auto src = _coo_edges[i].first;
+            auto dst = _coo_edges[i].second;
+            if (src == dst)
+                continue;
+            _coo_edges[k++] = {dst, src};
+        }
+        if (_prop.is_print() && _nE != k) {
+            std::cout << "Double self-loops removed.  E: " << xlib::format(k)
+                      << "\n";
+        }
+        _nE = k;
+
     }
-    bool remove_duplicates = _prop.is_remove_duplicates() &&
-                             _structure.is_undirected();
-    if (_directed_to_undirected || remove_duplicates) {
+
+    if (_directed_to_undirected) {
         if (_prop.is_print()) {
             if (_directed_to_undirected)
                 std::cout << "Directed to Undirected: ";
@@ -216,14 +228,17 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
     if (_prop.is_print())
         std::cout << "COO to CSR...\t" << std::flush;
 
-    for (eoff_t i = 0; i < _nE; i++) {
-        vid_t src = _coo_edges[i].first;
-        _out_degrees[src]++;
-        if (_structure.is_reverse()) {
-            vid_t dest = _coo_edges[i].second;
-            _in_degrees[dest]++;
+    if (_structure.is_undirected()) {
+        for (eoff_t i = 0; i < _nE; i++)
+            _out_degrees[_coo_edges[i].first]++;
+    }
+    else if (_structure.is_reverse()) {
+        for (eoff_t i = 0; i < _nE; i++) {
+            _out_degrees[_coo_edges[i].first]++;
+            _in_degrees[ _coo_edges[i].second]++;
         }
     }
+
     _out_offsets[0] = 0;
     std::partial_sum(_out_degrees, _out_degrees + _nV, _out_offsets + 1);
 
@@ -283,6 +298,7 @@ void GraphStd<vid_t, eoff_t>::print_raw() const noexcept {
 template<typename vid_t, typename eoff_t>
 void GraphStd<vid_t, eoff_t>
 ::writeBinary(const std::string& filename, bool print) const {
+    using namespace structure_prop;
     size_t  base_size = sizeof(_nV) + sizeof(_nE) + sizeof(_structure);
     size_t file_size1 = (static_cast<size_t>(_nV) + 1) * sizeof(eoff_t) +
                         (static_cast<size_t>(_nE)) * sizeof(vid_t);
@@ -291,7 +307,7 @@ void GraphStd<vid_t, eoff_t>
     size_t file_size = base_size + (twice ? file_size1 * 2 : file_size1);
 
     if (print) {
-        std::cout << "Graph To binary file: " << filename
+        std::cout << "Graph to binary file: " << filename
                 << " (" << (file_size >> 20) << ") MB" << std::endl;
     }
 
@@ -301,14 +317,16 @@ void GraphStd<vid_t, eoff_t>
                                      xlib::MemoryMapped::WRITE, print);
 
     if (_structure.is_directed() && _structure.is_reverse()) {
+        auto struct_tmp = DIRECTED | REVERSE;
         memory_mapped.write(class_id.c_str(), class_id.size(),          //NOLINT
-                            &_nV, 1, &_nE, 1, &_structure, 1,           //NOLINT
+                            &_nV, 1, &_nE, 1, &struct_tmp, 1,           //NOLINT
                             _out_offsets, _nV + 1, _in_offsets, _nV + 1,//NOLINT
                             _out_edges, _nE, _in_edges, _nE);           //NOLINT
     }
     else {
+        auto struct_tmp = DIRECTED;
         memory_mapped.write(class_id.c_str(), class_id.size(),          //NOLINT
-                            &_nV, 1, &_nE, 1, &_structure, 1,           //NOLINT
+                            &_nV, 1, &_nE, 1, &struct_tmp, 1,           //NOLINT
                             _out_offsets, _nV + 1, _out_edges, _nE);    //NOLINT
     }
 }
@@ -317,15 +335,200 @@ void GraphStd<vid_t, eoff_t>
 #endif
 
 template<typename vid_t, typename eoff_t>
-void GraphStd<vid_t, eoff_t>::writeMarket(const std::string& filename) const {
+void GraphStd<vid_t, eoff_t>::writeMarket(const std::string& filename,
+                                          bool print) const {
+    if (print)
+        std::cout << "Graph to Market format file: " << filename << std::endl;
     std::ofstream fout(filename);
-    fout << "%%MatrixMarket matrix coordinate pattern general"
-         << "\n" << _nV << " " << _nV << " " << _nE << "\n";
+    fout << "%%MatrixMarket matrix coordinate pattern general\n"
+         << _nV << " " << _nV << " " << _nE << "\n";
     for (vid_t i = 0; i < _nV; i++) {
-        for (eoff_t j = _out_offsets[i]; j < _out_offsets[i + 1]; j++)
+        for (auto j = _out_offsets[i]; j < _out_offsets[i + 1]; j++)
             fout << i + 1 << " " << _out_edges[j] + 1 << "\n";
     }
     fout.close();
+}
+
+template<typename vid_t, typename eoff_t>
+void GraphStd<vid_t, eoff_t>::writeDimacs10th(const std::string& filename,
+                                              bool print) const {
+    if (print) {
+        std::cout << "Graph to Dimacs10th format file: " << filename
+                  << std::endl;
+    }
+    std::ofstream fout(filename);
+    fout << _nV << " " << _nE << " 100\n";
+    for (vid_t i = 0; i < _nV; i++) {
+        for (auto j = _out_offsets[i]; j < _out_offsets[i + 1]; j++) {
+            fout << _out_edges[j] + 1;
+            if (j < _out_offsets[i + 1] - 1)
+                fout << " ";
+        }
+        fout << "\n";
+    }
+    fout.close();
+}
+//------------------------------------------------------------------------------
+
+template<typename vid_t, typename eoff_t>
+void GraphStd<vid_t, eoff_t>::print_degree_distrib() const noexcept {
+    const int MAX_LOG = 32;
+    int distribution[MAX_LOG] = {};
+    int   cumulative[MAX_LOG] = {};
+    int      percent[MAX_LOG];
+    int cumulative_percent[MAX_LOG];
+    for (auto i = 0; i < _nV; i++) {
+        auto degree = _out_degrees[i];
+        if (degree == 0) continue;
+        auto log_value = xlib::log2(degree);
+        distribution[log_value]++;
+        cumulative[log_value] += degree;
+    }
+    for (auto i = 0; i < MAX_LOG; i++) {
+        percent[i] = xlib::per_cent(distribution[i], _nV);
+        cumulative_percent[i] = xlib::per_cent(cumulative[i], _nE);
+    }
+    int sum = 0;
+    for (auto i = 0; i < MAX_LOG; i++)
+        sum += cumulative[i];
+    std::cout << "sum  " << sum << std::endl;
+
+    int pos = MAX_LOG;
+    while (pos >= 0 && distribution[--pos] == 0);
+
+    xlib::IosFlagSaver tmp1;
+    xlib::ThousandSep  tmp2;
+    using namespace std::string_literals;
+
+    std::cout << "Degree distribution:" << std::setprecision(1) << "\n\n";
+    for (auto i = 0; i <= pos; i++) {
+        std::string exp = "  (2^"s + std::to_string(i) + ")"s;
+        std::cout << std::right << std::setw(9)  << (1 << i)
+                  << std::left  << std::setw(8)  << exp
+                  << std::right << std::setw(12) << distribution[i]
+                  << std::right << std::setw(5)  << percent[i] << " %\n";
+    }
+    std::cout << "\nEdge distribution:" << std::setprecision(1) << "\n\n";
+    for (auto i = 0; i <= pos; i++) {
+        std::string exp = "  (2^"s + std::to_string(i) + ")"s;
+        std::cout << std::right << std::setw(9)  << (1 << i)
+                  << std::left  << std::setw(8)  << exp
+                  << std::right << std::setw(12) << cumulative[i]
+                  << std::right << std::setw(5)  << cumulative_percent[i]
+                  << " %\n";
+    }
+    std::cout << std::endl;
+}
+
+template<typename vid_t, typename eoff_t>
+void GraphStd<vid_t, eoff_t>::print_degree_analysis() const noexcept {
+    auto avg      = static_cast<float>(_nE) / static_cast<float>(_nV);
+    auto std_dev  = xlib::std_deviation(_out_degrees, _out_degrees + _nV);
+    auto density  = static_cast<float>(_nE) /
+                       static_cast<float>(static_cast<uint64_t>(_nV) * _nV);
+    auto gini     = xlib::gini_coefficient(_out_degrees, _out_degrees + _nV);
+    auto variance_coeff = std_dev / std::abs(avg);
+    xlib::Bitmask rings(_nV);
+    for (auto i = 0; i < _nV; i++) {
+        for (auto j = _out_offsets[i]; j < _out_offsets[i + 1]; j++) {
+            if (_out_edges[j] == i) {
+                rings[i] = true;
+                break;
+            }
+        }
+    }
+    int     num_rings = rings.size();
+    auto ring_percent = xlib::per_cent(rings.size(), _nV);
+
+    degree_t out_degree_0 = 0, in_degree_0 = 0, out_degree_1 = 0,
+              in_degree_1 = 0,   singleton = 0,     out_leaf = 0, in_leaf = 0;
+    auto max_out_degree = std::numeric_limits<degree_t>::min();
+    auto  max_in_degree = std::numeric_limits<degree_t>::min();
+    for (auto i = 0; i < _nV; i++) {
+        if (_out_degrees[i] > max_out_degree)
+            max_out_degree = _out_degrees[i];
+        if (_in_degrees[i] > max_in_degree)
+            max_in_degree = _in_degrees[i];
+        if (_out_degrees[i] == 0) out_degree_0++;
+        if (_out_degrees[i] == 1) out_degree_1++;
+        if (_in_degrees[i] == 0)  in_degree_0++;
+        if (_in_degrees[i] == 1)  in_degree_1++;
+        if ((_out_degrees[i] == 0 && _in_degrees[i] == 0) ||
+            (_out_degrees[i] == 1 && _in_degrees[i] == 1 && rings[i]))
+            singleton++;
+        if (((_out_degrees[i] == 2 && is_undirected()) ||
+            (_out_degrees[i] == 1 && is_directed())) && rings[i])
+            out_leaf++;
+        if (((_in_degrees[i] == 2 && is_undirected()) ||
+            (_in_degrees[i] == 1 && is_directed())) && rings[i])
+            in_leaf++;
+    }
+    auto out_degree_0_percent = xlib::per_cent(out_degree_0, _nV);
+    auto out_degree_1_percent = xlib::per_cent(out_degree_1, _nV);
+    auto in_degree_0_percent  = xlib::per_cent(in_degree_0, _nV);
+    auto in_degree_1_percent  = xlib::per_cent(in_degree_1, _nV);
+    auto singleton_percent    = xlib::per_cent(singleton, _nV);
+    auto out_leaf_percent     = xlib::per_cent(out_leaf, _nV);
+    auto in_leaf_percent      = xlib::per_cent(in_leaf, _nV);
+
+    const int W1 = 30;
+    const int W2 = 10;
+    const int W3 = 8;
+    xlib::IosFlagSaver tmp1;
+    xlib::ThousandSep tmp2;
+
+    std::cout << "Degree analysis:"
+    << std::right << std::setprecision(1) << std::fixed << "\n\n"
+    << std::setw(W1) << "Average:  "             << std::setw(W2) << avg << "\n"
+    << std::setw(W1) << "Std. Deviation:  "      << std::setw(W2) << std_dev
+                                                 << "\n"
+    << std::setw(W1) << "Coeff. of variation:  " << std::setw(W2)
+                                                 << variance_coeff  << "\n"
+    << std::setw(W1) << "Gini Coeff:  "          << std::setprecision(2)
+                                                 << std::setw(W2)
+                                                 << gini  << "\n"
+    << std::setw(W1) << "Density:  "             << std::setprecision(7)
+                                                 << std::setw(W2)
+                                                 << density  << "\n"
+                                                 << std::setprecision(1)
+
+    << std::setw(W1) << "Max Out-Degree:  "  << std::setw(W2) << max_out_degree
+                                             << "\n"
+    << std::setw(W1) << "Max In-Degree:  "   << std::setw(W2) << max_in_degree
+                                             << "\n"
+    << std::setw(W1) << "Rings:  "           << std::setw(W2) << num_rings
+                                             << std::setw(W3) << ring_percent
+                                             << "%\n"
+    << std::setw(W1) << "Out-Degree = 0:  "  << std::setw(W2) << out_degree_0
+                                             << std::setw(W3)
+                                             << out_degree_0_percent << "%\n";
+    if (is_directed()) {
+        std::cout << std::setw(W1) << "In-Degree = 0:  "
+                                             << std::setw(W2) << in_degree_0
+                                             << std::setw(W3)
+                                             << in_degree_0_percent << "%\n";
+    }
+    std::cout
+    << std::setw(W1) << "Out-Degree = 1:  "  << std::setw(W2) << out_degree_1
+                                             << std::setw(W3)
+                                             << out_degree_1_percent << "%\n";
+    if (is_directed()) {
+        std::cout << std::setw(W1) << "In-Degree = 1:  "
+                                             << std::setw(W2) << in_degree_1
+                                             << std::setw(W3)
+                                             << in_degree_1_percent << "%\n";
+    }
+
+    std::cout << std::setw(W1) << "leaf:  "  << std::setw(W2) << singleton
+                                             << std::setw(W3)
+                                             << singleton_percent << "%\n"
+    << std::setw(W1) << "Out-Leaf:  "        << std::setw(W2) << out_leaf
+                                             << std::setw(W3)
+                                             << out_leaf_percent << "%\n"
+    << std::setw(W1) << "In-Leaf:  "         << std::setw(W2) << in_leaf
+                                             << std::setw(W3)
+                                             << in_leaf_percent << "%\n"
+                                             << std::endl;
 }
 
 //------------------------------------------------------------------------------

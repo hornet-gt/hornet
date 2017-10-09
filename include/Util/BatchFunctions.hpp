@@ -2,10 +2,10 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
- * @version v1.3
+ * @date August, 2017
+ * @version v2
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,10 @@
  */
 #pragma once
 
-#include "Core/RawTypes.hpp"
-#include "GraphIO/GraphStd.hpp"
+#include "BasicTypes.hpp"       //vid_t
+#include "GraphIO/GraphStd.hpp" //GraphStd
+
+namespace hornet {
 
 namespace detail {
     enum class BatchGenEnum { WEIGHTED = 1, PRINT = 2, UNIQUE = 4 };
@@ -60,6 +62,8 @@ namespace batch_gen_property {
 enum class BatchGenType { INSERT, REMOVE };
 
 void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
-                   custinger::vid_t* batch_src, custinger::vid_t* batch_dest,
+                   hornet::vid_t* batch_src, hornet::vid_t* batch_dest,
                    const BatchGenType& batch_type,
                    const BatchGenProperty& prop = BatchGenProperty());
+
+} // namespace hornet

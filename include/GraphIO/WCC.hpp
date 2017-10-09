@@ -5,7 +5,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,7 @@ namespace graph {
 
 template<typename vid_t, typename eoff_t>
 class WCC {
+    using color_t = vid_t;
 public:
     explicit WCC(const GraphStd<vid_t, eoff_t>& graph) noexcept;
     ~WCC() noexcept;
@@ -60,14 +61,16 @@ public:
 
     vid_t num_trivial() const noexcept;
 
-    const vid_t* result() const noexcept;
+    const color_t* result() const noexcept;
 
     void print() const noexcept;
 
     void print_histogram() const noexcept;
 
+    void print_statistics() const noexcept;
+
+    bool compare_result(const color_t* result) const noexcept;
 private:
-    using color_t = vid_t;
     const color_t NO_COLOR = std::numeric_limits<color_t>::max();
 
     const GraphStd<vid_t, eoff_t>& _graph;

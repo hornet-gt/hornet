@@ -1,13 +1,9 @@
 var searchData=
 [
-  ['basic_2ecuh',['Basic.cuh',['../Basic_8cuh.html',1,'']]],
-  ['basic_2ehpp',['Basic.hpp',['../Basic_8hpp.html',1,'']]],
-  ['batchfunctions_2ehpp',['BatchFunctions.hpp',['../BatchFunctions_8hpp.html',1,'']]],
-  ['bfs_2ehpp',['BFS.hpp',['../BFS_8hpp.html',1,'']]],
-  ['binarysearch_2ecuh',['BinarySearch.cuh',['../BinarySearch_8cuh.html',1,'']]],
-  ['binarysearchkernel_2ecuh',['BinarySearchKernel.cuh',['../BinarySearchKernel_8cuh.html',1,'']]],
-  ['binarysearchlb_2ecuh',['BinarySearchLB.cuh',['../BinarySearchLB_8cuh.html',1,'']]],
-  ['bitmask_2ehpp',['Bitmask.hpp',['../Bitmask_8hpp.html',1,'']]],
-  ['bitref_2ehpp',['BitRef.hpp',['../BitRef_8hpp.html',1,'']]],
-  ['bittree_2ehpp',['BitTree.hpp',['../BitTree_8hpp.html',1,'']]]
+  ['cc_2b_2b_2ecuh',['CC++.cuh',['../CC_09_09_8cuh.html',1,'']]],
+  ['commandlineparam_2ehpp',['CommandLineParam.hpp',['../CommandLineParam_8hpp.html',1,'']]],
+  ['csr_2ehpp',['Csr.hpp',['../Csr_8hpp.html',1,'']]],
+  ['csrtypes_2ecuh',['CsrTypes.cuh',['../CsrTypes_8cuh.html',1,'']]],
+  ['custingeralg_2ecuh',['cuStingerAlg.cuh',['../cuStingerAlg_8cuh.html',1,'']]],
+  ['custingeralg_2ehpp',['cuStingerAlg.hpp',['../cuStingerAlg_8hpp.html',1,'']]]
 ];

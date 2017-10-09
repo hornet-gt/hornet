@@ -6,7 +6,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,9 @@ private:
     const double _float_chunk;
     const size_t _total;
     size_t       _next_chunk;
-    int          _to_print;
+    int          _to_print   { 1 };
+    mutable bool _first      { true };
+
 };
 
 #if defined(__linux__)
@@ -69,21 +71,27 @@ public:
     void read(T* data, size_t size, Ts... args);
 
     template<typename T, typename... Ts>
+    void read_noprint(T* data, size_t size, Ts... args);
+
+    template<typename T, typename... Ts>
     void write(const T* data, size_t size, Ts... args);
 
-private:
-    template<typename = void, typename... Ts>
-    void read() const noexcept;
+    template<typename T, typename... Ts>
+    void write_noprint(const T* data, size_t size, Ts... args);
 
-    template<typename = void, typename... Ts>
+private:
+    void read() const noexcept;
+    void read_noprint() const noexcept;
+
     void write() const noexcept;
+    void write_noprint() const noexcept;
 
     Progress _progress;
     char*    _mmap_ptr   { nullptr };
     size_t   _partial    { 0 };
-    size_t   _file_size;
+    size_t   _file_size  { 0 };
     int      _fd         { 0 };
-    bool     _print;
+    bool     _print      { false };
 };
 
 #endif

@@ -5,7 +5,7 @@
  * @date April, 2017
  * @version v2
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -108,6 +108,17 @@ private:
 
     __device__ __forceinline__
     void store_ballot();
+};
+
+class DeviceQueueOffset {
+public:
+    __device__ __forceinline__
+    DeviceQueueOffset(int* __restrict__ size_ptr);
+
+    __device__ __forceinline__
+    int offset();
+private:
+    int* _size_ptr;
 };
 
 } // namespace xlib

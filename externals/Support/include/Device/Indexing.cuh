@@ -6,7 +6,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@ struct ThreadToWarpIndexing {
     __device__ __forceinline__ static
     void run(T (&reg)[ITEMS_PER_THREAD], void* smem_thread, void* smem_warp) {
         #pragma unroll
-         for (int i = 0; i < ITEMS_PER_THREAD; i++)
+        for (int i = 0; i < ITEMS_PER_THREAD; i++)
             static_cast<T*>(smem_thread)[i] = reg[i];
         #pragma unroll
         for (int i = 0; i < ITEMS_PER_THREAD; i++)
@@ -158,8 +158,7 @@ threadToWarpIndexing(T (&reg1)[ITEMS_PER_THREAD],
 
     const unsigned    SMEM_ITEMS = ITEMS_PER_THREAD;
     const unsigned SIZE_PER_WARP = xlib::WARP_SIZE * SMEM_ITEMS;
-    T*       smemT = static_cast<T*>(smem) +
-                     xlib::warp_id() * SIZE_PER_WARP;
+    T*       smemT = static_cast<T*>(smem) + xlib::warp_id() * SIZE_PER_WARP;
     T* smem_thread = smemT + xlib::lane_id() * SMEM_ITEMS;
     T*   smem_warp = smemT + xlib::lane_id();
 

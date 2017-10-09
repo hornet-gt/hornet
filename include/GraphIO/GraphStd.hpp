@@ -5,7 +5,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -49,12 +49,16 @@ class BFS;
 template<typename vid_t, typename eoff_t>
 class WCC;
 
+template<typename vid_t, typename eoff_t>
+class SCC;
+
 template<typename vid_t = int, typename eoff_t = int>
 class GraphStd : public GraphBase<vid_t, eoff_t> {
     using    coo_t = typename std::pair<vid_t, vid_t>;
     using degree_t = int;
     friend class BFS<vid_t, eoff_t>;
     friend class WCC<vid_t, eoff_t>;
+    friend class SCC<vid_t, eoff_t>;
 
 public:
     class Edge;
@@ -194,7 +198,7 @@ public:
 
     explicit GraphStd(const char* filename,
                       const ParsingProp& property
-                        = ParsingProp(parsing_prop::PRINT)) noexcept;
+                        = ParsingProp(parsing_prop::PRINT_INFO)) noexcept;
 
     explicit GraphStd(StructureProp structure, const char* filename,
                       const ParsingProp& property) noexcept;
@@ -224,11 +228,16 @@ public:
     vid_t     max_in_degree_id()  const noexcept;
 
     bool      is_directed()       const noexcept;
+    bool      is_undirected()     const noexcept;
 
     void print()     const noexcept override;
     void print_raw() const noexcept override;
+    void print_degree_distrib()  const noexcept;
+    void print_degree_analysis() const noexcept;
     void writeBinary(const std::string& filename, bool print = true) const;
-    void writeMarket(const std::string& filename) const;
+    void writeMarket(const std::string& filename, bool print = true) const;
+    void writeDimacs10th(const std::string& filename, bool print = true)
+                         const;
 
     using GraphBase<vid_t, eoff_t>::set_structure;
 protected:
@@ -260,6 +269,7 @@ protected:
     void readSnap    (std::ifstream& fin, bool print)   override;
     void readKonect  (std::ifstream& fin, bool print)   override;
     void readNetRepo (std::ifstream& fin)               override;
+    void readMPG     (std::ifstream&, bool)             override;
     void readBinary  (const char* filename, bool print) override;
 
     void COOtoCSR() noexcept override;

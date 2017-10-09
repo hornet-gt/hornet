@@ -1,12 +1,9 @@
 var searchData=
 [
-  ['warp_5fbase',['warp_base',['../namespacexlib.html#a7e4c7cb9d1699f8ebcf8dc1182980917',1,'xlib']]],
-  ['warp_5fid',['warp_id',['../namespacexlib.html#ababac4d60ba29f7438d5a472e877279e',1,'xlib']]],
-  ['warpexclusivescan',['WarpExclusiveScan',['../structxlib_1_1WarpExclusiveScan.html',1,'xlib']]],
-  ['warpinclusivescan',['WarpInclusiveScan',['../structxlib_1_1WarpInclusiveScan.html',1,'xlib']]],
-  ['warpscan_2ecuh',['WarpScan.cuh',['../WarpScan_8cuh.html',1,'']]],
-  ['wcc',['WCC',['../classgraph_1_1WCC.html',1,'graph']]],
-  ['wcc_2ehpp',['WCC.hpp',['../WCC_8hpp.html',1,'']]],
-  ['weight',['weight',['../classcustinger_1_1Edge.html#a4dbfee48f481ee5cf6f246758dffd2bc',1,'custinger::Edge']]],
-  ['weightedrandomgenerator',['WeightedRandomGenerator',['../classxlib_1_1WeightedRandomGenerator.html',1,'xlib']]]
+  ['_7ebinarysearch',['~BinarySearch',['../classload__balacing_1_1BinarySearch.html#ad8bb29f7cc74d6e6c86cc5699b750b27',1,'load_balacing::BinarySearch']]],
+  ['_7ebittree',['~BitTree',['../classhornet_1_1BitTree_3_01block__t_00_01offset__t_00_01true_01_4.html#a1a0ae0b7c879ab2106fb363aa6033c16',1,'hornet::BitTree&lt; block_t, offset_t, true &gt;']]],
+  ['_7ehornet',['~Hornet',['../classhornet_1_1gpu_1_1Hornet_3_01TypeList_3_01VertexTypes_8_8_8_01_4_00_01TypeList_3_01EdgeTypes_8_8_8_01_4_01_4.html#ad8d4b96a0e31d20224b59c3787430304',1,'hornet::gpu::Hornet&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;::~Hornet()'],['../classhornet_1_1csr_1_1Hornet_3_01TypeList_3_01VertexTypes_8_8_8_01_4_00_01TypeList_3_01EdgeTypes_8_8_8_01_4_01_4.html#ad8d4b96a0e31d20224b59c3787430304',1,'hornet::csr::Hornet&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;::~Hornet()'],['../classhornet_1_1mc_1_1Hornet_3_01TypeList_3_01VertexTypes_8_8_8_01_4_00_01TypeList_3_01EdgeTypes_8_8_8_01_4_01_4.html#ad8d4b96a0e31d20224b59c3787430304',1,'hornet::mc::Hornet&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;::~Hornet()']]],
+  ['_7emultilevelqueue',['~MultiLevelQueue',['../classcustinger__alg_1_1MultiLevelQueue.html#a7b0ddbc1d92699207c96fcf189527cb5',1,'custinger_alg::MultiLevelQueue']]],
+  ['_7estaticalgorithm',['~StaticAlgorithm',['../classcustinger__alg_1_1StaticAlgorithm.html#a6f56998ee9dff1c127271772250cef20',1,'custinger_alg::StaticAlgorithm']]],
+  ['_7etwolevelqueue',['~TwoLevelQueue',['../classcustinger__alg_1_1TwoLevelQueue.html#aa034de1d0fd1d0f0eb264a0caaba9698',1,'custinger_alg::TwoLevelQueue']]]
 ];

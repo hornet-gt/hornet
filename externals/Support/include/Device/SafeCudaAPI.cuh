@@ -26,7 +26,7 @@
  *       \endcode
  *   - much **less verbose**
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -69,55 +69,62 @@
 
 ///@cond
 #define cuMalloc(...)                                                          \
-    xlib::detail::cuMallocAux(__FILE__, __LINE__, __func__, __VA_ARGS__)        \
+    xlib::detail::cuMallocAux(__FILE__, __LINE__, __func__, __VA_ARGS__)       \
 
 #define cuMallocHost(...)                                                      \
-    xlib::detail::cuMallocHostAux(__FILE__, __LINE__, __func__, __VA_ARGS__)    \
+    xlib::detail::cuMallocHostAux(__FILE__, __LINE__, __func__, __VA_ARGS__)   \
 
 #define cuFree(...)                                                            \
-    xlib::detail::cuFreeAux(__FILE__, __LINE__, __func__, __VA_ARGS__)          \
+    xlib::detail::cuFreeAux(__FILE__, __LINE__, __func__, __VA_ARGS__)         \
+
+#define cuFreeHost(...)                                                        \
+    xlib::detail::cuFreeHostAux(__FILE__, __LINE__, __func__, __VA_ARGS__)     \
+
 //------------------------------------------------------------------------------
 
 #define cuMemcpyDeviceToDevice(...)                                            \
-    xlib::detail::cuMemcpyDeviceToDeviceAux(__FILE__, __LINE__,__func__,        \
+    xlib::detail::cuMemcpyDeviceToDeviceAux(__FILE__, __LINE__,__func__,       \
                                             __VA_ARGS__)                       \
 
 #define cuMemcpyToDevice(...)                                                  \
-    xlib::detail::cuMemcpyToDeviceAux(__FILE__, __LINE__,__func__, __VA_ARGS__) \
+    xlib::detail::cuMemcpyToDeviceAux(__FILE__, __LINE__,__func__, __VA_ARGS__)\
 
 #define cuMemcpyToDeviceAsync(...)                                             \
-    xlib::detail::cuMemcpyToDeviceAsyncAux(__FILE__,  __LINE__, __func__,       \
+    xlib::detail::cuMemcpyToDeviceAsyncAux(__FILE__,  __LINE__, __func__,      \
                                            __VA_ARGS__)                        \
 
 #define cuMemcpyToHost(...)                                                    \
-    xlib::detail::cuMemcpyToHostAux(__FILE__, __LINE__, __func__, __VA_ARGS__)  \
+    xlib::detail::cuMemcpyToHostAux(__FILE__, __LINE__, __func__, __VA_ARGS__) \
 
 #define cuMemcpyToHostAsync(...)                                               \
-    xlib::detail::cuMemcpyToHostAsyncAux(__FILE__, __LINE__, __func__,          \
+    xlib::detail::cuMemcpyToHostAsyncAux(__FILE__, __LINE__, __func__,         \
                                          __VA_ARGS__)                          \
 //------------------------------------------------------------------------------
 
 #define cuMemcpyToSymbol(...)                                                  \
-    xlib::detail::cuMemcpyToSymbolAux(__FILE__, __LINE__,__func__, __VA_ARGS__) \
+    xlib::detail::cuMemcpyToSymbolAux(__FILE__, __LINE__,__func__, __VA_ARGS__)\
 
 #define cuMemcpyToSymbolAsync(...)                                             \
-    xlib::detail::cuMemcpyToSymbolAsyncAux(__FILE__, __LINE__,__func__,         \
+    xlib::detail::cuMemcpyToSymbolAsyncAux(__FILE__, __LINE__,__func__,        \
                                            __VA_ARGS__)                        \
 
 #define cuMemcpyFromSymbol(...)                                                \
-    xlib::detail::cuMemcpyFromSymbolAux(__FILE__, __LINE__,__func__,            \
+    xlib::detail::cuMemcpyFromSymbolAux(__FILE__, __LINE__,__func__,           \
                                         __VA_ARGS__)                           \
 
 #define cuMemcpyFromSymbolAsync(...)                                           \
-    xlib::detail::cuMemcpyFromSymbolAsyncAux(__FILE__, __LINE__,__func__,       \
+    xlib::detail::cuMemcpyFromSymbolAsyncAux(__FILE__, __LINE__,__func__,      \
                                              __VA_ARGS__)                      \
 //------------------------------------------------------------------------------
 
 #define cuMemset0x00(...)                                                      \
-    xlib::detail::cuMemset0x00Aux(__FILE__, __LINE__, __func__, __VA_ARGS__)    \
+    xlib::detail::cuMemset0x00Aux(__FILE__, __LINE__, __func__, __VA_ARGS__)   \
 
 #define cuMemset0xFF(...)                                                      \
-    xlib::detail::cuMemset0xFFAux(__FILE__, __LINE__, __func__, __VA_ARGS__)    \
+    xlib::detail::cuMemset0xFFAux(__FILE__, __LINE__, __func__, __VA_ARGS__)   \
+
+#define cuMemset(...)                                                          \
+    xlib::detail::cuMemsetAux(__FILE__, __LINE__, __func__, __VA_ARGS__)       \
 
 //==============================================================================
 //==============================================================================
@@ -193,17 +200,25 @@ void cuFreeAux(const char* file, int line, const char* func_name,
     xlib::__cudaErrorHandler(cudaFree(ptr1), "cudaFree", file, line, func_name);
     cuFreeAux(file, line, func_name, ptrs...);
 }
-/*
-template<typename... TArgs>
-void cuFreeAux(const char* file, int line, const char* func_name,
-                      TArgs*... ptrs) {
-    std::array<const void*, sizeof...(ptrs)> array =
-                                   {{ reinterpret_cast<const void*>(ptrs)... }};
-    for (const auto& it : array) {
-        xlib::__cudaErrorHandler(cudaFree(it), "cudaFree",
-                                 file, line, func_name);
-    }
-}*/
+
+template<typename T>
+void cuFreeHostAux(const char* file, int line, const char* func_name, T* ptr) {
+    using   R = typename std::remove_cv<T>::type;
+    auto ptr1 = const_cast<R*>(ptr);
+    xlib::__cudaErrorHandler(cudaFreeHost(ptr1), "cudaFreeHost", file, line,
+                             func_name);
+}
+
+template<typename T, typename... TArgs>
+void cuFreeHostAux(const char* file, int line, const char* func_name,
+                   T* ptr, TArgs*... ptrs) {
+    using   R = typename std::remove_cv<T>::type;
+    auto ptr1 = const_cast<R*>(ptr);
+    xlib::__cudaErrorHandler(cudaFreeHost(ptr1), "cudaFreeHost", file, line,
+                             func_name);
+    cuFreeHostAux(file, line, func_name, ptrs...);
+}
+
 //------------------------------------------------------------------------------
 
 template<typename T>
@@ -229,9 +244,24 @@ void cuMemset0xFFAux(const char* file, int line, const char* func_name,
 }
 
 template<typename T>
-void cuMemset0xFFAux(const char* file, int line, const char* func_name,T& ref) {
+void cuMemset0xFFAux(const char* file, int line, const char* func_name, T& ref){
     xlib::__cudaErrorHandler(cudaMemset(ref, 0xFF, sizeof(T)),
                              "cudaMemset(0xFF)", file, line, func_name);
+}
+
+template<typename T>
+void cuMemsetAux(const char* file, int line, const char* func_name,
+                 T* ptr, size_t num_items, unsigned char mask) {
+    assert(num_items > 0 && ptr != nullptr);
+    xlib::__cudaErrorHandler(cudaMemset(ptr, mask, num_items * sizeof(T)),
+                             "cudaMemset(0x00)", file, line, func_name);
+}
+
+template<typename T>
+void cuMemsetAux(const char* file, int line, const char* func_name, T& ref,
+                 unsigned char mask) {
+    xlib::__cudaErrorHandler(cudaMemset(ref, mask, sizeof(T)),
+                             "cudaMemset(0x00)", file, line, func_name);
 }
 //==============================================================================
 ////////////////////////

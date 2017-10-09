@@ -6,7 +6,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -61,12 +61,15 @@ namespace xlib {
  *  Provide the thread ID within the current warp (called lane).
  *  \return identification ID in the range 0 &le; ID &le; 31
  */
-__device__ __forceinline__ unsigned lane_id();
+template<unsigned WARP_SZ = 32>
+__device__ __forceinline__
+unsigned lane_id();
 
 /**
  *  @brief terminate the current thread
  */
-__device__ __forceinline__ void thread_exit();
+__device__ __forceinline__
+void thread_exit();
 
 // --------------------------------- MATH --------------------------------------
 
@@ -99,7 +102,7 @@ unsigned int IADD3(unsigned int x, unsigned int y, unsigned int z);
 
 template<typename T>
 __device__ __forceinline__
-typename std::enable_if<sizeof(T) != 8, unsigned>::type
+typename std::enable_if<sizeof(T) <= 4, unsigned>::type
 __msb(T word);
 
 template<typename T>
@@ -200,35 +203,40 @@ private:
  *         lane number in the warp
  *  \return 1 << laneid
  */
-__device__ __forceinline__ unsigned LaneMaskEQ();
+__device__ __forceinline__
+unsigned lanemask_eq();
 
 /** @fn unsigned int LaneMaskLT()
  *  @brief 32-bit mask with bits set in positions less than the thread's lane
  *         number in the warp
  *  \return (1 << laneid) - 1
  */
-__device__ __forceinline__ unsigned LaneMaskLT();
+__device__ __forceinline__
+unsigned lanemask_lt();
 
 /** @fn unsigned int LaneMaskLE()
  *  @brief 32-bit mask with bits set in positions less than or equal to the
  *         thread's lane number in the warp
  *  \return (1 << (laneid + 1)) - 1
  */
-__device__ __forceinline__ unsigned LaneMaskLE();
+__device__ __forceinline__
+unsigned lanemask_le();
 
 /** @fn unsigned int LaneMaskGT()
  *  @brief 32-bit mask with bit set in position equal to the thread's
  *         lane number in the warp
  *  \return ~((1 << (laneid + 1)) - 1)
  */
-__device__ __forceinline__ unsigned LaneMaskGT();
+__device__ __forceinline__
+unsigned lanemask_gt();
 
 /** @fn unsigned int LaneMaskGE()
  *  @brief 32-bit mask with bits set in positions greater than or equal to the
  *         thread's lane number in the warp
  *  \return ~((1 << laneid) - 1)
  */
-__device__ __forceinline__ unsigned LaneMaskGE();
+__device__ __forceinline__
+unsigned lanemask_ge();
 
 } // namespace xlib
 

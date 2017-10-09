@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['log2',['Log2',['../structxlib_1_1Log2.html',1,'xlib']]],
-  ['log2ull',['Log2Ull',['../structxlib_1_1Log2Ull.html',1,'xlib']]],
-  ['lowerapprox',['LowerApprox',['../structxlib_1_1LowerApprox.html',1,'xlib']]],
-  ['lowerapproxull',['LowerApproxUll',['../structxlib_1_1LowerApproxUll.html',1,'xlib']]]
+  ['memorymanager',['MemoryManager',['../classhornet_1_1MemoryManager.html',1,'hornet']]],
+  ['memorymanager_3c_20edge_5ft_2c_20vid_5ft_2c_20false_20_3e',['MemoryManager&lt; edge_t, vid_t, false &gt;',['../classhornet_1_1MemoryManager.html',1,'hornet']]],
+  ['memorymanager_3c_20edgealloct_2c_20vid_5ft_2c_20true_20_3e',['MemoryManager&lt; EdgeAllocT, vid_t, true &gt;',['../classhornet_1_1MemoryManager.html',1,'hornet']]],
+  ['multilevelqueue',['MultiLevelQueue',['../classcustinger__alg_1_1MultiLevelQueue.html',1,'custinger_alg']]]
 ];

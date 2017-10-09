@@ -5,7 +5,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -45,9 +45,17 @@ bool equal(HostIterator host_start, HostIterator host_end,
     auto size = std::distance(host_start, host_end);
     R* array = new R[size];
     cuMemcpyToHost(&(*device_start), size, array);
-    CHECK_CUDA_ERROR
 
     bool flag = std::equal(host_start, host_end, array);
+    if (!flag) {
+        for (int i = 0; i < size; i++) {
+            if (host_start[i] != array[i]) {
+                std::cout << host_start[i] << "  " << array[i] << "  at "
+                          << i << std::endl;
+                break;
+            }
+        }
+    }
     delete[] array;
     return flag;
 }
@@ -59,7 +67,6 @@ bool equal_sorted(HostIterator host_start, HostIterator host_end,
     auto size = std::distance(host_start, host_end);
     R* array = new R[size];
     cuMemcpyToHost(&(*device_start), size, array);
-    CHECK_CUDA_ERROR
 
     bool flag = xlib::equal_sorted(host_start, host_end, array, array + size);
     delete[] array;

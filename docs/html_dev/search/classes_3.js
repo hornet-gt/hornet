@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['deviceproperty',['deviceProperty',['../classxlib_1_1deviceProperty.html',1,'xlib']]]
+  ['dijkstra',['Dijkstra',['../classgraph_1_1Dijkstra.html',1,'graph']]]
 ];

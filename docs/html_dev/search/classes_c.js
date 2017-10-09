@@ -1,12 +1,8 @@
 var searchData=
 [
-  ['queue',['Queue',['../classxlib_1_1Queue.html',1,'xlib']]],
-  ['queue_3c_20t_2c_20queuepolicy_3a_3afifo_20_3e',['Queue&lt; T, QueuePolicy::FIFO &gt;',['../classxlib_1_1Queue_3_01T_00_01QueuePolicy_1_1FIFO_01_4.html',1,'xlib']]],
-  ['queue_3c_20t_2c_20queuepolicy_3a_3alifo_20_3e',['Queue&lt; T, QueuePolicy::LIFO &gt;',['../classxlib_1_1Queue_3_01T_00_01QueuePolicy_1_1LIFO_01_4.html',1,'xlib']]],
-  ['queue_3c_20vid_5ft_20_3e',['Queue&lt; vid_t &gt;',['../classxlib_1_1Queue.html',1,'xlib']]],
-  ['queuebase',['QueueBase',['../classxlib_1_1detail_1_1QueueBase.html',1,'xlib::detail']]],
-  ['queuestack',['QueueStack',['../classxlib_1_1QueueStack.html',1,'xlib']]],
-  ['queuestack_3c_20t_2c_20size_2c_20queuepolicy_3a_3afifo_20_3e',['QueueStack&lt; T, SIZE, QueuePolicy::FIFO &gt;',['../classxlib_1_1QueueStack_3_01T_00_01SIZE_00_01QueuePolicy_1_1FIFO_01_4.html',1,'xlib']]],
-  ['queuestack_3c_20t_2c_20size_2c_20queuepolicy_3a_3alifo_20_3e',['QueueStack&lt; T, SIZE, QueuePolicy::LIFO &gt;',['../classxlib_1_1QueueStack_3_01T_00_01SIZE_00_01QueuePolicy_1_1LIFO_01_4.html',1,'xlib']]],
-  ['queuestackbase',['QueueStackBase',['../classxlib_1_1detail_1_1QueueStackBase.html',1,'xlib::detail']]]
+  ['vertex',['Vertex',['../classhornet_1_1csr_1_1Vertex.html',1,'Vertex&lt; typename, typename &gt;'],['../classhornet_1_1gpu_1_1Vertex.html',1,'Vertex&lt; typename, typename &gt;'],['../classgraph_1_1GraphStd_1_1Vertex.html',1,'GraphStd&lt; vid_t, eoff_t &gt;::Vertex']]],
+  ['vertex_3c_20typelist_3c_20vertextypes_2e_2e_2e_20_3e_2c_20typelist_3c_20edgetypes_2e_2e_2e_20_3e_20_3e',['Vertex&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;',['../classhornet_1_1csr_1_1Vertex_3_01TypeList_3_01VertexTypes_8_8_8_01_4_00_01TypeList_3_01EdgeTypes_8_8_8_01_4_01_4.html',1,'Vertex&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;'],['../classhornet_1_1gpu_1_1Vertex_3_01TypeList_3_01VertexTypes_8_8_8_01_4_00_01TypeList_3_01EdgeTypes_8_8_8_01_4_01_4.html',1,'Vertex&lt; TypeList&lt; VertexTypes... &gt;, TypeList&lt; EdgeTypes... &gt; &gt;']]],
+  ['vertexbased',['VertexBased',['../classload__balacing_1_1VertexBased.html',1,'load_balacing']]],
+  ['vertexit',['VertexIt',['../classgraph_1_1GraphStd_1_1VertexIt.html',1,'graph::GraphStd']]],
+  ['verticescontainer',['VerticesContainer',['../classgraph_1_1GraphStd_1_1VerticesContainer.html',1,'graph::GraphStd']]]
 ];

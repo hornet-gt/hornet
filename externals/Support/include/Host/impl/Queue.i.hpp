@@ -5,7 +5,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -127,9 +127,6 @@ void QueueBase<T>::print() const noexcept {
 //==============================================================================
 
 template<typename T>
-inline Queue<T, QueuePolicy::FIFO>::Queue() noexcept : detail::QueueBase<T>() {}
-
-template<typename T>
 inline Queue<T, QueuePolicy::FIFO>::Queue(size_t size) noexcept :
                         detail::QueueBase<T>(size) {}
 
@@ -158,9 +155,6 @@ inline size_t Queue<T, QueuePolicy::FIFO>::getTotalEnqueueItems()
 }
 
 //------------------------------------------------------------------------------
-
-template<typename T>
-inline Queue<T, QueuePolicy::LIFO>::Queue() noexcept : detail::QueueBase<T>() {}
 
 template<typename T>
 inline Queue<T, QueuePolicy::LIFO>::Queue(size_t size) noexcept :

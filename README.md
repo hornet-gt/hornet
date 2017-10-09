@@ -95,6 +95,9 @@ IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September, 2016
 * Oded Green, James Fox, Euna Kim, Federico Busato, Nicola Bombieri,
   Kartik Lakhotia, Shijie Zhou, Shreyas Singapura, Hanqing Zeng,
   Rajgopal Kannan, Viktor Prasanna, David A. Bader, **"Quickly Finding a Truss in a Haystack"**, IEEE/Amazon/DARPA Graph Challenge, \**Innovation Awards*\*
+* Devavret Makkar, David A. Bader, Oded Green [*"Exact and Parallel Triangle Counting in Dynamic Graphs"*]
+IEEE International Conference on High Performance Computing, Data, and Analytics (HiPC), 18-21 December, 2017, Jaipur, India.
+
 
 ---
 ### <center>If you find this software useful in academic work, please acknowledge cuStinger. </center> ###
@@ -112,6 +115,7 @@ IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September, 2016
 * `Federico Busato`, Ph.D. Student, University of Verona (Italy)
 * `Oded Green`, Researcher, Georgia Institute of Technology
 * `James Fox`, Ph.D. Student, Georgia Institute of Technology : *Maximal Independent Set*, *Temporal Motif Finding*
+* `Euna Kim`, Ph.D. Student, Georgia Institute of Technology : *Static and Dynamic Page Rank*
 * `Devavret Makkar`, Ph.D. Student, Georgia Institute of Technology : *Triangle Counting*
 * `Elisabetta Bergamini`, Ph.D. Student, Karlsruhe Institute of Technology (Germany) : *Katz Centrality*
 * ...

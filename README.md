@@ -155,7 +155,7 @@ We are also ready to engage in improving and extending the framework if you requ
   **"Quickly Finding a Truss in a Haystack"**,
   IEEE/Amazon/DARPA Graph Challenge, \**Innovation Awards*\*.
 * Devavret Makkar, David A. Bader, Oded Green,
-  **Exact and Parallel Triangle Counting in Dynamic Graphs**,
+  **Exact and Parallel Triangle Counting in Streaming Graphs**,
   IEEE Conference on High Performance Computing, Data, and Analytics (HiPC),
   18-21 December 2017, Jaipur, India, pp. 1-10.
 

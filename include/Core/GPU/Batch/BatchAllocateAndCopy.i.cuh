@@ -73,7 +73,7 @@ void HORNET::allocateEdgeInsertion(size_t max_batch_size,
     if (_batch_prop == batch_property::IN_PLACE)
         allocateInPlaceUpdate(csr_size);
     else
-        ERROR("Edge Batch deletion OUT-OF-PLACE not implemented")
+        ERROR("Edge Batch insertion OUT-OF-PLACE not implemented")
 
     if (_batch_prop == batch_property::REMOVE_BATCH_DUPLICATE || _is_sorted)
         cub_sort_pair.initialize(max_batch_size, false);

@@ -228,7 +228,7 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
     if (_prop.is_print())
         std::cout << "COO to CSR...\t" << std::flush;
 
-    if (_structure.is_reverse()) {
+    if (_structure.is_reverse() && _structure.is_directed()) {
         for (eoff_t i = 0; i < _nE; i++) {
             _out_degrees[_coo_edges[i].first]++;
             _in_degrees[ _coo_edges[i].second]++;

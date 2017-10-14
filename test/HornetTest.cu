@@ -30,7 +30,7 @@ void exec(int argc, char* argv[]) {
     using namespace graph::parsing_prop;
     xlib::device_info();
 
-    graph::GraphStd<vid_t, eoff_t> graph(REVERSE);
+    graph::GraphStd<vid_t, eoff_t> graph;
     graph.read(argv[1]);
     //graph.print();
     //if (param.binary)
@@ -47,7 +47,7 @@ void exec(int argc, char* argv[]) {
 
     HornetGPU hornet_gpu(hornet_init);
     //hornet_gpu.mem_manager_info();
-    hornet_gpu.print();
+    //hornet_gpu.print();
     //return;
     //hornet_gpu.check_sorted_adjs();
     std::cout << "------------------------------------------------" <<std::endl;
@@ -70,16 +70,16 @@ void exec(int argc, char* argv[]) {
         std::cout << "------------------------------------------------" <<std::endl;
 
         using namespace hornet::gpu::batch_property;
-        //hornet_gpu.allocateEdgeInsertion(batch_size,
-        //                                 IN_PLACE | REMOVE_CROSS_DUPLICATE);
-        hornet_gpu.allocateEdgeDeletion(batch_size,
+        hornet_gpu.allocateEdgeInsertion(batch_size,
                                          IN_PLACE | REMOVE_CROSS_DUPLICATE);
+        //hornet_gpu.allocateEdgeDeletion(batch_size,
+        //                                 IN_PLACE | REMOVE_CROSS_DUPLICATE);
 
         cudaProfilerStart();
         Timer<DEVICE> TM(3);
         TM.start();
 
-        //hornet_gpu.insertEdgeBatch(batch_update);
+        hornet_gpu.insertEdgeBatch(batch_update);
         //hornet_gpu.deleteEdgeBatch(batch_update);
 
         TM.stop();

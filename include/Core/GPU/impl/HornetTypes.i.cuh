@@ -112,6 +112,15 @@ vid_t* VERTEX::neighbor_ptr() const {
 }
 
 template<typename... VertexTypes, typename... EdgeTypes>
+template<typename T>
+__device__ __forceinline__
+VERTEX::WeightT* VERTEX::edge_weight_ptr() const {
+    static_assert(sizeof(T) == sizeof(T) && NUM_ETYPES > 1,
+                      "edge weight is not part of edge type list");
+    return static_cast<WeightT*>(neighbor_ptr() + PITCH<EdgeTypes...>);
+}
+
+template<typename... VertexTypes, typename... EdgeTypes>
 template<int INDEX>
 __device__ __forceinline__
 typename xlib::SelectType<INDEX, VertexTypes...>::type

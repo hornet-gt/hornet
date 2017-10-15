@@ -64,7 +64,7 @@ class Vertex<TypeList<VertexTypes...>, TypeList<EdgeTypes...>> :
 
     using   EdgesLayout = BestLayoutDevPitch<PITCH<EdgeTypes...>,
                                              vid_t, EdgeTypes...>;
-    using edgeit_t = typename HornetDeviceT::edgeit_t;
+    using      edgeit_t = typename HornetDeviceT::edgeit_t;
 public:
     /**
      * @brief id of the vertex
@@ -115,6 +115,10 @@ public:
 
     __device__ __forceinline__
     vid_t* neighbor_ptr() const;
+
+    template<typename = EnableT>
+    __device__ __forceinline__
+    WeightT* edge_weight_ptr() const;
 
     __device__ __forceinline__
     vid_t neighbor_id(degree_t index) const;

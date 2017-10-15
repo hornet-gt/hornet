@@ -44,9 +44,10 @@ namespace hornet {
 namespace gpu {
 
 namespace detail {
-    enum class BatchPropEnum { GEN_INVERSE = 1, IN_PLACE = 2, CSR = 4,
-                               CSR_WIDE = 8, REMOVE_BATCH_DUPLICATE = 16,
-                               REMOVE_CROSS_DUPLICATE = 32 };
+    enum class BatchPropEnum { GEN_INVERSE = 1, IN_PLACE = 2, OUT_OF_PLACE = 4,
+                               CSR = 8, CSR_WIDE = 16,
+                               REMOVE_BATCH_DUPLICATE = 32,
+                               REMOVE_CROSS_DUPLICATE = 64 };
 } // namespace detail
 
 class BatchProperty : public xlib::PropertyClass<detail::BatchPropEnum,
@@ -74,11 +75,14 @@ namespace batch_property {
     ///@brief Low memory (less performance) insertion and deletion
     const BatchProperty IN_PLACE    (detail::BatchPropEnum::IN_PLACE);
 
+    ///@brief Low memory (less performance) insertion and deletion
+    const BatchProperty OUT_OF_PLACE (detail::BatchPropEnum::OUT_OF_PLACE);
+
     ///@brief Generate 'Wide' CSR representation of the batch.
     ///The size of CSR offsets is graph.nV
     const BatchProperty CSR_WIDE    (detail::BatchPropEnum::CSR_WIDE);
 
-    const BatchProperty CSR    (detail::BatchPropEnum::CSR);
+    const BatchProperty CSR         (detail::BatchPropEnum::CSR);
 
     ///@brief Remove duplicate edges in the batch
     const BatchProperty REMOVE_BATCH_DUPLICATE
@@ -133,6 +137,9 @@ public:
 
     __device__ __forceinline__
     int csr_wide_offsets(vid_t vertex_id) const;
+
+    __device__ __forceinline__
+    const eoff_t* csr_wide_offsets_ptr() const;
 
 private:
     BatchType _batch_type    { BatchType::HOST };

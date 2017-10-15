@@ -145,6 +145,12 @@ int BatchUpdate::csr_wide_offsets(vid_t vertex_id) const {
     return _d_wide_offsets[vertex_id];
 }
 
+__device__ __forceinline__
+const eoff_t* BatchUpdate::csr_wide_offsets_ptr() const {
+    assert(_d_inverse_pos != nullptr);
+    return _d_wide_offsets;
+}
+
 inline void BatchUpdate::change_size(int d_batch_size) noexcept {
     _batch_size  = d_batch_size;
 }

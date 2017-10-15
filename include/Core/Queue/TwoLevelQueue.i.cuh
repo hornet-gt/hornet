@@ -76,7 +76,7 @@ TwoLevelQueue<T>::~TwoLevelQueue() noexcept {
 
 template<typename T>
 template<typename HornetClass>
-void TwoLevelQueue<T>::initilize(const HornetClass& custinger,
+void TwoLevelQueue<T>::initialize(const HornetClass& hornet,
                                  const float work_factors) noexcept {
     static_assert(hornet::IsHornet<HornetClass>::value,
                  "TwoLevelQueue paramenter is not an instance of Hornet Class");

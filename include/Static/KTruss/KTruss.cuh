@@ -1,14 +1,20 @@
 #pragma once
 
-#include "cuStingerAlg.hpp"
+#include "HornetAlg.hpp"
+#include "Core/HostDeviceVar.cuh"
+#include "Core/LoadBalancing/VertexBased.cuh"
+#include "Core/LoadBalancing/ScanBased.cuh"
+#include "Core/LoadBalancing/BinarySearch.cuh"
+#include <Core/GPUCsr/Csr.cuh>
+#include <Core/GPU/Hornet.cuh>
 
 using triangle_t = int;
+using  HornetGPU = gpu::Hornet<EMPTY, TypeList<triangle_t>>;
 
-namespace custinger_alg {
+namespace hornet_alg {
 
 struct KTrussData {
-    KTrussData(const custinger::Hornet& custinger) : activeQueue(custinger){}
-    int maxK;
+    int max_K;
 
     int tsp;
     int nbl;
@@ -16,31 +22,31 @@ struct KTrussData {
     int blocks;
     int sps;
 
-    int* isActive;
-    int* offsetArray;
-    int* trianglePerEdge;
-    int* trianglePerVertex;
+    int* is_active;
+    int* offset_array;
+    int* triangles_per_edge;
+    int* triangles_per_vertex;
 
     vid_t* src;
     vid_t* dst;
     int    counter;
-    int    activeVertices;
+    int    active_vertices;
 
-    TwoLevelQueue<vid_t> activeQueue; // Stores all the active vertices
+    TwoLevelQueue<vid_t> active_queue; // Stores all the active vertices
 
-    int fullTriangleIterations;
+    int full_triangle_iterations;
 
     vid_t nv;
-    off_t ne;           // undirected-edges
-    off_t ne_remaining; // undirected-edges
+    off_t ne;                  // undirected-edges
+    off_t num_edges_remaining; // undirected-edges
 };
 
 //==============================================================================
 
 // Label propogation is based on the values from the previous iteration.
-class KTruss : public StaticAlgorithm {
+class KTruss : public StaticAlgorithm<HornetGPU> {
 public:
-    KTruss(Hornet& custinger, custinger::BatchUpdate& batch_update);
+    KTruss(HornetGPU& hornet);
     ~KTruss();
 
     void reset()    override;
@@ -49,36 +55,37 @@ public:
     bool validate() override { return true; }
 
     //--------------------------------------------------------------------------
-    void setInitParameters(vid_t nv, eoff_t ne, int tsp, int nbl, int shifter,
+    void setInitParameters(int tsp, int nbl, int shifter,
                            int blocks, int sps);
     void init();
 
     bool findTrussOfK(bool& stop);
-    void      runForK(int maxK);
+    void runForK(int max_K);
 
-    void          runDynamic();
+    void runDynamic();
     bool findTrussOfKDynamic(bool& stop);
-    void      runForKDynamic(int maxK);
+    void runForKDynamic(int max_K);
 
-    void   copyOffsetArrayHost(vid_t* hostOffsetArray);
-    void copyOffsetArrayDevice(vid_t* deviceOffsetArray);
-    void        resetEdgeArray();
-    void      resetVertexArray();
+    void copyOffsetArrayHost(vid_t* host_offset_array);
+    void copyOffsetArrayDevice(vid_t* device_offset_array);
+    void resetEdgeArray();
+    void resetVertexArray();
 
     vid_t getIterationCount();
-    vid_t           getMaxK();
+    vid_t getMaxK();
 
 private:
-    KTrussData              hostKTrussData;
-    KTrussData*             deviceKTrussData;
-    custinger::BatchUpdate& batch_update;
+    HostDeviceVar<KTrussData> hd_data;
+
+    //load_balacing::BinarySearch load_balacing;
+    //load_balacing::VertexBased1 load_balacing;
 };
 
 //==============================================================================
 
-void callDeviceDifferenceTriangles(const custinger::Hornet& custinger,
-                                   const custinger::BatchUpdate& batch_update,
-                                   triangle_t* __restrict__ outPutTriangles,
+void callDeviceDifferenceTriangles(const HornetGPU& hornet,
+                                   const gpu::BatchUpdate& batch_update,
+                                   triangle_t* __restrict__ output_triangles,
                                    int threads_per_intersection,
                                    int num_intersec_perblock,
                                    int shifter,
@@ -86,114 +93,4 @@ void callDeviceDifferenceTriangles(const custinger::Hornet& custinger,
                                    int blockdim,
                                    bool deletion);
 
-namespace ktruss_operators {
-
-__device__ __forceinline__
-void init(const Vertex& vertex, void* metadata) {
-    KTrussData*    kt = reinterpret_cast<KTrussData*>(metadata);
-    vid_t         src = vertex.id();
-    kt->isActive[src] = 1;
-}
-
-__device__ __forceinline__
-void findUnderK(const Vertex& vertex, void* metadata) {
-    KTrussData* kt = reinterpret_cast<KTrussData*>(metadata);
-    //vid_t  src_len = custinger->dVD->used[src];
-    vid_t  src_len = vertex.degree();
-    vid_t      src = vertex.id();
-
-    if (kt->isActive[src] == 0)
-        return;
-    if (src_len == 0) {
-        kt->isActive[src] = 0;
-        return;
-    }
-    //vid_t* adj_src = custinger->dVD->adj[src]->dst;
-    for (vid_t adj = 0; adj < src_len; adj++) {
-        //vid_t dst = adj_src[adj];
-        auto edge = vertex.edge(adj);
-        int   pos = kt->offsetArray[src] + adj;
-        if (kt->trianglePerEdge[pos] < kt->maxK - 2) {
-            int      spot = atomicAdd(&(kt->counter), 1);
-            kt->src[spot] = src;
-            //kt->dst[spot] = dst;
-            kt->dst[spot] = edge.dst();
-        }
-    }
-}
-
-__device__ __forceinline__
-void findUnderKDynamic(const Vertex& vertex, void* metadata) {
-    KTrussData* kt = reinterpret_cast<KTrussData*>(metadata);
-    //vid_t  src_len = custinger->dVD->used[src];
-    vid_t src_len = vertex.degree();
-    vid_t     src = vertex.id();
-
-    if(kt->isActive[src] == 0)
-        return;
-    if(src_len == 0) {
-        kt->isActive[src] = 0;
-        return;
-    }
-    //vid_t* adj_src = custinger->dVD->adj[src]->dst;
-    for (vid_t adj = 0; adj < src_len; adj++) {
-        //vid_t dst = adj_src[adj];
-        auto   edge = vertex.edge(adj);
-        //if (custinger->dVD->adj[src]->ew[adj] < (kt->maxK - 2)) {
-        if (edge.weight() < kt->maxK - 2) {
-            int      spot = atomicAdd(&(kt->counter), 1);
-            kt->src[spot] = src;
-            //kt->dst[spot] = dst;
-            kt->dst[spot] = edge.dst();
-        }
-
-        // if(src==111 && edge.dst()==322143){
-        //     printf("%d %d %d\n", src,edge.dst(),edge.weight());
-        // }
-        // if(src==322143 && edge.dst()==111){
-        //     printf("%d %d %d\n", src,edge.dst(),edge.weight());
-        // }
-    }
-}
-
-__device__ __forceinline__
- void queueActive(const Vertex& vertex, void* metadata) {
-    KTrussData* kt = reinterpret_cast<KTrussData*>(metadata);
-    //vid_t  src_len = custinger->dVD->used[src];
-    vid_t  src_len = vertex.degree();
-    vid_t      src = vertex.id();
-
-    if (src_len == 0 && !kt->isActive[src])
-        kt->isActive[src] = 0;
-    else
-        kt->activeQueue.insert(src);
-}
-
-__device__ __forceinline__
-void countActive(const Vertex& vertex, void* metadata) {
-    KTrussData* kt = reinterpret_cast<KTrussData*>(metadata);
-    //vid_t  src_len = custinger->dVD->used[src];
-    vid_t  src_len = vertex.degree();
-    vid_t      src = vertex.id();
-
-    if (src_len == 0 && !kt->isActive[src])
-        kt->isActive[src] = 0;
-    else
-        atomicAdd(&(kt->activeVertices), 1);
-}
-
-__device__ __forceinline__
-void resetWeights(const Vertex& vertex, void* metadata) {
-    KTrussData* kt = reinterpret_cast<KTrussData*>(metadata);
-    //vid_t  src_len = custinger->dVD->used[src];
-    //int        pos = kt->offsetArray[src];
-    vid_t  src_len = vertex.degree();
-    int        pos = kt->offsetArray[vertex.id()];
-
-    for (vid_t adj = 0; adj < src_len; adj++)
-        //custinger->dVD->adj[src]->ew[adj] = kt->trianglePerEdge[pos + adj];
-        vertex.edge(adj).set_weight(kt->trianglePerEdge[pos + adj]); //!!!
-}
-
-} // namespace ktruss_operators
-} // namespace custinger_alg
+} // namespace hornet_alg

@@ -1,33 +1,32 @@
 #include "Static/KTruss/KTruss.cuh"
 #include "Device/Timer.cuh"
+#include <GraphIO/GraphStd.hpp>
 
 using namespace timer;
-using namespace custinger;
-using namespace custinger_alg;
 
-void runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
-              const std::string& graphName);
+void runKtruss(const HornetInit& hornet_init, int alg, int max_K,
+               const std::string& graph_name);
 
 int main(int argc, char* argv[]) {
     using namespace graph::structure_prop;
     using namespace graph::parsing_prop;
 
     graph::GraphStd<vid_t, eoff_t> graph(UNDIRECTED);
-    graph.read(argv[1], SORT | PRINT);
+    graph.read(argv[1], SORT | PRINT_INFO);
 
-    cuStingerInit custinger_init(graph.nV(), graph.nE(),
-                                 graph.out_offsets_ptr(),
-                                 graph.out_edges_ptr());
+    HornetInit hornet_init(graph.nV(), graph.nE(),
+                           graph.out_offsets_ptr(),
+                           graph.out_edges_ptr(), true);
 
-    int alg = 3, maxk = 3;
+    int alg = 3, max_K = 3;
     if (argc >= 3)
         alg = std::stoi(argv[2]);
     if (argc >= 4)
-        maxk = std::stoi(argv[3]);
+        max_K = std::stoi(argv[3]);
 
     auto weights = new int[graph.nE()]();
-    custinger_init.insertEdgeData(weights);
-    runKtruss(custinger_init, alg, maxk, graph.name());
+    hornet_init.insertEdgeData(weights);
+    runKtruss(hornet_init, alg, max_K, graph.name());
     delete[] weights;
 }
 
@@ -38,21 +37,22 @@ const int             arrayBlockSize[] = { 32 };
 const int arrayThreadPerIntersection[] = { 1 };
 const int           arrayThreadShift[] = { 0 };
 
-void runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
-               const std::string& graphName) {
+void runKtruss(const HornetInit& hornet_init, int alg, int max_K,
+               const std::string& graph_name) {
+    using namespace gpu::batch_property;
+    using namespace hornet_alg;
 
-    int nv = custinger_init.nV();
-    int ne = custinger_init.nE();
+    int nV = hornet_init.nV();
+    int nE = hornet_init.nE();
 
     triangle_t* d_triangles;
-    vid_t* d_off;
-    cudaMalloc(&d_triangles, (nv + 1) * sizeof(triangle_t));
-    cudaMalloc(&d_off, (nv + 1) * sizeof(vid_t));
-    cuMemcpyToDevice(custinger_init.csr_offsets(), nv + 1, d_off);
+    vid_t*      d_off;
+    gpu::allocate(d_triangles, hornet_init.nV() + 1);
+    gpu::allocate(d_off,       hornet_init.nV() + 1);
+    host::copyToDevice(hornet_init.csr_offsets(), nV + 1, d_off);
 
-
-    auto              triNE = new int[ne];
-    auto        h_triangles = new triangle_t[nv + 1];
+    auto              triNE = new int[nE];
+    auto        h_triangles = new triangle_t[nV + 1];
     //int64_t allTrianglesCPU = 0;
     //int64_t       sumDevice = 0;
 
@@ -61,7 +61,6 @@ void runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
     const int    blocksToTest = sizeof(arrayBlocks) / sizeof(int);
     const int blockSizeToTest = sizeof(arrayBlockSize) / sizeof(int);
     const int       tSPToTest = sizeof(arrayThreadPerIntersection) /sizeof(int);
-    BatchUpdate batch_update(ne);
 
     Timer<DEVICE, seconds> TM;
 
@@ -74,11 +73,13 @@ void runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
                 int shifter = arrayThreadShift[t];
                 int     nbl = sps / tsp;
 
-                cuStinger custiger_graph(custinger_init);
-                KTruss kt(custiger_graph, batch_update);
+                HornetGPU hornet_graph(hornet_init);
+                hornet_graph.allocateEdgeDeletion(nE, CSR_WIDE |
+                                         OUT_OF_PLACE | REMOVE_CROSS_DUPLICATE);
+                KTruss kt(hornet_graph);
 
                 if (alg & 1) {
-                    kt.setInitParameters(nv,ne, tsp, nbl, shifter, blocks, sps);
+                    kt.setInitParameters(tsp, nbl, shifter, blocks, sps);
                     kt.init();
                     kt.copyOffsetArrayDevice(d_off);
                     kt.reset();
@@ -88,14 +89,12 @@ void runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
                     kt.run();
 
                     TM.stop();
-                    std::cout << "graph=" << graphName << "\nk=" << kt.getMaxK()
+                    std::cout << "graph=" << graph_name
+                              << "\nk=" << kt.getMaxK()
                               << ":" << TM.duration() << std::endl;
-
-                    //custiger_graph.freecuStinger();
                 }
                 if (alg & 2) {
-                    kt.setInitParameters(nv, ne, tsp, nbl, shifter,
-                                         blocks, sps);
+                    kt.setInitParameters(tsp, nbl, shifter, blocks, sps);
                     kt.init();
                     kt.copyOffsetArrayDevice(d_off);
                     kt.reset();
@@ -105,37 +104,35 @@ void runKtruss(const cuStingerInit& custinger_init, int alg, int maxk,
                     kt.runDynamic();
 
                     TM.stop();
-                    std::cout << "graph=" << graphName << "\nk=" << kt.getMaxK()
+                    std::cout << "graph=" << graph_name
+                              << "\nk=" << kt.getMaxK()
                               << ":" << TM.duration() << std::endl;
-                    //kt.release();
 
                     if (TM.duration() < minTimecuStinger)
                         minTimecuStinger = TM.duration();
-                    //custing2.freecuStinger();
                 }
                 if (alg & 4) {
-                    kt.setInitParameters(nv, ne, tsp, nbl, shifter,
-                                         blocks, sps);
+                    kt.setInitParameters(tsp, nbl, shifter, blocks, sps);
                     kt.init();
                     kt.copyOffsetArrayDevice(d_off);
                     kt.reset();
 
                     TM.start();
 
-                    kt.runForK(maxk);
+                    kt.runForK(max_K);
 
                     TM.stop();
 
-                    std::cout << "graph=" << graphName << "\nk=" << kt.getMaxK()
+                    std::cout << "graph=" << graph_name
+                              << "\nk=" << kt.getMaxK()
                               << ":" << TM.duration() << std::endl;
-                    //kt.release();
-                    //custiger_graph.freecuStinger();
                 }
                 kt.release();
             }
         }
     }
-    cuFree(d_triangles, d_off);
+    gpu::free(d_triangles);
+    gpu::free(d_off);
     delete[] h_triangles;
     delete[] triNE;
 }

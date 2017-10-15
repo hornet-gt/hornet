@@ -52,7 +52,7 @@ KatzCentralityDynamic::KatzCentralityDynamic(HornetGPU& hornet,
                                    kc_static(hornet, max_iteration, K,
                                              max_degree, false) {
 
-    hd_katzdata().active_queue.initilize(hornet);
+    hd_katzdata().active_queue.initialize(hornet);
 
     gpu::allocate(hd_katzdata().new_paths_curr, hornet.nV());
     gpu::allocate(hd_katzdata().new_paths_prev, hornet.nV());
@@ -78,7 +78,7 @@ KatzCentralityDynamic::KatzCentralityDynamic(HornetGPU& hornet,
                                    kc_static(inverted_graph, max_iteration, K,
                                              max_degree, true) {
 
-    hd_katzdata().active_queue.initilize(hornet);
+    hd_katzdata().active_queue.initialize(hornet);
 
     gpu::allocate(hd_katzdata().new_paths_curr, hornet.nV());
     gpu::allocate(hd_katzdata().new_paths_prev, hornet.nV());

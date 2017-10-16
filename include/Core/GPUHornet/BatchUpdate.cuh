@@ -40,7 +40,7 @@
 
 #include "BasicTypes.hpp"
 
-namespace hornet {
+namespace hornets_nest {
 namespace gpu {
 
 namespace detail {
@@ -97,7 +97,7 @@ enum class BatchType { HOST, DEVICE };
 //==============================================================================
 
 class BatchUpdate {
-    template<typename T, typename R> friend class gpu::Hornet;
+    template<typename, typename, bool> friend class gpu::Hornet;
 public:
     explicit BatchUpdate(vid_t* src_array, vid_t* dst_array, int batch_size,
                          BatchType batch_type = BatchType::HOST) noexcept;
@@ -174,6 +174,6 @@ private:
 };
 
 } // namespace gpu
-} // namespace hornet
+} // namespace hornets_nest
 
-#include "Batch/BatchUpdate.i.cuh"
+#include "impl/BatchUpdate.i.cuh"

@@ -35,7 +35,7 @@
  */
 #include <iomanip>  //std::setw
 
-namespace hornet {
+namespace hornets_nest {
 
 #define MEMORY_MANAGER MemoryManager<block_t,offset_t,DEVICE>
 
@@ -258,4 +258,4 @@ int MEMORY_MANAGER::num_blockarrays() const noexcept {
     return _num_blockarrays;
 }
 
-} // namespace hornet
+} // namespace hornets_nest

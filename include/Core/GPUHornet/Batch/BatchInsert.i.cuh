@@ -33,17 +33,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "BatchInsertKernels.cuh"
-#include "Device/CubWrapper.cuh"    //xlib::CubExclusiveSum
-#include "Device/PrintExt.cuh"      //xlib::printArray
-#include "Host/PrintExt.hpp"      //xlib::printArray
+#include "Kernels/BatchInsertKernels.cuh"
+#include "Device/PrintExt.cuh"      //cu::printArray
 
 //#define DEBUG_INSERT
 
-namespace hornet {
+namespace hornets_nest {
 namespace gpu {
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::insertEdgeBatch(BatchUpdate& batch_update) noexcept {
     const unsigned BLOCK_SIZE = 128;
     int num_uniques = batch_preprocessing(batch_update, true);
@@ -84,6 +82,6 @@ void HORNET::insertEdgeBatch(BatchUpdate& batch_update) noexcept {
 }
 
 } // namespace gpu
-} // namespace hornet
+} // namespace hornets_nest
 
 #undef DEBUG_INSERT

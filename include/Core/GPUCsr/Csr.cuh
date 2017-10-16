@@ -40,16 +40,16 @@
 
 #include "Core/DataLayout/DataLayout.cuh"
 #include "BasicTypes.hpp"                       //vid_t
-#include "Core/GPUCsr/CsrDevice.cuh"            //HornetDevice
+#include "Core/GPUCsr/CsrDevice.cuh"            //CsrDevice
 #include "Core/HornetInit.hpp"                  //HornetInit
 
-namespace hornet {
+namespace hornets_nest {
 
 /**
  * @brief The namespace contanins all classes and methods related to the
  *        GPU Hornet data structure
  */
-namespace csr {
+namespace gpu {
 
 //template<typename, typename>
 //class Hornet;
@@ -64,12 +64,12 @@ class Edge;
  * @brief Main Hornet class
  */
 template<typename... VertexTypes, typename... EdgeTypes>
-class Hornet<TypeList<VertexTypes...>, TypeList<EdgeTypes...>> {
-    using     EdgeAllocT = AoSData<vid_t, EdgeTypes...>;
-    using   VertexArrayT = BestLayout<off2_t, VertexTypes...>;
-    using     EdgeArrayT = BestLayout<vid_t, EdgeTypes...>;
-    using  HornetDeviceT = HornetDevice<TypeList<VertexTypes...>,
-                                        TypeList<EdgeTypes...>>;
+class Csr<TypeList<VertexTypes...>, TypeList<EdgeTypes...>> {
+    using   EdgeAllocT = AoSData<vid_t, EdgeTypes...>;
+    using VertexArrayT = BestLayout<off2_t, VertexTypes...>;
+    using   EdgeArrayT = BestLayout<vid_t, EdgeTypes...>;
+    using   CsrDeviceT = CsrDevice<TypeList<VertexTypes...>,
+                                   TypeList<EdgeTypes...>>;
 
 public:
     /**
@@ -78,13 +78,13 @@ public:
      * @param[in] traspose if `true` traspose the input graph, keep the initial
      *            representation otherwise
      */
-    explicit Hornet(const HornetInit& hornet_init,
+    explicit Csr(const HornetInit& hornet_init,
                     bool traspose = false) noexcept;
 
     /**
      * @brief Decostructor
      */
-    ~Hornet() noexcept;
+    ~Csr() noexcept;
 
     /**
      * @brief **actual** number of vertices in the graph
@@ -130,7 +130,7 @@ public:
      * @brief device data to used the cuStinger data structure on the device
      * @return device data associeted to the cuStinger instance
      */
-    HornetDeviceT device_side() const noexcept;
+    CsrDeviceT device_side() const noexcept;
 
     /**
      * @brief
@@ -183,11 +183,11 @@ private:
     void build_device_degrees() noexcept;
 };
 
-#define HORNET Hornet<TypeList<VertexTypes...>,TypeList<EdgeTypes...>>
+#define CSR Csr<TypeList<VertexTypes...>,TypeList<EdgeTypes...>>
 
-} // namespace csr
-} // namespace hornet
+} // namespace gpu
+} // namespace hornets_nest
 
 #include "impl/Csr.i.cuh"
 
-#undef HORNET
+#undef CSR

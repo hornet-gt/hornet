@@ -1,5 +1,5 @@
 /**
- * @brief High-level API to access to cuStinger data (Vertex, Edge)
+ * @brief High-level API to access to cuStinger data (VertexCsr, EdgeCsr)
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
@@ -41,34 +41,34 @@
 #include "BasicTypes.hpp"                    //off2_t
 #include "HostDevice.hpp"                    //HOST_DEVICE
 #include "Core/DataLayout/DataLayoutDev.cuh" //BestLayoutDev
-#include "Core/GPUCsr/CsrTypes.cuh"          //Vertex
+#include "Core/GPUCsr/CsrTypes.cuh"          //VertexCsr
 
-namespace hornet {
-namespace csr {
+namespace hornets_nest {
+namespace gpu {
 
-template<typename, typename> class HornetDevice;
+template<typename, typename> class CsrDevice;
 /**
  * @internal
  * @brief The structure contanins all information for using the cuStinger data
  *        structure in the device
  */
 template<typename... VertexTypes, typename... EdgeTypes>
-class HornetDevice<TypeList<VertexTypes...>, TypeList<EdgeTypes...>> :
+class CsrDevice<TypeList<VertexTypes...>, TypeList<EdgeTypes...>> :
                            public BestLayoutDev<off2_t, VertexTypes...>,
                            public BestLayoutDev<vid_t, EdgeTypes...> {
 
-    template<typename T, typename R> friend class Vertex;
-    template<typename T, typename R> friend class Edge;
+    template<typename, typename> friend class VertexCsr;
+    template<typename, typename> friend class EdgeCsr;
 
-    using  VertexT = Vertex<TypeList<VertexTypes...>,
-                            TypeList<EdgeTypes...>>;
+    using  VertexT = VertexCsr<TypeList<VertexTypes...>,
+                               TypeList<EdgeTypes...>>;
 public:
     using edgeit_t = eoff_t;
 
-    using    EdgeT = Edge<TypeList<VertexTypes...>,
+    using    EdgeT = EdgeCsr<TypeList<VertexTypes...>,
                           TypeList<EdgeTypes...>>;
 
-    explicit HornetDevice(vid_t nV, eoff_t nE,
+    explicit CsrDevice(vid_t nV, eoff_t nE,
                           void* d_vertex_ptr, size_t vertex_pitch,
                           void* d_edge_ptr,   size_t edge_pitch) noexcept;
 
@@ -100,7 +100,7 @@ private:
     AoSData<vid_t, EdgeTypes...> raw_edge(eoff_t offset) const;
 };
 
-} // namespace csr
-} // namespace hornet
+} // namespace gpu
+} // namespace hornets_nest
 
 #include "impl/CsrDevice.i.cuh"

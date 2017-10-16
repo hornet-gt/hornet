@@ -1,19 +1,19 @@
 #include "Hornet.hpp"
+#include "Core/GPUHornet/BatchUpdate.cuh"
 #include "Util/BatchFunctions.hpp"
-#include "Host/FileUtil.hpp"            //xlib::extract_filepath_noextension
-#include "Device/CudaUtil.cuh"          //xlib::deviceInfo
+#include <Host/FileUtil.hpp>            //xlib::extract_filepath_noextension
+#include <Device/CudaUtil.cuh>          //xlib::deviceInfo
 #include <algorithm>                    //std:.generate
 #include <chrono>                       //std::chrono
 #include <random>                       //std::mt19937_64
-#include "Core/GPU/BatchUpdate.cuh"
 #include <cuda_profiler_api.h>
 //nvprof --profile-from-start off --log-file log.txt --print-gpu-trace
 
-using namespace hornet;
+using namespace hornets_nest;
 using namespace timer;
 using namespace std::string_literals;
 
-using HornetGPU = hornet::gpu::Hornet<EMPTY, EMPTY>;
+using HornetGPU = hornets_nest::gpu::Hornet<EMPTY, EMPTY>;
 
 void exec(int argc, char* argv[]);
 
@@ -69,7 +69,7 @@ void exec(int argc, char* argv[]) {
         batch_update.print();
         std::cout << "------------------------------------------------" <<std::endl;
 
-        using namespace hornet::gpu::batch_property;
+        using namespace gpu::batch_property;
         hornet_gpu.allocateEdgeInsertion(batch_size,
                                          IN_PLACE | REMOVE_CROSS_DUPLICATE);
         //hornet_gpu.allocateEdgeDeletion(batch_size,

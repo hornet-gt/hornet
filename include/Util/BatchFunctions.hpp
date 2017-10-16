@@ -40,7 +40,7 @@
 #include "BasicTypes.hpp"       //vid_t
 #include "GraphIO/GraphStd.hpp" //GraphStd
 
-namespace hornet {
+namespace hornets_nest {
 
 namespace detail {
     enum class BatchGenEnum { WEIGHTED = 1, PRINT = 2, UNIQUE = 4 };
@@ -62,8 +62,8 @@ namespace batch_gen_property {
 enum class BatchGenType { INSERT, REMOVE };
 
 void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
-                   hornet::vid_t* batch_src, hornet::vid_t* batch_dest,
+                   vid_t* batch_src, vid_t* batch_dest,
                    const BatchGenType& batch_type,
                    const BatchGenProperty& prop = BatchGenProperty());
 
-} // namespace hornet
+} // namespace hornets_nest

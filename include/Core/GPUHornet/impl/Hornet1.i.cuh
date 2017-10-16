@@ -36,17 +36,17 @@
 #include "Device/Timer.cuh"             //timer::Timer
 #include <cstring>                      //std::memcpy
 
-namespace hornet {
+namespace hornets_nest {
 namespace gpu {
 
 ////////////////
 // Hornet GPU //
 ////////////////
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 int HORNET::global_id = 0;
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 HORNET::Hornet(const HornetInit& hornet_init,
                bool traspose) noexcept :
                             _hornet_init(hornet_init),
@@ -60,7 +60,7 @@ HORNET::Hornet(const HornetInit& hornet_init,
         initialize();
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 HORNET::~Hornet() noexcept {
     cuFree(_d_csr_offsets, _d_degrees);
     delete[] _csr_offsets;
@@ -74,7 +74,7 @@ HORNET::~Hornet() noexcept {
     delete[] _h_queue_id;
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::initialize() noexcept {
     using namespace timer;
     const auto& vertex_init = _hornet_init._vertex_data_ptrs;
@@ -162,30 +162,30 @@ void HORNET::initialize() noexcept {
 }
 
 // TO IMPROVE !!!!
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 vid_t HORNET::nV() const noexcept {
     return _nV;
 }
 
 // TO IMPROVE !!!!
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 eoff_t HORNET::nE() const noexcept {
     return _nE;
 }
 
 // TO IMPROVE !!!!
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 const eoff_t* HORNET::csr_offsets() noexcept {
     return _hornet_init.csr_offsets();
 }
 
 // TO IMPROVE !!!!
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 const vid_t* HORNET::csr_edges() noexcept {
     return _hornet_init.csr_edges();
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 template<int INDEX>
 const typename xlib::SelectType<INDEX, VertexTypes...>::type*
 HORNET::vertex_field() noexcept {
@@ -194,7 +194,7 @@ HORNET::vertex_field() noexcept {
                 _hornet_init._vertex_data_ptrs[INDEX + 1]);
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 template<int INDEX>
 const typename xlib::SelectType<INDEX, vid_t, EdgeTypes...>::type*
 HORNET::edge_field() noexcept {
@@ -203,7 +203,7 @@ HORNET::edge_field() noexcept {
 }
 
 // TO IMPROVE !!!!
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 const eoff_t* HORNET::device_csr_offsets() const noexcept {
     /*if (_d_csr_offsets == nullptr) {
         cuMalloc(_d_csr_offsets, _nV + 1);
@@ -212,12 +212,12 @@ const eoff_t* HORNET::device_csr_offsets() const noexcept {
     return _d_csr_offsets;
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 const degree_t* HORNET::device_degrees() const noexcept {
     return _d_degrees;
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 HORNET::HornetDeviceT HORNET::device_side() const noexcept {
     using HornetDeviceT = HornetDevice<std::tuple<VertexTypes...>,
                                        std::tuple<EdgeTypes...>>;
@@ -226,4 +226,4 @@ HORNET::HornetDeviceT HORNET::device_side() const noexcept {
 }
 
 } // namespace gpu
-} // namespace hornet
+} // namespace hornets_nest

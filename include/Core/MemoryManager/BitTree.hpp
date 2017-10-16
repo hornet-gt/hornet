@@ -44,7 +44,7 @@
 #include "Host/Metaprogramming.hpp"                 //xlib::GeometricSerie
 #include <utility>                                  //std::pair
 
-namespace hornet {
+namespace hornets_nest {
 
 /**
  * @brief **Vectorized Bit Tree**
@@ -290,6 +290,6 @@ private:
     byte_t* _h_ptr { nullptr };
 };
 
-} // namespace hornet
+} // namespace hornets_nest
 
 #include "BitTree.i.hpp"

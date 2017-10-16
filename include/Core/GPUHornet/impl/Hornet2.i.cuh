@@ -33,15 +33,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Core/GPU/impl/HornetKernels.cuh"
-#include "Device/CubWrapper.cuh"        //xlib::CubSortByKey
-#include "GraphIO/GraphBase.hpp"        //graph::StructureProp
-#include "Host/FileUtil.hpp"            //xlib::MemoryMapped
+#include "GraphIO/GraphBase.hpp"        //graph::StructureProp 
+#include "HornetKernels.cuh"
+#include <Device/CubWrapper.cuh>        //xlib::CubSortByKey
+#include <Host/FileUtil.hpp>            //xlib::MemoryMapped
 
-namespace hornet {
+namespace hornets_nest {
 namespace gpu {
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::print() noexcept {
     printKernel<<<1, 1>>>(device_side());
     CHECK_CUDA_ERROR
@@ -50,7 +50,7 @@ void HORNET::print() noexcept {
 /*
  * !!!!! 4E + 2V
  */
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 [[deprecated]]
 void HORNET::transpose() noexcept {
     const unsigned BLOCK_SIZE = 256;
@@ -91,20 +91,20 @@ void HORNET::transpose() noexcept {
     initialize();
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::check_sorted_adjs() const noexcept {
     checkSortedKernel <<< xlib::ceil_div<256>(_nV), 256 >>> (device_side());
 }
 //------------------------------------------------------------------------------
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::build_device_degrees() noexcept {
     cuMalloc(_d_degrees, _nV);
     buildDegreeKernel <<< xlib::ceil_div(_nV, 256), 256 >>>
         (device_side(), _d_degrees);
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 vid_t HORNET::max_degree_id() noexcept {
     if (_max_degree_data.first == -1) {
         xlib::CubArgMax<degree_t> arg_max(_d_degrees, _nV);
@@ -113,7 +113,7 @@ vid_t HORNET::max_degree_id() noexcept {
     return _max_degree_data.first;
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 vid_t HORNET::max_degree() noexcept {
     if (_max_degree_data.first == -1) {
         xlib::CubArgMax<degree_t> arg_max(_d_degrees, _nV);
@@ -124,7 +124,7 @@ vid_t HORNET::max_degree() noexcept {
 
 //==============================================================================
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 [[deprecated]]
 void HORNET::convert_to_csr(eoff_t* csr_offsets, vid_t* csr_edges)
                                const noexcept {
@@ -151,7 +151,7 @@ void HORNET::convert_to_csr(eoff_t* csr_offsets, vid_t* csr_edges)
     delete[] h_vertex_basic_ptr;*/
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 [[deprecated]]
 void HORNET::check_consistency(const HornetInit& hornet_init) const noexcept {
     auto csr_offsets = new eoff_t[_nV + 1];
@@ -170,7 +170,7 @@ void HORNET::check_consistency(const HornetInit& hornet_init) const noexcept {
     delete[] csr_edges;
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 [[deprecated]]
 void HORNET::store_snapshot(const std::string& filename) const noexcept {
     auto csr_offsets = new eoff_t[_nV + 1];
@@ -199,10 +199,10 @@ void HORNET::store_snapshot(const std::string& filename) const noexcept {
     delete[] csr_edges;
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::mem_manager_info() const noexcept {
     _mem_manager.statistics();
 }
 
 } // namespace gpu
-} // namespace hornet
+} // namespace hornets_nest

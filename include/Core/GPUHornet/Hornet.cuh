@@ -39,14 +39,14 @@
 #pragma once
 
 #include "Core/DataLayout/DataLayout.cuh"
-#include "BasicTypes.hpp"                       //vid_t
-#include "Core/GPU/HornetDevice.cuh"            //HornetDevice
+#include "BasicTypes.hpp"
+#include "Core/GPUHornet/BatchUpdate.cuh"             //BatchUpdate
+#include "Core/GPUHornet/HornetDevice.cuh"            //HornetDevice
 #include "Core/HornetInit.hpp"                  //HornetInit
-#include "Core/GPU/BatchUpdate.cuh"             //BatchUpdate
 #include "Core/MemoryManager/MemoryManager.hpp" //MemoryManager
-#include "Device/CubWrapper.cuh"
+#include <Device/CubWrapper.cuh>
 
-namespace hornet {
+namespace hornets_nest {
 namespace gpu {
 /**
  * @brief The namespace contains all classes and methods related to the
@@ -70,10 +70,10 @@ class Edge;
 /**
  * @brief Main Hornet class
  */
-template<typename... VertexTypes, typename... EdgeTypes>
-class Hornet<TypeList<VertexTypes...>, TypeList<EdgeTypes...>> {
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
+class Hornet<TypeList<VertexTypes...>, TypeList<EdgeTypes...>, FORCE_SOA> {
     using  HornetDeviceT = HornetDevice<TypeList<VertexTypes...>,
-                                        TypeList<EdgeTypes...>>;
+                                        TypeList<EdgeTypes...>, FORCE_SOA>;
 
 public:
     /**
@@ -367,13 +367,14 @@ private:
                                void**          sparse_ptrs) noexcept;
 };
 
-#define HORNET Hornet<TypeList<VertexTypes...>,TypeList<EdgeTypes...>>
+#define HORNET Hornet<TypeList<VertexTypes...>, TypeList<EdgeTypes...>, \
+                      FORCE_SOA>
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 const HORNET::ETypeSizes HORNET::ETYPE_SIZES;
 
 } // namespace gpu
-} // namespace hornet
+} // namespace hornets_nest
 
 #include "impl/Hornet1.i.cuh"
 #include "impl/Hornet2.i.cuh"

@@ -85,7 +85,7 @@ __global__ void segReduceTest() {
         value = 4;
     else if (threadIdx.x < 32)
         value = 8;*/
-    unsigned mask = 0b01010101010101010101010101010101;
+    //unsigned mask = 0b01010101010101010101010101010101;
     //xlib::WarpSegmentedReduce::add(value, mask);
     xlib::WarpExclusiveScan<4>::add(value);
     printf("%f ", value);

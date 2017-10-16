@@ -34,15 +34,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "BatchCopyKernels.cuh"
+#include "Kernels/BatchCopyKernels.cuh"
 
 //#define DEBUG_FIXINTERNAL
 
-namespace hornet {
+namespace hornets_nest {
 namespace gpu {
 
-
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::allocateEdgeDeletion(size_t max_batch_size,
                                   BatchProperty batch_prop) noexcept {
     _batch_prop = batch_prop;
@@ -60,7 +59,7 @@ void HORNET::allocateEdgeDeletion(size_t max_batch_size,
     }
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::allocateEdgeInsertion(size_t max_batch_size,
                                    BatchProperty batch_prop) noexcept {
     _batch_prop = batch_prop;
@@ -81,7 +80,7 @@ void HORNET::allocateEdgeInsertion(size_t max_batch_size,
 
 //==============================================================================
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::allocatePrepocessing(size_t max_batch_size, size_t csr_size)
                                   noexcept {
     cub_prefixsum.initialize(max_batch_size);
@@ -105,7 +104,7 @@ void HORNET::allocatePrepocessing(size_t max_batch_size, size_t csr_size)
     }
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::allocateOOPEdgeDeletion(size_t csr_size) noexcept {
     cuMalloc(_d_degree_tmp,  csr_size + 1,
              _d_degree_new,  csr_size + 1,
@@ -114,7 +113,7 @@ void HORNET::allocateOOPEdgeDeletion(size_t csr_size) noexcept {
              _d_inverse_pos, _nV);
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::allocateInPlaceUpdate(size_t csr_size) noexcept {
     cuMalloc(_d_queue_new_degree, csr_size);
     cuMalloc(_d_queue_new_ptr,    csr_size);
@@ -133,7 +132,7 @@ void HORNET::allocateInPlaceUpdate(size_t csr_size) noexcept {
 //==============================================================================
 //==============================================================================
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::copySparseToContinuos(const degree_t* prefixsum,
                                    int             prefixsum_size,
                                    int             total_sum,
@@ -149,7 +148,7 @@ void HORNET::copySparseToContinuos(const degree_t* prefixsum,
     CHECK_CUDA_ERROR
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::copySparseToContinuos(const degree_t* prefixsum,
                                    int             prefixsum_size,
                                    int             total_sum,
@@ -167,7 +166,7 @@ void HORNET::copySparseToContinuos(const degree_t* prefixsum,
     CHECK_CUDA_ERROR
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::copyContinuosToSparse(const degree_t* prefixsum,
                                    int             prefixsum_size,
                                    int             total_sum,
@@ -183,7 +182,7 @@ void HORNET::copyContinuosToSparse(const degree_t* prefixsum,
     CHECK_CUDA_ERROR
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::copySparseToSparse(const degree_t* d_prefixsum,
                                 int             prefixsum_size,
                                 int             prefixsum_total,
@@ -203,4 +202,4 @@ void HORNET::copySparseToSparse(const degree_t* d_prefixsum,
 #undef DEBUG_FIXINTERNAL
 
 } // namespace gpu
-} // namespace hornet
+} // namespace hornets_nest

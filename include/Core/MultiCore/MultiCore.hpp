@@ -45,7 +45,7 @@
 #include "Core/MemoryManager/MemoryManager.hpp" //MemoryManager
 #include <cstddef>                              //size_t
 
-namespace hornet {
+namespace hornets_nest {
 
 /**
  * @brief The namespace contanins all classes and methods related to the
@@ -244,7 +244,7 @@ private:
 };
 
 } // namespace mc
-} // namespace hornet
+} // namespace hornets_nest
 
 #define HORNET Hornet<TypeList<VertexTypes...>,TypeList<EdgeTypes...>>
 

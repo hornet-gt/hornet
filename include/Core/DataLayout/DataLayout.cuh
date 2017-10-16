@@ -40,7 +40,7 @@
 
 #include "BasicTypes.hpp"   //xlib::byte_t
 
-namespace hornet {
+namespace hornets_nest {
 
 template<typename... TArgs>
 struct AoSData;
@@ -321,6 +321,6 @@ struct BestLayoutAux<std::tuple<TArgs...>,
 template<typename... TArgs>
 using BestLayout = BestLayoutAux<std::tuple<TArgs...>>;
 
-} // namespace hornet
+} // namespace hornets_nest
 
 #include "DataLayout.i.cuh"

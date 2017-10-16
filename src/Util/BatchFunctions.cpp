@@ -39,7 +39,7 @@
 #include <random>
 #include <utility>
 
-namespace hornet {
+namespace hornets_nest {
 
 BatchGenProperty::BatchGenProperty(const detail::BatchGenEnum& obj) noexcept :
              xlib::PropertyClass<detail::BatchGenEnum, BatchGenProperty>(obj) {}
@@ -114,4 +114,4 @@ void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
     }
 }
 
-} // namespace hornet
+} // namespace hornets_nest

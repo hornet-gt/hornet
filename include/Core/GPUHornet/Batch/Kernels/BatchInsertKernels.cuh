@@ -37,7 +37,7 @@
 #include "Host/Algorithm.hpp"
 #include "Device/BinarySearchLB.cuh"
 
-namespace hornet {
+namespace hornets_nest {
 namespace gpu {
 
 template<typename HornetDevice>
@@ -85,4 +85,4 @@ void bulkCopyAdjLists(HornetDevice                 hornet,
 }
 
 } // namespace gpu
-} // namespace hornet
+} // namespace hornets_nest

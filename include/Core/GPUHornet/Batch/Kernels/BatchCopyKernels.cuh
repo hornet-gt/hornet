@@ -33,12 +33,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Core/GPU/HornetDevice.cuh"
+#include "Core/GPUHornet/HornetDevice.cuh"
 #include "Core/DataLayout/DataLayoutDev.cuh"
 
-namespace hornet {
+namespace hornets_nest {
 namespace gpu {
-
 
 template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK, int NUM_ETYPES,
          typename... EdgeTypes>
@@ -136,4 +135,4 @@ void scatterDegreeKernel(const vid_t* __restrict__ d_unique,
 }
 
 } // namespace gpu
-} // namespace hornet
+} // namespace hornets_nest

@@ -5,7 +5,7 @@
 #include "Core/MemoryManager/MemoryManagerConf.hpp" //EDGES_PER_BLOCKARRAY
 #include <tuple>                                    //std::tuple
 
-namespace hornet {
+namespace hornets_nest {
 
 /**
  * @brief vertex id type
@@ -26,7 +26,7 @@ using xlib::byte_t;
 using degree_t = vid_t;
 using   off2_t = typename xlib::Make2Str<eoff_t>::type;
 using   vid2_t = typename xlib::Make2Str<vid_t>::type;
-using idpair_t = vid2_t;
+//susing idpair_t = vid2_t;
 
 /**
  * @brief
@@ -51,13 +51,13 @@ const size_t PITCH = EDGES_PER_BLOCKARRAY *
                      xlib::MaxSize<vid_t, EdgeTypes...>::value;
 
 namespace gpu {
-    template<typename, typename>
+    template<typename, typename, bool = false>
     class Hornet;
 }
 
-namespace csr {
+namespace gpu {
     template<typename, typename>
-    class Hornet;
+    class Csr;
 }
 
 template<typename>
@@ -67,6 +67,6 @@ template<typename T, typename R>
 class IsHornet<gpu::Hornet<T, R>> : public std::true_type {};
 
 template<typename T, typename R>
-class IsHornet<csr::Hornet<T, R>> : public std::true_type {};
+class IsHornet<gpu::Csr<T, R>> : public std::true_type {};
 
-} // namespace hornet
+} // namespace hornets_nest

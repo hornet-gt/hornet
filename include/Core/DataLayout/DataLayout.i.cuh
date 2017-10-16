@@ -36,7 +36,7 @@
 #include "Device/SafeCudaAPI.cuh"
 #include <cstring>
 
-namespace hornet {
+namespace hornets_nest {
 ////////////////
 // AoSData<T> //
 ////////////////
@@ -358,4 +358,4 @@ SoARef<TArgs...>::operator AoSData<TArgs...>() const noexcept {
     return AoSData<TArgs...>(_ptr, _pitch);
 }
 
-} // namespace hornet
+} // namespace hornets_nest

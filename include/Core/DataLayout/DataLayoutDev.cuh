@@ -40,7 +40,7 @@
 
 #include "Core/DataLayout/DataLayout.cuh"
 
-namespace hornet {
+namespace hornets_nest {
 
 template<typename... TArgs>
 class AoSdev {
@@ -183,6 +183,6 @@ struct BestLayoutDev : public BestLayoutDevAux<std::tuple<TArgs...>> {
                            BestLayoutDevAux<std::tuple<TArgs...>>(ptr, pitch) {}
 };
 
-} // namespace hornet
+} // namespace hornets_nest
 
 #include "DataLayoutDev.i.cuh"

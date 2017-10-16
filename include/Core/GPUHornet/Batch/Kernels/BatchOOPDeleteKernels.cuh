@@ -36,7 +36,7 @@
 #include "Host/Algorithm.hpp"          //xlib::binary_search
 #include "Device/BinarySearchLB.cuh"   //xlib::binarySearchLB
 
-namespace hornet {
+namespace hornets_nest {
 namespace gpu {
 
 template<typename HornetDevice>
@@ -120,4 +120,4 @@ void collectDataKernel(HornetDevice              hornet,
 }
 
 } // namespace gpu
-} // namespace hornet
+} // namespace hornets_nest

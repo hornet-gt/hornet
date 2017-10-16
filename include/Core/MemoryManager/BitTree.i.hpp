@@ -39,7 +39,7 @@
 #include "Host/Numeric.hpp"         //xlib::ceil_log
 #include <iterator>                 //std::distance
 
-namespace hornet {
+namespace hornets_nest {
 
 template<typename block_t>
 BitTreeBase<block_t>
@@ -414,4 +414,4 @@ bool BitTree<block_t, offset_t, false>
     return to_check >= _h_ptr && to_check < _h_ptr + _blockarray_bytes;
 }
 
-} // namespace hornet
+} // namespace hornets_nest

@@ -33,11 +33,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Core/GPU/HornetDevice.cuh"
 #include "Core/DataLayout/DataLayoutDev.cuh"
+#include "Core/GPUHornet/HornetDevice.cuh"
 #include "Device/DeviceQueue.cuh"
 
-namespace hornet {
+namespace hornets_nest {
 namespace gpu {
 
 template<typename HornetDevice>
@@ -189,4 +189,4 @@ void updateVertexDataKernel(HornetDevice                   hornet,
 }
 
 } // namespace gpu
-} // namespace hornet
+} // namespace hornets_nest

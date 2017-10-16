@@ -39,21 +39,21 @@
 #pragma once
 
 #include "BasicTypes.hpp"                    //vid_t
-#include "HostDevice.hpp"                    //HOST_DEVICE
 #include "Core/DataLayout/DataLayoutDev.cuh" //BestLayoutDev
-#include "Core/GPU/HornetTypes.cuh"          //Vertex
+#include "Core/GPUHornet/HornetTypes.cuh"    //Vertex
+#include <HostDevice.hpp>                    //HOST_DEVICE
 
-namespace hornet {
+namespace hornets_nest {
 namespace gpu {
 
-template<typename, typename> class HornetDevice;
+//template<typename, typename, bool> class HornetDevice;
 /**
  * @internal
  * @brief The structure contanins all information for using the cuStinger data
  *        structure in the device
  */
-template<typename... VertexTypes, typename... EdgeTypes>
-class HornetDevice<TypeList<VertexTypes...>, TypeList<EdgeTypes...>> :
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
+class HornetDevice<TypeList<VertexTypes...>, TypeList<EdgeTypes...>,FORCE_SOA> :
                            public BestLayoutDev<size_t, void*, VertexTypes...> {
 
     using VertexT = Vertex<TypeList<VertexTypes...>,
@@ -85,6 +85,6 @@ private:
 };
 
 } // namespace gpu
-} // namespace hornet
+} // namespace hornets_nest
 
 #include "impl/HornetDevice.i.cuh"

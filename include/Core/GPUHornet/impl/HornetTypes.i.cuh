@@ -33,10 +33,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Core/GPU/HornetDevice.cuh"  //HornetDevice
-#include "BasicTypes.hpp"             //vid_t
+#include "BasicTypes.hpp"                   //vid_t 
+#include "Core/GPUHornet/HornetDevice.cuh"  //HornetDevice
 
-namespace hornet {
+namespace hornets_nest {
 namespace gpu {
 
 #define       VERTEX Vertex<TypeList<VertexTypes...>,TypeList<EdgeTypes...>>
@@ -226,7 +226,7 @@ EDGE::field() const {
 }
 
 } // namespace gpu
-} // namespace hornet
+} // namespace hornets_nest
 
 #undef VERTEX
 #undef EDGE

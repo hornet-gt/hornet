@@ -3,7 +3,7 @@
 #include "Core/GPUCsr/CsrTypes.cuh"
 #include "GraphIO/GraphStd.hpp"        //GraphStd
 
-using namespace hornet;
+using namespace hornets_nest;
 
 using HornetCSR = csr::Hornet<EMPTY, EMPTY>;
 

@@ -33,18 +33,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "BatchOOPDeleteKernels.cuh"
+#include "Kernels/BatchOOPDeleteKernels.cuh"
 #include "Device/PrintExt.cuh"          //cu::printArray
-#include <type_traits>                  //std::conditional
 
 //#define BATCH_DELETE_DEBUG
 
-namespace hornet {
+namespace hornets_nest {
 namespace gpu {
 
 static const unsigned BLOCK_SIZE = 256;
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::deleteOOPEdgeBatch(BatchUpdate& batch_update) noexcept {
     int num_uniques = batch_preprocessing(batch_update, true);
     //==========================================================================
@@ -112,6 +111,6 @@ void HORNET::deleteOOPEdgeBatch(BatchUpdate& batch_update) noexcept {
 }
 
 } // namespace gpu
-} // namespace hornet
+} // namespace hornets_nest
 
 #undef BATCH_DELETE_DEBUG

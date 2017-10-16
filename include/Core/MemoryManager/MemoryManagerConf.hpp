@@ -37,7 +37,7 @@
  */
 #pragma once
 
-namespace hornet {
+namespace hornets_nest {
 
 /**
  * @brief
@@ -69,4 +69,4 @@ static_assert(xlib::is_power2(MIN_EDGES_PER_BLOCK)  &&
               MIN_EDGES_PER_BLOCK <= EDGES_PER_BLOCKARRAY,
               "Memory Management Constrains");
 
-} // namespace hornet
+} // namespace hornets_nest

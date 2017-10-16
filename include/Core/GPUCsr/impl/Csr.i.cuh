@@ -35,20 +35,20 @@
  */
 #include "Device/Timer.cuh"   //timer::Timer
 #include "Device/CubWrapper.cuh"
-#include "CsrKernels.cuh"
+//#include "Core/GPUHornet/impl/HornetKernels.cuh"
 
-namespace hornet {
-namespace csr {
+namespace hornets_nest {
+namespace gpu {
 
-////////////////////
-// Hornet GPU Csr //
-////////////////////
-
-template<typename... VertexTypes, typename... EdgeTypes>
-int HORNET::global_id = 0;
+/////////////
+// GPU Csr //
+/////////////
 
 template<typename... VertexTypes, typename... EdgeTypes>
-HORNET::Hornet(const HornetInit& hornet_init,
+int CSR::global_id = 0;
+
+template<typename... VertexTypes, typename... EdgeTypes>
+CSR::Csr(const HornetInit& hornet_init,
                bool traspose) noexcept :
                             _hornet_init(hornet_init),
                             _nV(hornet_init.nV()),
@@ -61,12 +61,12 @@ HORNET::Hornet(const HornetInit& hornet_init,
 }
 
 template<typename... VertexTypes, typename... EdgeTypes>
-HORNET::~Hornet() noexcept {
+CSR::~Csr() noexcept {
     cuFree(_d_csr_offsets, _d_degrees);
 }
 
 template<typename... VertexTypes, typename... EdgeTypes>
-void HORNET::initialize() noexcept {
+void CSR::initialize() noexcept {
     using namespace timer;
     const auto& vertex_init = _hornet_init._vertex_data_ptrs;
     const auto&   edge_init = _hornet_init._edge_data_ptrs;
@@ -111,32 +111,32 @@ void HORNET::initialize() noexcept {
 
 // TO IMPROVE !!!!
 template<typename... VertexTypes, typename... EdgeTypes>
-vid_t HORNET::nV() const noexcept {
+vid_t CSR::nV() const noexcept {
     return _nV;
 }
 
 // TO IMPROVE !!!!
 template<typename... VertexTypes, typename... EdgeTypes>
-eoff_t HORNET::nE() const noexcept {
+eoff_t CSR::nE() const noexcept {
     return _nE;
 }
 
 // TO IMPROVE !!!!
 template<typename... VertexTypes, typename... EdgeTypes>
-const eoff_t* HORNET::csr_offsets() noexcept {
+const eoff_t* CSR::csr_offsets() noexcept {
     return _hornet_init.csr_offsets();
 }
 
 // TO IMPROVE !!!!
 template<typename... VertexTypes, typename... EdgeTypes>
-const vid_t* HORNET::csr_edges() noexcept {
+const vid_t* CSR::csr_edges() noexcept {
     return _hornet_init.csr_edges();
 }
 
 template<typename... VertexTypes, typename... EdgeTypes>
 template<int INDEX>
 const typename xlib::SelectType<INDEX, VertexTypes...>::type*
-HORNET::vertex_field() noexcept {
+CSR::vertex_field() noexcept {
     using T = typename xlib::SelectType<INDEX, VertexTypes...>::type;
     return reinterpret_cast<const T*>(
                 _hornet_init._vertex_data_ptrs[INDEX + 1]);
@@ -145,14 +145,14 @@ HORNET::vertex_field() noexcept {
 template<typename... VertexTypes, typename... EdgeTypes>
 template<int INDEX>
 const typename xlib::SelectType<INDEX, vid_t, EdgeTypes...>::type*
-HORNET::edge_field() noexcept {
+CSR::edge_field() noexcept {
     using T = typename xlib::SelectType<INDEX, vid_t, EdgeTypes...>::type;
     return reinterpret_cast<const T*>(_hornet_init._edge_data_ptrs[INDEX]);
 }
 
 // TO IMPROVE !!!!
 template<typename... VertexTypes, typename... EdgeTypes>
-const eoff_t* HORNET::device_csr_offsets() const noexcept {
+const eoff_t* CSR::device_csr_offsets() const noexcept {
     /*if (_d_csr_offsets == nullptr) {
         cuMalloc(_d_csr_offsets, _nV + 1);
         cuMemcpyToDevice(csr_offsets(), _nV + 1, _d_csr_offsets);
@@ -161,34 +161,34 @@ const eoff_t* HORNET::device_csr_offsets() const noexcept {
 }
 
 template<typename... VertexTypes, typename... EdgeTypes>
-const degree_t* HORNET::device_degrees() const noexcept {
+const degree_t* CSR::device_degrees() const noexcept {
     return _d_degrees;
 }
 
 template<typename... VertexTypes, typename... EdgeTypes>
-HORNET::HornetDeviceT HORNET::device_side() const noexcept {
-    using HornetDeviceT = HornetDevice<std::tuple<VertexTypes...>,
-                                       std::tuple<EdgeTypes...>>;
-    return HornetDeviceT(_nV, _nE,
-                         _vertex_array.device_ptr(), _vertex_array.pitch(),
-                         _edge_array.device_ptr(), _edge_array.pitch());
+CSR::CsrDeviceT CSR::device_side() const noexcept {
+    using CsrDeviceT = CsrDevice<std::tuple<VertexTypes...>,
+                                 std::tuple<EdgeTypes...>>;
+    return CsrDeviceT(_nV, _nE,
+                      _vertex_array.device_ptr(), _vertex_array.pitch(),
+                      _edge_array.device_ptr(), _edge_array.pitch());
 }
 
 template<typename... VertexTypes, typename... EdgeTypes>
-void HORNET::print() noexcept {
+void CSR::print() noexcept {
     printKernel<<<1, 1>>>(device_side());
     CHECK_CUDA_ERROR
 }
 
 template<typename... VertexTypes, typename... EdgeTypes>
-void HORNET::build_device_degrees() noexcept {
+void CSR::build_device_degrees() noexcept {
     cuMalloc(_d_degrees, _nV);
     buildDegreeKernel <<< xlib::ceil_div(_nV, 256), 256 >>>
         (device_side(), _d_degrees);
 }
 
 template<typename... VertexTypes, typename... EdgeTypes>
-vid_t HORNET::max_degree_id() noexcept {
+vid_t CSR::max_degree_id() noexcept {
     if (_max_degree_data.first == -1) {
         xlib::CubArgMax<degree_t> arg_max(_d_degrees, _nV);
         _max_degree_data = arg_max.run();
@@ -197,7 +197,7 @@ vid_t HORNET::max_degree_id() noexcept {
 }
 
 template<typename... VertexTypes, typename... EdgeTypes>
-degree_t HORNET::max_degree() noexcept {
+degree_t CSR::max_degree() noexcept {
     if (_max_degree_data.first == -1) {
         xlib::CubArgMax<degree_t> arg_max(_d_degrees, _nV);
         _max_degree_data = arg_max.run();
@@ -205,5 +205,5 @@ degree_t HORNET::max_degree() noexcept {
     return _max_degree_data.second;
 }
 
-} // namespace csr
-} // namespace hornet
+} // namespace gpu
+} // namespace hornets_nest

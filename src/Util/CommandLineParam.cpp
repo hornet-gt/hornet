@@ -40,7 +40,7 @@
 #include <cuda_runtime.h>                   //cudaSetDevice
 #include <fstream>                          //std::ifstream
 
-namespace hornet {
+namespace hornets_nest {
 
 template<typename T, typename R>
 CommandLineParam::CommandLineParam(graph::GraphStd<T, R>& graph,
@@ -173,4 +173,4 @@ template CommandLineParam::CommandLineParam(graph::GraphStd<int, int>&,
 template CommandLineParam::CommandLineParam(graph::GraphStd<int64_t, int64_t>&,
                                             int, char* argv[], bool);
 
-} // namespace hornet
+} // namespace hornets_nest

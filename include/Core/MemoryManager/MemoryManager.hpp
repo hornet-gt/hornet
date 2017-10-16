@@ -55,7 +55,7 @@
 
 //#define EXPERIMENTAL
 
-namespace hornet {
+namespace hornets_nest {
 
 /**
  * @brief Container for a set of *BlockArrays* of the same sime
@@ -158,7 +158,7 @@ private:
                                            int index = 0) noexcept;
 };
 
-} // namespace hornet
+} // namespace hornets_nest
 
 #include "MemoryManager.i.hpp"
 

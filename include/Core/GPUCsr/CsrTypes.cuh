@@ -39,26 +39,26 @@
 
 #include "BasicTypes.hpp"   //off2_t
 
-namespace hornet {
-namespace csr {
+namespace hornets_nest {
+namespace gpu {
 
-template<typename, typename> class Vertex;
-template<typename, typename> class Edge;
-template<typename, typename> class HornetDevice;
+template<typename, typename> class VertexCsr;
+template<typename, typename> class EdgeCsr;
+template<typename, typename> class CsrDevice;
 
 template<typename... VertexTypes, typename... EdgeTypes>
-class Vertex<TypeList<VertexTypes...>, TypeList<EdgeTypes...>> :
+class VertexCsr<TypeList<VertexTypes...>, TypeList<EdgeTypes...>> :
                                  public AoSData<off2_t, VertexTypes...> {
-    template<typename T, typename R> friend class Edge;
-    template<typename T, typename R> friend class HornetDevice;
+    template<typename, typename> friend class EdgeCsr;
+    template<typename, typename> friend class CsrDevice;
 
     static const int NUM_ETYPES = sizeof...(EdgeTypes) + 1;
 
-    using         EdgeT = Edge<TypeList<VertexTypes...>,
-                               TypeList<EdgeTypes...>>;
-    using HornetDeviceT = HornetDevice<TypeList<VertexTypes...>,
-                                       TypeList<EdgeTypes...>>;
-    using       WeightT = IndexT<1, NUM_ETYPES, vid_t, EdgeTypes...>;
+    using      EdgeT = EdgeCsr<TypeList<VertexTypes...>,
+                            TypeList<EdgeTypes...>>;
+    using CsrDeviceT = CsrDevice<TypeList<VertexTypes...>,
+                                 TypeList<EdgeTypes...>>;
+    using    WeightT = IndexT<1, NUM_ETYPES, vid_t, EdgeTypes...>;
 
 public:
     /**
@@ -118,7 +118,7 @@ public:
     field() const;
 
 private:
-    HornetDeviceT& _hornet;
+    CsrDeviceT& _hornet;
     vid_t          _id;
     eoff_t         _offset;
     degree_t       _degree;
@@ -129,29 +129,29 @@ private:
      * @param[in] data cuStinger device data
      */
     __device__ __forceinline__
-    Vertex(HornetDeviceT& data, vid_t index);
+    VertexCsr(CsrDeviceT& data, vid_t index);
 
     __device__ __forceinline__
-    Vertex(HornetDeviceT& data);
+    VertexCsr(CsrDeviceT& data);
 };
 
 //==============================================================================
 
 template<typename... VertexTypes, typename... EdgeTypes>
-class Edge<TypeList<VertexTypes...>, TypeList<EdgeTypes...>> :
+class EdgeCsr<TypeList<VertexTypes...>, TypeList<EdgeTypes...>> :
                                            public AoSData<vid_t, EdgeTypes...> {
-    template<typename T, typename R> friend class Vertex;
-    template<typename T, typename R> friend class HornetDevice;
+    template<typename, typename> friend class VertexCsr;
+    template<typename, typename> friend class CsrDevice;
 
-    using       VertexT = Vertex<TypeList<VertexTypes...>,
+    using    VertexT = VertexCsr<TypeList<VertexTypes...>,
                                  TypeList<EdgeTypes...>>;
-    using HornetDeviceT = HornetDevice<TypeList<VertexTypes...>,
-                                       TypeList<EdgeTypes...>>;
+    using CsrDeviceT = CsrDevice<TypeList<VertexTypes...>,
+                                 TypeList<EdgeTypes...>>;
 
     static const int NUM_ETYPES = sizeof...(EdgeTypes) + 1;
-    using       WeightT = IndexT<1, NUM_ETYPES, vid_t, EdgeTypes...>;
-    using   TimeStamp1T = IndexT<2, NUM_ETYPES, vid_t, EdgeTypes...>;
-    using   TimeStamp2T = IndexT<3, NUM_ETYPES, vid_t, EdgeTypes...>;
+    using     WeightT = IndexT<1, NUM_ETYPES, vid_t, EdgeTypes...>;
+    using TimeStamp1T = IndexT<2, NUM_ETYPES, vid_t, EdgeTypes...>;
+    using TimeStamp2T = IndexT<3, NUM_ETYPES, vid_t, EdgeTypes...>;
 public:
     /**
      * @internal
@@ -161,7 +161,7 @@ public:
      * @param[in] size of the *block*
      */
     __device__ __forceinline__
-    Edge(HornetDeviceT& hornet,
+    EdgeCsr(CsrDeviceT& hornet,
          eoff_t         offset,
          vid_t          src_id = static_cast<vid_t>(-1));
 
@@ -240,7 +240,7 @@ public:
      *         contain atleast `INDEX` fields
      * @details **Example:**
      * @code{.cpp}
-     * Edge edge = ...
+     * EdgeCsr edge = ...
      *      auto edge_label = edge.field<0>();
      * @endcode
      */
@@ -250,12 +250,12 @@ public:
     field() const;
 
 private:
-    HornetDeviceT& _hornet;
+    CsrDeviceT& _hornet;
     void*          _ptr;
     vid_t          _src_id;
 };
 
-} // namespace csr
-} // namespace hornet
+} // namespace gpu
+} // namespace hornets_nest
 
 #include "impl/CsrTypes.i.cuh"

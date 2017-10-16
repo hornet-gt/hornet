@@ -1,8 +1,9 @@
 /**
+ * @brief High-level API to access to cuStinger data (Vertex, Edge)
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date September, 2017
+ * @date August, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 Hornet. All rights reserved.
@@ -32,50 +33,39 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
+ *
+ * @file
  */
-#include "BatchDeleteKernels.cuh"
-
-namespace hornet {
+#define HORNET_DEVICE HornetDevice<TypeList<VertexTypes...>,\
+                                   TypeList<EdgeTypes...>, FORCE_SOA>
+namespace hornets_nest {
 namespace gpu {
 
-template<typename... VertexTypes, typename... EdgeTypes>
-void HORNET::deleteEdgeBatch(BatchUpdate& batch_update) noexcept {
-    const unsigned BLOCK_SIZE = 128;
-    int num_uniques = batch_preprocessing(batch_update, false);
-    //==========================================================================
-    size_t  batch_size = batch_update.size();
-    vid_t* d_batch_src = batch_update.src_ptr();
-    vid_t* d_batch_dst = batch_update.dst_ptr();
-    //--------------------------------------------------------------------------
-    ///////////////////
-    // DELETE KERNEL //
-    ///////////////////
-    if (_is_sorted) {
-        cub_prefixsum.run(_d_counts, num_uniques + 1);
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
+HORNET_DEVICE::HornetDevice(vid_t nV, eoff_t nE, void* d_ptr, size_t pitch)
+                            noexcept :
+                _nV(nV), _nE(nE),
+                BestLayoutDev<size_t, void*, VertexTypes...>(d_ptr, pitch) {}
 
-        /*deleteSortedKernel
-            <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
-            (device_side(), _d_unique, _d_counts, num_uniques, d_batch_dst);
-        CHECK_CUDA_ERROR*/
-    }
-    else {
-        vertexDegreeKernel
-            <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
-            (device_side(), _d_unique, num_uniques, _d_degree_tmp);
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
+__device__ __forceinline__
+vid_t HORNET_DEVICE::nV() const noexcept {
+    return _nV;
+}
 
-        /*deleteUnsortedKernel
-            <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
-            (device_side(), d_batch_src, d_batch_dst, batch_size,
-             _d_degree_tmp);*/
-        CHECK_CUDA_ERROR
-    }
-    //--------------------------------------------------------------------------
-                                        //is_insert, get_old_degree
-    fixInternalRepresentation(num_uniques, false, false);
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
+__device__ __forceinline__
+eoff_t HORNET_DEVICE::nE() const noexcept {
+    return _nE;
+}
 
-    if (_batch_prop == batch_property::CSR)
-        build_batch_csr(batch_update, num_uniques, !_is_sorted);
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
+__device__ __forceinline__
+HORNET_DEVICE::VertexT HORNET_DEVICE::vertex(vid_t index) {
+    return VertexT(*this, index);
 }
 
 } // namespace gpu
-} // namespace hornet
+} // namespace hornets_nest
+
+#undef HORNET_DEVICE

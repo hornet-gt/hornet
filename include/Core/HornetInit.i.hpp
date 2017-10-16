@@ -36,7 +36,7 @@
 #include "Host/Metaprogramming.hpp"
 #include <cassert>      //assert
 
-namespace hornet {
+namespace hornets_nest {
 
 template<unsigned SIZE>
 void bind(const byte_t* (&)[SIZE], int) noexcept {}
@@ -117,4 +117,4 @@ inline bool HornetInit::is_sorted() const noexcept {
     return _is_sorted;
 }
 
-} // namespace hornet
+} // namespace hornets_nest

@@ -1,9 +1,8 @@
 /**
- * @brief High-level API to access to cuStinger data (Vertex, Edge)
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date August, 2017
+ * @date September, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 Hornet. All rights reserved.
@@ -33,39 +32,47 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
- *
- * @file
  */
-#define HORNET_DEVICE HornetDevice<TypeList<VertexTypes...>,\
-                                   TypeList<EdgeTypes...>>
-namespace hornet {
+namespace hornets_nest {
 namespace gpu {
 
-template<typename... VertexTypes, typename... EdgeTypes>
-HORNET_DEVICE::HornetDevice(vid_t nV, eoff_t nE, void* d_ptr, size_t pitch)
-                            noexcept :
-                _nV(nV), _nE(nE),
-                BestLayoutDev<size_t, void*, VertexTypes...>(d_ptr, pitch) {}
+template<typename T>
+__global__
+void deleteSortedKernel() {
 
-template<typename... VertexTypes, typename... EdgeTypes>
-__device__ __forceinline__
-vid_t HORNET_DEVICE::nV() const noexcept {
-    return _nV;
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
-__device__ __forceinline__
-eoff_t HORNET_DEVICE::nE() const noexcept {
-    return _nE;
+template<typename T>
+__global__
+void genererateDegreeTmpKernel() {
+
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
-__device__ __forceinline__
-HORNET_DEVICE::VertexT HORNET_DEVICE::vertex(vid_t index) {
-    return VertexT(*this, index);
+template<typename HornetDevice>
+__global__
+void deleteUnsortedKernel(HornetDevice              hornet,
+                          const vid_t* __restrict__ d_batch_src,
+                          const vid_t* __restrict__ d_batch_dst,
+                          int                       batch_size) {
+
+    int     id = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = gridDim.x * blockDim.x;
+
+    for (auto i = id; i < batch_size; i += stride) {
+        auto vertex = hornet.vertex(d_batch_src[i]);
+        auto    dst = d_batch_dst[i];
+
+        for (int j = 0; j < vertex.degree(); j++) {
+            if (vertex.neighbor_id(j) == dst) {
+                //auto last = get_last();
+                /*if (last < 0)
+                    break;
+                vertex.store(j, Edge(hornet, vertex.neighbor_ptr() + last));
+                break;*/
+            }
+        }
+    }
 }
 
 } // namespace gpu
-} // namespace hornet
-
-#undef HORNET_DEVICE
+} // namespace hornets_nest

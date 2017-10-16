@@ -1,5 +1,5 @@
 /**
- * @brief High-level API to access to cuStinger data (Vertex, Edge)
+ * @brief High-level API to access to cuStinger data (VertexCsr, EdgeCsr)
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
@@ -36,15 +36,15 @@
  *
  * @file
  */
-#define HORNET_DEVICE HornetDevice<TypeList<VertexTypes...>,\
-                                   TypeList<EdgeTypes...>>
-namespace hornet {
-namespace csr {
+#define HORNET_DEVICE CsrDevice<TypeList<VertexTypes...>,\
+                                TypeList<EdgeTypes...>>
+namespace hornets_nest {
+namespace gpu {
 
 template<typename... VertexTypes, typename... EdgeTypes>
-HORNET_DEVICE::HornetDevice(vid_t nV, eoff_t nE,
-                            void* d_vertex_ptr, size_t vertex_pitch,
-                            void* d_edge_ptr,   size_t edge_pitch) noexcept :
+HORNET_DEVICE::CsrDevice(vid_t nV, eoff_t nE,
+                         void* d_vertex_ptr, size_t vertex_pitch,
+                         void* d_edge_ptr,   size_t edge_pitch) noexcept :
             _nV(nV), _nE(nE),
             BestLayoutDev<off2_t, VertexTypes...>(d_vertex_ptr, vertex_pitch),
             BestLayoutDev<vid_t, EdgeTypes...>(d_edge_ptr, edge_pitch) {}
@@ -91,7 +91,7 @@ AoSData<vid_t, EdgeTypes...> HORNET_DEVICE::raw_edge(eoff_t offset) const {
     return BestLayoutDev<vid_t, EdgeTypes...>::operator[](offset);
 }
 
-} // namespace csr
-} // namespace hornet
+} // namespace gpu
+} // namespace hornets_nest
 
 #undef HORNET_DEVICE

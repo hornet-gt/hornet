@@ -41,18 +41,18 @@
 #include "BasicTypes.hpp"                        //vid_t
 #include "Core/DataLayout/DataLayoutDev.cuh"
 
-namespace hornet {
+namespace hornets_nest {
 namespace gpu {
 
 template<typename, typename> class Vertex;
 template<typename, typename> class Edge;
-template<typename, typename> class HornetDevice;
+template<typename, typename, bool = false> class HornetDevice;
 
 template<typename... VertexTypes, typename... EdgeTypes>
 class Vertex<TypeList<VertexTypes...>, TypeList<EdgeTypes...>> :
                                  public AoSData<size_t, void*, VertexTypes...> {
-    template<typename T, typename R> friend class Edge;
-    template<typename T, typename R> friend class HornetDevice;
+    template<typename, typename> friend class Edge;
+    template<typename, typename, bool> friend class HornetDevice;
 
     static const int NUM_ETYPES = sizeof...(EdgeTypes) + 1;
 
@@ -285,6 +285,6 @@ private:
 };
 
 } // namespace gpu
-} // namespace hornet
+} // namespace hornets_nest
 
 #include "impl/HornetTypes.i.cuh"

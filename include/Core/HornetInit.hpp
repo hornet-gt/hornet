@@ -44,22 +44,19 @@
  * @brief The namespace contanins all classes and methods related to the
  *        cuStinger data structure
  */
-namespace hornet {
+namespace hornets_nest {
 
 namespace gpu {
-    template<typename, typename> class Hornet;
-} //namespace gpu
-
-namespace csr {
-    template<typename, typename> class Hornet;
+    template<typename, typename, bool> class Hornet;
+    template<typename, typename> class Csr;
 } //namespace gpu
 
 /**
  * @brief cuStinger initialization class
  */
 class HornetInit {
-    template<typename T, typename R> friend class gpu::Hornet;
-    template<typename T, typename R> friend class csr::Hornet;
+    template<typename, typename, bool> friend class gpu::Hornet;
+    template<typename, typename>       friend class gpu::Csr;
 public:
     /**
      * @brief Default costructor
@@ -156,6 +153,6 @@ private:
     bool   _is_sorted          { false };
 };
 
-} // namespace hornet
+} // namespace hornets_nest
 
 #include "HornetInit.i.hpp"

@@ -33,16 +33,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "BatchCommonKernels.cuh"
-#include "Device/CubWrapper.cuh"        //xlib::CubSortPairs2
-#include "Device/PrintExt.cuh"          //cu::printArray
+#include "Kernels/BatchCommonKernels.cuh"
+#include <Device/PrintExt.cuh>          //cu::printArray
 
 #define DEBUG_FIXINTERNAL
 
-namespace hornet {
+namespace hornets_nest {
 namespace gpu {
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 int HORNET::batch_preprocessing(BatchUpdate& batch_update, bool is_insert)
                                 noexcept {
     using namespace batch_property;
@@ -166,7 +165,7 @@ L1: batch_update.set_device_ptrs(d_batch_src, d_batch_dst, batch_size);
 
 //==============================================================================
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::build_batch_csr(BatchUpdate& batch_update, int num_uniques,
                              bool require_prefix_sum) noexcept {
     const unsigned BLOCK_SIZE = 128;
@@ -188,7 +187,7 @@ void HORNET::build_batch_csr(BatchUpdate& batch_update, int num_uniques,
 
 //==============================================================================
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::fixInternalRepresentation(int num_uniques, bool is_insert,
                                        bool get_old_degree) noexcept {
     const unsigned BLOCK_SIZE = 128;
@@ -256,6 +255,6 @@ void HORNET::fixInternalRepresentation(int num_uniques, bool is_insert,
 }
 
 } // namespace gpu
-} // namespace hornet
+} // namespace hornets_nest
 
 #undef DEBUG_FIXINTERNAL

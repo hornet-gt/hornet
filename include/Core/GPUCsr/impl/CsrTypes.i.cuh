@@ -36,17 +36,17 @@
 #include "Core/GPUCsr/CsrDevice.cuh"  //HornetDevice
 #include "BasicTypes.hpp"             //vid_t
 
-#define       VERTEX Vertex<TypeList<VertexTypes...>,TypeList<EdgeTypes...>>
-#define         EDGE Edge<TypeList<VertexTypes...>,TypeList<EdgeTypes...>>
-#define HORNETDEVICE HornetDevice<TypeList<VertexTypes...>,\
-                                  TypeList<EdgeTypes...>>
+#define       VERTEX VertexCsr<TypeList<VertexTypes...>,TypeList<EdgeTypes...>>
+#define         EDGE EdgeCsr<TypeList<VertexTypes...>,TypeList<EdgeTypes...>>
+#define HORNETDEVICE CsrDevice<TypeList<VertexTypes...>,\
+                               TypeList<EdgeTypes...>>
 
-namespace hornet {
-namespace csr {
+namespace hornets_nest {
+namespace gpu {
 
 template<typename... VertexTypes, typename... EdgeTypes>
 __device__ __forceinline__
-VERTEX::Vertex(HORNETDEVICE& hornet, vid_t index) :
+VERTEX::VertexCsr(HORNETDEVICE& hornet, vid_t index) :
                     _hornet(hornet),
                     _id(index),
                     AoSData<off2_t, VertexTypes...>(hornet.raw_vertex(index)) {
@@ -57,7 +57,7 @@ VERTEX::Vertex(HORNETDEVICE& hornet, vid_t index) :
 
 template<typename... VertexTypes, typename... EdgeTypes>
 __device__ __forceinline__
-VERTEX::Vertex(HORNETDEVICE& hornet) : _hornet(hornet) {}
+VERTEX::VertexCsr(HORNETDEVICE& hornet) : _hornet(hornet) {}
 
 template<typename... VertexTypes, typename... EdgeTypes>
 __device__ __forceinline__
@@ -116,7 +116,7 @@ EDGE VERTEX::edge(degree_t index) const {
 
 template<typename... VertexTypes, typename... EdgeTypes>
 __device__ __forceinline__
-EDGE::Edge(HORNETDEVICE& hornet, eoff_t offset, vid_t src_id) :
+EDGE::EdgeCsr(HORNETDEVICE& hornet, eoff_t offset, vid_t src_id) :
                         _hornet(hornet),
                         AoSData<vid_t, EdgeTypes...>(hornet.raw_edge(offset)),
                         _src_id(src_id) {}
@@ -188,5 +188,9 @@ EDGE::field() const {
     return this->template get<INDEX>();
 }
 
-} // namespace csr
-} // namespace hornet
+} // namespace gpu
+} // namespace hornets_nest
+
+#undef VERTEX
+#undef EDGE
+#undef HORNETDEVICE

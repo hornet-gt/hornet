@@ -40,7 +40,7 @@
 
 #include "GraphIO/GraphStd.hpp"     //graph::GraphStd
 
-namespace hornet {
+namespace hornets_nest {
 
 struct CommandLineParam {
     template<typename T, typename R>
@@ -48,4 +48,4 @@ struct CommandLineParam {
                      bool exit_if_unknown = true) noexcept;
 };
 
-} // namespace hornet
+} // namespace hornets_nest

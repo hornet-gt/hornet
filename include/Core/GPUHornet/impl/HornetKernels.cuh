@@ -37,8 +37,8 @@
 #include "Device/BinarySearchLB.cuh"    //xlib::BinarySearchLB
 #include "Device/PrintExt.cuh"          //cu::Cout
 
-namespace hornet {
-namespace csr {
+namespace hornets_nest {
+namespace gpu {
 
 template<typename HornetDevice>
 __global__
@@ -46,7 +46,8 @@ void printKernel(HornetDevice hornet) {
     cu::Cout cout;
     for (vid_t i = 0; i < hornet.nV(); i++) {
         auto vertex = hornet.vertex(i);
-        cout << i << " [" << vertex.degree() << "]: ";
+        cout << i << " [" << vertex.degree() << ", "
+                          << vertex.neighbor_ptr() << "]: ";
 
         for (degree_t j = 0; j < vertex.degree(); j++) {
             auto edge = vertex.edge(j);
@@ -56,6 +57,13 @@ void printKernel(HornetDevice hornet) {
         }
         cout << "\n";
     }
+    /*auto vertex = hornet.vertex(2);
+    auto   edge = vertex.edge(2);
+    vertex.store(0, edge);
+
+    for (degree_t j = 0; j < vertex.degree(); j++)
+        cout << vertex.neighbor_id(j) << " ";
+    cout << "\n";*/
 }
 
 template<unsigned BLOCK_SIZE>
@@ -104,5 +112,5 @@ void buildDegreeKernel(HornetDevice           hornet,
         d_degrees[i] = hornet.vertex(i).degree();
 }
 
-} // namespace csr
-} // namespace hornet
+} // namespace gpu
+} // namespace hornets_nest

@@ -36,7 +36,7 @@
 #include "Device/SafeCudaAPI.cuh"
 #include "Device/PrintExt.cuh"
 
-namespace hornet {
+namespace hornets_nest {
 namespace gpu {
 
 inline BatchProperty::BatchProperty(const detail::BatchPropEnum& obj) noexcept :
@@ -175,4 +175,4 @@ inline void BatchUpdate::set_wide_csr(const eoff_t* d_wide_offsets) noexcept {
 }
 
 } // namespace gpu
-} // namespace hornet
+} // namespace hornets_nest

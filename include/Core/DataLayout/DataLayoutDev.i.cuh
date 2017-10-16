@@ -33,7 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-namespace hornet {
+namespace hornets_nest {
 
 template<typename... TArgs>
 const AoSdev<TArgs...>::TypeSizesPS AoSdev<TArgs...>::TYPE_SIZES_PS;
@@ -112,4 +112,4 @@ SoAdev<TArgs...>::ptr(int index) const {
                    (reinterpret_cast<byte_t*>(_d_ptr) + _pitch * INDEX) + index;
 }
 
-} // namespace hornet
+} // namespace hornets_nest

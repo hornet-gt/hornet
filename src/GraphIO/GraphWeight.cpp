@@ -76,8 +76,13 @@ GraphWeight<vid_t, eoff_t, weight_t>
 
 template<typename vid_t, typename eoff_t, typename weight_t>
 void GraphWeight<vid_t, eoff_t, weight_t>
-::allocate(const GInfo& ginfo) noexcept {
-    GraphStd<vid_t, eoff_t>::allocate(ginfo);
+::allocate(const GInfo& ginfo, const bool allocate_coo) noexcept {
+    // We need to allocate the COO ourselves due to needing weights
+    GraphStd<vid_t, eoff_t>::allocate(ginfo, false);
+    // Allocate the COO ourselves, now that _nE is set
+    if (allocate_coo)
+        _coo_edges   = new coo_t[ _nE ];
+    _coo_size = _nE;
     try {
         _out_weights = new weight_t[ _nE ];
         if (_structure.is_undirected()) {

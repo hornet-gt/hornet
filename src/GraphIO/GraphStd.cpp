@@ -81,7 +81,8 @@ GraphStd<vid_t, eoff_t>::GraphStd(StructureProp structure,
 //------------------------------------------------------------------------------
 
 template<typename vid_t, typename eoff_t>
-void GraphStd<vid_t, eoff_t>::allocate(const GInfo& ginfo) noexcept {
+void GraphStd<vid_t, eoff_t>::allocate(const GInfo& ginfo,
+                                       const bool allocate_coo) noexcept {
     assert(ginfo.num_vertices > 0 && ginfo.num_edges > 0);
     if (!_structure.is_direction_set())
         _structure += ginfo.direction;
@@ -130,7 +131,8 @@ void GraphStd<vid_t, eoff_t>::allocate(const GInfo& ginfo) noexcept {
         _out_offsets = new eoff_t[ _nV + 1 ];
         _out_edges   = new vid_t[ _nE ];
         _out_degrees = new degree_t[ _nV ]();
-        _coo_edges   = new coo_t[ _nE ];
+        if (allocate_coo)
+            _coo_edges   = new coo_t[ _nE ];
         if (_structure.is_undirected()) {
             _in_degrees = _out_degrees;
             _in_offsets = _out_offsets;

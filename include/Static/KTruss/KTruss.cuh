@@ -6,12 +6,12 @@
 #include "Core/LoadBalancing/ScanBased.cuh"
 #include "Core/LoadBalancing/BinarySearch.cuh"
 #include <Core/GPUCsr/Csr.cuh>
-#include <Core/GPU/Hornet.cuh>
+#include <Core/GPUHornet/Hornet.cuh>
+
+namespace hornets_nest {
 
 using triangle_t = int;
-using  HornetGPU = gpu::Hornet<EMPTY, TypeList<triangle_t>>;
-
-namespace hornet_alg {
+using HornetGraph = gpu::Hornet<EMPTY, TypeList<triangle_t>>;
 
 struct KTrussData {
     int max_K;
@@ -44,9 +44,9 @@ struct KTrussData {
 //==============================================================================
 
 // Label propogation is based on the values from the previous iteration.
-class KTruss : public StaticAlgorithm<HornetGPU> {
+class KTruss : public StaticAlgorithm<HornetGraph> {
 public:
-    KTruss(HornetGPU& hornet);
+    KTruss(HornetGraph& hornet);
     ~KTruss();
 
     void reset()    override;
@@ -83,7 +83,7 @@ private:
 
 //==============================================================================
 
-void callDeviceDifferenceTriangles(const HornetGPU& hornet,
+void callDeviceDifferenceTriangles(const HornetGraph& hornet,
                                    const gpu::BatchUpdate& batch_update,
                                    triangle_t* __restrict__ output_triangles,
                                    int threads_per_intersection,
@@ -93,4 +93,4 @@ void callDeviceDifferenceTriangles(const HornetGPU& hornet,
                                    int blockdim,
                                    bool deletion);
 
-} // namespace hornet_alg
+} // namespace hornets_nest

@@ -37,6 +37,7 @@
  */
 #pragma once
 
+namespace hornets_nest {
 namespace load_balacing {
 
 class ScanBased {
@@ -60,5 +61,6 @@ private:
 };
 
 } // namespace load_balacing
+} // namespace hornets_nest
 
 #include "ScanBased.i.cuh"

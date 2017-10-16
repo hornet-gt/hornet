@@ -40,6 +40,7 @@
 
 #include "Core/Queue/TwoLevelQueue.cuh"
 
+namespace hornets_nest {
 /**
  * @brief The namespace provides all load balacing methods to traverse vertices
  */
@@ -92,5 +93,6 @@ private:
 };
 
 } // namespace load_balacing
+} // namespace hornets_nest
 
 #include "Core/LoadBalancing/BinarySearch.i.cuh"

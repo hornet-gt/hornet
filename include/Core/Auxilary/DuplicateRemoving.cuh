@@ -38,7 +38,7 @@
  */
 #pragma once
 
-namespace hornet_alg {
+namespace hornets_nest {
 
 template<unsigned HASHTABLE_SIZE, int ITERS = 1>
 __device__ __forceinline__
@@ -87,4 +87,4 @@ bool is_duplicate(vid_t vertex) {
     return duplicate_removing_aux<HASHTABLE_SIZE, ITERS>(vertex, warp_shmem);*/
 }
 
-} // namespace hornet_alg
+} // namespace hornets_nest

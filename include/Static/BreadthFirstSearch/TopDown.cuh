@@ -44,18 +44,18 @@
 #include "Core/LoadBalancing/ScanBased.cuh"
 #include "Core/LoadBalancing/BinarySearch.cuh"
 #include <Core/GPUCsr/Csr.cuh>
-#include <Core/GPU/Hornet.cuh>
+#include <Core/GPUHornet/Hornet.cuh>
 
-namespace hornet_alg {
+namespace hornets_nest {
 
-using HornetGPU = csr::Hornet<EMPTY, EMPTY>;
-//using HornetGPU = gpu::Hornet<EMPTY, EMPTY>;
+using HornetGraph = gpu::Csr<EMPTY, EMPTY>;
+//using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
 
 using dist_t = int;
 
-class BfsTopDown : public StaticAlgorithm<HornetGPU> {
+class BfsTopDown : public StaticAlgorithm<HornetGraph> {
 public:
-    BfsTopDown(HornetGPU& hornet);
+    BfsTopDown(HornetGraph& hornet);
     ~BfsTopDown();
 
     void reset()    override;
@@ -75,4 +75,4 @@ private:
     dist_t  current_level { 0 };
 };
 
-} // namespace hornet_alg
+} // namespace hornets_nest

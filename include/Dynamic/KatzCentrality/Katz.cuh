@@ -42,7 +42,7 @@
 #include "Core/StandardAPI.hpp"
 #include "Static/KatzCentrality/Katz.cuh"
 
-namespace hornet_alg {
+namespace hornets_nest {
 
 struct KatzDynamicData : KatzData {
     KatzDynamicData() = default;
@@ -58,14 +58,14 @@ struct KatzDynamicData : KatzData {
     int      iteration_static;
 };
 
-class KatzCentralityDynamic : public StaticAlgorithm<HornetGPU> {
+class KatzCentralityDynamic : public StaticAlgorithm<HornetGraph> {
 public:
-    KatzCentralityDynamic(HornetGPU& hornet,
-                          HornetGPU& inverted_graph,
+    KatzCentralityDynamic(HornetGraph& hornet,
+                          HornetGraph& inverted_graph,
                           int max_iteration, int K,
                           degree_t max_degree);
 
-    KatzCentralityDynamic(HornetGPU& hornet,
+    KatzCentralityDynamic(HornetGraph& hornet,
                           int max_iteration, int K,
                           degree_t max_degree);
 
@@ -93,7 +93,7 @@ public:
 private:
     HostDeviceVar<KatzDynamicData> hd_katzdata;
 
-    HornetGPU&                  inverted_graph;
+    HornetGraph&                  inverted_graph;
     load_balacing::BinarySearch load_balacing;
     KatzCentrality              kc_static;
     bool is_directed;
@@ -101,4 +101,4 @@ private:
     void processUpdate(BatchUpdate& batch_update, bool is_insert);
 };
 
-} // namespace hornet_alg
+} // namespace hornets_nest

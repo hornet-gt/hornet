@@ -38,7 +38,7 @@
 #include <Device/SafeCudaAPI.cuh>       //cuMemcpyToDeviceAsync
 #include <BasicTypes.hpp>
 
-namespace hornet_alg {
+namespace hornets_nest {
 
 template<typename T>
 void ptr2_t<T>::swap() noexcept {
@@ -52,7 +52,7 @@ template<typename HornetClass>
 TwoLevelQueue<T>::TwoLevelQueue(const HornetClass& hornet,
                                 const float work_factor) noexcept :
                               _max_allocated_items(hornet.nV() * work_factor) {
-    static_assert(hornet::IsHornet<HornetClass>::value,
+    static_assert(IsHornet<HornetClass>::value,
                  "TwoLevelQueue paramenter is not an instance of Hornet Class");
     cuMalloc(_d_queue_ptrs.first, _max_allocated_items);
     cuMalloc(_d_queue_ptrs.second, _max_allocated_items);
@@ -78,7 +78,7 @@ template<typename T>
 template<typename HornetClass>
 void TwoLevelQueue<T>::initialize(const HornetClass& hornet,
                                  const float work_factors) noexcept {
-    static_assert(hornet::IsHornet<HornetClass>::value,
+    static_assert(IsHornet<HornetClass>::value,
                  "TwoLevelQueue paramenter is not an instance of Hornet Class");
     cuMalloc(_d_queue_ptrs.first, _max_allocated_items);
     cuMalloc(_d_queue_ptrs.second, _max_allocated_items);
@@ -187,4 +187,4 @@ int TwoLevelQueue<T>::enqueue_items() const noexcept {
     return _enqueue_items;
 }
 
-} // namespace hornet_alg
+} // namespace hornets_nest

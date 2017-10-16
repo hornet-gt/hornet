@@ -37,6 +37,7 @@
 #include <Device/CubWrapper.cuh>    //xlib::CubExclusiveSum
 #include <Device/Definition.cuh>    //xlib::SMemPerBlock
 
+namespace hornets_nest {
 namespace load_balacing {
 
 template<typename HornetClass>
@@ -102,3 +103,4 @@ void BinarySearch::apply(const HornetClass& hornet, const Operator& op)
 }
 
 } // namespace load_balacing
+} // namespace hornets_nest

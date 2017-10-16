@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     using namespace graph::structure_prop;
     using namespace graph::parsing_prop;
     using namespace graph;
-    using namespace hornet_alg;
+    using namespace hornets_nest;
     using namespace timer;
 
     int max_iterations = 1000;
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
                            graph.out_offsets_ptr(),
                            graph.out_edges_ptr());
 
-    HornetGPU hornet_graph(hornet_init);
+    HornetGraph hornet_graph(hornet_init);
 
     // Finding largest vertex
     degree_t max_degree_vertex = hornet_graph.max_degree_id();

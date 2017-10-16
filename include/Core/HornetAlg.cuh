@@ -41,7 +41,7 @@
 /**
  * @brief Hornet algorithms namespace
  */
-namespace hornet_alg {
+namespace hornets_nest {
 
 #define OPERATOR template<typename Vertex = void, typename Edge = void>        \
                  __device__ __forceinline__                                    \
@@ -149,6 +149,6 @@ private:
     bool   _is_registered { false };
 };
 
-} // namespace hornet_alg
+} // namespace hornets_nest
 
 #include "HornetAlg.i.cuh"

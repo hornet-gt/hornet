@@ -35,7 +35,7 @@
  *
  * @file
  */
-namespace hornet_alg {
+namespace hornets_nest {
 
 template<typename T>
 HostDeviceVar<T>::HostDeviceVar() noexcept {
@@ -113,4 +113,4 @@ T& HostDeviceVar<T>::operator()() noexcept {
     return _value;
 }
 
-} // namespace hornet_alg
+} // namespace hornets_nest

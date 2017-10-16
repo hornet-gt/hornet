@@ -45,4 +45,3 @@
 #include "Core/Queue/TwoLevelQueue.cuh"
 #include "Core/StandardAPI.hpp"
 #include <BasicTypes.hpp>
-using namespace hornet;

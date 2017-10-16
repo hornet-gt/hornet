@@ -1,6 +1,6 @@
 #include "Static/KTruss/KTruss.cuh"
 
-namespace hornet_alg {
+namespace hornets_nest {
 
 __device__ __forceinline__
 void initialize(vid_t diag_id,
@@ -135,7 +135,7 @@ vid_t* binSearch(vid_t *a, vertexId_t x, vid_t n) {
 
 /*
 __device__ __forceinline__
-int findIndexOfVertex(HornetGPU* hornet, vid_t src, vid_t dst__) {
+int findIndexOfVertex(HornetGraph* hornet, vid_t src, vid_t dst__) {
     vid_t   srcLen = hornet->dVD->used[src];
     vid_t* adj_src = hornet->dVD->adj[src]->dst;
 
@@ -450,7 +450,7 @@ void devicecuStingerKTruss(HornetDevice hornet,
 
 //==============================================================================
 
-void kTrussOneIteration(HornetGPU& hornet,
+void kTrussOneIteration(HornetGraph& hornet,
                         const triangle_t* __restrict__ output_triangles,
                         int threads_per_block,
                         int number_blocks,
@@ -767,7 +767,7 @@ void deviceBUTwoCUOneTriangles(HornetDevice hornet,
 }
 
 void callDeviceDifferenceTriangles(
-                                const HornetGPU& hornet,
+                                const HornetGraph& hornet,
                                 const gpu::BatchUpdate& batch_update,
                                 triangle_t* __restrict__ output_triangles,
                                 int  threads_per_intersection,
@@ -811,4 +811,4 @@ void callDeviceDifferenceTriangles(
         shifter, deletion);
 }
 
-} // namespace hornet_alg
+} // namespace hornets_nest

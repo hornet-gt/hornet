@@ -36,7 +36,7 @@
  *
  * @file
  */
-namespace hornet_alg {
+namespace hornets_nest {
 
 // Used only once when the streaming katz data structure is initialized
 struct InitStreaming {
@@ -189,4 +189,4 @@ struct UpdateLastIteration {
     }
 };
 
-} // namespace hornet_alg
+} // namespace hornets_nest

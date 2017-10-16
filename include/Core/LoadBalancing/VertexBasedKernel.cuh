@@ -35,6 +35,7 @@
  *
  * @file
  */
+namespace hornets_nest {
 namespace load_balacing {
 namespace kernel {
 
@@ -83,3 +84,4 @@ void vertexBasedKernel(HornetDevice hornet, Operator op) {
 
 } // kernel
 } // namespace load_balacing
+} // namespace hornets_nest

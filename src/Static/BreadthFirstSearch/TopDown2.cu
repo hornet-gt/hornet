@@ -38,7 +38,7 @@
 #include <GraphIO/GraphStd.hpp>
 #include <GraphIO/BFS.hpp>
 
-namespace hornet_alg {
+namespace hornets_nest {
 
 const dist_t INF = std::numeric_limits<dist_t>::max();
 
@@ -83,7 +83,7 @@ struct BFSOperatorAtomic {
 // BfsTopDown2 //
 /////////////////
 
-BfsTopDown2::BfsTopDown2(HornetGPU& hornet) :
+BfsTopDown2::BfsTopDown2(HornetGraph& hornet) :
                                  StaticAlgorithm(hornet),
                                  queue(hornet, 5),
                                  load_balacing(hornet) {
@@ -149,4 +149,4 @@ bool BfsTopDown2::validate() {
     return gpu::equal(h_distances, h_distances + graph.nV(), d_distances);
 }
 
-} // namespace hornet_alg
+} // namespace hornets_nest

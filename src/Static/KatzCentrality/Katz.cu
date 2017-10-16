@@ -39,12 +39,12 @@
 
 using length_t = int;
 
-namespace hornet_alg {
+namespace hornets_nest {
 
 /// TODO - changed hostKatzdata to pointer so that I can try to inherit it in
 // the streaming case.
 
-KatzCentrality::KatzCentrality(HornetGPU& hornet, int max_iteration, int K,
+KatzCentrality::KatzCentrality(HornetGraph& hornet, int max_iteration, int K,
                                int max_degree, bool is_static) :
                                        StaticAlgorithm(hornet),
                                        load_balacing(hornet),
@@ -238,4 +238,4 @@ bool KatzCentrality::validate() {
     return true;
 }
 
-} // namespace hornet_alg
+} // namespace hornets_nest

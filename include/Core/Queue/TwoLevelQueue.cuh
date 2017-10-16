@@ -37,7 +37,7 @@
  */
 #pragma once
 
-namespace hornet_alg {
+namespace hornets_nest {
 
 /**
  * @internal
@@ -193,6 +193,6 @@ private:
     int          _enqueue_items       { 0 };
 };
 
-} // namespace hornet_alg
+} // namespace hornets_nest
 
 #include "TwoLevelQueue.i.cuh"

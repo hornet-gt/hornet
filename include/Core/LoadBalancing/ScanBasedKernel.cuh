@@ -39,6 +39,7 @@
 #include <Device/Definition.cuh>
 #include <Device/WarpScan.cuh>
 
+namespace hornets_nest {
 namespace load_balacing {
 namespace kernel {
 
@@ -102,3 +103,4 @@ void scanBasedKernel(HornetDevice              hornet,
 
 } // kernel
 } // namespace load_balacing
+} // namespace hornets_nest

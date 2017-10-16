@@ -36,7 +36,7 @@
 #include "Static/ConnectedComponents/CC.cuh"
 #include <GraphIO/WCC.hpp>
 
-namespace hornet_alg {
+namespace hornets_nest {
 
 const color_t    NO_COLOR = std::numeric_limits<color_t>::max();
 const color_t FIRST_COLOR = color_t(0);
@@ -71,7 +71,7 @@ struct BuildVertexEnqueue {
 };
 
 struct BuildPairQueue {
-    TwoLevelQueue<idpair_t> queue_pair;
+    TwoLevelQueue<vid2_t> queue_pair;
 
     OPERATOR(Vertex& src, Edge& edge) {
         if (src.id() > edge.dst_id()) {
@@ -127,7 +127,7 @@ struct ColorigAtomic {
 // CC //
 ////////
 
-CC::CC(HornetGPU& hornet) : StaticAlgorithm(hornet),
+CC::CC(HornetGraph& hornet) : StaticAlgorithm(hornet),
                             queue(hornet),
                             queue_pair(hornet),
                             load_balacing(hornet) {
@@ -218,4 +218,4 @@ bool CC::validate() {
     return ret;
 }
 
-} // namespace hornet_alg
+} // namespace hornets_nest

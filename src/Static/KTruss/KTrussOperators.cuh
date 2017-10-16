@@ -1,6 +1,6 @@
 #pragma once
 
-namespace hornet_alg {
+namespace hornets_nest {
 
 struct Init {
     HostDeviceVar<KTrussData> kt;
@@ -105,4 +105,4 @@ struct ResetWeights {
     }
 };
 
-} // namespace hornet_alg
+} // namespace hornets_nest

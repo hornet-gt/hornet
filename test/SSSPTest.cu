@@ -8,7 +8,7 @@
 
 int main(int argc, char* argv[]) {
     using namespace timer;
-    using namespace hornet_alg;
+    using namespace hornets_nest;
 
     graph::GraphStd<vid_t, eoff_t> graph;
     CommandLineParam cmd(graph, argc, argv);
@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
                            graph.out_edges_ptr());
     hornet_init.insertEdgeData(h_value);
 
-    HornetGPU hornet_graph(hornet_init);
+    HornetGraph hornet_graph(hornet_init);
     SSSP sssp(hornet_graph);
     sssp.set_parameters(0);
 

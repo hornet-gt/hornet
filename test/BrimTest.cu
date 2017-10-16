@@ -11,7 +11,7 @@
 int main(int argc, char* argv[]) {
     using namespace timer;
     using namespace graph;
-    using namespace hornet;
+    using namespace hornets_nest;
 
     graph::GraphWeight<vid_t, eoff_t, int> graph;
     graph.read(argv[1]);

@@ -36,7 +36,7 @@
  */
 #pragma once
 
-namespace hornet {
+namespace hornets_nest {
 namespace gpu {
 
 template<typename T>

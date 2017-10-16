@@ -9,7 +9,7 @@
 
 int main(int argc, char* argv[]) {
     using namespace timer;
-    using namespace hornet_alg;
+    using namespace hornets_nest;
 
     graph::GraphStd<vid_t, eoff_t> graph;
     CommandLineParam cmd(graph, argc, argv);
@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
     HornetInit hornet_init(graph.nV(), graph.nE(), graph.out_offsets_ptr(),
                            graph.out_edges_ptr());
 
-    HornetGPU hornet_graph(hornet_init);
+    HornetGraph hornet_graph(hornet_init);
     //hornet_graph.print();
 
     BfsTopDown2 bfs_top_down(hornet_graph);

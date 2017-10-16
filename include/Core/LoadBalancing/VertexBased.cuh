@@ -39,6 +39,7 @@
 
 #include "BasicTypes.hpp"
 
+namespace hornets_nest {
 /**
  * @brief
  */
@@ -75,5 +76,6 @@ using VertexBased16 = VertexBased<16>;
 using VertexBased32 = VertexBased<32>;
 
 } // namespace load_balacing
+} // namespace hornets_nest
 
 #include "VertexBased.i.cuh"

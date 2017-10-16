@@ -37,6 +37,7 @@
  */
 #include "ScanBasedKernel.cuh"
 
+namespace hornets_nest {
 namespace load_balacing {
 
 template<typename HornetClass, typename Operator>
@@ -70,3 +71,4 @@ void ScanBased::apply(const HornetClass& hornet, const Operator& op)
 }
 
 } // namespace load_balacing
+} // namespace hornets_nest

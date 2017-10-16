@@ -37,6 +37,7 @@
  */
 #include "VertexBasedKernel.cuh"
 
+namespace hornets_nest {
 namespace load_balacing {
 /*
 template<unsigned VW_SIZE>
@@ -88,3 +89,4 @@ void VertexBased<VW_SIZE>::apply(const HornetClass& hornet, Operator&& op)
 }
 
 } // namespace load_balacing
+} // namespace hornets_nest

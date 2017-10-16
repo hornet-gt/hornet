@@ -1,4 +1,4 @@
-namespace hornet_alg {
+namespace hornets_nest {
 namespace detail {
 
 template<typename Operator>
@@ -198,4 +198,4 @@ void forAllEdges(HornetClass&                hornet,
     load_balacing.apply(hornet, queue.device_input_ptr(), queue.size(), op);
 }
 
-} // namespace hornet_alg
+} // namespace hornets_nest

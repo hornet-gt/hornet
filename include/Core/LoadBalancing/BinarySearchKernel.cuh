@@ -37,6 +37,7 @@
  */
 #include <Device/BinarySearchLB.cuh>
 
+namespace hornets_nest {
 /**
  * @brief
  */
@@ -45,10 +46,10 @@ namespace kernel {
 
 template<bool = true>
 __global__
-void computeWorkKernel(const hornet::vid_t*    __restrict__ d_input,
-                       const hornet::degree_t* __restrict__ d_degrees,
-                       int                                  num_vertices,
-                       int*                    __restrict__ d_work) {
+void computeWorkKernel(const vid_t*    __restrict__ d_input,
+                       const degree_t* __restrict__ d_degrees,
+                       int                          num_vertices,
+                       int*            __restrict__ d_work) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
     for (auto i = id; i < num_vertices; i += stride)
@@ -91,3 +92,4 @@ void binarySearchKernel(HornetDevice              hornet,
 
 } // namespace kernel
 } // namespace load_balacing
+} // namespace hornets_nest

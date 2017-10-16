@@ -39,7 +39,7 @@
 
 #include <iostream>
 
-namespace hornet_alg {
+namespace hornets_nest {
 
 template<typename T>
 class HostDeviceVar {
@@ -85,6 +85,6 @@ private:
     int  _copy_count  { 0 };
 };
 
-} // namespace hornet_alg
+} // namespace hornets_nest
 
 #include "HostDeviceVar.i.cuh"

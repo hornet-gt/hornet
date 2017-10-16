@@ -42,7 +42,7 @@
 #include <omp.h>
 #include <cstring>
 
-namespace hornet {
+namespace hornets_nest {
 namespace gpu {
 
 template<typename T>

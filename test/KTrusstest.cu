@@ -3,6 +3,7 @@
 #include <GraphIO/GraphStd.hpp>
 
 using namespace timer;
+using namespace hornets_nest;
 
 void runKtruss(const HornetInit& hornet_init, int alg, int max_K,
                const std::string& graph_name);
@@ -40,7 +41,7 @@ const int           arrayThreadShift[] = { 0 };
 void runKtruss(const HornetInit& hornet_init, int alg, int max_K,
                const std::string& graph_name) {
     using namespace gpu::batch_property;
-    using namespace hornet_alg;
+    using namespace hornets_nest;
 
     int nV = hornet_init.nV();
     int nE = hornet_init.nE();
@@ -73,7 +74,7 @@ void runKtruss(const HornetInit& hornet_init, int alg, int max_K,
                 int shifter = arrayThreadShift[t];
                 int     nbl = sps / tsp;
 
-                HornetGPU hornet_graph(hornet_init);
+                HornetGraph hornet_graph(hornet_init);
                 hornet_graph.allocateEdgeDeletion(nE, CSR_WIDE |
                                          OUT_OF_PLACE | REMOVE_CROSS_DUPLICATE);
                 KTruss kt(hornet_graph);

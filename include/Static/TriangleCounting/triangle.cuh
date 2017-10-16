@@ -9,7 +9,6 @@ namespace custinger_alg {
 
 using triangle_t = unsigned int;
 
-
 struct TriangleData {
     TriangleData(const custinger::Hornet& custinger){
         nv = custinger.nV();
@@ -67,8 +66,6 @@ namespace triangle_operators {
         auto tri = reinterpret_cast<TriangleData*>(optional_field);
         tri->triPerVertex[src] = 0;
     }
-    
+
 } // namespace triangle_operators
 } // namespace custinger_alg
-
-

@@ -37,7 +37,7 @@
 #include <GraphIO/GraphWeight.hpp>
 #include <GraphIO/BellmanFord.hpp>
 
-namespace hornet_alg {
+namespace hornets_nest {
 
 const weight_t INF = std::numeric_limits<weight_t>::max();
 
@@ -66,7 +66,7 @@ struct SSSPOperator {
 // SSSP //
 /////////////////
 
-SSSP::SSSP(HornetGPU& hornet) : StaticAlgorithm(hornet),
+SSSP::SSSP(HornetGraph& hornet) : StaticAlgorithm(hornet),
                                 queue(hornet),
                                 load_balacing(hornet) {
     gpu::allocate(d_distances, hornet.nV());
@@ -114,4 +114,4 @@ bool SSSP::validate() {
     return gpu::equal(h_distances, h_distances + graph.nV(), d_distances);
 }
 
-} // namespace hornet_alg
+} // namespace hornets_nest

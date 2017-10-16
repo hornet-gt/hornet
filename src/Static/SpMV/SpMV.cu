@@ -36,7 +36,7 @@
 #include "Static/SpMV/SpMV.cuh"
 #include <GraphIO/GraphWeight.hpp>
 
-namespace hornet_alg {
+namespace hornets_nest {
 ///////////////
 // OPERATORS //
 ///////////////
@@ -58,7 +58,7 @@ struct SpMVOperator {
 // SpMV //
 //////////
 
-SpMV::SpMV(HornetGPU& hornet, int* h_vector) :
+SpMV::SpMV(HornetGraph& hornet, int* h_vector) :
                                 StaticAlgorithm(hornet),
                                 load_balacing(hornet),
                                 h_vector(h_vector) {
@@ -105,4 +105,4 @@ bool SpMV::validate() {
     return ret;
 }
 
-} // namespace hornet_alg
+} // namespace hornets_nest

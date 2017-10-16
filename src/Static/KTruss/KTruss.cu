@@ -1,9 +1,9 @@
 #include "Static/KTruss/KTruss.cuh"
 #include "KTrussOperators.cuh"
 
-namespace hornet_alg {
+namespace hornets_nest {
 
-void kTrussOneIteration(HornetGPU& hornet,
+void kTrussOneIteration(HornetGraph& hornet,
                         const triangle_t*  __restrict__ output_triangles,
                         int threads_per_block,
                         int number_blocks,
@@ -14,7 +14,7 @@ void kTrussOneIteration(HornetGPU& hornet,
 
 //==============================================================================
 
-KTruss::KTruss(HornetGPU& horne) : StaticAlgorithm(hornet) {
+KTruss::KTruss(HornetGraph& horne) : StaticAlgorithm(hornet) {
     hd_data().active_queue.initialize(hornet);
 }
 

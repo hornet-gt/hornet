@@ -55,7 +55,6 @@ void HORNET::allocateEdgeDeletion(size_t max_batch_size,
         allocateOOPEdgeDeletion(csr_size);
     else {
         allocateInPlaceUpdate(csr_size);
-        ERROR("Edge Batch deletion IN-PLACE not implemented")
     }
 }
 

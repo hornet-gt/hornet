@@ -77,9 +77,9 @@ HORNET::~Hornet() noexcept {
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::initialize() noexcept {
     using namespace timer;
-    const auto& vertex_init = _hornet_init._vertex_data_ptrs;
-     auto&   edge_init = _hornet_init._edge_data_ptrs;
-    auto        csr_offsets = _hornet_init.csr_offsets();
+    auto& vertex_init = _hornet_init._vertex_data_ptrs;
+    auto&   edge_init = _hornet_init._edge_data_ptrs;
+    auto  csr_offsets = _hornet_init.csr_offsets();
 
     const auto& lamba = [](const byte_t* ptr) { return ptr != nullptr; };
     bool vertex_check = std::all_of(vertex_init, vertex_init + NUM_VTYPES,
@@ -118,7 +118,7 @@ void HORNET::initialize() noexcept {
         byte_t* h_blockarray = mem_data.first;
         size_t        offset = csr_offsets[i];
 
-        if (!xlib::IsVectorizable<vid_t, EdgeTypes...>::value ||
+        if (FORCE_SOA || !xlib::IsVectorizable<vid_t, EdgeTypes...>::value ||
                 sizeof...(EdgeTypes) == 0) {
             #pragma unroll
             for (int j = 0; j < NUM_ETYPES; j++) {
@@ -220,7 +220,8 @@ const degree_t* HORNET::device_degrees() const noexcept {
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 HORNET::HornetDeviceT HORNET::device_side() const noexcept {
     using HornetDeviceT = HornetDevice<std::tuple<VertexTypes...>,
-                                       std::tuple<EdgeTypes...>>;
+                                       std::tuple<EdgeTypes...>,
+                                       FORCE_SOA>;
     return HornetDeviceT(_nV, _nE, _vertex_array.device_ptr(),
                          _vertex_array.pitch());
 }

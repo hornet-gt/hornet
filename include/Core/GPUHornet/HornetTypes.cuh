@@ -1,5 +1,5 @@
 /**
- * @brief High-level API to access to cuStinger data (Vertex, Edge)
+ * @brief High-level API to access to Hornet data (Vertex, Edge)
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
@@ -44,26 +44,32 @@
 namespace hornets_nest {
 namespace gpu {
 
-template<typename, typename> class Vertex;
-template<typename, typename> class Edge;
+template<typename, typename, bool = false> class Vertex;
+template<typename, typename, bool = false> class Edge;
 template<typename, typename, bool = false> class HornetDevice;
 
-template<typename... VertexTypes, typename... EdgeTypes>
-class Vertex<TypeList<VertexTypes...>, TypeList<EdgeTypes...>> :
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
+class Vertex<TypeList<VertexTypes...>, TypeList<EdgeTypes...>, FORCE_SOA> :
                                  public AoSData<size_t, void*, VertexTypes...> {
-    template<typename, typename> friend class Edge;
+    template<typename, typename, bool> friend class Edge;
     template<typename, typename, bool> friend class HornetDevice;
 
     static const int NUM_ETYPES = sizeof...(EdgeTypes) + 1;
 
     using         EdgeT = Edge<TypeList<VertexTypes...>,
-                               TypeList<EdgeTypes...>>;
+                               TypeList<EdgeTypes...>,
+                               FORCE_SOA>;
+
     using HornetDeviceT = HornetDevice<TypeList<VertexTypes...>,
-                                       TypeList<EdgeTypes...>>;
+                                       TypeList<EdgeTypes...>,
+                                       FORCE_SOA>;
+
     using       WeightT = IndexT<1, NUM_ETYPES, vid_t, EdgeTypes...>;
 
-    using   EdgesLayout = BestLayoutDevPitch<PITCH<EdgeTypes...>,
-                                             vid_t, EdgeTypes...>;
+    using   EdgesLayout = BestLayoutDevPitchAux<PITCH<EdgeTypes...>,
+                                                TypeList<vid_t, EdgeTypes...>,
+                                                FORCE_SOA>;
+
     using      edgeit_t = typename HornetDeviceT::edgeit_t;
 public:
     /**
@@ -155,7 +161,7 @@ private:
     /**
      * @internal
      * @brief Default costructor
-     * @param[in] data cuStinger device data
+     * @param[in] data Hornet device data
      */
     __device__ __forceinline__
     Vertex(HornetDeviceT& data, vid_t index = static_cast<vid_t>(-1));
@@ -163,18 +169,22 @@ private:
 
 //==============================================================================
 
-template<typename... VertexTypes, typename... EdgeTypes>
-class Edge<TypeList<VertexTypes...>, TypeList<EdgeTypes...>> :
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
+class Edge<TypeList<VertexTypes...>, TypeList<EdgeTypes...>, FORCE_SOA> :
                                            public AoSData<vid_t, EdgeTypes...> {
-    template<typename T, typename R> friend class Vertex;
+    template<typename, typename, bool> friend class Vertex;
 
     using       VertexT = Vertex<TypeList<VertexTypes...>,
-                                 TypeList<EdgeTypes...>>;
-    using HornetDeviceT = HornetDevice<TypeList<VertexTypes...>,
-                                       TypeList<EdgeTypes...>>;
+                                 TypeList<EdgeTypes...>,
+                                 FORCE_SOA>;
 
-    using   EdgesLayout = BestLayoutDevPitch<PITCH<EdgeTypes...>,
-                                             vid_t, EdgeTypes...>;
+    using HornetDeviceT = HornetDevice<TypeList<VertexTypes...>,
+                                       TypeList<EdgeTypes...>,
+                                       FORCE_SOA>;
+
+    using   EdgesLayout = BestLayoutDevPitchAux<PITCH<EdgeTypes...>,
+                                                TypeList< vid_t, EdgeTypes...>,
+                                                FORCE_SOA>;
 
     static const int NUM_ETYPES = sizeof...(EdgeTypes) + 1;
     using     WeightT = IndexT<1, NUM_ETYPES, vid_t, EdgeTypes...>;

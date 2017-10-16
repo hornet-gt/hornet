@@ -47,8 +47,8 @@ void copySparseToContinuosKernel(const degree_t* __restrict__  d_prefixsum,
                                  void*           __restrict__ *d_ptrs_array,
                                  void*           __restrict__  d_tmp) {
 
-    using DataLayout = BestLayoutDevPitch<PITCH<EdgeTypes...>,
-                                          vid_t, EdgeTypes...>;
+    using DataLayout = BestLayoutDevPitchAux<PITCH<EdgeTypes...>,
+                                             TypeList< vid_t, EdgeTypes...> >;
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
     auto to_write = DataLayout(d_tmp);
 
@@ -69,7 +69,7 @@ void copySparseToContinuosKernel(const degree_t* __restrict__ d_prefixsum,
                                  void*           __restrict__ d_tmp) {
 
     using DataLayout = BestLayoutDevPitchAux<PITCH<EdgeTypes...>,
-                                             vid_t, EdgeTypes...>;
+                                             TypeList<vid_t, EdgeTypes...>>;
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
     auto to_write = DataLayout(d_tmp);
 
@@ -89,8 +89,8 @@ void copyContinuosToSparseKernel(
                               void*           __restrict__  d_tmp,
                               void*           __restrict__ *d_ptrs_array) {
 
-    using DataLayout = BestLayoutDevPitch<PITCH<EdgeTypes...>,
-                                          vid_t, EdgeTypes...>;
+    using DataLayout = BestLayoutDevPitchAux<PITCH<EdgeTypes...>,
+                                             TypeList<vid_t, EdgeTypes...> >;
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
     auto to_write = DataLayout(d_tmp);
 
@@ -109,8 +109,8 @@ void copySparseToSparseKernel(const degree_t* __restrict__  d_prefixsum,
                               int                           work_size,
                               void*                        *d_old_ptrs,
                               void*                        *d_new_ptrs) {
-    using DataLayout = BestLayoutDevPitch<PITCH<EdgeTypes...>,
-                                          vid_t, EdgeTypes...>;
+    using DataLayout = BestLayoutDevPitchAux<PITCH<EdgeTypes...>,
+                                             TypeList< vid_t, EdgeTypes... >>;
 
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
     const auto& lambda = [&] (int pos, degree_t offset) {

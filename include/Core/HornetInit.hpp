@@ -42,7 +42,7 @@
 
 /**
  * @brief The namespace contanins all classes and methods related to the
- *        cuStinger data structure
+ *        Hornet data structure
  */
 namespace hornets_nest {
 
@@ -52,7 +52,7 @@ namespace gpu {
 } //namespace gpu
 
 /**
- * @brief cuStinger initialization class
+ * @brief Hornet initialization class
  */
 class HornetInit {
     template<typename, typename, bool> friend class gpu::Hornet;
@@ -80,8 +80,8 @@ public:
      *         @code{.cpp}
      *             int* array1 = ...;
      *             float* array2 = ...;
-     *             HornetInit custinger_init(...);
-     *             custinger_init.insertVertexData(array1, array2);
+     *             HornetInit Hornet_init(...);
+     *             Hornet_init.insertVertexData(array1, array2);
      *         @endcode
      */
     template<typename... TArgs>

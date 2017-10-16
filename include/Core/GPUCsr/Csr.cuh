@@ -51,23 +51,14 @@ namespace hornets_nest {
  */
 namespace gpu {
 
-//template<typename, typename>
-//class Hornet;
-
-template<typename, typename>
-class Vertex;
-
-template<typename, typename>
-class Edge;
-
 /**
  * @brief Main Hornet class
  */
 template<typename... VertexTypes, typename... EdgeTypes>
 class Csr<TypeList<VertexTypes...>, TypeList<EdgeTypes...>> {
     using   EdgeAllocT = AoSData<vid_t, EdgeTypes...>;
-    using VertexArrayT = BestLayout<off2_t, VertexTypes...>;
-    using   EdgeArrayT = BestLayout<vid_t, EdgeTypes...>;
+    using VertexArrayT = BestLayoutAux< TypeList<off2_t, VertexTypes...> >;
+    using   EdgeArrayT = BestLayoutAux< TypeList<vid_t, EdgeTypes...> >;
     using   CsrDeviceT = CsrDevice<TypeList<VertexTypes...>,
                                    TypeList<EdgeTypes...>>;
 
@@ -127,8 +118,8 @@ public:
     const degree_t* device_degrees() const noexcept;
 
     /**
-     * @brief device data to used the cuStinger data structure on the device
-     * @return device data associeted to the cuStinger instance
+     * @brief device data to used the Hornet data structure on the device
+     * @return device data associeted to the Hornet instance
      */
     CsrDeviceT device_side() const noexcept;
 

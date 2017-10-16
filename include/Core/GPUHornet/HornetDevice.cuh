@@ -1,5 +1,5 @@
 /**
- * @brief High-level API to access to cuStinger data (Vertex, Edge)
+ * @brief High-level API to access to Hornet data (Vertex, Edge)
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
@@ -49,20 +49,23 @@ namespace gpu {
 //template<typename, typename, bool> class HornetDevice;
 /**
  * @internal
- * @brief The structure contanins all information for using the cuStinger data
+ * @brief The structure contanins all information for using the Hornet data
  *        structure in the device
  */
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 class HornetDevice<TypeList<VertexTypes...>, TypeList<EdgeTypes...>,FORCE_SOA> :
-                           public BestLayoutDev<size_t, void*, VertexTypes...> {
+            public BestLayoutDevAux<TypeList<size_t, void*, VertexTypes...>,
+                                    FORCE_SOA> {
 
     using VertexT = Vertex<TypeList<VertexTypes...>,
-                           TypeList<EdgeTypes...>>;
+                           TypeList<EdgeTypes...>,
+                           FORCE_SOA>;
 public:
     using   EdgeT = Edge<TypeList<VertexTypes...>,
-                         TypeList<EdgeTypes...>>;
+                         TypeList<EdgeTypes...>,
+                         FORCE_SOA>;
 
-    using edgeit_t = typename std::conditional<
+    using edgeit_t = typename std::conditional<!FORCE_SOA &&
                                xlib::IsVectorizable<vid_t, EdgeTypes...>::value,
                                AoSData<vid_t, EdgeTypes...>*, vid_t*>::type;
 

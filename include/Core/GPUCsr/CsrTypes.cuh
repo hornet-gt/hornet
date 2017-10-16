@@ -55,7 +55,7 @@ class VertexCsr<TypeList<VertexTypes...>, TypeList<EdgeTypes...>> :
     static const int NUM_ETYPES = sizeof...(EdgeTypes) + 1;
 
     using      EdgeT = EdgeCsr<TypeList<VertexTypes...>,
-                            TypeList<EdgeTypes...>>;
+                               TypeList<EdgeTypes...>>;
     using CsrDeviceT = CsrDevice<TypeList<VertexTypes...>,
                                  TypeList<EdgeTypes...>>;
     using    WeightT = IndexT<1, NUM_ETYPES, vid_t, EdgeTypes...>;
@@ -126,7 +126,7 @@ private:
     /**
      * @internal
      * @brief Default costructor
-     * @param[in] data cuStinger device data
+     * @param[in] data Hornet device data
      */
     __device__ __forceinline__
     VertexCsr(CsrDeviceT& data, vid_t index);

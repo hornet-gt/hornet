@@ -1,5 +1,5 @@
 /**
- * @brief High-level API to access to cuStinger data (VertexCsr, EdgeCsr)
+ * @brief High-level API to access to Hornet data (VertexCsr, EdgeCsr)
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
@@ -49,13 +49,13 @@ namespace gpu {
 template<typename, typename> class CsrDevice;
 /**
  * @internal
- * @brief The structure contanins all information for using the cuStinger data
+ * @brief The structure contanins all information for using the Hornet data
  *        structure in the device
  */
 template<typename... VertexTypes, typename... EdgeTypes>
 class CsrDevice<TypeList<VertexTypes...>, TypeList<EdgeTypes...>> :
-                           public BestLayoutDev<off2_t, VertexTypes...>,
-                           public BestLayoutDev<vid_t, EdgeTypes...> {
+                   public BestLayoutDevAux< TypeList<off2_t, VertexTypes...> >,
+                   public BestLayoutDevAux< TypeList<vid_t, EdgeTypes...> > {
 
     template<typename, typename> friend class VertexCsr;
     template<typename, typename> friend class EdgeCsr;

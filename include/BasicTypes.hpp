@@ -63,8 +63,8 @@ namespace gpu {
 template<typename>
 class IsHornet : public std::false_type {};
 
-template<typename T, typename R>
-class IsHornet<gpu::Hornet<T, R>> : public std::true_type {};
+template<typename T, typename R, bool FORCE_SOA>
+class IsHornet<gpu::Hornet<T, R, FORCE_SOA>> : public std::true_type {};
 
 template<typename T, typename R>
 class IsHornet<gpu::Csr<T, R>> : public std::true_type {};

@@ -1,5 +1,5 @@
 /**
- * @brief High-level API to access to cuStinger data (Vertex, Edge)
+ * @brief High-level API to access to Hornet data (Vertex, Edge)
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
@@ -44,8 +44,9 @@ namespace gpu {
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 HORNET_DEVICE::HornetDevice(vid_t nV, eoff_t nE, void* d_ptr, size_t pitch)
                             noexcept :
-                _nV(nV), _nE(nE),
-                BestLayoutDev<size_t, void*, VertexTypes...>(d_ptr, pitch) {}
+    _nV(nV), _nE(nE),
+    BestLayoutDevAux<TypeList<size_t, void*, VertexTypes...>,
+                     FORCE_SOA >(d_ptr, pitch) {}
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 __device__ __forceinline__

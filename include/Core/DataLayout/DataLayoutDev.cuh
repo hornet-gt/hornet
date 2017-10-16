@@ -113,12 +113,13 @@ private:
 
 //==============================================================================
 
-template<size_t PITCH, typename, typename = void>
+template<size_t PITCH, typename, bool = false, typename = void>
 struct BestLayoutDevPitchAux;
 
-template<size_t PITCH, typename... TArgs>
-struct BestLayoutDevPitchAux<PITCH, std::tuple<TArgs...>,
-                  typename std::enable_if<xlib::IsVectorizable<TArgs...>::value>
+template<size_t PITCH, typename... TArgs, bool FORCE_SOA>
+struct BestLayoutDevPitchAux<PITCH, std::tuple<TArgs...>, FORCE_SOA,
+                  typename std::enable_if<!FORCE_SOA &&
+                                          xlib::IsVectorizable<TArgs...>::value>
                   ::type> : AoSdev<TArgs...> {
 
     __device__ __forceinline__
@@ -126,9 +127,10 @@ struct BestLayoutDevPitchAux<PITCH, std::tuple<TArgs...>,
                                 AoSdev<TArgs...>(ptr) {}
 };
 
-template<size_t PITCH, typename... TArgs>
-struct BestLayoutDevPitchAux<PITCH, std::tuple<TArgs...>,
-                 typename std::enable_if<!xlib::IsVectorizable<TArgs...>::value>
+template<size_t PITCH, typename... TArgs, bool FORCE_SOA>
+struct BestLayoutDevPitchAux<PITCH, std::tuple<TArgs...>, FORCE_SOA,
+                 typename std::enable_if<FORCE_SOA ||
+                                         !xlib::IsVectorizable<TArgs...>::value>
                  ::type> : SoAdevPitch<PITCH, TArgs...> {
 
     static_assert(sizeof...(TArgs) == sizeof...(TArgs), "not vectorizable");
@@ -141,22 +143,24 @@ struct BestLayoutDevPitchAux<PITCH, std::tuple<TArgs...>,
 //------------------------------------------------------------------------------
 
 
-template<typename, typename = void>
+template<typename, bool = false, typename = void>
 struct BestLayoutDevAux;
 
-template<typename... TArgs>
-struct BestLayoutDevAux<std::tuple<TArgs...>,
-                  typename std::enable_if<xlib::IsVectorizable<TArgs...>::value>
-                  ::type> : AoSdev<TArgs...> {
+template<typename... TArgs, bool FORCE_SOA>
+struct BestLayoutDevAux<std::tuple<TArgs...>, FORCE_SOA,
+                typename std::enable_if<!FORCE_SOA &&
+                                        xlib::IsVectorizable<TArgs...>::value>
+                ::type> : AoSdev<TArgs...> {
 
     __device__ __forceinline__
     explicit BestLayoutDevAux(void* ptr, size_t) noexcept :
                                 AoSdev<TArgs...>(ptr) {}
 };
 
-template<typename... TArgs>
-struct BestLayoutDevAux<std::tuple<TArgs...>,
-                 typename std::enable_if<!xlib::IsVectorizable<TArgs...>::value>
+template<typename... TArgs, bool FORCE_SOA>
+struct BestLayoutDevAux<std::tuple<TArgs...>, FORCE_SOA,
+                 typename std::enable_if<FORCE_SOA ||
+                                         !xlib::IsVectorizable<TArgs...>::value>
                  ::type> : SoAdev<TArgs...> {
 
     static_assert(sizeof...(TArgs) == sizeof...(TArgs), "not vectorizable");
@@ -167,21 +171,23 @@ struct BestLayoutDevAux<std::tuple<TArgs...>,
 };
 
 //------------------------------------------------------------------------------
-
+/*
 template<size_t PITCH, typename... TArgs>
 struct BestLayoutDevPitch :
                      public BestLayoutDevPitchAux<PITCH, std::tuple<TArgs...>> {
+
     __device__ __forceinline__
     explicit BestLayoutDevPitch(void* ptr) noexcept :
                       BestLayoutDevPitchAux<PITCH, std::tuple<TArgs...>>(ptr) {}
-};
-
+};*/
+/*
 template<typename... TArgs>
 struct BestLayoutDev : public BestLayoutDevAux<std::tuple<TArgs...>> {
+
     __device__ __forceinline__
     explicit BestLayoutDev(void* ptr, size_t pitch) noexcept :
                            BestLayoutDevAux<std::tuple<TArgs...>>(ptr, pitch) {}
-};
+};*/
 
 } // namespace hornets_nest
 

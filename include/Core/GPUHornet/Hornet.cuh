@@ -38,8 +38,8 @@
  */
 #pragma once
 
-#include "Core/DataLayout/DataLayout.cuh"
 #include "BasicTypes.hpp"
+#include "Core/DataLayout/DataLayout.cuh"
 #include "Core/GPUHornet/BatchUpdate.cuh"             //BatchUpdate
 #include "Core/GPUHornet/HornetDevice.cuh"            //HornetDevice
 #include "Core/HornetInit.hpp"                  //HornetInit
@@ -61,19 +61,14 @@ namespace gpu {
  * @endcode
  */
 
-template<typename, typename>
-class Vertex;
-
-template<typename, typename>
-class Edge;
-
 /**
  * @brief Main Hornet class
  */
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 class Hornet<TypeList<VertexTypes...>, TypeList<EdgeTypes...>, FORCE_SOA> {
     using  HornetDeviceT = HornetDevice<TypeList<VertexTypes...>,
-                                        TypeList<EdgeTypes...>, FORCE_SOA>;
+                                        TypeList<EdgeTypes...>,
+                                        FORCE_SOA>;
 
 public:
     /**
@@ -215,8 +210,11 @@ public:
 
 private:
     using     EdgeAllocT = AoSData<vid_t, EdgeTypes...>;
-    using   VertexArrayT = BestLayout<size_t, void*, VertexTypes...>;
+    using   VertexArrayT = BestLayoutAux<
+                                TypeList<size_t, void*, VertexTypes...>,
+                                FORCE_SOA>;
     using        OffsetT = typename std::conditional<
+                               !FORCE_SOA &&
                                xlib::IsVectorizable<vid_t, EdgeTypes...>::value,
                                EdgeAllocT, vid_t>::type;
     using MemoryManagerT = MemoryManager<EdgeAllocT, OffsetT, true>;

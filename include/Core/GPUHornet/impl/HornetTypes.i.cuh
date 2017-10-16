@@ -33,19 +33,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "BasicTypes.hpp"                   //vid_t 
+#include "BasicTypes.hpp"                   //vid_t
 #include "Core/GPUHornet/HornetDevice.cuh"  //HornetDevice
 
 namespace hornets_nest {
 namespace gpu {
 
-#define       VERTEX Vertex<TypeList<VertexTypes...>,TypeList<EdgeTypes...>>
-#define         EDGE Edge<TypeList<VertexTypes...>,TypeList<EdgeTypes...>>
+#define VERTEX Vertex<TypeList<VertexTypes...>,TypeList<EdgeTypes...>,FORCE_SOA>
+#define   EDGE Edge<TypeList<VertexTypes...>,TypeList<EdgeTypes...>,FORCE_SOA>
 #define HORNETDEVICE HornetDevice<TypeList<VertexTypes...>,\
-                                  TypeList<EdgeTypes...>>
+                                  TypeList<EdgeTypes...>, FORCE_SOA>
 
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 __device__ __forceinline__
 VERTEX::Vertex(HORNETDEVICE& hornet, vid_t index) :
                        _hornet(hornet),
@@ -54,43 +54,43 @@ VERTEX::Vertex(HORNETDEVICE& hornet, vid_t index) :
     assert(index < hornet.nV());
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 __device__ __forceinline__
 vid_t VERTEX::id() const {
     return _id;
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 __device__ __forceinline__
 degree_t VERTEX::degree() const {
     return this->template get<0>();
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 __device__ __forceinline__
 size_t* VERTEX::degree_ptr() const {
     return _hornet.ptr<0>(_id);
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 __device__ __forceinline__
 typename HORNETDEVICE::edgeit_t VERTEX::edge_begin() const {
     return static_cast<edgeit_t>(this->template get<1>());
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 __device__ __forceinline__
 typename HORNETDEVICE::edgeit_t VERTEX::edge_end() const {
     return static_cast<edgeit_t>(this->template get<1>()) + degree();
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 __device__ __forceinline__
 void VERTEX::set_degree(size_t degree) {
      this->template get<0>() = degree;
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 __device__ __forceinline__
 degree_t VERTEX::limit() const {
     return ::max(static_cast<degree_t>(MIN_EDGES_PER_BLOCK),
@@ -98,20 +98,20 @@ degree_t VERTEX::limit() const {
                                         xlib::roundup_pow2(degree() + 1));
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 __device__ __forceinline__
 vid_t VERTEX::neighbor_id(degree_t index) const {
     assert(index < degree());
     return reinterpret_cast<vid_t*>(this->template get<1>())[index];
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 __device__ __forceinline__
 vid_t* VERTEX::neighbor_ptr() const {
     return static_cast<vid_t*>(this->template get<1>());
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 template<typename T>
 __device__ __forceinline__
 VERTEX::WeightT* VERTEX::edge_weight_ptr() const {
@@ -120,7 +120,7 @@ VERTEX::WeightT* VERTEX::edge_weight_ptr() const {
     return static_cast<WeightT*>(neighbor_ptr() + PITCH<EdgeTypes...>);
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 template<int INDEX>
 __device__ __forceinline__
 typename xlib::SelectType<INDEX, VertexTypes...>::type
@@ -128,7 +128,7 @@ VERTEX::field() const {
     return this->template get<INDEX>();
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 __device__ __forceinline__
 EDGE VERTEX::edge(degree_t index) const {
     auto ptr = reinterpret_cast<edgeit_t>(this->template get<1>());
@@ -137,7 +137,7 @@ EDGE VERTEX::edge(degree_t index) const {
 
 //------------------------------------------------------------------------------
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 __device__ __forceinline__
 void VERTEX::store(degree_t pos, const VERTEX::EdgeT& edge) {
     EdgesLayout data(this->template get<1>());
@@ -147,7 +147,7 @@ void VERTEX::store(degree_t pos, const VERTEX::EdgeT& edge) {
 //==============================================================================
 //==============================================================================
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 __device__ __forceinline__
 EDGE::Edge(HORNETDEVICE& hornet, void* edge_ptr, vid_t src_id, void* ptr) :
         _hornet(hornet),
@@ -156,31 +156,31 @@ EDGE::Edge(HORNETDEVICE& hornet, void* edge_ptr, vid_t src_id, void* ptr) :
         _src_id(src_id),
         _ptr(ptr) {}
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 __device__ __forceinline__
 vid_t EDGE::src_id() const {
     return _src_id;
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 __device__ __forceinline__
 vid_t EDGE::dst_id() const {
     return this->template get<0>();
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 __device__ __forceinline__
 EDGE::VertexT EDGE::src() const {
     return VertexT(_hornet, _src_id);
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 __device__ __forceinline__
 EDGE::VertexT EDGE::dst() const {
     return VertexT(_hornet, dst_id());
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 template<typename T>
 __device__ __forceinline__
 EDGE::WeightT EDGE::weight() const {
@@ -189,7 +189,7 @@ EDGE::WeightT EDGE::weight() const {
     return this->template get<1>();
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 template<typename T>
 __device__ __forceinline__
 void EDGE::set_weight(WeightT weight) {
@@ -199,7 +199,7 @@ void EDGE::set_weight(WeightT weight) {
     //*data.ptr<1>(0) = weight;
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 template<typename T>
 __device__ __forceinline__
 EDGE::TimeStamp1T EDGE::time_stamp1() const {
@@ -208,7 +208,7 @@ EDGE::TimeStamp1T EDGE::time_stamp1() const {
     return this->template get<2>();
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 template<typename T>
 __device__ __forceinline__
 EDGE::TimeStamp2T EDGE::time_stamp2() const {
@@ -217,7 +217,7 @@ EDGE::TimeStamp2T EDGE::time_stamp2() const {
     return this->template get<3>();
 }
 
-template<typename... VertexTypes, typename... EdgeTypes>
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 template<int INDEX>
 __device__ __forceinline__
 typename xlib::SelectType<INDEX, EdgeTypes...>::type

@@ -1,5 +1,5 @@
 /**
- * @brief High-level API to access to cuStinger data (VertexCsr, EdgeCsr)
+ * @brief High-level API to access to Hornet data (VertexCsr, EdgeCsr)
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
@@ -45,9 +45,11 @@ template<typename... VertexTypes, typename... EdgeTypes>
 HORNET_DEVICE::CsrDevice(vid_t nV, eoff_t nE,
                          void* d_vertex_ptr, size_t vertex_pitch,
                          void* d_edge_ptr,   size_t edge_pitch) noexcept :
-            _nV(nV), _nE(nE),
-            BestLayoutDev<off2_t, VertexTypes...>(d_vertex_ptr, vertex_pitch),
-            BestLayoutDev<vid_t, EdgeTypes...>(d_edge_ptr, edge_pitch) {}
+    _nV(nV), _nE(nE),
+    BestLayoutDevAux< TypeList< off2_t, VertexTypes...> >
+                    (d_vertex_ptr, vertex_pitch),
+    BestLayoutDevAux< TypeList< vid_t, EdgeTypes...> >
+                    (d_edge_ptr, edge_pitch) {}
 
 template<typename... VertexTypes, typename... EdgeTypes>
 __device__ __forceinline__
@@ -82,13 +84,15 @@ HORNET_DEVICE::EdgeT HORNET_DEVICE::edge(eoff_t offset) {
 template<typename... VertexTypes, typename... EdgeTypes>
 __device__ __forceinline__
 AoSData<off2_t, VertexTypes...> HORNET_DEVICE::raw_vertex(vid_t index) const {
-    return BestLayoutDev<off2_t, VertexTypes...>::operator[](index);
+    return BestLayoutDevAux< TypeList<off2_t, VertexTypes...> >
+            ::operator[](index);
 }
 
 template<typename... VertexTypes, typename... EdgeTypes>
 __device__ __forceinline__
 AoSData<vid_t, EdgeTypes...> HORNET_DEVICE::raw_edge(eoff_t offset) const {
-    return BestLayoutDev<vid_t, EdgeTypes...>::operator[](offset);
+    return BestLayoutDevAux< TypeList<vid_t, EdgeTypes...> >
+            ::operator[](offset);
 }
 
 } // namespace gpu

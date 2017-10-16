@@ -194,7 +194,9 @@ class SoA;
 
 template<typename... TArgs>
 class SoARef {
-    template<typename...> friend class SoA;
+    template<typename...>         friend class SoA;
+    template<typename...>         friend class SoAdev;
+    template<size_t, typename...> friend class SoAdevPitch;
 public:
     HOST_DEVICE
     const SoARef& operator=(const AoSData<TArgs...>& obj) noexcept;
@@ -228,7 +230,8 @@ public:
 
     ~SoA() noexcept;
 
-    void initialize(void* (&array)[sizeof...(TArgs)], int num_items) noexcept;
+    void initialize(const void* (&array)[sizeof...(TArgs)], int num_items)
+                    noexcept;
 
     HOST_DEVICE
     AoSData<TArgs...> operator[](int index) const noexcept;
@@ -289,12 +292,13 @@ struct AoSDataHelper : public AoSDataHelperAux<std::tuple<TArgs...>> {
 
 //==============================================================================
 
-template<typename, typename = void>
+template<typename, bool = false, typename = void>
 struct BestLayoutAux;
 
-template<typename... TArgs>
-struct BestLayoutAux<std::tuple<TArgs...>,
-                  typename std::enable_if<xlib::IsVectorizable<TArgs...>::value>
+template<typename... TArgs, bool FORCE_SOA>
+struct BestLayoutAux<std::tuple<TArgs...>, FORCE_SOA,
+                  typename std::enable_if<!FORCE_SOA &&
+                                          xlib::IsVectorizable<TArgs...>::value>
                   ::type> : AoS<TArgs...> {
 
     explicit BestLayoutAux() noexcept : AoS<TArgs...>() {}
@@ -304,9 +308,10 @@ struct BestLayoutAux<std::tuple<TArgs...>,
                                 AoS<TArgs...>(array, num_items) {}
 };
 
-template<typename... TArgs>
-struct BestLayoutAux<std::tuple<TArgs...>,
-                 typename std::enable_if<!xlib::IsVectorizable<TArgs...>::value>
+template<typename... TArgs, bool FORCE_SOA>
+struct BestLayoutAux<std::tuple<TArgs...>, FORCE_SOA,
+                 typename std::enable_if<FORCE_SOA ||
+                                         !xlib::IsVectorizable<TArgs...>::value>
                  ::type> : SoA<TArgs...> {
 
     static_assert(sizeof...(TArgs) == sizeof...(TArgs), "not vectorizable");
@@ -317,9 +322,6 @@ struct BestLayoutAux<std::tuple<TArgs...>,
                            noexcept :
                                 SoA<TArgs...>(array, num_items) {}
 };
-
-template<typename... TArgs>
-using BestLayout = BestLayoutAux<std::tuple<TArgs...>>;
 
 } // namespace hornets_nest
 

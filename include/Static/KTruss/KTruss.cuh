@@ -10,8 +10,10 @@
 
 namespace hornets_nest {
 
+const bool _FORCE_SOA = true;
+
 using triangle_t = int;
-using HornetGraph = gpu::Hornet<EMPTY, TypeList<triangle_t>>;
+using HornetGraph = gpu::Hornet<EMPTY, TypeList<triangle_t>, _FORCE_SOA>;
 
 struct KTrussData {
     int max_K;

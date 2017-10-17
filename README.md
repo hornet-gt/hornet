@@ -1,8 +1,8 @@
 # Hornet #
 
-The repository provides the Hornet data structute implementation.
+The repository provides the Hornet data structure implementation.
 
-For additional information concerning the algorithms implemented on top of Hornet please refer to [**HornetAlg repository**](https://github.com/hornet-gt/hornetsnest).
+For additional information concerning the algorithms implemented on top of Hornet, please refer to [**HornetAlg repository**](https://github.com/hornet-gt/hornetsnest).
 
 ## Getting Started ##
 
@@ -25,7 +25,7 @@ The document is organized as follows:
 * [Nvidia Modern GPU](https://developer.nvidia.com/cuda-gpus) (compute capability &ge; 3.0): Kerpler, Maxwell, Pascal, Volta architectures.
 * [CUDA toolkit](https://developer.nvidia.com/cuda-toolkit) 9 or greater.
 * GCC or [Clang](https://clang.llvm.org) host compiler with support for C++14.
-  Note: the compiler must be compatible with the related CUDA toolkit version.
+  Note, the compiler must be compatible with the related CUDA toolkit version.
   For more information see [CUDA Installation Guide](http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html).
 * [CMake](https://cmake.org) v3.6 or greater.
 * 64-bit Operating System (Ubuntu 16.04 or above suggested).
@@ -59,8 +59,8 @@ The host side `nvcc` compiler must be compatible with the current CUDA toolkit
 version installed on the system
 (see [CUDA Installation Guide](http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html)).
 
-The syntax and the input parameters of Hornet are explained in details in the
- `docs/Syntax.txt` file or by typing `./HornetTest --help`.
+The syntax and the input parameters of Hornet are explained in detail in
+ `docs/Syntax.txt`. They can also be found by typing `./HornetTest --help`.
 
 ### Supported graph formats ###
 

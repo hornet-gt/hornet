@@ -133,7 +133,8 @@ private:
     using GraphBase<vid_t, eoff_t>::_undirected_to_directed;
     using GraphBase<vid_t, eoff_t>::_stored_undirected;
 
-    void allocate(const GInfo& ginfo) noexcept override;
+    void allocate(const GInfo& ginfo,
+                  const bool allocate_coo = true) noexcept override;
 
     void readMarket  (std::ifstream& fin, bool print)   override;
     void readDimacs9 (std::ifstream& fin, bool print)   override;

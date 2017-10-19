@@ -141,11 +141,11 @@ void forAllVertices(HornetClass& hornet, const Operator& op) {
 template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&         hornet,
                  const Operator&      op,
-                 const LoadBalancing& load_balacing) {
+                 const LoadBalancing& load_balancing) {
     const int PARTITION_SIZE = xlib::SMemPerBlock<BLOCK_SIZE_OP2, vid_t>::value;
     int num_partitions = xlib::ceil_div<PARTITION_SIZE>(hornet.nE());
 
-    load_balacing.apply(hornet, op);
+    load_balancing.apply(hornet, op);
 }
 
 //==============================================================================
@@ -177,15 +177,15 @@ void forAllEdges(HornetClass&    hornet,
                  const vid_t*    vertex_array,
                  int             size,
                  const Operator& op,
-                 const LoadBalancing& load_balacing) {
-    load_balacing.apply(hornet, vertex_array, size, op);
+                 const LoadBalancing& load_balancing) {
+    load_balancing.apply(hornet, vertex_array, size, op);
 }
 /*
 template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass& hornet,
                  const TwoLevelQueue<vid_t>& queue,
-                 const Operator& op, const LoadBalancing& load_balacing) {
-    load_balacing.apply(hornet, queue.device_input_ptr(),
+                 const Operator& op, const LoadBalancing& load_balancing) {
+    load_balancing.apply(hornet, queue.device_input_ptr(),
                         queue.size(), op);
     //queue.kernel_after();
 }*/
@@ -194,8 +194,8 @@ template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&                hornet,
                  const TwoLevelQueue<vid_t>& queue,
                  const Operator&             op,
-                 const LoadBalancing&        load_balacing) {
-    load_balacing.apply(hornet, queue.device_input_ptr(), queue.size(), op);
+                 const LoadBalancing&        load_balancing) {
+    load_balancing.apply(hornet, queue.device_input_ptr(), queue.size(), op);
 }
 
 } // namespace hornets_nest

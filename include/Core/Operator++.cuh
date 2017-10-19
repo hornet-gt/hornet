@@ -123,7 +123,7 @@ void forAllEdges(HornetClass& hornet, const Operator& op);
 template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&         hornet,
                  const Operator&      op,
-                 const LoadBalancing& load_balacing);
+                 const LoadBalancing& load_balancing);
 
 //==============================================================================
 //==============================================================================
@@ -152,7 +152,7 @@ void forAllEdges(HornetClass&         hornet,
                  const vid_t*         vertex_array,
                  int                  size,
                  const Operator&      op,
-                 const LoadBalancing& load_balacing);
+                 const LoadBalancing& load_balancing);
 
 /**
  * @brief apply the `Operator` to all vertices in the graph
@@ -173,13 +173,13 @@ template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&                hornet,
                  const TwoLevelQueue<vid_t>& queue,
                  const Operator&             op,
-                 const LoadBalancing&        load_balacing);
+                 const LoadBalancing&        load_balancing);
 */
 template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&                hornet,
                  const TwoLevelQueue<vid_t>& queue,
                  const Operator&             op,
-                 const LoadBalancing&        load_balacing);
+                 const LoadBalancing&        load_balancing);
 
 //==============================================================================
 

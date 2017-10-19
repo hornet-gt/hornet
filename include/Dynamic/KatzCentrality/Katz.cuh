@@ -94,7 +94,7 @@ private:
     HostDeviceVar<KatzDynamicData> hd_katzdata;
 
     HornetGraph&                  inverted_graph;
-    load_balacing::BinarySearch load_balacing;
+    load_balancing::BinarySearch load_balancing;
     KatzCentrality              kc_static;
     bool is_directed;
 

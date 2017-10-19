@@ -38,7 +38,7 @@
 #pragma once
 
 namespace hornets_nest {
-namespace load_balacing {
+namespace load_balancing {
 
 class ScanBased {
 public:
@@ -60,7 +60,7 @@ private:
     static const unsigned BLOCK_SIZE = 256;
 };
 
-} // namespace load_balacing
+} // namespace load_balancing
 } // namespace hornets_nest
 
 #include "ScanBased.i.cuh"

@@ -69,7 +69,7 @@ struct BFSOperator {
 BfsTopDown::BfsTopDown(HornetGraph& hornet) :
                                  StaticAlgorithm(hornet),
                                  queue(hornet),
-                                 load_balacing(hornet) {
+                                 load_balancing(hornet) {
     gpu::allocate(d_distances, hornet.nV());
     reset();
 }
@@ -96,10 +96,10 @@ void BfsTopDown::run() {
     while (queue.size() > 0) {
         //std::cout << queue.size() << std::endl;
         //for all edges in "queue" applies the operator "BFSOperator" by using
-        //the load balancing algorithm instantiated in "load_balacing"
+        //the load balancing algorithm instantiated in "load_balancing"
         forAllEdges(hornet, queue,
                     BFSOperator { d_distances, current_level, queue },
-                    load_balacing);
+                    load_balancing);
         current_level++;
         queue.swap();
     }
@@ -121,7 +121,7 @@ void BfsTopDown::run2() {
                                     }
                                 };
 
-        forAllEdges(hornet, queue, BFSLambda, load_balacing);
+        forAllEdges(hornet, queue, BFSLambda, load_balancing);
         level++;
         queue.swap();
     }

@@ -68,7 +68,7 @@ struct SSSPOperator {
 
 SSSP::SSSP(HornetGraph& hornet) : StaticAlgorithm(hornet),
                                 queue(hornet),
-                                load_balacing(hornet) {
+                                load_balancing(hornet) {
     gpu::allocate(d_distances, hornet.nV());
     reset();
 }
@@ -92,7 +92,7 @@ void SSSP::set_parameters(vid_t source) {
 void SSSP::run() {
     while (queue.size() > 0) {
         forAllEdges(hornet, queue, SSSPOperator { d_distances, queue },
-                    load_balacing);
+                    load_balancing);
         queue.swap();
     }
 }

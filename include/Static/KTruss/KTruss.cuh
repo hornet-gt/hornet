@@ -79,8 +79,8 @@ public:
 private:
     HostDeviceVar<KTrussData> hd_data;
 
-    //load_balacing::BinarySearch load_balacing;
-    //load_balacing::VertexBased1 load_balacing;
+    //load_balancing::BinarySearch load_balancing;
+    //load_balancing::VertexBased1 load_balancing;
 };
 
 //==============================================================================

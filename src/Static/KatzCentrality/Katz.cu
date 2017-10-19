@@ -47,7 +47,7 @@ namespace hornets_nest {
 KatzCentrality::KatzCentrality(HornetGraph& hornet, int max_iteration, int K,
                                int max_degree, bool is_static) :
                                        StaticAlgorithm(hornet),
-                                       load_balacing(hornet),
+                                       load_balancing(hornet),
                                        is_static(is_static) {
     if (max_iteration <= 0)
         ERROR("Number of max iterations should be greater than zero")
@@ -146,7 +146,7 @@ void KatzCentrality::run() {
 
         forAllnumV (hornet, InitNumPathsPerIteration { hd_katzdata } );
         forAllEdges(hornet, UpdatePathCount          { hd_katzdata },
-                    load_balacing);
+                    load_balancing);
         forAllnumV (hornet, UpdateKatzAndBounds      { hd_katzdata } );
 
         hd_katzdata.sync();

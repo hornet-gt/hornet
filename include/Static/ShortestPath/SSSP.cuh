@@ -66,9 +66,9 @@ public:
     void set_parameters(vid_t source);
 private:
     TwoLevelQueue<vid_t>        queue;
-    load_balacing::BinarySearch load_balacing;
-    //load_balacing::VertexBased1 load_balacing;
-    //load_balacing::ScanBased load_balacing;
+    load_balancing::BinarySearch load_balancing;
+    //load_balancing::VertexBased1 load_balancing;
+    //load_balancing::ScanBased load_balancing;
     weight_t* d_distances { nullptr };
     vid_t     sssp_source { 0 };
 };

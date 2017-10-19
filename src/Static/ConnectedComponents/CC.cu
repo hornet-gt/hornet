@@ -130,7 +130,7 @@ struct ColorigAtomic {
 CC::CC(HornetGraph& hornet) : StaticAlgorithm(hornet),
                             queue(hornet),
                             queue_pair(hornet),
-                            load_balacing(hornet) {
+                            load_balancing(hornet) {
     gpu::allocate(d_colors, hornet.nV());
     reset();
 }
@@ -153,7 +153,7 @@ void CC::run() {
 
     while (queue.size() > 0) {
         forAllEdges(hornet, queue, GiantCCOperator { d_colors, queue },
-                    load_balacing);
+                    load_balancing);
         queue.swap();
     }
     queue.clear();
@@ -162,7 +162,7 @@ void CC::run() {
     queue.swap();
     if (queue.size() == 0)
         return;
-    forAllEdges(hornet, queue, BuildPairQueue { queue_pair }, load_balacing);
+    forAllEdges(hornet, queue, BuildPairQueue { queue_pair }, load_balancing);
 
     queue_pair.swap();
     do {

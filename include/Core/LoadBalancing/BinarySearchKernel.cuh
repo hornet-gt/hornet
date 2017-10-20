@@ -41,7 +41,7 @@ namespace hornets_nest {
 /**
  * @brief
  */
-namespace load_balacing {
+namespace load_balancing {
 namespace kernel {
 
 template<bool = true>
@@ -91,5 +91,5 @@ void binarySearchKernel(HornetDevice              hornet,
 }
 
 } // namespace kernel
-} // namespace load_balacing
+} // namespace load_balancing
 } // namespace hornets_nest

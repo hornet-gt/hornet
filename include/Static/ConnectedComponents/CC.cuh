@@ -68,9 +68,9 @@ private:
     color_t*              d_colors    { nullptr };
     HostDeviceVar<bool>   hd_continue { true };
 
-    //load_balacing::BinarySearch load_balacing;
-    load_balacing::VertexBased1 load_balacing;
-    //load_balacing::ScanBased load_balacing;
+    //load_balancing::BinarySearch load_balancing;
+    load_balancing::VertexBased1 load_balancing;
+    //load_balancing::ScanBased load_balancing;
 };
 
 } // namespace hornets_nest

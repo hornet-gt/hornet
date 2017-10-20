@@ -60,7 +60,7 @@ struct SpMVOperator {
 
 SpMV::SpMV(HornetGraph& hornet, int* h_vector) :
                                 StaticAlgorithm(hornet),
-                                load_balacing(hornet),
+                                load_balancing(hornet),
                                 h_vector(h_vector) {
     gpu::allocate(d_vector, hornet.nV());
     gpu::allocate(d_result, hornet.nV());
@@ -77,7 +77,7 @@ void SpMV::reset() {
 }
 
 void SpMV::run() {
-    forAllEdges(hornet, SpMVOperator { d_vector, d_result }, load_balacing);
+    forAllEdges(hornet, SpMVOperator { d_vector, d_result }, load_balancing);
 }
 
 void SpMV::release() {

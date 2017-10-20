@@ -67,9 +67,9 @@ public:
     void run2();
 private:
     TwoLevelQueue<vid_t>        queue;
-    load_balacing::BinarySearch load_balacing;
-    //load_balacing::VertexBased1 load_balacing;
-    //load_balacing::ScanBased load_balacing;
+    load_balancing::BinarySearch load_balancing;
+    //load_balancing::VertexBased1 load_balancing;
+    //load_balancing::ScanBased load_balancing;
     dist_t* d_distances   { nullptr };
     vid_t   bfs_source    { 0 };
     dist_t  current_level { 0 };

@@ -86,7 +86,7 @@ struct BFSOperatorAtomic {
 BfsTopDown2::BfsTopDown2(HornetGraph& hornet) :
                                  StaticAlgorithm(hornet),
                                  queue(hornet, 5),
-                                 load_balacing(hornet) {
+                                 load_balancing(hornet) {
     gpu::allocate(d_distances, hornet.nV());
     reset();
 }
@@ -112,7 +112,7 @@ void BfsTopDown2::set_parameters(vid_t source) {
 void BfsTopDown2::run() {
     while (queue.size() > 0) {
         forAllEdges(hornet, queue, BFSOperator1 { d_distances, queue },
-                    load_balacing);
+                    load_balancing);
         queue.swap();
         forAll(queue, BFSOperator2 { d_distances, current_level });
         current_level++;
@@ -123,7 +123,7 @@ void BfsTopDown2::run() {
     while (queue.size() > 0) {
         forAllEdges(hornet, queue,
                     BFSOperatorAtomic { current_level, d_distances, queue },
-                    load_balacing);
+                    load_balancing);
         queue.swap();
         current_level++;
     }

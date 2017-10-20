@@ -40,7 +40,7 @@
 #include <Device/WarpScan.cuh>
 
 namespace hornets_nest {
-namespace load_balacing {
+namespace load_balancing {
 namespace kernel {
 
 template<unsigned BLOCK_SIZE, bool WARP_GATHER = false,
@@ -102,5 +102,5 @@ void scanBasedKernel(HornetDevice              hornet,
 }
 
 } // kernel
-} // namespace load_balacing
+} // namespace load_balancing
 } // namespace hornets_nest

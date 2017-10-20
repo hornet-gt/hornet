@@ -108,7 +108,7 @@ public:
     KatzData katz_data();
 
 private:
-    load_balacing::BinarySearch load_balacing;
+    load_balancing::BinarySearch load_balancing;
     HostDeviceVar<KatzData>     hd_katzdata;
     ulong_t**                   h_paths_ptr;
     bool                        is_static;

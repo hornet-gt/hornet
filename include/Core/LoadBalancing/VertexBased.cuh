@@ -43,7 +43,7 @@ namespace hornets_nest {
 /**
  * @brief
  */
-namespace load_balacing {
+namespace load_balancing {
 
 template<unsigned VW_SIZE>
 class VertexBased {
@@ -75,7 +75,7 @@ using  VertexBased8 = VertexBased<8>;
 using VertexBased16 = VertexBased<16>;
 using VertexBased32 = VertexBased<32>;
 
-} // namespace load_balacing
+} // namespace load_balancing
 } // namespace hornets_nest
 
 #include "VertexBased.i.cuh"

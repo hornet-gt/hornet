@@ -71,7 +71,7 @@ bool equal(HostIterator host_start, HostIterator host_end,
            DeviceIterator device_start) noexcept;
 
 template<typename T>
-void print(const T* device_input, size_t num_items);
+void printArray(const T* device_input, size_t num_items);
 
 } // namespace gpu
 
@@ -119,7 +119,7 @@ template<typename T>
 void excl_prefixsum(const T* input, size_t num_items, T* output);
 
 template<typename T>
-void print(const T* host_input, size_t num_items);
+void printArray(const T* host_input, size_t num_items);
 
 } // namespace host
 } // namespace hornet

@@ -15,8 +15,8 @@ int main(int argc, char* argv[]) {
 
     auto h_value = new weight_t[graph.nE()];
     std::fill(h_value, h_value + graph.nE(), weight_t(1));
-    HornetInit hornet_init(graph.nV(), graph.nE(), graph.out_offsets_ptr(),
-                           graph.out_edges_ptr());
+    HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
+                           graph.csr_out_edges());
     hornet_init.insertEdgeData(h_value);
 
     HornetGraph hornet_graph(hornet_init);

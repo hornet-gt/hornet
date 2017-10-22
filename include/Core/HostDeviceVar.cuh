@@ -82,7 +82,9 @@ public:
 private:
     T    _value;
     T*   _d_value_ptr { nullptr };
+
     int  _copy_count  { 0 };
+    mutable bool _enable_sync { false };
 };
 
 } // namespace hornets_nest

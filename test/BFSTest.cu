@@ -15,8 +15,8 @@ int main(int argc, char* argv[]) {
     CommandLineParam cmd(graph, argc, argv);
     //graph.print();
 
-    HornetInit hornet_init(graph.nV(), graph.nE(), graph.out_offsets_ptr(),
-                           graph.out_edges_ptr());
+    HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
+                           graph.csr_out_edges());
 
     HornetGraph hornet_graph(hornet_init);
     //hornet_graph.print();

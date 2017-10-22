@@ -16,8 +16,8 @@ int main(int argc, char* argv[]) {
     graph.read(argv[1], SORT | PRINT_INFO);
 
     HornetInit hornet_init(graph.nV(), graph.nE(),
-                           graph.out_offsets_ptr(),
-                           graph.out_edges_ptr(), true);
+                           graph.csr_out_offsets(),
+                           graph.csr_out_edges(), true);
 
     int alg = 3, max_K = 3;
     if (argc >= 3)

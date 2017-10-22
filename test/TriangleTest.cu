@@ -105,8 +105,8 @@ int main(const int argc, char *argv[]){
 
 
     cuStingerInit custinger_init(graph.nV(), graph.nE(),
-                                 graph.out_offsets_ptr(),
-                                 graph.out_edges_ptr());
+                                 graph.csr_out_offsets(),
+                                 graph.csr_out_edges());
 
     cuStinger custinger_graph(custinger_init);
 
@@ -115,7 +115,7 @@ int main(const int argc, char *argv[]){
 
     testTriangleCountingConfigurations(custinger_graph,graph.nV(),graph.nE());
     int64_t hostTris;
-    hostCountTriangles(graph.nV(), graph.nE(),graph.out_offsets_ptr(), graph.out_edges_ptr(),&hostTris);
+    hostCountTriangles(graph.nV(), graph.nE(),graph.csr_out_offsets(), graph.csr_out_edges(),&hostTris);
     return 0;
 }
 

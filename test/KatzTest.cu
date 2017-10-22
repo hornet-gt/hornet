@@ -54,8 +54,8 @@ int main(int argc, char* argv[]) {
     graph.read(argv[1], SORT | PRINT_INFO);
 
     HornetInit hornet_init(graph.nV(), graph.nE(),
-                           graph.out_offsets_ptr(),
-                           graph.out_edges_ptr());
+                           graph.csr_out_offsets(),
+                           graph.csr_out_edges());
 
     HornetGraph hornet_graph(hornet_init);
 

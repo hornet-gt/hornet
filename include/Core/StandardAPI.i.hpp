@@ -110,12 +110,12 @@ void excl_prefixsum(const T* input, size_t num_items, T* output) {
 template<typename HostIterator, typename DeviceIterator>
 bool equal(HostIterator host_start, HostIterator host_end,
            DeviceIterator device_start) noexcept {
-    return cu::equal(host_start, host_end, device_start);
+    return xlib::gpu::equal(host_start, host_end, device_start);
 }
 
 template<typename T>
-void print(const T* device_input, size_t num_items) {
-    cu::printArray(device_input, num_items);
+void printArray(const T* device_input, size_t num_items) {
+    xlib::gpu::printArray(device_input, num_items);
 }
 
 } // namespace gpu
@@ -211,7 +211,7 @@ void excl_prefixsum(const T* input, size_t num_items, T* output) {
 }
 
 template<typename T>
-void print(const T* host_input, size_t num_items) {
+void printArray(const T* host_input, size_t num_items) {
     xlib::printArray(host_input, num_items);
 }
 

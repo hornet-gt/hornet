@@ -33,7 +33,7 @@
  * </blockquote>}
  */
 #include <Device/Definition.cuh>        //xlib::SMemPerBlock
-#include <Device/PrintExt.cuh>          //cu::printArray
+#include <Device/PrintExt.cuh>          //xlib::gpu::printArray
 #include <Device/PTX.cuh>              //xlib::__msb
 #include <Device/SafeCudaAPI.cuh>       //cuMemcpyToDeviceAsync
 #include <BasicTypes.hpp>
@@ -173,13 +173,13 @@ int TwoLevelQueue<T>::output_size() const noexcept {
 template<typename T>
 void TwoLevelQueue<T>::print() const noexcept {
     sync();
-    cu::printArray(_d_queue_ptrs.first, _h_counters.x);
+    xlib::gpu::printArray(_d_queue_ptrs.first, _h_counters.x);
 }
 
 template<typename T>
 void TwoLevelQueue<T>::print_output() const noexcept {
     sync();
-    cu::printArray(_d_queue_ptrs.second, _h_counters.y);
+    xlib::gpu::printArray(_d_queue_ptrs.second, _h_counters.y);
 }
 
 template<typename T>

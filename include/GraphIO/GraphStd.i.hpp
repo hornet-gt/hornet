@@ -225,22 +225,22 @@ GraphStd<vid_t, eoff_t>::EdgesContainer::end() const noexcept {
 ////////////////////////////////
 
 template<typename vid_t, typename eoff_t>
-inline const eoff_t* GraphStd<vid_t, eoff_t>::out_offsets_ptr() const noexcept {
+inline const eoff_t* GraphStd<vid_t, eoff_t>::csr_out_offsets() const noexcept {
     return _out_offsets;
 }
 
 template<typename vid_t, typename eoff_t>
-inline const eoff_t* GraphStd<vid_t, eoff_t>::in_offsets_ptr() const noexcept {
+inline const eoff_t* GraphStd<vid_t, eoff_t>::csr_in_offsets() const noexcept {
     return _in_offsets;
 }
 
 template<typename vid_t, typename eoff_t>
-inline const vid_t* GraphStd<vid_t, eoff_t>::out_edges_ptr() const noexcept {
+inline const vid_t* GraphStd<vid_t, eoff_t>::csr_out_edges() const noexcept {
     return _out_edges;
 }
 
 template<typename vid_t, typename eoff_t>
-inline const vid_t* GraphStd<vid_t, eoff_t>::in_edges_ptr() const noexcept {
+inline const vid_t* GraphStd<vid_t, eoff_t>::csr_in_edges() const noexcept {
     return _in_edges;
 }
 

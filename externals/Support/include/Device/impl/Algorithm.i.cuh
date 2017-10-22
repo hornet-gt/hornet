@@ -36,7 +36,8 @@
 #include "Host/Algorithm.hpp"       //xlib::equal_sorted
 #include "Device/SafeCudaAPI.cuh"   //cuMemcpyToHost
 
-namespace cu {
+namespace xlib {
+namespace gpu {
 
 template<typename HostIterator, typename DeviceIterator>
 bool equal(HostIterator host_start, HostIterator host_end,
@@ -73,4 +74,5 @@ bool equal_sorted(HostIterator host_start, HostIterator host_end,
     return flag;
 }
 
-} // namespace cu
+} // namespace gpu
+} // namespace xlib

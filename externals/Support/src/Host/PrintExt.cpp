@@ -122,7 +122,7 @@ void printTitle(const std::string& str, char c, int sequence_length) noexcept {
 
 template<>
 void printArray<char>(const char* array, size_t size, const std::string& str,
-                      char sep) noexcept {
+                      const std::string& sep) noexcept {
     std::cout << str;
     if (size == 0)
         std::cout << "empty";
@@ -133,7 +133,8 @@ void printArray<char>(const char* array, size_t size, const std::string& str,
 
 template<>
 void printArray<unsigned char>(const unsigned char* array, size_t size,
-                               const std::string& str, char sep) noexcept {
+                               const std::string& str,
+                               const std::string& sep) noexcept {
     std::cout << str;
     if (size == 0)
         std::cout << "empty";

@@ -35,7 +35,8 @@
  */
 #pragma once
 
-namespace cu {
+namespace xlib {
+namespace gpu {
 
 template<typename HostIterator, typename DeviceIterator>
 bool equal(HostIterator host_start, HostIterator host_end,
@@ -45,6 +46,7 @@ template<typename HostIterator, typename DeviceIterator>
 bool equal_sorted(HostIterator host_start, HostIterator host_end,
                   DeviceIterator device_start) noexcept;
 
-} // namespace cu
+} // namespace gpu
+} // namespace xlib
 
 #include "impl/Algorithm.i.cuh"

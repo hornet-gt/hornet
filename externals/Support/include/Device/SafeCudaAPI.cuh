@@ -71,6 +71,9 @@
 #define cuMalloc(...)                                                          \
     xlib::detail::cuMallocAux(__FILE__, __LINE__, __func__, __VA_ARGS__)       \
 
+#define cuMalloc2D(...)                                                        \
+    xlib::detail::cuMalloc2DAux(__FILE__, __LINE__, __func__, __VA_ARGS__)     \
+
 #define cuMallocHost(...)                                                      \
     xlib::detail::cuMallocHostAux(__FILE__, __LINE__, __func__, __VA_ARGS__)   \
 
@@ -171,6 +174,14 @@ void cuMallocAux(const char* file, int line, const char* func_name,
     xlib::__cudaErrorHandler(cudaMalloc(&base_ptr, num_bytes), "cudaMalloc",
                              file, line, func_name);
     set_ptr(base_ptr, std::forward<TArgs>(args)...);
+}
+
+template<typename T>
+void cuMalloc2DAux(const char* file, int line, const char* func_name,
+                   T*& pointer, int rows, int cols) {
+    assert(rows > 0 && cols > 0);
+    xlib::__cudaErrorHandler(cudaMalloc(&pointer, rows * cols * sizeof(T)),
+                             "cudaMalloc2D", file, line, func_name);
 }
 
 template<typename... TArgs>

@@ -41,21 +41,66 @@
 #include "HostDevice.hpp"
 #include <string>  //std::string
 
-namespace cu {
+namespace xlib {
+namespace gpu {
 
-template<class T>
-void printArray(const T* d_array, size_t size, const std::string& str = "",
-                char sep = ' ') noexcept;
+/**
+ * @brief
+ */
+template<typename T>
+void printArray(const T* d_array, size_t size, const std::string& title = "",
+                const std::string& sep = " ") noexcept;
 
-template<class T, int SIZE>
-void printArray(const T (&d_array)[SIZE], const std::string& str = "",
-                char sep = ' ') noexcept;
+/**
+ * @brief
+ */
+template<typename T, int SIZE>
+void printArray(const T (&d_array)[SIZE], const std::string& title = "",
+                const std::string& sep = " ") noexcept;
 
-template<class T>
-void printSymbol(const T& d_symbol, const std::string& str = "") noexcept;
+/**
+ * @brief
+ */
+template<typename T>
+void printSymbol(const T& d_symbol, const std::string& title = "") noexcept;
+
+/**
+ * @brief row-major
+ */
+template<typename T>
+void printMatrix(const T* d_matrix, size_t rows, size_t cols,
+                 const std::string& title = "") noexcept;
+
+/**
+ * @brief row-major
+ */
+template<typename T>
+void printMatrix(const T* d_matrix, size_t rows, size_t cols, size_t ld,
+                 const std::string& title = "") noexcept;
+
+/**
+ * @brief column-major (blas and lapack compatibility)
+ */
+template<typename T>
+void printMatrixCM(const T* d_matrix, size_t rows, size_t cols,
+                   const std::string& title = "") noexcept;
+
+/**
+ * @brief column-major (blas and lapack compatibility)
+ */
+template<typename T>
+void printMatrixCM(const T* d_matrix, size_t rows, size_t cols, size_t ld,
+                   const std::string& title = "") noexcept;
 
 //------------------------------------------------------------------------------
-struct Cout {};
+/**
+ * @brief same as std::cout but on the GPU
+ */
+class Cout {
+public:
+    __device__ __forceinline__
+    explicit Cout() {};
+};
 
 __device__ __forceinline__
 const Cout& operator<<(const Cout& obj, const char* string)       noexcept;
@@ -101,6 +146,7 @@ __device__ __forceinline__
 typename std::enable_if<std::is_pointer<T>::value, const Cout&>::type
 operator<<(const Cout& obj, const T pointer) noexcept;
 
-} // namespace cu
+} // namespace gpu
+} // namespace xlib
 
 #include "impl/PrintExt.i.cuh"

@@ -241,7 +241,7 @@ void CubSortByKey<T, R>::run(const T* d_key, const R* d_data_in, int num_items,
                              T* d_key_sorted, R* d_data_out, T d_key_max)
                              noexcept {
     using U = typename std::conditional<std::is_floating_point<T>::value,
-                                        int, T>::type;
+                                        int, T>::type;                             
     int num_bits = std::is_floating_point<T>::value ? sizeof(T) * 8 :
                                      xlib::ceil_log2(static_cast<U>(d_key_max));
     cub::DeviceRadixSort::SortPairs(nullptr, _temp_storage_bytes,

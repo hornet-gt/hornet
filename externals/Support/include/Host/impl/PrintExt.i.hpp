@@ -34,6 +34,9 @@
  * </blockquote>}
  */
 #include <cmath>        //std::round
+#include <iomanip>
+#include <locale>
+#include <sstream>
 #include <type_traits>  //std::is_floating_point
 
 namespace xlib {
@@ -42,28 +45,29 @@ template<typename T>
 std::string format(T num, unsigned precision) noexcept {
     T round_num = !std::is_floating_point<T>::value ? num :
                   std::round(num * static_cast<T>(100)) / static_cast<T>(100);
-    std::string str = std::to_string(round_num);
-    auto     find_p = str.find('.');
-    auto       init = find_p == std::string::npos ? str.size() : find_p;
+    std::string title = std::to_string(round_num);
+    auto     find_p = title.find('.');
+    auto       init = find_p == std::string::npos ? title.size() : find_p;
 
     for (int i = static_cast<int>(init) - 3; i > 0; i -= 3)
-        str.insert(static_cast<unsigned>(i), 1, ',');
+        title.insert(static_cast<unsigned>(i), 1, ',');
 
-    auto find_r = str.find('.');
+    auto find_r = title.find('.');
     if (find_r != std::string::npos)
-        str.erase(find_r + precision + 1);
-    return str;
+        title.erase(find_r + precision + 1);
+    return title;
 }
 
-template<class T, size_t SIZE>
-void printArray(T (&array)[SIZE], const std::string& str, char sep) noexcept {
-    printArray(array, SIZE, str, sep);
+template<typename T, size_t SIZE>
+void printArray(T (&array)[SIZE], const std::string& title,
+                const std::string& sep) noexcept {
+    printArray(array, SIZE, title, sep);
 }
 
-template<class T>
-void printArray(const T* array, size_t size, const std::string& str, char sep)
-                noexcept {
-    std::cout << str;
+template<typename T>
+void printArray(const T* array, size_t size, const std::string& title,
+                const std::string& sep) noexcept {
+    std::cout << title;
     if (size == 0)
         std::cout << "<empty>";
     for (size_t i = 0; i < size; i++)
@@ -72,24 +76,93 @@ void printArray(const T* array, size_t size, const std::string& str, char sep)
 }
 
 template<>
-void printArray<char>(const char* array, size_t size, const std::string& str,
-                      char sep) noexcept;
+void printArray<char>(const char* array, size_t size, const std::string& title,
+                      const std::string& sep) noexcept;
 
 template<>
 void printArray<unsigned char>(const unsigned char* array, size_t size,
-                               const std::string& str, char sep) noexcept;
+                               const std::string& title,
+                               const std::string& sep) noexcept;
 
 //------------------------------------------------------------------------------
 
-template<class T>
-void printMatrix(T** matrix, int rows, int cols, const std::string& str) {
-    std::cout << str;
+template<typename T>
+void printMatrix(T* const* matrix, size_t rows, size_t cols,
+                 const std::string& title) noexcept {
+    std::cout << title;
     for (int i = 0; i < rows; i++)
         printArray(matrix[i * cols], cols, "\n", '\t');
-    std::cout << "\n" << std::endl;
+    std::cout << std::endl;
 }
 
-//------------------------------------------------------------------------------
+//==============================================================================
+
+namespace detail {
+
+template<typename T, typename Lambda>
+void printMatrixAux(const T* matrix, size_t rows, size_t cols, size_t ld,
+                    const std::string& title, const Lambda& indexing) noexcept {
+    xlib::IosFlagSaver tmp;
+    if (title != "")
+        std::cout << title << "\n";
+
+    auto max_width = new int[cols]();
+    std::stringstream ss;
+    ss.setf(std::cout.flags());
+    ss.precision(std::cout.precision());
+    ss.imbue(std::cout.getloc());
+
+    for (size_t i = 0; i < rows; i++) {
+        for (size_t j = 0; j < cols; j++) {
+            ss << matrix[indexing(i, j, ld)];
+            max_width[j] = std::max(max_width[j],
+                                    static_cast<int>(ss.str().size()));
+            ss.str("");
+        }
+    }
+    std::cout << std::right;
+    for (size_t i = 0; i < rows; i++) {
+        for (size_t j = 0; j < cols; j++) {
+            std::cout << std::setw(max_width[j] + 2)
+                      << matrix[indexing(i, j, ld)];
+        }
+        std::cout << "\n";
+    }
+    std::cout << std::endl;
+    delete[] max_width;
+}
+
+} // namespace detail
+
+template<typename T>
+void printMatrix(const T* matrix, size_t rows, size_t cols,
+                 const std::string& title) noexcept {
+    detail::printMatrixAux(matrix, rows, cols, cols, title,
+                     [](size_t i, size_t j, size_t ld) { return i * ld + j; });
+}
+
+template<typename T>
+void printMatrix(const T* matrix, size_t rows, size_t cols, size_t ld,
+                 const std::string& title) noexcept {
+    detail::printMatrixAux(matrix, rows, cols, ld, title,
+                      [](size_t i, size_t j, size_t ld) { return i * ld + j; });
+}
+
+template<typename T>
+void printMatrixCM(const T* matrix, size_t rows, size_t cols,
+                  const std::string& title) noexcept {
+    detail::printMatrixAux(matrix, rows, cols, rows, title,
+                 [](size_t i, size_t j, size_t ld) { return j * ld + i; });
+}
+
+template<typename T>
+void printMatrixCM(const T* matrix, size_t rows, size_t cols, size_t ld,
+                  const std::string& title) noexcept {
+    detail::printMatrixAux(matrix, rows, cols, ld, title,
+                   [](size_t i, size_t j, size_t ld) { return j * ld + i; });
+}
+
+//==============================================================================
 
 namespace detail {
 

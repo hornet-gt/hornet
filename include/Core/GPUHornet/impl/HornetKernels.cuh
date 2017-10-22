@@ -35,7 +35,7 @@
  */
 #include "Device/Definition.cuh"        //xlib::SMemPerBlock
 #include "Device/BinarySearchLB.cuh"    //xlib::BinarySearchLB
-#include "Device/PrintExt.cuh"          //cu::Cout
+#include "Device/PrintExt.cuh"          //xlib::gpu::Cout
 
 namespace hornets_nest {
 namespace gpu {
@@ -43,7 +43,7 @@ namespace gpu {
 template<typename HornetDevice>
 __global__
 void printKernel(HornetDevice hornet) {
-    cu::Cout cout;
+    xlib::gpu::Cout cout;
     for (vid_t i = 0; i < hornet.nV(); i++) {
         auto vertex = hornet.vertex(i);
         cout << i << " [" << vertex.degree() << ", "

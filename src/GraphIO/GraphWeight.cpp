@@ -44,7 +44,6 @@
 
 namespace graph {
 
-
 template<typename vid_t, typename eoff_t, typename weight_t>
 GraphWeight<vid_t, eoff_t, weight_t>
 ::GraphWeight(const eoff_t* csr_offsets, vid_t nV,
@@ -76,14 +75,11 @@ GraphWeight<vid_t, eoff_t, weight_t>
 
 template<typename vid_t, typename eoff_t, typename weight_t>
 void GraphWeight<vid_t, eoff_t, weight_t>
-::allocate(const GInfo& ginfo, const bool allocate_coo) noexcept {
-    // We need to allocate the COO ourselves due to needing weights
-    GraphStd<vid_t, eoff_t>::allocate(ginfo, false);
-    // Allocate the COO ourselves, now that _nE is set
-    if (allocate_coo)
-        _coo_edges   = new coo_t[ _nE ];
+::allocate(const GInfo& ginfo) noexcept {
+    GraphStd<vid_t, eoff_t>::allocateAux(ginfo);
     _coo_size = _nE;
     try {
+        _coo_edges = new coo_t[ _nE ];
         _out_weights = new weight_t[ _nE ];
         if (_structure.is_undirected()) {
             _in_weights = _out_weights;
@@ -108,15 +104,26 @@ template<typename vid_t, typename eoff_t, typename weight_t>
 void GraphWeight<vid_t, eoff_t, weight_t>::COOtoCSR() noexcept {
     if (_directed_to_undirected || _stored_undirected) {
         eoff_t half = _nE / 2;
-        for (eoff_t i = 0; i < half; i++)
-            _coo_edges[i + half] = coo_t( std::get<1>(_coo_edges[i]),
-                                          std::get<0>(_coo_edges[i]),
-                                          std::get<2>(_coo_edges[i]) );
+        auto      k = half;
+        for (eoff_t i = 0; i < half; i++) {
+            auto src = std::get<0>(_coo_edges[i]);
+            auto dst = std::get<1>(_coo_edges[i]);
+            if (src == dst)
+                continue;
+            _coo_edges[k++] = coo_t(dst, src, std::get<2>(_coo_edges[i]));
+        }
+        if (_prop.is_print() && _nE != k) {
+            std::cout << "Double self-loops removed.  E: " << xlib::format(k)
+                      << "\n";
+        }
+        _nE = k;
     }
+
     if (_directed_to_undirected) {
         if (_prop.is_print()) {
-            std::cout << "Directed to Undirected: Removing duplicated edges..."
-                      << std::flush;
+            if (_directed_to_undirected)
+                std::cout << "Directed to Undirected: ";
+            std::cout << "Removing duplicated edges..." << std::flush;
         }
         std::sort(_coo_edges, _coo_edges + _nE);
         auto   last = std::unique(_coo_edges, _coo_edges + _nE);
@@ -136,6 +143,7 @@ void GraphWeight<vid_t, eoff_t, weight_t>::COOtoCSR() noexcept {
         }
         _bitmask.free();
     }
+
     if (_prop.is_randomize()) {
         if (_prop.is_print())
             std::cout << "Randomization..." << std::endl;
@@ -161,14 +169,17 @@ void GraphWeight<vid_t, eoff_t, weight_t>::COOtoCSR() noexcept {
     if (_prop.is_print())
         std::cout << "COO to CSR...\t" << std::flush;
 
-    for (eoff_t i = 0; i < _nE; i++) {
-        vid_t  src = std::get<0>(_coo_edges[i]);
-        _out_degrees[src]++;
-        if (_structure.is_reverse()) {
-            vid_t dest = std::get<1>(_coo_edges[i]);
-            _in_degrees[dest]++;
+    if (_structure.is_reverse() && _structure.is_directed()) {
+        for (eoff_t i = 0; i < _nE; i++) {
+            _out_degrees[std::get<0>(_coo_edges[i])]++;
+            _in_degrees[std::get<1>(_coo_edges[i])]++;
         }
     }
+    else {
+        for (eoff_t i = 0; i < _nE; i++)
+            _out_degrees[std::get<0>(_coo_edges[i])]++;
+    }
+
     _out_offsets[0] = 0;
     std::partial_sum(_out_degrees, _out_degrees + _nV, _out_offsets + 1);
 
@@ -186,9 +197,9 @@ void GraphWeight<vid_t, eoff_t, weight_t>::COOtoCSR() noexcept {
         std::partial_sum(_in_degrees, _in_degrees + _nV, _in_offsets + 1);
         std::fill(tmp, tmp + _nV, 0);
         for (eoff_t i = 0; i < _coo_size; i++) {
-            vid_t  src = std::get<0>(_coo_edges[i]);
-            vid_t dest = std::get<1>(_coo_edges[i]);
-            auto offset = _in_offsets[dest] + tmp[dest]++;
+            auto    src = std::get<0>(_coo_edges[i]);
+            auto    dst = std::get<1>(_coo_edges[i]);
+            auto offset = _in_offsets[dst] + tmp[dst]++;
             _in_edges[ offset ]   = src;
             _in_weights[ offset ] = std::get<2>(_coo_edges[i]);
         }

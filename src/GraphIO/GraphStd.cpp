@@ -81,8 +81,17 @@ GraphStd<vid_t, eoff_t>::GraphStd(StructureProp structure,
 //------------------------------------------------------------------------------
 
 template<typename vid_t, typename eoff_t>
-void GraphStd<vid_t, eoff_t>::allocate(const GInfo& ginfo,
-                                       const bool allocate_coo) noexcept {
+void GraphStd<vid_t, eoff_t>::allocate(const GInfo& ginfo) noexcept {
+    allocateAux(ginfo);
+    try {
+        _coo_edges = new coo_t[ _nE ];
+    } catch (const std::bad_alloc&) {
+        ERROR("OUT OF MEMORY: Graph too Large !!  V: ", _nV, " E: ", _nE)
+    }
+}
+
+template<typename vid_t, typename eoff_t>
+void GraphStd<vid_t, eoff_t>::allocateAux(const GInfo& ginfo) noexcept {
     assert(ginfo.num_vertices > 0 && ginfo.num_edges > 0);
     if (!_structure.is_direction_set())
         _structure += ginfo.direction;
@@ -131,8 +140,6 @@ void GraphStd<vid_t, eoff_t>::allocate(const GInfo& ginfo,
         _out_offsets = new eoff_t[ _nV + 1 ];
         _out_edges   = new vid_t[ _nE ];
         _out_degrees = new degree_t[ _nV ]();
-        if (allocate_coo)
-            _coo_edges   = new coo_t[ _nE ];
         if (_structure.is_undirected()) {
             _in_degrees = _out_degrees;
             _in_offsets = _out_offsets;
@@ -179,7 +186,6 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
                       << "\n";
         }
         _nE = k;
-
     }
 
     if (_directed_to_undirected) {
@@ -233,7 +239,7 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
     if (_structure.is_reverse() && _structure.is_directed()) {
         for (eoff_t i = 0; i < _nE; i++) {
             _out_degrees[_coo_edges[i].first]++;
-            _in_degrees[ _coo_edges[i].second]++;
+            _in_degrees[_coo_edges[i].second]++;
         }
     }
     else {
@@ -256,8 +262,8 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
         std::partial_sum(_in_degrees, _in_degrees + _nV, _in_offsets + 1);
         std::fill(tmp, tmp + _nV, 0);
         for (eoff_t i = 0; i < _nE; i++) {
-            vid_t dest = _coo_edges[i].second;
-            _in_edges[ _in_offsets[dest] + tmp[dest]++ ] = _coo_edges[i].first;
+            auto dst = _coo_edges[i].second;
+            _in_edges[ _in_offsets[dst] + tmp[dst]++ ] = _coo_edges[i].first;
         }
     }
     delete[] tmp;
@@ -319,7 +325,7 @@ void GraphStd<vid_t, eoff_t>
                                      xlib::MemoryMapped::WRITE, print);
 
     if (_structure.is_directed() && _structure.is_reverse()) {
-        auto struct_tmp = DIRECTED | REVERSE;
+        auto struct_tmp = DIRECTED | ENABLE_INGOING;
         memory_mapped.write(class_id.c_str(), class_id.size(),          //NOLINT
                             &_nV, 1, &_nE, 1, &struct_tmp, 1,           //NOLINT
                             _out_offsets, _nV + 1, _in_offsets, _nV + 1,//NOLINT

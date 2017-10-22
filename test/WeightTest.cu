@@ -13,6 +13,4 @@ int main(int argc, char* argv[]) {
     graph::GraphWeight<vid_t, eoff_t, weight_t> graph;
     graph.read(argv[1]);
     graph.print();
-
-    return 0;
 }

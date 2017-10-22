@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
     graph.print();
 
     HornetInit hornet_init(graph.nV(), graph.nE(),
-                           graph.out_offsets_ptr(), graph.out_edges_ptr());
+                           graph.csr_out_offsets(), graph.csr_out_edges());
 
     HornetCSR csr_graph(hornet_init);
     csr_graph.print();

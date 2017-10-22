@@ -71,8 +71,8 @@ const ParsingProp PRINT_INFO( detail::ParsingEnum::PRINT_INFO );
 
 //==============================================================================
 namespace detail {
-    enum class StructureEnum { DIRECTED = 1, UNDIRECTED = 2, REVERSE = 4,
-                               COO = 8 };
+    enum class StructureEnum { DIRECTED = 1, UNDIRECTED = 2,
+                               ENABLE_INGOING = 4, COO = 8 };
 } // namespace detail
 
 class StructureProp :
@@ -96,10 +96,10 @@ private:
 
 namespace structure_prop {
 
-const StructureProp DIRECTED  ( detail::StructureEnum::DIRECTED );
-const StructureProp UNDIRECTED( detail::StructureEnum::UNDIRECTED );
-const StructureProp REVERSE   ( detail::StructureEnum::REVERSE );
-const StructureProp COO       ( detail::StructureEnum::COO );
+const StructureProp DIRECTED       ( detail::StructureEnum::DIRECTED );
+const StructureProp UNDIRECTED     ( detail::StructureEnum::UNDIRECTED );
+const StructureProp ENABLE_INGOING ( detail::StructureEnum::ENABLE_INGOING );
+const StructureProp COO            ( detail::StructureEnum::COO );
 
 } // namespace structure_prop
 

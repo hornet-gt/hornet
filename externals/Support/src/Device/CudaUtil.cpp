@@ -36,6 +36,10 @@
 #include "Device/CudaUtil.cuh"
 #include "Host/Basic.hpp"       //xlib::MB
 #include "Host/PrintExt.hpp"    //Color
+#include <cuda_runtime_api.h>
+#if defined(NVTX)
+    #include <nvToolsExt.h>
+#endif
 #include <iomanip>
 
 namespace xlib {
@@ -84,20 +88,9 @@ int DeviceProperty::num_SM() {
     return NUM_OF_STREAMING_MULTIPROCESSOR;
 }
 
-
 void device_info(int device_id) {
     xlib::IosFlagSaver tmp1;
     xlib::ThousandSep  tmp2;
-
-   /* std::cout << "\n     Graphic Card: " << prop.name
-              << " (CC: " << prop.major << "."  << prop.minor << ")\n"
-              << "     # SM: "  << prop.multiProcessorCount
-              << "    Threads per SM: " << prop.maxThreadsPerMultiProcessor
-              << "    Resident Threads: " << prop.multiProcessorCount *
-                                            prop.maxThreadsPerMultiProcessor
-              << "    Global Mem: "
-              << (std::to_string(prop.totalGlobalMem / xlib::MB) + " MB")
-              << std::endl;*/
 
     int dev_peak_clock;
     cudaDeviceGetAttribute(&dev_peak_clock, cudaDevAttrClockRate, device_id);
@@ -136,3 +129,28 @@ void device_info(int device_id) {
 }
 
 } // namespace xlib
+
+//==============================================================================
+
+#if defined(NVTX)
+
+namespace nvtx {
+
+void push_range(const std::string& event_name, NvColor color) noexcept {
+    nvtxEventAttributes_t eventAttrib = { 0 };
+    eventAttrib.version       = NVTX_VERSION;
+    eventAttrib.size          = NVTX_EVENT_ATTRIB_STRUCT_SIZE;
+    eventAttrib.colorType     = NVTX_COLOR_ARGB;
+    eventAttrib.color         = static_cast<int>(color);
+    eventAttrib.messageType   = NVTX_MESSAGE_TYPE_ASCII;
+    eventAttrib.message.ascii = event_name.c_str();
+    nvtxRangePushEx(&eventAttrib);
+}
+
+void pop_range() noexcept {
+    nvtxRangePop();
+}
+
+} // namespace nvtx
+
+#endif

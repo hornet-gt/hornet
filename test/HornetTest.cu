@@ -41,8 +41,8 @@ void exec(int argc, char* argv[]) {
     auto weights = new int[graph.nE()];
     std::iota(weights, weights + graph.nE(), 0);
     //--------------------------------------------------------------------------
-    HornetInit hornet_init(graph.nV(), graph.nE(), graph.out_offsets_ptr(),
-                           graph.out_edges_ptr());
+    HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
+                           graph.csr_out_edges());
     //hornet_init.insertEdgeData(weights);
 
     HornetGPU hornet_gpu(hornet_init);

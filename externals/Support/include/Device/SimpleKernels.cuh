@@ -39,7 +39,8 @@
 #include "Device/Definition.cuh"
 #include "Host/Numeric.hpp"
 
-namespace cu {
+namespace xlib {
+namespace gpu {
 namespace detail {
 
 template<unsigned UNROLL_STEPS = 1, typename SizeT, typename T>
@@ -145,4 +146,5 @@ void memcpy(const T* d_in, size_t num_items, T* d_out) {
     }
 }
 
-} // namespace cu
+} // namespace gpu
+} // namespace xlib

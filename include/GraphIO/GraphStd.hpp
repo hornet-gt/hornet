@@ -67,7 +67,7 @@ public:
 
     //--------------------------------------------------------------------------
     class Vertex {
-        template<typename T, typename R> friend class GraphStd;
+        template<typename, typename> friend class GraphStd;
     public:
         vid_t    id()                   const noexcept;
         vid_t    neighbor_id(int index) const noexcept;
@@ -90,7 +90,7 @@ public:
     };
 
     class VertexIt : public std::iterator<std::forward_iterator_tag, vid_t> {
-        template<typename T, typename R> friend class GraphStd;
+        template<typename, typename> friend class GraphStd;
     public:
         VertexIt& operator++()                   noexcept;
         Vertex    operator*()                    const noexcept;
@@ -102,7 +102,7 @@ public:
     };
 
     class VerticesContainer {
-        template<typename T, typename R> friend class GraphStd;
+        template<typename, typename> friend class GraphStd;
     public:
         VertexIt begin() const noexcept;
         VertexIt end()   const noexcept;
@@ -114,7 +114,7 @@ public:
     //--------------------------------------------------------------------------
 
     class Edge {
-        template<typename T, typename R> friend class GraphStd;
+        template<typename, typename> friend class GraphStd;
     public:
         eoff_t id()     const noexcept;
         Vertex src()    const noexcept;
@@ -137,7 +137,7 @@ public:
     };
 
     class EdgeIt : public std::iterator<std::forward_iterator_tag, vid_t> {
-        template<typename T, typename R> friend class GraphStd;
+        template<typename, typename> friend class GraphStd;
     public:
         EdgeIt& operator++()                 noexcept;
         Edge    operator*()                  const noexcept;
@@ -214,11 +214,11 @@ public:
     degree_t out_degree(vid_t index) const noexcept;
     degree_t in_degree (vid_t index) const noexcept;
 
-    const coo_t*    coo_array()       const noexcept;
-    const eoff_t*   out_offsets_ptr() const noexcept;
-    const eoff_t*   in_offsets_ptr()  const noexcept;
-    const vid_t*    out_edges_ptr()   const noexcept;
-    const vid_t*    in_edges_ptr()    const noexcept;
+    const coo_t*    coo_ptr()       const noexcept;
+    const eoff_t*   csr_out_offsets() const noexcept;
+    const eoff_t*   csr_in_offsets()  const noexcept;
+    const vid_t*    csr_out_edges()   const noexcept;
+    const vid_t*    csr_in_edges()    const noexcept;
     const degree_t* out_degrees_ptr() const noexcept;
     const degree_t* in_degrees_ptr()  const noexcept;
 
@@ -240,6 +240,7 @@ public:
                          const;
 
     using GraphBase<vid_t, eoff_t>::set_structure;
+
 protected:
     xlib::Bitmask _bitmask;
     eoff_t*   _out_offsets { nullptr };
@@ -248,7 +249,6 @@ protected:
     vid_t*    _in_edges    { nullptr };
     degree_t* _out_degrees { nullptr };
     degree_t* _in_degrees  { nullptr };
-    coo_t*    _coo_edges   { nullptr };
     size_t    _coo_size    { 0 };
     static const uint64_t _seed { 0xA599AC3F0FD21B92 };
 
@@ -261,8 +261,7 @@ protected:
     using GraphBase<vid_t, eoff_t>::_undirected_to_directed;
     using GraphBase<vid_t, eoff_t>::_stored_undirected;
 
-    virtual void allocate(const GInfo& ginfo,
-                          const bool allocate_coo = true) noexcept;
+    virtual void allocateAux(const GInfo& ginfo) noexcept;
 
     void readMarket  (std::ifstream& fin, bool print)   override;
     void readDimacs9 (std::ifstream& fin, bool print)   override;
@@ -274,6 +273,11 @@ protected:
     void readBinary  (const char* filename, bool print) override;
 
     void COOtoCSR() noexcept override;
+
+private:
+    coo_t* _coo_edges { nullptr };
+
+    void allocate(const GInfo& ginfo) noexcept;
 };
 
 } // namespace graph

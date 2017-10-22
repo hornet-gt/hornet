@@ -122,20 +122,61 @@ private:
 
 void char_sequence(char c, int sequence_length = 80) noexcept;
 
-void printTitle(const std::string& str, char c = '-',
+void printTitle(const std::string& title, char c = '-',
                 int sequence_length = 80) noexcept;
 //------------------------------------------------------------------------------
 
+/**
+ * @brief
+ */
 template<typename T, int SIZE>
-void printArray(T (&array)[SIZE], const std::string& str = "", char sep = ' ')
-                noexcept;
+void printArray(T (&array)[SIZE], const std::string& title = "",
+                const std::string& sep = " ") noexcept;
 
+/**
+ * @brief
+ */
 template<typename T>
-void printArray(const T* array, size_t size, const std::string& str = "",
-                char sep = ' ') noexcept;
+void printArray(const T* array, size_t size, const std::string& title = "",
+                const std::string& sep = " ") noexcept;
 
+/**
+ * @brief
+ * @deprecated
+ */
 template<typename T>
-void printMatrix(T** matrix, int rows, int cols, const std::string& str = "");
+[[deprecated("pointer of pointer")]]
+void printMatrix(T* const* matrix, size_t rows, size_t cols,
+                 const std::string& title = "") noexcept;
+
+/**
+ * @brief row-major
+ */
+template<typename T>
+void printMatrix(const T* d_matrix, size_t rows, size_t cols,
+                 const std::string& title = "") noexcept;
+
+/**
+ * @brief row-major
+ */
+template<typename T>
+void printMatrix(const T* d_matrix, size_t rows, size_t cols, size_t ld,
+                 const std::string& title = "") noexcept;
+
+/**
+ * @brief column-major (blas and lapack compatibility)
+ */
+template<typename T>
+void printMatrixCM(const T* d_matrix, size_t rows, size_t cols,
+                   const std::string& title = "") noexcept;
+
+/**
+ * @brief column-major (blas and lapack compatibility)
+ */
+template<typename T>
+void printMatrixCM(const T* d_matrix, size_t rows, size_t cols, size_t ld,
+                   const std::string& title = "") noexcept;
+
 //------------------------------------------------------------------------------
 
 template<typename T>

@@ -96,11 +96,14 @@ enum class BatchType { HOST, DEVICE };
 
 //==============================================================================
 
-class BatchUpdate {
+template<typename... EdgeTypes>
+class BatchUpdateClass {
     template<typename, typename, bool> friend class gpu::Hornet;
+
 public:
-    explicit BatchUpdate(vid_t* src_array, vid_t* dst_array, int batch_size,
-                         BatchType batch_type = BatchType::HOST) noexcept;
+    explicit BatchUpdateClass(vid_t* src_array, vid_t* dst_array,
+                              EdgeTypes... additional_fiels, int batch_size,
+                              BatchType batch_type = BatchType::HOST) noexcept;
 
     vid_t* original_src_ptr() const noexcept;
     vid_t* original_dst_ptr() const noexcept;
@@ -152,6 +155,9 @@ private:
     vid_t* _d_dst_array { nullptr };
     int    _batch_size  { 0 };
 
+    //WARNING: byte pointers
+    const byte_t* _field_ptrs[sizeof...(EdgeTypes) + 1] {};
+
     //CSR representation
     const vid_t*  _d_ids          { nullptr };
     const eoff_t* _d_offsets      { nullptr };
@@ -172,6 +178,11 @@ private:
 
     void set_wide_csr(const vid_t* d_src_array) noexcept;
 };
+
+using BatchUpdate = BatchUpdateClass<>;
+
+template<typename T>
+using BatchUpdateWeigth = BatchUpdateClass<T>;
 
 } // namespace gpu
 } // namespace hornets_nest

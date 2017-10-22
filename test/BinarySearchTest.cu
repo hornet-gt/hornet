@@ -107,11 +107,11 @@ int main(int argc, char* argv[]) {
     const int         SMEM = BLOCK_SIZE * THREAD_ITEMS;
 
     Timer<DEVICE> TM;
-    GraphStd<> graph(structure_prop::REVERSE);
+    GraphStd<> graph(structure_prop::ENABLE_INGOING);
     graph.read(argv[1]);
 
     int       size = graph.nV();
-    auto prefixsum = graph.out_offsets_ptr();
+    auto prefixsum = graph.csr_out_offsets();
     int ceil_total = xlib::upper_approx(graph.nE(), SMEM);
     //--------------------------------------------------------------------------
     //   HOST
@@ -158,13 +158,13 @@ int main(int argc, char* argv[]) {
     CHECK_CUDA_ERROR
     //--------------------------------------------------------------------------
     if (PRINT) {
-        cu::printArray(d_pos, graph.nE());
-        cu::printArray(d_offset, graph.nE());
+        ::gpu::printArray(d_pos, graph.nE());
+        ::gpu::printArray(d_offset, graph.nE());
     }
     std::cout << "\n Check Positions: "
-              << cu::equal(h_pos, h_pos + graph.nE(), d_pos)
+              << ::gpu::equal(h_pos, h_pos + graph.nE(), d_pos)
               << "\n   Check Offsets: "
-              << cu::equal(h_offset, h_offset + graph.nE(), d_offset)
+              << ::gpu::equal(h_offset, h_offset + graph.nE(), d_offset)
               << "\n" << std::endl;
 
     /*using namespace mgpu;

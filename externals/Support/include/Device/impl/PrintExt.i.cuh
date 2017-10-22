@@ -36,33 +36,109 @@
 #include "Host/PrintExt.hpp"        //xlib::printArray
 #include "Device/SafeCudaAPI.cuh"   //cuMemcpyFromSymbol
 
-namespace cu {
+namespace xlib {
+namespace gpu {
 
-template<class T>
-void printArray(const T* d_array, size_t size, const std::string& str, char sep)
-                noexcept {
+template<typename T>
+void printArray(const T* d_array, size_t size, const std::string& title,
+                const std::string& sep) noexcept {
     auto h_array = new T[size];
     cuMemcpyToHost(d_array, size, h_array);
-    xlib::printArray(h_array, size, str, sep);
+    xlib::printArray(h_array, size, title, sep);
     delete[] h_array;
 }
 
-template<class T, int SIZE>
-void printArray(const T (&d_array)[SIZE], const std::string& str, char sep)
-                noexcept {
+template<typename T, int SIZE>
+void printArray(const T (&d_array)[SIZE], const std::string& title,
+                const std::string& sep) noexcept {
     auto h_array = new T[SIZE];
     cuMemcpyFromSymbol(d_array, h_array);
 
-    xlib::printArray(h_array, SIZE, str, sep);
+    xlib::printArray(h_array, SIZE, title, sep);
     delete[] h_array;
 }
 
-template<class T>
-void printSymbol(const T& d_symbol, const std::string& str) noexcept {
+template<typename T>
+void printSymbol(const T& d_symbol, const std::string& title) noexcept {
     T h_data;
     cuMemcpyFromSymbol(d_symbol, h_data);
 
-    std::cout << str << h_data << std::endl;
+    std::cout << title << h_data << std::endl;
+}
+
+//==============================================================================
+
+template<typename T>
+void printMatrix(const T* d_matrix, size_t rows, size_t cols,
+                 const std::string& title) noexcept {
+    auto h_matrix = new T[rows * cols];
+    cuMemcpyToHost(d_matrix, rows * cols, h_matrix);
+
+    xlib::printMatrix(h_matrix, rows, cols, cols, title);
+    delete[] h_matrix;
+}
+
+template<typename T>
+void printMatrix(const T* d_matrix, size_t rows, size_t cols, size_t ld_cols,
+                 const std::string& title) noexcept {
+    auto h_matrix = new T[rows * ld_cols];
+    cuMemcpyToHost(d_matrix, rows * ld_cols, h_matrix);
+
+    xlib::printMatrix(h_matrix, rows, cols, ld_cols, title);
+    delete[] h_matrix;
+}
+
+template<typename T>
+void printMatrixCM(const T* d_matrix, size_t rows, size_t cols,
+                   const std::string& title) noexcept {
+    auto h_matrix = new T[rows * cols];
+    cuMemcpyToHost(d_matrix, rows * cols, h_matrix);
+
+    xlib::printMatrixCM(h_matrix, rows, cols, rows, title);
+    delete[] h_matrix;
+}
+
+template<typename T>
+void printMatrixCM(const T* d_matrix, size_t rows, size_t cols, size_t ld_rows,
+                   const std::string& title) noexcept {
+    auto h_matrix = new T[ld_rows * cols];
+    cuMemcpyToHost(d_matrix, ld_rows * cols, h_matrix);
+
+    xlib::printMatrixCM(h_matrix, rows, cols, ld_rows, title);
+    delete[] h_matrix;
+}
+
+//------------------------------------------------------------------------------
+
+template<typename T>
+void printMatrixRowsCM(const T* d_matrix, size_t rows, size_t cols,
+                       size_t first_row, size_t last_row,
+                       const std::string& title) noexcept {
+    auto h_matrix = new T[rows * cols];
+    cuMemcpyToHost(d_matrix, rows * cols, h_matrix);
+
+    last_row = (last_row == 0) ? rows : last_row;
+    xlib::printMatrixCM(h_matrix + first_row, last_row - first_row, cols,
+                        rows, title);
+    delete[] h_matrix;
+}
+
+template<typename T>
+void printMatrixRowsCM(const T* d_matrix, size_t rows, size_t cols,
+                       size_t first_row, const std::string& title) noexcept {
+    printMatrixRowsCM(d_matrix, rows, cols, first_row, 0, title);
+}
+
+template<typename T>
+void printMatrixColumnsCM(const T* d_matrix, size_t rows, size_t cols,
+                          size_t first_col, size_t last_col,
+                          const std::string& title) noexcept {
+    auto h_matrix = new T[rows * cols];
+    cuMemcpyToHost(d_matrix, rows * cols, h_matrix);
+
+    xlib::printMatrixCM(h_matrix + first_col * rows, rows,
+                        last_col - first_col, rows, title);
+    delete[] h_matrix;
 }
 
 //------------------------------------------------------------------------------
@@ -154,4 +230,5 @@ operator<<(const Cout& obj, const T pointer) noexcept {
     return obj;
 }
 
-} // namespace cu
+} // namespace gpu
+} // namespace xlib

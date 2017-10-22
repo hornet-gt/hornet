@@ -33,6 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
+#include "Core/HornetInit.hpp"
 #include "Device/SafeCudaAPI.cuh"
 #include "Device/PrintExt.cuh"
 
@@ -44,133 +45,164 @@ inline BatchProperty::BatchProperty(const detail::BatchPropEnum& obj) noexcept :
 
 //==============================================================================
 
-inline BatchUpdate::BatchUpdate(vid_t* src_array, vid_t* dst_array,
-                                int batch_size, BatchType batch_type)
-                                    noexcept : _src_array(src_array),
-                                               _dst_array(dst_array),
-                                               _original_size(batch_size),
-                                               _batch_type(batch_type) {}
+template<typename... EdgeTypes>
+BatchUpdateClass<EdgeTypes...>
+::BatchUpdateClass(vid_t* src_array, vid_t* dst_array,
+                   EdgeTypes... additional_fiels,
+                   int batch_size, BatchType batch_type)
+                   noexcept : _src_array(src_array),
+                              _dst_array(dst_array),
+                              _original_size(batch_size),
+                              _batch_type(batch_type) {
+    hornets_nest::bind(_field_ptrs, 0, additional_fiels...);
+}
 
-inline vid_t* BatchUpdate::original_src_ptr() const noexcept {
+template<typename... EdgeTypes>
+vid_t* BatchUpdateClass<EdgeTypes...>::original_src_ptr() const noexcept {
     return _src_array;
 }
 
-inline vid_t* BatchUpdate::original_dst_ptr() const noexcept {
+template<typename... EdgeTypes>
+vid_t* BatchUpdateClass<EdgeTypes...>::original_dst_ptr() const noexcept {
     return _dst_array;
 }
 
-inline int BatchUpdate::original_size() const noexcept {
+template<typename... EdgeTypes>
+int BatchUpdateClass<EdgeTypes...>::original_size() const noexcept {
     return _original_size;
 }
 
-inline BatchType BatchUpdate::type() const noexcept {
+template<typename... EdgeTypes>
+BatchType BatchUpdateClass<EdgeTypes...>::type() const noexcept {
     return _batch_type;
 }
 
-inline void BatchUpdate::print() const noexcept {
+template<typename... EdgeTypes>
+void BatchUpdateClass<EdgeTypes...>::print() const noexcept {
     if (_batch_type == BatchType::HOST) {
         xlib::printArray(_src_array, _original_size,
                          "Source/Destination Arrays:\n");
         xlib::printArray(_dst_array, _original_size);
     }
     else {
-        cu::printArray(_src_array, _original_size,
-                       "Source/Destination Arrays:\n");
-        cu::printArray(_dst_array, _original_size);
+        xlib::gpu::printArray(_src_array, _original_size,
+                        "Source/Destination Arrays:\n");
+        xlib::gpu::printArray(_dst_array, _original_size);
     }
 }
 
 //------------------------------------------------------------------------------
 
-HOST_DEVICE int BatchUpdate::size() const noexcept {
+template<typename... EdgeTypes>
+HOST_DEVICE int BatchUpdateClass<EdgeTypes...>::size() const noexcept {
     return _batch_size;
 }
 
-HOST_DEVICE vid_t* BatchUpdate::src_ptr() const noexcept {
+template<typename... EdgeTypes>
+HOST_DEVICE vid_t* BatchUpdateClass<EdgeTypes...>::src_ptr() const noexcept {
     return _d_src_array;
 }
 
-HOST_DEVICE vid_t* BatchUpdate::dst_ptr() const noexcept {
+template<typename... EdgeTypes>
+HOST_DEVICE vid_t* BatchUpdateClass<EdgeTypes...>::dst_ptr() const noexcept {
     return _d_dst_array;
 }
 
-HOST_DEVICE const eoff_t* BatchUpdate::csr_offsets_ptr() const noexcept {
+template<typename... EdgeTypes>
+HOST_DEVICE const eoff_t*
+BatchUpdateClass<EdgeTypes...>::csr_offsets_ptr() const noexcept {
     assert(_d_offsets != nullptr);
     return _d_offsets;
 }
 
-HOST_DEVICE int BatchUpdate::csr_offsets_size() const noexcept {
+template<typename... EdgeTypes>
+HOST_DEVICE int BatchUpdateClass<EdgeTypes...>
+::csr_offsets_size() const noexcept {
     assert(_offsets_size != 0);
     return _offsets_size;
 }
 
+template<typename... EdgeTypes>
 __device__ __forceinline__
-vid_t BatchUpdate::src(int index) const {
+vid_t BatchUpdateClass<EdgeTypes...>::src(int index) const {
     assert(index < _batch_size);
     return _d_src_array[index];
 }
 
+template<typename... EdgeTypes>
 __device__ __forceinline__
-vid_t BatchUpdate::dst(int index) const {
+vid_t BatchUpdateClass<EdgeTypes...>::dst(int index) const {
     assert(index < _batch_size);
     return _d_dst_array[index];
 }
 
+template<typename... EdgeTypes>
 __device__ __forceinline__
-vid_t BatchUpdate::csr_id(int index) const {
+vid_t BatchUpdateClass<EdgeTypes...>::csr_id(int index) const {
     assert(_d_ids != nullptr);
     assert(index < _offsets_size);
     return _d_ids[index];
 }
 
+template<typename... EdgeTypes>
 __device__ __forceinline__
-int BatchUpdate::csr_offsets(int index) const {
+int BatchUpdateClass<EdgeTypes...>::csr_offsets(int index) const {
     assert(_d_offsets != nullptr);
     assert(index < _offsets_size);
     return _d_offsets[index];
 }
 
+template<typename... EdgeTypes>
 __device__ __forceinline__
-int BatchUpdate::csr_src_pos(vid_t vertex_id) const {
+int BatchUpdateClass<EdgeTypes...>::csr_src_pos(vid_t vertex_id) const {
     assert(_d_inverse_pos != nullptr);
     assert(vertex_id < _nV);
     return _d_inverse_pos[vertex_id];
 }
 
+template<typename... EdgeTypes>
 __device__ __forceinline__
-int BatchUpdate::csr_wide_offsets(vid_t vertex_id) const {
+int BatchUpdateClass<EdgeTypes...>::csr_wide_offsets(vid_t vertex_id) const {
     assert(_d_inverse_pos != nullptr);
     assert(vertex_id < _nV);
     //return _d_offsets[_d_inverse_pos[vertex_id]];
     return _d_wide_offsets[vertex_id];
 }
 
+template<typename... EdgeTypes>
 __device__ __forceinline__
-const eoff_t* BatchUpdate::csr_wide_offsets_ptr() const {
+const eoff_t* BatchUpdateClass<EdgeTypes...>::csr_wide_offsets_ptr() const {
     assert(_d_inverse_pos != nullptr);
     return _d_wide_offsets;
 }
 
-inline void BatchUpdate::change_size(int d_batch_size) noexcept {
+template<typename... EdgeTypes>
+void BatchUpdateClass<EdgeTypes...>::change_size(int d_batch_size) noexcept {
     _batch_size  = d_batch_size;
 }
 
-inline void BatchUpdate::set_device_ptrs(vid_t* d_src_array, vid_t* d_dst_array,
-                                         int d_batch_size) noexcept {
+template<typename... EdgeTypes>
+void BatchUpdateClass<EdgeTypes...>
+::set_device_ptrs(vid_t* d_src_array, vid_t* d_dst_array,
+                  int d_batch_size) noexcept {
     _d_src_array = d_src_array;
     _d_dst_array = d_dst_array;
     _batch_size  = d_batch_size;
 }
 
-inline void BatchUpdate::set_csr(const vid_t*  d_ids,
-                                 const eoff_t* d_offsets, int offsets_size,
-                                 const eoff_t* d_inverse_pos) noexcept {
+template<typename... EdgeTypes>
+void BatchUpdateClass<EdgeTypes...>
+::set_csr(const vid_t*  d_ids,
+          const eoff_t* d_offsets, int offsets_size,
+          const eoff_t* d_inverse_pos) noexcept {
     _d_offsets     = d_offsets;
     _offsets_size  = offsets_size;
     _d_inverse_pos = d_inverse_pos;
 }
 
-inline void BatchUpdate::set_wide_csr(const eoff_t* d_wide_offsets) noexcept {
+template<typename... EdgeTypes>
+void BatchUpdateClass<EdgeTypes...>
+::set_wide_csr(const eoff_t* d_wide_offsets) noexcept {
     _d_wide_offsets = d_wide_offsets;
 }
 

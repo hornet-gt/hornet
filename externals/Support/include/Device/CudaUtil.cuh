@@ -111,4 +111,16 @@ void device_info(int device_id = 0);
 
 } // namespace xlib
 
+namespace nvtx {
+
+enum class NvColor : int
+            { GREEN  = 0x0000FF00, BLUE = 0x000000FF, YELLOW = 0x00FFFF00,
+              PURPLE = 0x00FF00FF, CYAN = 0x0000FFFF, RED    = 0x00FF0000,
+              WHITE  = 0x00FFFFFF };
+
+void push_range(const std::string& event_name, NvColor color) noexcept;
+void pop_range() noexcept;
+
+} // namespace nvtx
+
 #include "impl/CudaUtil.i.cuh"

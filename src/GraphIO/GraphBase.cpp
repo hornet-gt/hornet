@@ -70,7 +70,7 @@ bool StructureProp::is_undirected() const noexcept {
 }
 
 bool StructureProp::is_reverse() const noexcept {
-    return *this & structure_prop::REVERSE;
+    return *this & structure_prop::ENABLE_INGOING;
 }
 
 bool StructureProp::is_coo() const noexcept {

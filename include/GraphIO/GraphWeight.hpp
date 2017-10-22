@@ -86,14 +86,14 @@ public:
 
     using GraphStd<vid_t, eoff_t>::out_degree;
     using GraphStd<vid_t, eoff_t>::in_degree;
-    using GraphStd<vid_t, eoff_t>::out_offsets_ptr;
-    using GraphStd<vid_t, eoff_t>::in_offsets_ptr;
-    using GraphStd<vid_t, eoff_t>::out_edges_ptr;
-    using GraphStd<vid_t, eoff_t>::in_edges_ptr;
+    using GraphStd<vid_t, eoff_t>::csr_out_offsets;
+    using GraphStd<vid_t, eoff_t>::csr_in_offsets;
+    using GraphStd<vid_t, eoff_t>::csr_out_edges;
+    using GraphStd<vid_t, eoff_t>::csr_in_edges;
     using GraphStd<vid_t, eoff_t>::out_degrees_ptr;
     using GraphStd<vid_t, eoff_t>::in_degrees_ptr;
 
-    const coo_t*    coo_array()         const noexcept;
+    const coo_t*    coo_ptr()         const noexcept;
     const weight_t* out_weights_array() const noexcept;
     const weight_t* in_weights_array()  const noexcept;
 
@@ -109,7 +109,7 @@ public:
     void toMarket(const std::string& filename) const;
 
     using GraphBase<vid_t, eoff_t>::set_structure;
-private:
+protected:
     using GraphStd<vid_t, eoff_t>::_bitmask;
     using GraphStd<vid_t, eoff_t>::_out_offsets;
     using GraphStd<vid_t, eoff_t>::_in_offsets;
@@ -120,7 +120,6 @@ private:
     using GraphStd<vid_t, eoff_t>::_coo_size;
     using GraphStd<vid_t, eoff_t>::_seed;
 
-    coo_t*     _coo_edges    { nullptr };
     weight_t*  _out_weights  { nullptr };
     weight_t*  _in_weights   { nullptr };
 
@@ -133,8 +132,7 @@ private:
     using GraphBase<vid_t, eoff_t>::_undirected_to_directed;
     using GraphBase<vid_t, eoff_t>::_stored_undirected;
 
-    void allocate(const GInfo& ginfo,
-                  const bool allocate_coo = true) noexcept override;
+    void allocate(const GInfo& ginfo) noexcept;
 
     void readMarket  (std::ifstream& fin, bool print)   override;
     void readDimacs9 (std::ifstream& fin, bool print)   override;
@@ -146,6 +144,9 @@ private:
     void readBinary  (const char* filename, bool print) override;
 
     void COOtoCSR() noexcept override;
+
+private:
+    coo_t* _coo_edges { nullptr };
 };
 
 } // namespace graph

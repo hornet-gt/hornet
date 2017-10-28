@@ -359,7 +359,7 @@ void staticTriangleCounting(HornetGraph& hornet,
 TriangleCounting::TriangleCounting(HornetGraph& hornet) :
                                        StaticAlgorithm(hornet),
                                                                              hostTriangleData(hornet){
-    deviceTriangleData = register_data(hostTriangleData);
+    deviceTriangleData = NULL;          // FIXME change to HostDeviceVar
     memReleased = true;
 }
 
@@ -421,7 +421,7 @@ void TriangleCounting::setInitParameters(int threadBlocks, int blockSize, int th
 void TriangleCounting::init(){
     memReleased=false;
     gpu::allocate(hostTriangleData.triPerVertex, hostTriangleData.nv+10);
-    syncDeviceWithHost();
+    // FIXME force a sync on triangle data
     reset();
 }
 

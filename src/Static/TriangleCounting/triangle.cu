@@ -285,7 +285,7 @@ void devicecuStaticTriangleCounting(HornetDevice hornet,
     vid_t* firstFoundPos = firstFound + (adj_offset << shifter);
     for (vid_t src = this_mp_start; src < this_mp_stop; src++) {
         //vid_t      srcLen = hornet->dVD->getUsed()[src];
-        Vertex vertex = hornet.vertex(src);
+        auto vertex = hornet.vertex(src);
         vid_t srcLen = vertex.degree();
 
         // triangle_t tCount = 0;

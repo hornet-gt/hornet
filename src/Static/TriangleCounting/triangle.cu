@@ -147,6 +147,7 @@ void indexBinarySearch(vid_t* data, vid_t arrLen, vid_t key, int& pos) {
     }
 }
 
+template<typename HornetDevice>
 __device__ __forceinline__
 void intersectCount(const HornetDevice& hornet,
         degree_t uLength, degree_t vLength,
@@ -184,6 +185,7 @@ void intersectCount(const HornetDevice& hornet,
 }
 
 // u_len < v_len
+template<typename HornetDevice>
 __device__ __forceinline__
 triangle_t count_triangles(const HornetDevice& hornet,
                            vid_t u,
@@ -258,6 +260,7 @@ void workPerBlock(vid_t numVertices,
     *outMpEnd     = mpStart + verticesPerMp + (blockIdx.x < remainderBlocks);
 }
 
+template<typename HornetDevice>
 __global__
 void devicecuStaticTriangleCounting(HornetDevice hornet,
                            triangle_t* __restrict__ outPutTriangles,

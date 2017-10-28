@@ -57,8 +57,7 @@ public:
 
 private:
     bool memReleased;
-    TriangleData   hostTriangleData;
-    TriangleData*  deviceTriangleData;
+    HostDeviceVar<TriangleData> hd_triangleData;
 };
 
 //==============================================================================

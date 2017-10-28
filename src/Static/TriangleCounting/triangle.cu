@@ -267,7 +267,8 @@ void devicecuStaticTriangleCounting(HornetDevice hornet,
                            int threads_per_block,
                            int number_blocks,
                            int shifter,
-                           TriangleData* __restrict__ devData) {
+                           HostDeviceVar<TriangleData> hd_data) {
+    TriangleData* __restrict__ devData = hd_data.ptr();
     vid_t nv = hornet.nV();
     // Partitioning the work to the multiple thread of a single GPU processor.
     //The threads should get a near equal number of the elements
@@ -338,11 +339,11 @@ void staticTriangleCounting(HornetGraph& hornet,
                         int shifter,
                         int thread_blocks,
                         int blockdim,
-                        TriangleData* __restrict__ devData) {
+                        HostDeviceVar<TriangleData> hd_data) {
 
     devicecuStaticTriangleCounting <<< thread_blocks, blockdim >>>
         (hornet.device_side(), outPutTriangles, threads_per_block,
-         number_blocks, shifter, devData);
+         number_blocks, shifter, hd_data);
 }
 
 // -----------------------
@@ -358,9 +359,8 @@ void staticTriangleCounting(HornetGraph& hornet,
 
 TriangleCounting::TriangleCounting(HornetGraph& hornet) :
                                        StaticAlgorithm(hornet),
-                                                                             hostTriangleData(hornet){
-    deviceTriangleData = NULL;          // FIXME change to HostDeviceVar
-    memReleased = true;
+                                       hd_triangleData(hornet){
+    // FIXME: What is correct way to init hd_triangleData
 }
 
 TriangleCounting::~TriangleCounting(){
@@ -368,81 +368,81 @@ TriangleCounting::~TriangleCounting(){
 }
 
 struct OPERATOR_InitTriangleCounts {
-    TriangleData *deviceTriangleData;
+    HostDeviceVar<TriangleData> d_triangleData;
 
     OPERATOR (Vertex &vertex) {
-        deviceTriangleData->triPerVertex[vertex.id()] = 0;
+        d_triangleData().triPerVertex[vertex.id()] = 0;
     }
 };
 
 void TriangleCounting::reset(){
-    forAllVertices(hornet, OPERATOR_InitTriangleCounts { deviceTriangleData });
+    forAllVertices(hornet, OPERATOR_InitTriangleCounts { hd_triangleData });
 }
 
 void TriangleCounting::run(){
 
     staticTriangleCounting(hornet,
-                        hostTriangleData.triPerVertex,
-                        hostTriangleData.threadsPerIntersection,
-                        hostTriangleData.numberInterPerBlock,
-                        hostTriangleData.logThreadsPerInter,
-                        hostTriangleData.threadBlocks,
-                        hostTriangleData.blockSize,
-                        deviceTriangleData);
+                        hd_triangleData().triPerVertex,
+                        hd_triangleData().threadsPerIntersection,
+                        hd_triangleData().numberInterPerBlock,
+                        hd_triangleData().logThreadsPerInter,
+                        hd_triangleData().threadBlocks,
+                        hd_triangleData().blockSize,
+                        hd_triangleData);
 }
 
 void TriangleCounting::release(){
     if(memReleased)
         return;
     memReleased=true;
-    gpu::free(hostTriangleData.triPerVertex);
+    gpu::free(hd_triangleData().triPerVertex);
 
 }
 
 
 void TriangleCounting::setInitParameters(int threadBlocks, int blockSize, int threadsPerIntersection){
-    hostTriangleData.threadBlocks                    = threadBlocks;
-    hostTriangleData.blockSize                        = blockSize;
+    hd_triangleData().threadBlocks                    = threadBlocks;
+    hd_triangleData().blockSize                        = blockSize;
 
-    if(hostTriangleData.blockSize%32 != 0){
+    if(hd_triangleData().blockSize%32 != 0){
         printf("The block size has to be a multiple of 32\n");
         printf("The block size has to be a reduced to the closet multiple of 32\n");
-        hostTriangleData.blockSize = (hostTriangleData.blockSize/32)*32;
+        hd_triangleData().blockSize = (hd_triangleData().blockSize/32)*32;
     }
-    if(hostTriangleData.blockSize < 0){
+    if(hd_triangleData().blockSize < 0){
         printf("The block size has to be a positive numbe\n");
         exit(0);
     }
     
-    hostTriangleData.threadsPerIntersection = threadsPerIntersection;
-    if(hostTriangleData.threadsPerIntersection <= 0 || hostTriangleData.threadsPerIntersection >32 ){
+    hd_triangleData().threadsPerIntersection = threadsPerIntersection;
+    if(hd_triangleData().threadsPerIntersection <= 0 || hd_triangleData().threadsPerIntersection >32 ){
         printf("Threads per intersection have to be a power of two between 1 and 32\n");
         exit(0);
     }
-    int temp = hostTriangleData.threadsPerIntersection,logtemp=0;
+    int temp = hd_triangleData().threadsPerIntersection,logtemp=0;
     while (temp>>=1) ++logtemp;
-    hostTriangleData.logThreadsPerInter            = logtemp;
-    hostTriangleData.numberInterPerBlock=hostTriangleData.blockSize/hostTriangleData.threadsPerIntersection;
+    hd_triangleData().logThreadsPerInter            = logtemp;
+    hd_triangleData().numberInterPerBlock=hd_triangleData().blockSize/hd_triangleData().threadsPerIntersection;
 }
 
 
 void TriangleCounting::init(){
     memReleased=false;
-    gpu::allocate(hostTriangleData.triPerVertex, hostTriangleData.nv+10);
+    gpu::allocate(hd_triangleData().triPerVertex, hd_triangleData().nv+10);
     // FIXME force a sync on triangle data
     reset();
 }
 
 triangle_t TriangleCounting::countTriangles(){
-    triangle_t* outputArray = (triangle_t*)malloc((hostTriangleData.nv+2)*sizeof(triangle_t));
-    cudaMemcpy(outputArray,hostTriangleData.triPerVertex,(hostTriangleData.nv+2)*sizeof(triangle_t),cudaMemcpyDeviceToHost);
+    triangle_t* outputArray = (triangle_t*)malloc((hd_triangleData().nv+2)*sizeof(triangle_t));
+    cudaMemcpy(outputArray,hd_triangleData().triPerVertex,(hd_triangleData().nv+2)*sizeof(triangle_t),cudaMemcpyDeviceToHost);
     triangle_t sum=0;
-    for(int i=0; i<(hostTriangleData.nv); i++){
+    for(int i=0; i<(hd_triangleData().nv); i++){
         // printf("%d %ld\n", i,outputArray[i]);
         sum+=outputArray[i];
     }
     free(outputArray);
-    //triangle_t sum=gpu::reduce(hostTriangleData.triPerVertex, hostTriangleData.nv+1);
+    //triangle_t sum=gpu::reduce(hd_triangleData().triPerVertex, hd_triangleData().nv+1);
 
     return sum;
 }

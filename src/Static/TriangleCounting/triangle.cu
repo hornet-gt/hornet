@@ -5,9 +5,9 @@
 
 #include "Static/TriangleCounting/triangle.cuh"
 
-using namespace custinger_alg;
+using namespace hornets_nest;
 
-namespace custinger_alg {
+namespace hornets_nest {
 
 __device__ __forceinline__
 void initialize(degree_t diag_id,
@@ -435,5 +435,5 @@ triangle_t TriangleCounting::countTriangles(){
 
     return sum;
 }
-} // namespace custinger_alg
+} // namespace hornets_nest
 

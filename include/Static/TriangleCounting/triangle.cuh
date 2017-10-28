@@ -1,11 +1,14 @@
 #pragma once
 
-#include "cuStingerAlg.hpp"
+#include "HornetAlg.hpp"
+#include "Core/HostDeviceVar.cuh"
+#include "Core/LoadBalancing/VertexBased.cuh"
+#include "Core/LoadBalancing/ScanBased.cuh"
+#include "Core/LoadBalancing/BinarySearch.cuh"
+#include <Core/GPUCsr/Csr.cuh>
+#include <Core/GPUHornet/Hornet.cuh>
 
-
-using namespace custinger;
-
-namespace custinger_alg {
+namespace hornets_nest {
 
 using triangle_t = unsigned int;
 
@@ -68,4 +71,4 @@ namespace triangle_operators {
     }
 
 } // namespace triangle_operators
-} // namespace custinger_alg
+} // namespace hornets_nest

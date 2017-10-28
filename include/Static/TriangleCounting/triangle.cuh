@@ -11,11 +11,12 @@
 namespace hornets_nest {
 
 using triangle_t = unsigned int;
+using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
 
 struct TriangleData {
-    TriangleData(const custinger::Hornet& custinger){
-        nv = custinger.nV();
-        ne = custinger.nE();
+    TriangleData(const HornetGraph& hornet){
+        nv = hornet.nV();
+        ne = hornet.nE();
         triPerVertex=NULL;
     }
 
@@ -42,7 +43,7 @@ struct TriangleData {
 // Label propogation is based on the values from the previous iteration.
 class TriangleCounting : public StaticAlgorithm {
 public:
-    TriangleCounting(Hornet& custinger);
+    TriangleCounting(Hornet& hornet);
     ~TriangleCounting();
 
     void reset()    override;

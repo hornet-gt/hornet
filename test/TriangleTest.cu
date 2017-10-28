@@ -6,15 +6,13 @@
 #include "Static/TriangleCounting/triangle.cuh"
 #include "Device/Timer.cuh"
 
+#include <GraphIO/GraphStd.hpp>
 
 using namespace std;
 using namespace timer;
-using namespace custinger;
-using namespace custinger_alg;
+using namespace hornets_nest;
 
 #define STAND_PRINTF(sys, time, triangles) printf("%s : \t%ld \t%f\n", sys,triangles, time);
-
-namespace custinger_alg { 
 
 // int arrayBlocks[]={16000};
 // int arrayBlockSize[]={32,64,96,128,192,256};
@@ -44,9 +42,9 @@ int64_t sumTriangleArray(triangle_t* h_triangles, vid_t nv){
     return sum;
 }
 
-void testTriangleCountingConfigurations(cuStinger& custing, vid_t nv,degree_t ne)
+void testTriangleCountingConfigurations(HornetGraph& hornet, vid_t nv,degree_t ne)
 {
-    float minTime=10e9,time,minTimecuStinger=10e9;
+    float minTime=10e9,time,minTimeHornet=10e9;
 
     int blocksToTest=sizeof(arrayBlocks)/sizeof(int);
     int blockSizeToTest=sizeof(arrayBlockSize)/sizeof(int);
@@ -59,7 +57,7 @@ void testTriangleCountingConfigurations(cuStinger& custing, vid_t nv,degree_t ne
                 int tsp=arrayThreadPerIntersection[t];
 
                 Timer<DEVICE> TM;
-                TriangleCounting tc(custing);
+                TriangleCounting tc(hornet);
                 tc.setInitParameters(blocks,sps,tsp);
                 tc.init();
                 tc.reset();
@@ -71,7 +69,7 @@ void testTriangleCountingConfigurations(cuStinger& custing, vid_t nv,degree_t ne
                 
                 triangle_t sumDevice = 0;
                 sumDevice = tc.countTriangles();
-                if(time<minTimecuStinger) minTimecuStinger=time; 
+                if(time<minTimeHornet) minTimeHornet=time; 
                 tc.release();
 
                 int shifter=arrayThreadShift[t];
@@ -81,10 +79,8 @@ void testTriangleCountingConfigurations(cuStinger& custing, vid_t nv,degree_t ne
             }
         }    
     }
-    cout << nv << ", " << ne << ", "<< minTime << ", " << minTimecuStinger<< endl;
+    cout << nv << ", " << ne << ", "<< minTime << ", " << minTimeHornet<< endl;
 }
-
-}// cuStingerAlgs namespace
 
 void hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
     const vid_t * ind, int64_t* allTriangles);
@@ -101,19 +97,19 @@ int main(const int argc, char *argv[]){
     cudaGetDeviceProperties(&prop, device);
  
     graph::GraphStd<vid_t, eoff_t> graph(UNDIRECTED);
-    graph.read(argv[1], SORT | PRINT | REMOVE_DUPLICATES);
+    graph.read(argv[1], SORT | PRINT_INFO);
 
 
-    cuStingerInit custinger_init(graph.nV(), graph.nE(),
+    HornetInit hornet_init(graph.nV(), graph.nE(),
                                  graph.csr_out_offsets(),
                                  graph.csr_out_edges());
 
-    cuStinger custinger_graph(custinger_init);
+    HornetGraph hornet_graph(hornet_init);
 
-    custinger_graph.check_sorted_adjs();
+    hornet_graph.check_sorted_adjs();
     // std::cout << "Is sorted " <<  << std::endl;
 
-    testTriangleCountingConfigurations(custinger_graph,graph.nV(),graph.nE());
+    testTriangleCountingConfigurations(hornet_graph,graph.nV(),graph.nE());
     int64_t hostTris;
     hostCountTriangles(graph.nV(), graph.nE(),graph.csr_out_offsets(), graph.csr_out_edges(),&hostTris);
     return 0;

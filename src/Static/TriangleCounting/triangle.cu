@@ -434,15 +434,15 @@ void TriangleCounting::init(){
 }
 
 triangle_t TriangleCounting::countTriangles(){
- //    triangle_t* outputArray = (triangle_t*)malloc((hostTriangleData.nv+2)*sizeof(triangle_t));
- //    cudaMemcpy(outputArray,hostTriangleData.triPerVertex,(hostTriangleData.nv+2)*sizeof(triangle_t),cudaMemcpyDeviceToHost);
- //    triangle_t sum=0;
- //    for(int i=0; i<(hostTriangleData.nv); i++){
- //        // printf("%d %ld\n", i,outputArray[i]);
- //        sum+=outputArray[i];
- //    }
-    // // // free(outputArray);
-    triangle_t sum=gpu::reduce(hostTriangleData.triPerVertex, hostTriangleData.nv+1);
+    triangle_t* outputArray = (triangle_t*)malloc((hostTriangleData.nv+2)*sizeof(triangle_t));
+    cudaMemcpy(outputArray,hostTriangleData.triPerVertex,(hostTriangleData.nv+2)*sizeof(triangle_t),cudaMemcpyDeviceToHost);
+    triangle_t sum=0;
+    for(int i=0; i<(hostTriangleData.nv); i++){
+        // printf("%d %ld\n", i,outputArray[i]);
+        sum+=outputArray[i];
+    }
+    free(outputArray);
+    //triangle_t sum=gpu::reduce(hostTriangleData.triPerVertex, hostTriangleData.nv+1);
 
     return sum;
 }

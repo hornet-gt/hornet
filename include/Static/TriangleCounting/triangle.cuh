@@ -63,13 +63,4 @@ private:
 
 //==============================================================================
 
-
-namespace triangle_operators {
-    __device__ __forceinline__
-    void init(vid_t src, void* optional_field) {
-        auto tri = reinterpret_cast<TriangleData*>(optional_field);
-        tri->triPerVertex[src] = 0;
-    }
-
-} // namespace triangle_operators
 } // namespace hornets_nest

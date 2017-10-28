@@ -367,8 +367,16 @@ TriangleCounting::~TriangleCounting(){
     release();
 }
 
+struct OPERATOR_InitTriangleCounts {
+    TriangleData *deviceTriangleData;
+
+    OPERATOR (Vertex &vertex) {
+        deviceTriangleData->triPerVertex[vertex.id()] = 0;
+    }
+};
+
 void TriangleCounting::reset(){
-    forAllnumV<triangle_operators::init>(hornet,deviceTriangleData);
+    forAllVertices(hornet, OPERATOR_InitTriangleCounts { deviceTriangleData });
 }
 
 void TriangleCounting::run(){

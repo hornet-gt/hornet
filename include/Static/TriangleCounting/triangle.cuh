@@ -41,7 +41,7 @@ struct TriangleData {
 //==============================================================================
 
 // Label propogation is based on the values from the previous iteration.
-class TriangleCounting : public StaticAlgorithm {
+class TriangleCounting : public StaticAlgorithm<HornetGraph> {
 public:
     TriangleCounting(Hornet& hornet);
     ~TriangleCounting();

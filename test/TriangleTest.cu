@@ -22,11 +22,15 @@ using namespace hornets_nest;
 // int arrayBlockSize[]={256};
 // int arrayThreadPerIntersection[]={32};
 // int arrayThreadShift[]={5};
+// int arrayBlocks[]={96000};
+// int arrayBlockSize[]={128,192,256};
+// int arrayThreadPerIntersection[]={8,16,32};
+// int arrayThreadShift[]={3,4,5};
 int arrayBlocks[]={96000};
-int arrayBlockSize[]={128,192,256};
-int arrayThreadPerIntersection[]={8,16,32};
-int arrayThreadShift[]={3,4,5};
-
+int arrayBlockSize[]={192};
+int arrayThreadPerIntersection[]={8};
+int arrayThreadShift[]={3};
+int cutoff[]={00, 1300, 1380, 1381, 1382, 1383};
 
 void initHostTriangleArray(triangle_t* h_triangles, vid_t nv){    
     for(vid_t sd=0; sd<(nv);sd++){
@@ -49,33 +53,48 @@ void testTriangleCountingConfigurations(HornetGraph& hornet, vid_t nv,degree_t n
     int blocksToTest=sizeof(arrayBlocks)/sizeof(int);
     int blockSizeToTest=sizeof(arrayBlockSize)/sizeof(int);
     int tSPToTest=sizeof(arrayThreadPerIntersection)/sizeof(int);
+    int cutoffNum = sizeof(cutoff)/sizeof(int);
+
     for(int b=0;b<blocksToTest; b++){
         int blocks=arrayBlocks[b];
         for(int bs=0; bs<blockSizeToTest; bs++){
             int sps=arrayBlockSize[bs];
             for(int t=0; t<tSPToTest;t++){
                 int tsp=arrayThreadPerIntersection[t];
+                for (int cutoff_id = 0; cutoff_id < cutoffNum ; cutoff_id ++) {
+                    double running_time[10];
+                    double average=0, stddev=0;
+                    for (int q=0; q<10; q++) {
+                        Timer<DEVICE> TM;
+                        TriangleCounting tc(hornet);
+                        tc.setInitParameters(blocks,sps,tsp);
+                        tc.init();
+                        tc.reset();
 
-                Timer<DEVICE> TM;
-                TriangleCounting tc(hornet);
-                tc.setInitParameters(blocks,sps,tsp);
-                tc.init();
-                tc.reset();
-            
-                TM.start();
-                tc.run();
-                TM.stop();
-                time = TM.duration();
-                
-                triangle_t sumDevice = 0;
-                sumDevice = tc.countTriangles();
-                if(time<minTimeHornet) minTimeHornet=time; 
-                tc.release();
+                        TM.start();
+                        tc.run(cutoff[cutoff_id]);
+                        TM.stop();
+                        time = TM.duration();
 
-                int shifter=arrayThreadShift[t];
-                int nbl=sps/tsp;
-                
-                printf("### %d %d %d %d %d \t\t %ld \t %f\n", blocks,sps, tsp, nbl, shifter,sumDevice, time);
+                        triangle_t sumDevice = 0;
+                        sumDevice = tc.countTriangles();
+                        if(time<minTimeHornet) minTimeHornet=time; 
+                        tc.release();
+
+                        int shifter=arrayThreadShift[t];
+                        int nbl=sps/tsp;
+
+                        running_time[q] = time;
+                        printf("### %d %d %d %d %d \t\t %ld \t %f\n", blocks,sps, tsp, nbl, shifter,sumDevice, time);
+                        average += time;
+                    }
+                    average = average/10;
+                    for (int q=0; q<10; q++) {
+                        stddev += (running_time[q] - average) * (running_time[q] - average);
+                    }
+                    stddev = sqrt(stddev/10);
+                    printf("cutoff = %d, average = %lf , standard deviation = %lf\n\n", cutoff[cutoff_id], average, stddev);
+                }
             }
         }    
     }
@@ -154,6 +173,7 @@ void hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
 {
     int32_t edge=0;
     int64_t sum=0;
+    int count = 0;
     for (vid_t src = 0; src < nv; src++)
     {
         degree_t srcLen=off[src+1]-off[src];
@@ -161,11 +181,15 @@ void hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
         {
             vid_t dest=ind[iter];
             degree_t destLen=off[dest+1]-off[dest];            
+            if((destLen < srcLen - 1380) || destLen > srcLen + 1380) {
+                count ++;
+            }
             int64_t tris= hostSingleIntersection (src, srcLen, ind+off[src],
                                                     dest, destLen, ind+off[dest]);
             sum+=tris;
         }
     }    
     *allTriangles=sum;
+    printf("count number %d for distance bigger than\n", count);
     printf("Sequential number of triangles %ld\n",sum);
 }

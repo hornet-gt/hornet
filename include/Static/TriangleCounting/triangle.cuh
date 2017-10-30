@@ -51,6 +51,8 @@ public:
     void release()  override;
     bool validate() override { return true; }
 
+    void run(int cutoff);
+
     void init();
     void setInitParameters(int threadBlocks, int blockSize, int threadsPerIntersection);
     triangle_t countTriangles();

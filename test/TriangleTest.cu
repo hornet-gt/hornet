@@ -30,7 +30,12 @@ int arrayBlocks[]={96000};
 int arrayBlockSize[]={192};
 int arrayThreadPerIntersection[]={8};
 int arrayThreadShift[]={3};
-int cutoff[]={00, 1300, 1380, 1381, 1382, 1383};
+
+int cutoff[]={-1, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300,
+1400, 1500, 1600, 1700, 1800, 1900, 2000,
+2100, 2200, 2300, 2400,
+2500, 2600, 2700
+};
 
 void initHostTriangleArray(triangle_t* h_triangles, vid_t nv){    
     for(vid_t sd=0; sd<(nv);sd++){
@@ -46,14 +51,13 @@ int64_t sumTriangleArray(triangle_t* h_triangles, vid_t nv){
     return sum;
 }
 
-void testTriangleCountingConfigurations(HornetGraph& hornet, vid_t nv,degree_t ne)
+void testTriangleCountingConfigurations(HornetGraph& hornet, vid_t nv,degree_t ne, int *histogram)
 {
     float minTime=10e9,time,minTimeHornet=10e9;
 
     int blocksToTest=sizeof(arrayBlocks)/sizeof(int);
     int blockSizeToTest=sizeof(arrayBlockSize)/sizeof(int);
     int tSPToTest=sizeof(arrayThreadPerIntersection)/sizeof(int);
-    int cutoffNum = sizeof(cutoff)/sizeof(int);
 
     for(int b=0;b<blocksToTest; b++){
         int blocks=arrayBlocks[b];
@@ -61,7 +65,8 @@ void testTriangleCountingConfigurations(HornetGraph& hornet, vid_t nv,degree_t n
             int sps=arrayBlockSize[bs];
             for(int t=0; t<tSPToTest;t++){
                 int tsp=arrayThreadPerIntersection[t];
-                for (int cutoff_id = 0; cutoff_id < cutoffNum ; cutoff_id ++) {
+                double prev_average = 0;
+                for (auto cutoff_id : cutoff) {
                     double running_time[10];
                     double average=0, stddev=0;
                     for (int q=0; q<10; q++) {
@@ -72,7 +77,7 @@ void testTriangleCountingConfigurations(HornetGraph& hornet, vid_t nv,degree_t n
                         tc.reset();
 
                         TM.start();
-                        tc.run(cutoff[cutoff_id]);
+                        tc.run(cutoff_id);
                         TM.stop();
                         time = TM.duration();
 
@@ -85,7 +90,7 @@ void testTriangleCountingConfigurations(HornetGraph& hornet, vid_t nv,degree_t n
                         int nbl=sps/tsp;
 
                         running_time[q] = time;
-                        printf("### %d %d %d %d %d \t\t %ld \t %f\n", blocks,sps, tsp, nbl, shifter,sumDevice, time);
+                        //printf("### %d %d %d %d %d \t\t %ld \t %f\n", blocks,sps, tsp, nbl, shifter,sumDevice, time);
                         average += time;
                     }
                     average = average/10;
@@ -93,7 +98,11 @@ void testTriangleCountingConfigurations(HornetGraph& hornet, vid_t nv,degree_t n
                         stddev += (running_time[q] - average) * (running_time[q] - average);
                     }
                     stddev = sqrt(stddev/10);
-                    printf("cutoff = %d, average = %lf , standard deviation = %lf\n\n", cutoff[cutoff_id], average, stddev);
+                    auto diff = cutoff_id/100;
+                    if (diff > 2600) diff = 2600;
+                    double rate = histogram[diff]/(average-prev_average);
+                    prev_average = average;
+                    printf("cutoff = %d, rate = %lf, average = %lf , standard deviation = %lf\n", cutoff_id, rate, average, stddev);
                 }
             }
         }    
@@ -101,7 +110,7 @@ void testTriangleCountingConfigurations(HornetGraph& hornet, vid_t nv,degree_t n
     cout << nv << ", " << ne << ", "<< minTime << ", " << minTimeHornet<< endl;
 }
 
-void hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
+int* hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
     const vid_t * ind, int64_t* allTriangles);
 
 int main(const int argc, char *argv[]){
@@ -123,14 +132,18 @@ int main(const int argc, char *argv[]){
                                  graph.csr_out_offsets(),
                                  graph.csr_out_edges());
 
+    std::cout << "Initializing GPU graph" << std::endl;
     HornetGraph hornet_graph(hornet_init);
+    std::cout << "Checking sortd adj" << std::endl;
 
     hornet_graph.check_sorted_adjs();
     // std::cout << "Is sorted " <<  << std::endl;
 
-    testTriangleCountingConfigurations(hornet_graph,graph.nV(),graph.nE());
     int64_t hostTris;
-    hostCountTriangles(graph.nV(), graph.nE(),graph.csr_out_offsets(), graph.csr_out_edges(),&hostTris);
+    std::cout << "Starting host triangle counting" << std::endl;
+    int *histogram = hostCountTriangles(graph.nV(), graph.nE(),graph.csr_out_offsets(), graph.csr_out_edges(),&hostTris);
+    testTriangleCountingConfigurations(hornet_graph,graph.nV(),graph.nE(),histogram);
+    delete histogram;
     return 0;
 }
 
@@ -168,19 +181,25 @@ int hostSingleIntersection (const vid_t ai, const degree_t alen, const vid_t * a
     return out;
 }
 
-void hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
+int* hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
     const vid_t * ind, int64_t* allTriangles)
 {
     int32_t edge=0;
     int64_t sum=0;
     int count = 0;
+    int *histogram = new int[27]();
+    degree_t maxd = 0;
     for (vid_t src = 0; src < nv; src++)
     {
         degree_t srcLen=off[src+1]-off[src];
         for(int iter=off[src]; iter<off[src+1]; iter++)
         {
             vid_t dest=ind[iter];
-            degree_t destLen=off[dest+1]-off[dest];            
+            degree_t destLen=off[dest+1]-off[dest];
+            if (destLen+srcLen > maxd) maxd = destLen+srcLen;
+            size_t diff = abs(destLen+srcLen);
+            if (diff > 2600) diff = 2600;
+            histogram[diff/100] ++;
             if((destLen < srcLen - 1380) || destLen > srcLen + 1380) {
                 count ++;
             }
@@ -189,7 +208,12 @@ void hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
             sum+=tris;
         }
     }    
+    printf("max: %d\n", maxd);
+    for(int i=0; i<27; i++) 
+        printf("histogram %d: %d\n", i, histogram[i]);
+
     *allTriangles=sum;
     printf("count number %d for distance bigger than\n", count);
     printf("Sequential number of triangles %ld\n",sum);
+    return histogram;
 }

@@ -31,13 +31,13 @@ int main(int argc, char* argv[]) {
 
     graph::GraphStd<vid_t, eoff_t> graph;
     CommandLineParam cmd(graph, argc, argv);
-    graph.print();
+    //graph.print();
 
     HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
                            graph.csr_out_edges());
 
     HornetGraph hornet_graph(hornet_init);
-    hornet_graph.print();
+    //hornet_graph.print();
 
     Timer<DEVICE> TM(5);
     cudaProfilerStart();
@@ -46,6 +46,7 @@ int main(int argc, char* argv[]) {
     // Get the edge values
     //load_balacing::VertexBased1 load_balancing { hornet_graph };
     //forAllEdges(hornet_graph, GetAttr { }, load_balancing);
+    forAllAdjIntersections(hornet_graph, GetAttr { }); 
 
     TM.stop();
     cudaProfilerStop();

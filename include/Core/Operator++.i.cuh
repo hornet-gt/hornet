@@ -84,6 +84,51 @@ void forAllEdgesKernel(const eoff_t* __restrict__ csr_offsets,
 
 //==============================================================================
 //==============================================================================
+// stub
+namespace adj_intersections {
+    struct queue_info {
+        int queue_sizes[6];
+        //TwoLevelQueue<vid2_t> queues[6];
+    };
+
+    struct bin_edges {
+        HostDeviceVar<queue_info> d_queue_info;
+        TwoLevelQueue<vid2_t> queue_0;
+        bool countOnly;
+        OPERATOR(Vertex& src, Edge& edge) {
+            // in the future:
+            // choose '0' from src.degree() + hornet_look(edge.dst_id).degree()
+            if (countOnly) {
+                atomicAdd(&(d_queue_info.ptr()->queue_sizes[0]), 1);
+            } else {
+                // in the future we want the following line
+                //d_queue_info().queues[0].insert({ src.id(), edge.dst_id() });
+                queue_0.insert({ src.id(), edge.dst_id() });
+            }
+        }
+    };
+}
+
+
+template<typename HornetClass, typename Operator>
+void forAllAdjIntersections(HornetClass&         hornet,
+                            const Operator&      op)
+{
+    using namespace adj_intersections;
+    HostDeviceVar<queue_info> hd_queue_info;
+
+    load_balancing::VertexBased1 load_balancing ( hornet );
+
+    hd_queue_info().queue_sizes[0] = 0;
+    TwoLevelQueue<vid2_t> queue_dummy ( 0 );
+    forAllEdges(hornet, bin_edges {hd_queue_info, queue_dummy, true}, load_balancing);
+    hd_queue_info.sync();
+    TwoLevelQueue<vid2_t> queue_0 ( (size_t)hd_queue_info().queue_sizes[0] );
+    forAllEdges(hornet, bin_edges {hd_queue_info, queue_0, false}, load_balancing);
+
+    printf("number of edges: %d\n", hd_queue_info().queue_sizes[0]);
+}
+
 
 template<typename Operator>
 void forAll(size_t size, const Operator& op) {

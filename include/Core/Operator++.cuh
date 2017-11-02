@@ -39,6 +39,8 @@
 #pragma once
 
 #include "Core/Queue/TwoLevelQueue.cuh"
+#include "Core/HostDeviceVar.cuh"
+#include "Core/LoadBalancing/VertexBased.cuh"
 #include <BasicTypes.hpp>
 #include <Core/GPUHornet/BatchUpdate.cuh>
 
@@ -153,6 +155,10 @@ void forAllEdges(HornetClass&         hornet,
                  int                  size,
                  const Operator&      op,
                  const LoadBalancing& load_balancing);
+
+template<typename HornetClass, typename Operator>
+void forAllAdjIntersections(HornetClass&         hornet,
+                            const Operator&      op);
 
 /**
  * @brief apply the `Operator` to all vertices in the graph

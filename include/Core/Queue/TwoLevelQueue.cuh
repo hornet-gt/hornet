@@ -191,6 +191,11 @@ private:
     mutable int2 _h_counters          { 0, 0 };
     bool         _kernel_copy         { false };
     int          _enqueue_items       { 0 };
+
+    /**
+     * @brief Internal function to initialize max allocated items
+     */
+    void _initialize() noexcept;
 };
 
 } // namespace hornets_nest

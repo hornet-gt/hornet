@@ -85,26 +85,27 @@ void forAllEdgesKernel(const eoff_t* __restrict__ csr_offsets,
 //==============================================================================
 //==============================================================================
 // stub
+#define MAX_ADJ_INTERSECTIONS_BINS 2
 namespace adj_intersections {
     struct queue_info {
-        int queue_sizes[6];
-        //TwoLevelQueue<vid2_t> queues[6];
+        int queue_sizes[MAX_ADJ_INTERSECTIONS_BINS];
+        TwoLevelQueue<vid2_t> queues[MAX_ADJ_INTERSECTIONS_BINS];
     };
 
     struct bin_edges {
         HostDeviceVar<queue_info> d_queue_info;
-        TwoLevelQueue<vid2_t> queue_0;
         bool countOnly;
-        OPERATOR(Vertex& src, Edge& edge) {
-            // in the future:
-            // choose '0' from src.degree() + hornet_look(edge.dst_id).degree()
-            if (countOnly) {
-                atomicAdd(&(d_queue_info.ptr()->queue_sizes[0]), 1);
-            } else {
-                // in the future we want the following line
-                //d_queue_info().queues[0].insert({ src.id(), edge.dst_id() });
-                queue_0.insert({ src.id(), edge.dst_id() });
-            }
+        OPERATOR(Vertex& src, Vertex& dst, Edge& edge) {
+            // Choose the bin to place this edge into
+            int bin = 0;
+            if (src.degree() + dst.degree() > 128)
+                bin = 1;
+
+            // Either count or add the item to the appropriate queue
+            if (countOnly)
+                atomicAdd(&(d_queue_info.ptr()->queue_sizes[bin]), 1);
+            else
+                d_queue_info().queues[bin].insert({ src.id(), edge.dst_id() });
         }
     };
 }
@@ -119,14 +120,35 @@ void forAllAdjIntersections(HornetClass&         hornet,
 
     load_balancing::VertexBased1 load_balancing ( hornet );
 
-    hd_queue_info().queue_sizes[0] = 0;
-    TwoLevelQueue<vid2_t> queue_dummy ( 0 );
-    forAllEdges(hornet, bin_edges {hd_queue_info, queue_dummy, true}, load_balancing);
-    hd_queue_info.sync();
-    TwoLevelQueue<vid2_t> queue_0 ( (size_t)hd_queue_info().queue_sizes[0] );
-    forAllEdges(hornet, bin_edges {hd_queue_info, queue_0, false}, load_balancing);
+    // Initialize queue sizes to zero
+    for (auto i = 0; i < MAX_ADJ_INTERSECTIONS_BINS; i++)
+        hd_queue_info().queue_sizes[i] = 0;
 
-    printf("number of edges: %d\n", hd_queue_info().queue_sizes[0]);
+    // Phase 1: determine and bin all edges based on edge neighbor properties
+    // First, count the number to avoid creating excessive queues
+    forAllEdgesSrcDst(hornet, bin_edges {hd_queue_info, true}, load_balancing);
+    hd_queue_info.sync();
+
+    for (auto i = 0; i < MAX_ADJ_INTERSECTIONS_BINS; i++)
+        printf("number %d of edges: %d\n", i, hd_queue_info().queue_sizes[i]);
+
+    // Next, add each edge into the correct corresponding queue
+    for (auto i = 0; i < MAX_ADJ_INTERSECTIONS_BINS; i++)
+        hd_queue_info().queues[i].initialize((size_t)hd_queue_info().queue_sizes[0]+1);
+    forAllEdgesSrcDst(hornet, bin_edges {hd_queue_info, false}, load_balancing);
+
+    // Phase 2: run the operator on each queued edge as appropriate
+    for (auto i = 0; i < MAX_ADJ_INTERSECTIONS_BINS; i++) {
+        hd_queue_info().queues[i].swap();
+        size_t threads_per = 0;
+        // FIXME: change Operator and its args as well
+        if (i == 0) {
+            threads_per = 8;
+        } else if (i == 1) {
+            threads_per = 32;
+        }
+        forAllEdgesSrcDst(hd_queue_info().queues[i], op_test {}, threads_per);
+    }
 }
 
 
@@ -191,6 +213,16 @@ void forAllEdges(HornetClass&         hornet,
     int num_partitions = xlib::ceil_div<PARTITION_SIZE>(hornet.nE());
 
     load_balancing.apply(hornet, op);
+}
+
+template<typename HornetClass, typename Operator, typename LoadBalancing>
+void forAllEdgesSrcDst(HornetClass&         hornet,
+                       const Operator&      op,
+                       const LoadBalancing& load_balancing) {
+    const int PARTITION_SIZE = xlib::SMemPerBlock<BLOCK_SIZE_OP2, vid_t>::value;
+    int num_partitions = xlib::ceil_div<PARTITION_SIZE>(hornet.nE());
+
+    load_balancing.applySrcDst(hornet, op);
 }
 
 //==============================================================================

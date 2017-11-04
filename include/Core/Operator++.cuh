@@ -127,6 +127,11 @@ void forAllEdges(HornetClass&         hornet,
                  const Operator&      op,
                  const LoadBalancing& load_balancing);
 
+template<typename HornetClass, typename Operator, typename LoadBalancing>
+void forAllEdgesSrcDst(HornetClass&         hornet,
+                       const Operator&      op,
+                       const LoadBalancing& load_balancing);
+
 //==============================================================================
 //==============================================================================
 

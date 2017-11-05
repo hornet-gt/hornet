@@ -4,7 +4,7 @@
 #include "Core/GPUHornet/BatchUpdate.cuh"
 #include "GraphIO/GraphStd.hpp"
 #include "GraphIO/BFS.hpp"
-#include "Device/Algorithm.cuh"
-#include "Host/Timer.hpp"
-#include "Device/Timer.cuh"
+#include <Device/Util/Algorithm.cuh>
+#include <Host/Classes/Timer.hpp>
+#include <Device/Util/Timer.cuh>
 #include "Util/CommandLineParam.hpp"

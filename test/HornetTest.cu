@@ -2,7 +2,7 @@
 #include "Core/GPUHornet/BatchUpdate.cuh"
 #include "Util/BatchFunctions.hpp"
 #include <Host/FileUtil.hpp>            //xlib::extract_filepath_noextension
-#include <Device/CudaUtil.cuh>          //xlib::deviceInfo
+#include <Device/Util/CudaUtil.cuh>          //xlib::deviceInfo
 #include <algorithm>                    //std:.generate
 #include <chrono>                       //std::chrono
 #include <random>                       //std::mt19937_64

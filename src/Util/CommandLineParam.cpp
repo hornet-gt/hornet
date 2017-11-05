@@ -34,11 +34,11 @@
  * </blockquote>}
  */
 #include "Util/CommandLineParam.hpp"
-#include "Device/CudaUtil.cuh"      //SAFE_CALL
-#include "Host/Basic.hpp"           //ERROR, xlib::is_integer
-#include "Host/FileUtil.hpp"        //xlib::extract_filepath_noextension
-#include <cuda_runtime.h>                   //cudaSetDevice
-#include <fstream>                          //std::ifstream
+#include <Device/Util/CudaUtil.cuh> //SAFE_CALL
+#include <Host/Basic.hpp>           //ERROR, xlib::is_integer
+#include <Host/FileUtil.hpp>        //xlib::extract_filepath_noextension
+#include <cuda_runtime.h>           //cudaSetDevice
+#include <fstream>                  //std::ifstream
 
 namespace hornets_nest {
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Host/Metaprogramming.hpp"                 //xlib::SelectType
-#include "Device/VectorUtil.cuh"                    //xlib::Make2Str
+#include <Host/Metaprogramming.hpp>                 //xlib::SelectType
+#include <Device/Util/VectorUtil.cuh>               //xlib::Make2Str
 #include "Core/MemoryManager/MemoryManagerConf.hpp" //EDGES_PER_BLOCKARRAY
 #include <tuple>                                    //std::tuple
 

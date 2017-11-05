@@ -33,9 +33,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Device/Definition.cuh"        //xlib::SMemPerBlock
-#include "Device/BinarySearchLB.cuh"    //xlib::BinarySearchLB
-#include "Device/PrintExt.cuh"          //xlib::gpu::Cout
+#include <Device/Util/Definition.cuh>            //xlib::SMemPerBlock
+#include <Device/Primitives/BinarySearchLB.cuh>  //xlib::BinarySearchLB
+#include <Device/Util/PrintExt.cuh>              //xlib::gpu::Cout
 
 namespace hornets_nest {
 namespace gpu {

@@ -33,9 +33,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Device/Definition.cuh"
-#include "Host/Algorithm.hpp"
-#include "Device/BinarySearchLB.cuh"
+#include <Host/Algorithm.hpp>
+#include <Device/Primitives/BinarySearchLB.cuh>
+#include <Device/Util/Definition.cuh>
 
 namespace hornets_nest {
 namespace gpu {

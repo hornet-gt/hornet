@@ -35,9 +35,9 @@
  */
 #pragma once
 
-#include "Device/SafeCudaAPI.cuh"   //cuMalloc
-#include "Host/Numeric.hpp"         //xlib::ceil_log
-#include <iterator>                 //std::distance
+#include <Device/Util/SafeCudaAPI.cuh>  //cuMalloc
+#include <Host/Numeric.hpp>             //xlib::ceil_log
+#include <iterator>                     //std::distance
 
 namespace hornets_nest {
 

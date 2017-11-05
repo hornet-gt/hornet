@@ -34,7 +34,7 @@
  * </blockquote>}
  */
 #include "Kernels/BatchOOPDeleteKernels.cuh"
-#include "Device/PrintExt.cuh"          //cu::printArray
+#include <Device/Util/PrintExt.cuh>          //cu::printArray
 
 //#define BATCH_DELETE_DEBUG
 

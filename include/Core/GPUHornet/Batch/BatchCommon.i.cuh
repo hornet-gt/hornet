@@ -34,7 +34,7 @@
  * </blockquote>}
  */
 #include "Kernels/BatchCommonKernels.cuh"
-#include <Device/PrintExt.cuh>          //cu::printArray
+#include <Device/Util/PrintExt.cuh>          //cu::printArray
 
 #define DEBUG_FIXINTERNAL
 

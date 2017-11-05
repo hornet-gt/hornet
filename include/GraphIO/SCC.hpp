@@ -38,8 +38,8 @@
 #pragma once
 
 #include "GraphIO/GraphStd.hpp"
-#include "Host/Bitmask.hpp"
-#include "Host/Queue.hpp"
+#include "Host/Classes/Bitmask.hpp"
+#include "Host/Classes/Queue.hpp"
 #include <vector>
 
 namespace graph {

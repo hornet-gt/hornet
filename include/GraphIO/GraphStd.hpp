@@ -38,8 +38,8 @@
 #pragma once
 
 #include "GraphIO/GraphBase.hpp"
-#include "Host/Bitmask.hpp"   //xlib::Bitmask
-#include <utility>  //std::pair
+#include "Host/Classes/Bitmask.hpp"  //xlib::Bitmask
+#include <utility>                   //std::pair
 
 namespace graph {
 

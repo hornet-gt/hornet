@@ -1,9 +1,9 @@
 #include <iostream>
-#include "Device/WarpReduce.cuh"
-#include "Device/WarpScan.cuh"
+#include "Device/Primitives/WarpReduce.cuh"
+#include "Device/Primitives/WarpScan.cuh"
 //#include "Device/CubWrapper.cuh"
-#include "Device/SafeCudaAPI.cuh"
-#include "Device/PrintExt.cuh"
+#include "Device/Util/SafeCudaAPI.cuh"
+#include "Device/Util/PrintExt.cuh"
 
 struct __align__(16) SS {
      int a[2];

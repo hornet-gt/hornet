@@ -35,7 +35,7 @@
  */
 #include "Core/DataLayout/DataLayoutDev.cuh"
 #include "Core/GPUHornet/HornetDevice.cuh"
-#include "Device/DeviceQueue.cuh"
+#include <Device/Util/DeviceQueue.cuh>
 
 namespace hornets_nest {
 namespace gpu {

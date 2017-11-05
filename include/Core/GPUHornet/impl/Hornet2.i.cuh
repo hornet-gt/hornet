@@ -33,10 +33,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "GraphIO/GraphBase.hpp"        //graph::StructureProp 
+#include "GraphIO/GraphBase.hpp"            //graph::StructureProp 
 #include "HornetKernels.cuh"
-#include <Device/CubWrapper.cuh>        //xlib::CubSortByKey
-#include <Host/FileUtil.hpp>            //xlib::MemoryMapped
+#include <Device/Primitives/CubWrapper.cuh> //xlib::CubSortByKey
+#include <Host/FileUtil.hpp>                //xlib::MemoryMapped
 
 namespace hornets_nest {
 namespace gpu {

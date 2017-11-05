@@ -33,7 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Device/Timer.cuh"             //timer::Timer
+#include <Device/Util/Timer.cuh>        //timer::Timer
 #include <cstring>                      //std::memcpy
 
 namespace hornets_nest {

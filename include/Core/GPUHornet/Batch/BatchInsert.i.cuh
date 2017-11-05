@@ -34,7 +34,7 @@
  * </blockquote>}
  */
 #include "Kernels/BatchInsertKernels.cuh"
-#include "Device/PrintExt.cuh"      //cu::printArray
+#include <Device/Util/PrintExt.cuh>      //cu::printArray
 
 //#define DEBUG_INSERT
 

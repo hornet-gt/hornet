@@ -1,9 +1,9 @@
 #include "Host/Numeric.hpp"
-#include "Device/Definition.cuh"
-#include "Device/PrintExt.cuh"
-#include "Device/Algorithm.cuh"
-#include "Device/BinarySearchLB.cuh"
-#include "Device/Timer.cuh"
+#include "Device/Util/Definition.cuh"
+#include "Device/Util/PrintExt.cuh"
+#include "Device/Util/Algorithm.cuh"
+#include "Device/Primitives/BinarySearchLB.cuh"
+#include "Device/Util/Timer.cuh"
 #include "GraphIO/GraphStd.hpp"
 #include <iostream>
 //#include <moderngpu/kernel_load_balance.hxx>

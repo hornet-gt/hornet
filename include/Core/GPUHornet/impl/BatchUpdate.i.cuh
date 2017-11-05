@@ -34,8 +34,8 @@
  * </blockquote>}
  */
 #include "Core/HornetInit.hpp"
-#include "Device/SafeCudaAPI.cuh"
-#include "Device/PrintExt.cuh"
+#include <Device/Util/SafeCudaAPI.cuh>
+#include <Device/Util/PrintExt.cuh>
 
 namespace hornets_nest {
 namespace gpu {

@@ -41,7 +41,7 @@
 
 #include "BasicTypes.hpp"                           //xlib::byte
 #include "Core/MemoryManager/MemoryManagerConf.hpp" //EDGES_PER_BLOCKARRAY
-#include "Host/Metaprogramming.hpp"                 //xlib::GeometricSerie
+#include <Host/Metaprogramming.hpp>                 //xlib::GeometricSerie
 #include <utility>                                  //std::pair
 
 namespace hornets_nest {

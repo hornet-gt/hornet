@@ -38,7 +38,7 @@
 #pragma once
 
 #include "GraphIO/GraphWeight.hpp"
-#include "Host/Queue.hpp"
+#include "Host/Classes/Queue.hpp"
 
 namespace graph {
 

@@ -33,8 +33,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Device/Timer.cuh"   //timer::Timer
-#include "Device/CubWrapper.cuh"
+#include <Device/Util/Timer.cuh>   //timer::Timer
+#include <Device/Primitives/CubWrapper.cuh>
 //#include "Core/GPUHornet/impl/HornetKernels.cuh"
 
 namespace hornets_nest {

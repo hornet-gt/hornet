@@ -33,8 +33,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Host/Algorithm.hpp"          //xlib::binary_search
-#include "Device/BinarySearchLB.cuh"   //xlib::binarySearchLB
+#include <Host/Algorithm.hpp>                     //xlib::binary_search
+#include <Device/Primitives/BinarySearchLB.cuh>   //xlib::binarySearchLB
 
 namespace hornets_nest {
 namespace gpu {

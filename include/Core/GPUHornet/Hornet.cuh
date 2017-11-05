@@ -44,7 +44,7 @@
 #include "Core/GPUHornet/HornetDevice.cuh"            //HornetDevice
 #include "Core/HornetInit.hpp"                  //HornetInit
 #include "Core/MemoryManager/MemoryManager.hpp" //MemoryManager
-#include <Device/CubWrapper.cuh>
+#include <Device/Primitives/CubWrapper.cuh>
 
 namespace hornets_nest {
 namespace gpu {

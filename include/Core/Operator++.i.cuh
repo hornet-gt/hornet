@@ -85,11 +85,11 @@ void forAllEdgesKernel(const eoff_t* __restrict__ csr_offsets,
 //==============================================================================
 //==============================================================================
 // stub
-#define MAX_ADJ_INTERSECTIONS_BINS 2
-namespace adj_intersections {
+#define MAX_ADJ_UNIONS_BINS 2
+namespace adj_unions {
     struct queue_info {
-        int queue_sizes[MAX_ADJ_INTERSECTIONS_BINS];
-        TwoLevelQueue<vid2_t> queues[MAX_ADJ_INTERSECTIONS_BINS];
+        int queue_sizes[MAX_ADJ_UNIONS_BINS];
+        TwoLevelQueue<vid2_t> queues[MAX_ADJ_UNIONS_BINS];
     };
 
     struct bin_edges {
@@ -115,13 +115,13 @@ template<typename HornetClass, typename Operator>
 void forAllAdjUnions(HornetClass&         hornet,
                      const Operator&      op)
 {
-    using namespace adj_intersections;
+    using namespace adj_unions;
     HostDeviceVar<queue_info> hd_queue_info;
 
     load_balancing::VertexBased1 load_balancing ( hornet );
 
     // Initialize queue sizes to zero
-    for (auto i = 0; i < MAX_ADJ_INTERSECTIONS_BINS; i++)
+    for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++)
         hd_queue_info().queue_sizes[i] = 0;
 
     // Phase 1: determine and bin all edges based on edge neighbor properties
@@ -129,16 +129,16 @@ void forAllAdjUnions(HornetClass&         hornet,
     forAllEdgesSrcDst(hornet, bin_edges {hd_queue_info, true}, load_balancing);
     hd_queue_info.sync();
 
-    for (auto i = 0; i < MAX_ADJ_INTERSECTIONS_BINS; i++)
+    for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++)
         printf("number %d of edges: %d\n", i, hd_queue_info().queue_sizes[i]);
 
     // Next, add each edge into the correct corresponding queue
-    for (auto i = 0; i < MAX_ADJ_INTERSECTIONS_BINS; i++)
+    for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++)
         hd_queue_info().queues[i].initialize((size_t)hd_queue_info().queue_sizes[0]+1);
     forAllEdgesSrcDst(hornet, bin_edges {hd_queue_info, false}, load_balancing);
 
     // Phase 2: run the operator on each queued edge as appropriate
-    for (auto i = 0; i < MAX_ADJ_INTERSECTIONS_BINS; i++) {
+    for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++) {
         hd_queue_info().queues[i].swap();
         size_t threads_per = 0;
         // FIXME: change Operator and its args as well

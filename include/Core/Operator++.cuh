@@ -165,6 +165,9 @@ template<typename HornetClass, typename Operator>
 void forAllAdjUnions(HornetClass&         hornet,
                      const Operator&      op);
 
+template<typename HornetClass, typename Operator>
+void forAllEdgesAdjUnionSequential(HornetClass &hornet, TwoLevelQueue<vid2_t> queue, const Operator &op, int flag);
+
 /**
  * @brief apply the `Operator` to all vertices in the graph
  * @tparam    Operator typename of the operator (deduced)

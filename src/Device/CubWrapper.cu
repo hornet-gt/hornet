@@ -69,7 +69,7 @@ T CubReduce<T>::run() noexcept {
     cub::DeviceReduce::Sum(_d_temp_storage, _temp_storage_bytes,
                            _d_in, _d_out, _num_items);
     int h_result;
-    cuMemcpyToHostAsync(_d_out, h_result);
+    cuMemcpyToHost(_d_out, h_result);
     return h_result;
 }
 
@@ -393,7 +393,7 @@ int CubRunLengthEncode<T>::run(const T* d_in, int num_items,
                                        d_in, d_unique_out, d_counts_out,
                                        _d_num_runs_out, num_items);
     int h_num_runs_out;
-    cuMemcpyToHostAsync(_d_num_runs_out, h_num_runs_out);
+    cuMemcpyToHost(_d_num_runs_out, h_num_runs_out);
     return h_num_runs_out;
 }
 
@@ -498,7 +498,7 @@ int CubSelectFlagged<T>::run(const T* d_in, int num_items,
                                d_flags, d_out, _d_num_selected_out,
                                num_items);
     int h_num_selected_out;
-    cuMemcpyToHostAsync(_d_num_selected_out, h_num_selected_out);
+    cuMemcpyToHost(_d_num_selected_out, h_num_selected_out);
     return h_num_selected_out;
 }
 

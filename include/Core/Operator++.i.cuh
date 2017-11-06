@@ -112,8 +112,8 @@ namespace adj_intersections {
 
 
 template<typename HornetClass, typename Operator>
-void forAllAdjIntersections(HornetClass&         hornet,
-                            const Operator&      op)
+void forAllAdjUnions(HornetClass&         hornet,
+                     const Operator&      op)
 {
     using namespace adj_intersections;
     HostDeviceVar<queue_info> hd_queue_info;
@@ -147,7 +147,7 @@ void forAllAdjIntersections(HornetClass&         hornet,
         } else if (i == 1) {
             threads_per = 32;
         }
-        forAllEdgesSrcDst(hd_queue_info().queues[i], op_test {}, threads_per);
+        forAllEdgesAdjUnion(hd_queue_info().queues[i], op, threads_per);
     }
 }
 

@@ -162,8 +162,8 @@ void forAllEdges(HornetClass&         hornet,
                  const LoadBalancing& load_balancing);
 
 template<typename HornetClass, typename Operator>
-void forAllAdjIntersections(HornetClass&         hornet,
-                            const Operator&      op);
+void forAllAdjUnions(HornetClass&         hornet,
+                     const Operator&      op);
 
 /**
  * @brief apply the `Operator` to all vertices in the graph

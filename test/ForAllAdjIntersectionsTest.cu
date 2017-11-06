@@ -63,14 +63,14 @@ struct OPERATOR_AdjIntersectionCount {
 struct OPERATOR_AdjIntersectionCount2 {
     int* vTriangleCounts;
 
-    OPERATOR(EdgeIt& eit1, vid_t end1, EdgeIt& eit2, vid_t end2, int FLAG) {
+    OPERATOR(EdgeIt& eit1, Edge& end1, EdgeIt& eit2, Edge& end2, int FLAG) {
         int equalCount = 0;
         vid_t vid_curr1;
         vid_t vid_curr2;
         int comp;
-        while (*eit1 <= end1 && eit2 <= end2) {
-            vid_curr1 = *eit1.dst_id();
-            vid_curr2 = *eit2.dst_id();
+        while (*eit1 <= end1 && *eit2 <= end2) {
+            vid_curr1 = eit1->dst_id();
+            vid_curr2 = eit2->dst_id();
             comp = vid_curr1 - vid_curr2;
             equalCount += (comp == 0);
             if (comp <= 0)
@@ -101,11 +101,11 @@ int main(int argc, char* argv[]) {
     // Get the edge values
     //load_balacing::VertexBased1 load_balancing { hornet_graph };
     //forAllEdges(hornet_graph, GetAttr { }, load_balancing);
-    forAllAdjIntersections(hornet_graph, GetAttr { }); 
+    forAllAdjUnions(hornet_graph, GetAttr { }); 
 
     TM.stop();
     cudaProfilerStop();
-    TM.print("ForAllAdjIntersections Time");
+    TM.print("ForAllAdjUnions Time");
 
     return 0;
 }

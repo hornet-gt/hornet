@@ -35,9 +35,9 @@
  *
  * @file
  */
-#include <Device/Basic.cuh>
-#include <Device/Definition.cuh>
-#include <Device/WarpScan.cuh>
+#include <Device/Util/Basic.cuh>
+#include <Device/Util/Definition.cuh>
+#include <Device/Primitives/WarpScan.cuh>
 
 namespace hornets_nest {
 namespace load_balancing {

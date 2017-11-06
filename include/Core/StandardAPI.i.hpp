@@ -36,9 +36,9 @@
  */
 #pragma once
 
-#include <Device/Algorithm.cuh>
-#include "Device/SafeCudaAPI.cuh"
-#include "Device/CubWrapper.cuh"
+#include <Device/Util/Algorithm.cuh>
+#include <Device/Util/SafeCudaAPI.cuh>
+#include <Device/Primitives/CubWrapper.cuh>
 #include <omp.h>
 #include <cstring>
 

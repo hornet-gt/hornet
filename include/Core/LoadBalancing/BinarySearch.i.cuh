@@ -34,8 +34,8 @@
  * </blockquote>}
  */
 #include "BinarySearchKernel.cuh"
-#include <Device/CubWrapper.cuh>    //xlib::CubExclusiveSum
-#include <Device/Definition.cuh>    //xlib::SMemPerBlock
+#include <Device/Primitives/CubWrapper.cuh>  //xlib::CubExclusiveSum
+#include <Device/Util/Definition.cuh>        //xlib::SMemPerBlock
 
 namespace hornets_nest {
 namespace load_balancing {
@@ -74,7 +74,7 @@ void BinarySearch::apply(const HornetClass& hornet,
     CHECK_CUDA_ERROR
 
     int total_work;
-    cuMemcpyToHostAsync(_d_work + num_vertices, total_work);
+    cuMemcpyToHost(_d_work + num_vertices, total_work);
     unsigned grid_size = xlib::ceil_div<ITEMS_PER_BLOCK>(total_work);
 
     if (total_work == 0)

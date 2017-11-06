@@ -1,5 +1,5 @@
 #include "Static/KTruss/KTruss.cuh"
-#include "Device/Timer.cuh"
+#include <Device/Util/Timer.cuh>
 #include <GraphIO/GraphStd.hpp>
 
 using namespace timer;

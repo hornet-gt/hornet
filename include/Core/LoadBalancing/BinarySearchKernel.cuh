@@ -35,7 +35,7 @@
  *
  * @file
  */
-#include <Device/BinarySearchLB.cuh>
+#include <Device/Primitives/BinarySearchLB.cuh>
 
 namespace hornets_nest {
 /**

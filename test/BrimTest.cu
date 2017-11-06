@@ -6,7 +6,7 @@
 #include <GraphIO/GraphWeight.hpp>
 #include <GraphIO/Brim.hpp>
 #include <BasicTypes.hpp>
-#include <Device/Timer.cuh>
+#include <Device/Util/Timer.cuh>
 
 int main(int argc, char* argv[]) {
     using namespace timer;

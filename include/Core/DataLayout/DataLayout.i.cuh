@@ -241,8 +241,8 @@ SoA<TArgs...>::SoA(void* (&array)[sizeof...(TArgs)],
 
     for (int i = 0; i < NUM_ARGS; i++) {
         auto d_ptr = reinterpret_cast<byte_t*>(_d_ptr) +  _pitch * i;
-        cuMemcpyToDeviceAsync(static_cast<byte_t*>(array[i]),
-                              allocated_items * TYPE_SIZES[i], d_ptr);
+        cuMemcpyToDevice(static_cast<byte_t*>(array[i]),
+                         allocated_items * TYPE_SIZES[i], d_ptr);
     }
 }
 
@@ -262,8 +262,8 @@ void SoA<TArgs...>::initialize(const void* (&array)[sizeof...(TArgs)],
 
     for (int i = 0; i < NUM_ARGS; i++) {
         auto d_ptr = reinterpret_cast<byte_t*>(_d_ptr) +  _pitch * i;
-        cuMemcpyToDeviceAsync(static_cast<const byte_t*>(array[i]),
-                              allocated_items * TYPE_SIZES[i], d_ptr);
+        cuMemcpyToDevice(static_cast<const byte_t*>(array[i]),
+                         allocated_items * TYPE_SIZES[i], d_ptr);
     }
 }
 

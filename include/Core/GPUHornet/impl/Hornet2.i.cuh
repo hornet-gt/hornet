@@ -33,7 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "GraphIO/GraphBase.hpp"            //graph::StructureProp 
+#include "GraphIO/GraphBase.hpp"            //graph::StructureProp
 #include "HornetKernels.cuh"
 #include <Device/Primitives/CubWrapper.cuh> //xlib::CubSortByKey
 #include <Host/FileUtil.hpp>                //xlib::MemoryMapped
@@ -65,9 +65,9 @@ void HORNET::transpose() noexcept {
     cuMalloc(d_coo_dst_out, _nE);
     cuMalloc(d_counts_out, _nV + 1);
     cuMalloc(d_unique_out, _nV);
-    cuMemcpyToDeviceAsync(_csr_offsets, _nV + 1, d_csr_offsets);
-    cuMemcpyToDeviceAsync(_csr_edges, _nE, d_coo_dst);
-    cuMemcpyToDeviceAsync(0, d_counts_out + _nV);
+    cuMemcpyToDevice(_csr_offsets, _nV + 1, d_csr_offsets);
+    cuMemcpyToDevice(_csr_edges, _nE, d_coo_dst);
+    cuMemcpyToDevice(0, d_counts_out + _nV);
 
     CSRtoCOOKernel<BLOCK_SIZE>
         <<< xlib::ceil_div(_nV, BLOCK_SIZE), BLOCK_SIZE >>>
@@ -82,9 +82,8 @@ void HORNET::transpose() noexcept {
 
     _csr_offsets = new eoff_t[_nV + 1];
     _csr_edges   = new vid_t[_nV + 1];
-    cuMemcpyToHostAsync(d_counts_out, _nV + 1,
-                        const_cast<eoff_t*>(_csr_offsets));
-    cuMemcpyToHostAsync(d_coo_src_out, _nE, const_cast<vid_t*>(_csr_edges));
+    cuMemcpyToHost(d_counts_out, _nV + 1, const_cast<eoff_t*>(_csr_offsets));
+    cuMemcpyToHost(d_coo_src_out, _nE, const_cast<vid_t*>(_csr_edges));
     _internal_csr_data = true;
     cuFree(d_coo_dst, d_coo_src, d_counts_out, d_unique_out,
            d_coo_src_out, d_counts_out);

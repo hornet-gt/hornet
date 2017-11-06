@@ -49,21 +49,21 @@ int HORNET::batch_preprocessing(BatchUpdate& batch_update, bool is_insert)
     size_t batch_size = batch_update.original_size();
 
     if (batch_update.type() == BatchType::HOST) {
-        cuMemcpyToDeviceAsync(batch_update.original_src_ptr(), batch_size,
-                              _d_batch_src);
-        cuMemcpyToDeviceAsync(batch_update.original_dst_ptr(), batch_size,
-                              _d_batch_dst);
+        cuMemcpyToDevice(batch_update.original_src_ptr(), batch_size,
+                         _d_batch_src);
+        cuMemcpyToDevice(batch_update.original_dst_ptr(), batch_size,
+                         _d_batch_dst);
     }
     else {
-        cuMemcpyDeviceToDevice(batch_update.original_src_ptr(), batch_size,
-                               _d_batch_src);
-        cuMemcpyDeviceToDevice(batch_update.original_dst_ptr(), batch_size,
-                               _d_batch_dst);
+        cuMemcpyDevToDev(batch_update.original_src_ptr(), batch_size,
+                         _d_batch_src);
+        cuMemcpyDevToDev(batch_update.original_dst_ptr(), batch_size,
+                         _d_batch_dst);
     }
     if (_batch_prop == GEN_INVERSE) {
-        cuMemcpyDeviceToDevice(_d_batch_src, batch_size,
+        cuMemcpyDevToDev(_d_batch_src, batch_size,
                                _d_batch_dst + batch_size);
-        cuMemcpyDeviceToDevice(_d_batch_dst, batch_size,
+        cuMemcpyDevToDev(_d_batch_dst, batch_size,
                                _d_batch_src + batch_size);
         batch_size *= 2;
     }
@@ -202,7 +202,7 @@ void HORNET::fixInternalRepresentation(int num_uniques, bool is_insert,
     CHECK_CUDA_ERROR
 
     int h_num_realloc;
-    cuMemcpyToHostAsync(_d_queue_size, h_num_realloc);
+    cuMemcpyToHost(_d_queue_size, h_num_realloc);
 
 #if defined(DEBUG_FIXINTERNAL)
     std::cout << "h_num_realloc: " << h_num_realloc <<std::endl;
@@ -212,11 +212,9 @@ void HORNET::fixInternalRepresentation(int num_uniques, bool is_insert,
     // FIX HORNET INTERNAL REPRESENTATION //
     ////////////////////////////////////////
     if (h_num_realloc > 0) {
-        cuMemcpyToHostAsync(_d_queue_new_degree, h_num_realloc,
-                            _h_queue_new_degree);
-        cuMemcpyToHostAsync(_d_queue_old_ptr, h_num_realloc, _h_queue_old_ptr);
-        cuMemcpyToHostAsync(_d_queue_old_degree, h_num_realloc,
-                            _h_queue_old_degree);
+        cuMemcpyToHost(_d_queue_new_degree, h_num_realloc, _h_queue_new_degree);
+        cuMemcpyToHost(_d_queue_old_ptr, h_num_realloc, _h_queue_old_ptr);
+        cuMemcpyToHost(_d_queue_old_degree, h_num_realloc, _h_queue_old_degree);
 
     #if defined(DEBUG_INSERT)
         cu::printArray(_d_queue_id, h_num_realloc, "realloc ids:\n");
@@ -225,8 +223,7 @@ void HORNET::fixInternalRepresentation(int num_uniques, bool is_insert,
             auto     new_degree = _h_queue_new_degree[i];
             _h_queue_new_ptr[i] = _mem_manager.insert(new_degree).second;
         }
-        cuMemcpyToDeviceAsync(_h_queue_new_ptr, h_num_realloc,
-                              _d_queue_new_ptr);
+        cuMemcpyToDevice(_h_queue_new_ptr, h_num_realloc, _d_queue_new_ptr);
 
         //----------------------------------------------------------------------
         updateVertexDataKernel
@@ -243,7 +240,7 @@ void HORNET::fixInternalRepresentation(int num_uniques, bool is_insert,
         int      prefixsum_size = h_num_realloc;         //alias
 
         degree_t prefixsum_total;                //get the total
-        cuMemcpyToHostAsync(d_prefixsum + prefixsum_size, prefixsum_total);
+        cuMemcpyToHost(d_prefixsum + prefixsum_size, prefixsum_total);
 
         if (prefixsum_total > 0) {
             copySparseToSparse(d_prefixsum, prefixsum_size + 1, prefixsum_total,

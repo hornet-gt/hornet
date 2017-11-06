@@ -137,7 +137,7 @@ void HORNET::initialize() noexcept {
     int num_blockarrays = _mem_manager.num_blockarrays();
     for (int i = 0; i < num_blockarrays; i++) {
         const auto& mem_data = _mem_manager.get_blockarray_ptr(i);
-        cuMemcpyToDeviceAsync(mem_data.first, BLOCKARRAY_SIZE, mem_data.second);
+        cuMemcpyToDevice(mem_data.first, BLOCKARRAY_SIZE, mem_data.second);
     }
     //--------------------------------------------------------------------------
     ////////////////////////

@@ -34,7 +34,7 @@ The document is organized as follows:
 
 The following basic steps are required to build and execute Hornet:
 ```bash
-git clone https://github.com/hornet-gt/hornet
+git clone --recursive https://github.com/hornet-gt/hornet
 cd hornet/build
 cmake ..
 make -j

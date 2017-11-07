@@ -119,7 +119,6 @@
 namespace xlib {
 namespace detail {
 
-
 //==============================================================================
 ////////////////
 //  cuMemset  //
@@ -395,7 +394,7 @@ void cuMemcpy2DToHostAsyncAux(const char* file, int line, const char* func_name,
                               const T* input, size_t rows, size_t cols,
                               T* output, cudaStream_t stream = 0) noexcept {
     cuMemcpy2DAsyncGeneric(file, line, func_name, input, rows, cols, rows,
-                      output, rows, cudaMemcpyDeviceToHost, stream);
+                           output, rows, cudaMemcpyDeviceToHost, stream);
 }
 
 //------------------------------------------------------------------------------
@@ -426,7 +425,7 @@ void cuMemcpy2DDevToDevAsyncAux(const char* file, int line,
                                 size_t rows, size_t cols, size_t src_pitch,
                                 T* output, cudaStream_t stream = 0) noexcept {
     cuMemcpy2DAsyncGeneric(file, line, func_name, input, rows, cols, src_pitch,
-                      output, cudaMemcpyDeviceToDevice, stream);
+                           output, cudaMemcpyDeviceToDevice, stream);
 }
 
 template<typename T>
@@ -435,7 +434,7 @@ void cuMemcpy2DDevToDevAsyncAux(const char* file, int line,
                                 size_t rows, size_t cols, T* output,
                                 cudaStream_t stream = 0) noexcept {
     cuMemcpy2DAsyncGeneric(file, line, func_name, input, rows, cols, rows,
-                      output, rows, cudaMemcpyDeviceToDevice, stream);
+                           output, rows, cudaMemcpyDeviceToDevice, stream);
 }
 
 //==============================================================================
@@ -448,6 +447,17 @@ template<typename T>
 void cuMemcpyToSymbolAsyncAux(const char* file, int line, const char* func_name,
                               const T& input, T& symbol,
                               cudaStream_t stream = 0) noexcept {
+    xlib::__cudaErrorHandler(cudaMemcpyToSymbolAsync(symbol, &input, sizeof(T),
+                                                     cudaMemcpyHostToDevice,
+                                                     stream),
+                                                     "cudaMemcpyToSymbol",
+                                                     file, line, func_name);
+}
+
+template<typename T, int SIZE>
+void cuMemcpyToSymbolAux(const char* file, int line, const char* func_name,
+                         const T& input, T (&symbol)[SIZE],
+                         cudaStream_t stream = 0) noexcept {
     xlib::__cudaErrorHandler(cudaMemcpyToSymbolAsync(symbol, &input, sizeof(T),
                                                      cudaMemcpyHostToDevice,
                                                      stream),

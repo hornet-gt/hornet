@@ -67,6 +67,11 @@
 #endif
 
 ///@cond
+
+#define cuGetSymbolAddress(...)                                                \
+    xlib::detail::cucuGetSymbolAddressAux(__FILE__, __LINE__, __func__,        \
+                                          __VA_ARGS__)                         \
+
 #define cuMalloc(...)                                                          \
     xlib::detail::cuMallocAux(__FILE__, __LINE__, __func__, __VA_ARGS__)       \
 
@@ -133,6 +138,20 @@
 
 namespace xlib {
 namespace detail {
+
+template<typename T>
+void cuGetSymbolAddress(const char* file, int line, const char* func_name,
+                        T& symbol, T*& ptr) noexcept {
+    xlib::__cudaErrorHandler(cudaGetSymbolAddress((void**)&ptr, symbol,
+                             "cudaGetSymbolAddress", file, line, func_name));
+}
+
+template<typename T, int SIZE>
+void cuGetSymbolAddress(const char* file, int line, const char* func_name,
+                        T (&symbol)[SIZE], T*& ptr) noexcept {
+    xlib::__cudaErrorHandler(cudaGetSymbolAddress((void**)&ptr, symbol,
+                             "cudaGetSymbolAddress", file, line, func_name));
+}
 
 ////////////////
 //  cuMalloc  //
@@ -544,6 +563,13 @@ void cuMemcpy2DDevToDevAux(const char* file, int line, const char* func_name,
 template<typename T>
 void cuMemcpyToSymbolAux(const char* file, int line, const char* func_name,
                          const T& input, T& symbol) noexcept {
+    xlib::__cudaErrorHandler(cudaMemcpyToSymbol(symbol, &input, sizeof(T)),
+                             "cudaMemcpyToSymbol", file, line, func_name);
+}
+
+template<typename T, int SIZE>
+void cuMemcpyToSymbolAux(const char* file, int line, const char* func_name,
+                         const T& input, T (&symbol)[SIZE]) noexcept {
     xlib::__cudaErrorHandler(cudaMemcpyToSymbol(symbol, &input, sizeof(T)),
                              "cudaMemcpyToSymbol", file, line, func_name);
 }

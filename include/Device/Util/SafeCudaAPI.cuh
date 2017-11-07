@@ -140,17 +140,17 @@ namespace xlib {
 namespace detail {
 
 template<typename T>
-void cuGetSymbolAddress(const char* file, int line, const char* func_name,
-                        T& symbol, T*& ptr) noexcept {
-    xlib::__cudaErrorHandler(cudaGetSymbolAddress((void**)&ptr, symbol,
-                             "cudaGetSymbolAddress", file, line, func_name));
+void cucuGetSymbolAddressAux(const char* file, int line, const char* func_name,
+                             T& symbol, T*& ptr) noexcept {
+    xlib::__cudaErrorHandler(cudaGetSymbolAddress((void**)&ptr, symbol),
+                             "cudaGetSymbolAddress", file, line, func_name);
 }
 
 template<typename T, int SIZE>
-void cuGetSymbolAddress(const char* file, int line, const char* func_name,
-                        T (&symbol)[SIZE], T*& ptr) noexcept {
-    xlib::__cudaErrorHandler(cudaGetSymbolAddress((void**)&ptr, symbol,
-                             "cudaGetSymbolAddress", file, line, func_name));
+void cucuGetSymbolAddressAux(const char* file, int line, const char* func_name,
+                             T (&symbol)[SIZE], T*& ptr) noexcept {
+    xlib::__cudaErrorHandler(cudaGetSymbolAddress((void**)&ptr, symbol),
+                             "cudaGetSymbolAddress", file, line, func_name);
 }
 
 ////////////////

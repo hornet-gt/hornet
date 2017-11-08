@@ -169,7 +169,9 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
     for (auto i = queue_id; i < size; i += queue_stride) {
         auto src_vtx = hornet.vertex(array[i].x);
         auto dst_vtx = hornet.vertex(array[i].y);
-
+        int u_len = src_vtx.out_degree();
+        int v_len = dst_vtx.out_degree();
+        
         // Find the work required per thread
         int work_per_thread, diag_id;
         workPerThread(u_len, v_len, threads_per_block, id,
@@ -178,8 +180,10 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
         int       work_index = 0;
         int            found = 0;
         vid_t u_min, u_max, v_min, v_max, u_curr, v_curr;
-
-        firstFound[tId] = 0;
+        // firstFound logic
+        __shared__ vid_t firstFound[1024];
+        int tId = threadIdx.x % threads_per_union // ~
+        firstFound[(queue_id*threads_per_union)+tId] = 0; // ~ check
 
         if (work_per_thread > 0) {
             // For the binary search, we are figuring out the initial poT of search.
@@ -191,7 +195,7 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
             bSearch(found, diag_id, u_nodes, v_nodes, &u_len, &u_min, &u_max,
                     &v_min, &v_max, &u_curr, &v_curr);
 
-            op(u_begin, u_end, v_begin, v_end, flag);
+            op(u_curr, u_len, v_curr, v_len, flag);
         }
 
         printf("thread %d - on edge %p %p\n", thread_id, src_adj_iter, dst_adj_iter);

@@ -1,12 +1,11 @@
 /**
- * @internal
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date August, 2017
- * @version v2
+ * @date November, 2017
+ * @version v1.4
  *
- * @copyright Copyright © 2017 Hornet. All rights reserved.
+ * @copyright Copyright © 2017 XLib. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -43,33 +42,25 @@
 namespace timer {
 
 template<typename ChronoPrecision>
-class Timer<DEVICE, ChronoPrecision> :
-        public TimerBase<DEVICE, ChronoPrecision> {
+class Timer<DEVICE, ChronoPrecision> final :
+                      public timer::detail::TimerBase<DEVICE, ChronoPrecision> {
 public:
-    using TimerBase<DEVICE, ChronoPrecision>::print;
-    using TimerBase<DEVICE, ChronoPrecision>::duration;
-    using TimerBase<DEVICE, ChronoPrecision>::total_duration;
-    using TimerBase<DEVICE, ChronoPrecision>::average;
-    using TimerBase<DEVICE, ChronoPrecision>::std_deviation;
-    using TimerBase<DEVICE, ChronoPrecision>::min;
-    using TimerBase<DEVICE, ChronoPrecision>::max;
-    using TimerBase<DEVICE, ChronoPrecision>::reset;
-
     explicit Timer(int decimals = 1, int space = 15,
                    xlib::Color color = xlib::Color::FG_DEFAULT) noexcept;
+
     ~Timer() noexcept;
-    virtual void start() noexcept final;
-    virtual void stop()  noexcept final;
+
+    void start() noexcept override;
+
+    void stop()  noexcept override;
+
 private:
-    using TimerBase<DEVICE, ChronoPrecision>::_time_elapsed;
-    using TimerBase<DEVICE, ChronoPrecision>::_time_squared;
-    using TimerBase<DEVICE, ChronoPrecision>::_total_time_elapsed;
-    using TimerBase<DEVICE, ChronoPrecision>::_num_executions;
-    using TimerBase<DEVICE, ChronoPrecision>::_start_flag;
+    using detail::TimerBase<DEVICE, ChronoPrecision>::_time_elapsed;
+    using detail::TimerBase<DEVICE, ChronoPrecision>::_start_flag;
 
     cudaEvent_t _start_event, _stop_event;
 
-    using TimerBase<DEVICE, ChronoPrecision>::register_time;
+    using detail::TimerBase<DEVICE, ChronoPrecision>::register_time;
 };
 
 } // namespace timer

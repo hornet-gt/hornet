@@ -121,6 +121,17 @@
 
 //------------------------------------------------------------------------------
 
+#define cuMemset2D0x00(...)                                                    \
+    xlib::detail::cuMemset2D0x00Aux(__FILE__, __LINE__, __func__, __VA_ARGS__) \
+
+#define cuMemset2D0xFF(...)                                                    \
+    xlib::detail::cuMemset2D0xFFAux(__FILE__, __LINE__, __func__, __VA_ARGS__) \
+
+#define cuMemset2D(...)                                                        \
+    xlib::detail::cuMemset2DAux(__FILE__, __LINE__, __func__, __VA_ARGS__)     \
+
+//------------------------------------------------------------------------------
+
 #define cuMemcpy2DToDevice(...)                                                \
     xlib::detail::cuMemcpy2DToDeviceAux(__FILE__,  __LINE__, __func__,         \
                                         __VA_ARGS__)                           \
@@ -357,6 +368,56 @@ void cuMemsetAux(const char* file, int line, const char* func_name,
 }
 
 //==============================================================================
+//////////////////
+//  cuMemset2D  //
+//////////////////
+
+template<typename T>
+void cuMemset2DGenericAux(const char* file, int line, const char* func_name,
+                          T* ptr, size_t rows, size_t cols, size_t pitch,
+                          unsigned char mask) noexcept {
+    assert(ptr != nullptr && rows > 0 && cols > 0 && pitch >= cols);
+    char api_name[] = "cudaMemset2D(0x__)";
+    char value1 = static_cast<char>(mask / (0xF));
+    char value2 = static_cast<char>(mask % (0xF));
+    api_name[13] = (value1 <= '9') ? '0' + value1 : 'A' + value1 - 10;
+    api_name[14] = (value2 <= '9') ? '0' + value2 : 'A' + value2 - 10;
+    xlib::__cudaErrorHandler(cudaMemset2D(ptr, pitch * sizeof(T), mask,
+                                          cols * sizeof(T), rows),
+                                          api_name, file, line, func_name);
+}
+
+template<typename T>
+void cuMemset2D0x00Aux(const char* file, int line, const char* func_name,
+                       T* ptr, size_t rows, size_t cols, size_t pitch = 0)
+                       noexcept {
+    pitch = (pitch == 0) ? cols : pitch;
+    cuMemset2DGenericAux(file, line, func_name, ptr, rows, cols, pitch, 0x00);
+}
+
+template<typename T>
+void cuMemset2D0xFFAux(const char* file, int line, const char* func_name,
+                       T* ptr, size_t rows, size_t cols, size_t pitch = 0)
+                       noexcept {
+    pitch = (pitch == 0) ? cols : pitch;
+    cuMemset2DGenericAux(file, line, func_name, ptr, rows, cols, pitch, 0xFF);
+}
+
+template<typename T>
+void cuMemset2DAux(const char* file, int line, const char* func_name,
+                   T* ptr, size_t rows, size_t cols, unsigned char mask)
+                   noexcept {
+    cuMemset2DGenericAux(file, line, func_name, ptr, rows, cols, cols, mask);
+}
+
+template<typename T>
+void cuMemset2DAux(const char* file, int line, const char* func_name,
+                   T* ptr, size_t rows, size_t cols, size_t pitch,
+                   unsigned char mask) noexcept {
+    cuMemset2DGenericAux(file, line, func_name, ptr, rows, cols, pitch, mask);
+}
+
+//==============================================================================
 ////////////////
 //  cuMemcpy  //
 ////////////////
@@ -437,14 +498,14 @@ void cuMemcpy2DGeneric(const char* file, int line, const char* func_name,
                        size_t src_pitch, T* output, size_t dst_pitch,
                        cudaMemcpyKind cuda_memcpy_kind) noexcept {
     assert(input != nullptr && output != nullptr && rows > 0 && cols > 0 &&
-           src_pitch > rows && dst_pitch > rows);
+           src_pitch >= cols && dst_pitch >= cols);
     const char* api_name[] = { "", "cuda2DMemcpy(ToDevice)",
                                "cuda2DMemcpy(ToHost)",
                                "cuda2DMemcpy(DeviceToDevice)", "" };
     const auto& selected = api_name[static_cast<int>(cuda_memcpy_kind)];
     xlib::__cudaErrorHandler(cudaMemcpy2D(output, dst_pitch * sizeof(T), input,
                                           src_pitch * sizeof(T),
-                                          rows * sizeof(T), cols,
+                                          cols * sizeof(T), rows,
                                           cuda_memcpy_kind), selected,
                                           file, line, func_name);
 }
@@ -464,7 +525,7 @@ template<typename T>
 void cuMemcpy2DToDeviceAux(const char* file, int line, const char* func_name,
                            const T* input, size_t rows, size_t cols,
                            T* output, size_t dst_pitch) noexcept {
-    cuMemcpy2DGeneric(file, line, func_name, input, rows, cols, rows,
+    cuMemcpy2DGeneric(file, line, func_name, input, rows, cols, cols,
                       output, dst_pitch, cudaMemcpyHostToDevice);
 }
 
@@ -480,8 +541,8 @@ template<typename T>
 void cuMemcpy2DToDeviceAux(const char* file, int line, const char* func_name,
                            const T* input, size_t rows, size_t cols, T* output)
                            noexcept {
-    cuMemcpy2DGeneric(file, line, func_name, input, rows, cols, rows,
-                      output, rows, cudaMemcpyHostToDevice);
+    cuMemcpy2DGeneric(file, line, func_name, input, rows, cols, cols,
+                      output, cols, cudaMemcpyHostToDevice);
 }
 
 //------------------------------------------------------------------------------
@@ -499,7 +560,7 @@ template<typename T>
 void cuMemcpy2DToHostAux(const char* file, int line, const char* func_name,
                          const T* input, size_t rows, size_t cols,
                          T* output, size_t dst_pitch) noexcept {
-    cuMemcpy2DGeneric(file, line, func_name, input, rows, cols, rows,
+    cuMemcpy2DGeneric(file, line, func_name, input, rows, cols, cols,
                       output, dst_pitch, cudaMemcpyDeviceToHost);
 }
 
@@ -508,15 +569,15 @@ void cuMemcpy2DToHostAux(const char* file, int line, const char* func_name,
                          const T* input, size_t rows, size_t cols,
                          size_t src_pitch, T* output) noexcept {
     cuMemcpy2DGeneric(file, line, func_name, input, rows, cols, src_pitch,
-                      output, cudaMemcpyDeviceToHost);
+                      output, cols, cudaMemcpyDeviceToHost);
 }
 
 template<typename T>
 void cuMemcpy2DToHostAux(const char* file, int line, const char* func_name,
                          const T* input, size_t rows, size_t cols, T* output)
                          noexcept {
-    cuMemcpy2DGeneric(file, line, func_name, input, rows, cols, rows,
-                      output, rows, cudaMemcpyDeviceToHost);
+    cuMemcpy2DGeneric(file, line, func_name, input, rows, cols, cols,
+                      output, cols, cudaMemcpyDeviceToHost);
 }
 
 //------------------------------------------------------------------------------
@@ -534,7 +595,7 @@ template<typename T>
 void cuMemcpy2DDevToDevAux(const char* file, int line, const char* func_name,
                            const T* input, size_t rows, size_t cols,
                            T* output, size_t dst_pitch) noexcept {
-    cuMemcpy2DGeneric(file, line, func_name, input, rows, cols, rows,
+    cuMemcpy2DGeneric(file, line, func_name, input, rows, cols, cols,
                       output, dst_pitch, cudaMemcpyDeviceToDevice);
 }
 
@@ -543,15 +604,15 @@ void cuMemcpy2DDevToDevAux(const char* file, int line, const char* func_name,
                            const T* input, size_t rows, size_t cols,
                            size_t src_pitch, T* output) noexcept {
     cuMemcpy2DGeneric(file, line, func_name, input, rows, cols, src_pitch,
-                      output, cudaMemcpyDeviceToDevice);
+                      output, cols, cudaMemcpyDeviceToDevice);
 }
 
 template<typename T>
 void cuMemcpy2DDevToDevAux(const char* file, int line, const char* func_name,
                            const T* input, size_t rows, size_t cols, T* output)
                            noexcept {
-    cuMemcpy2DGeneric(file, line, func_name, input, rows, cols, rows,
-                      output, rows, cudaMemcpyDeviceToDevice);
+    cuMemcpy2DGeneric(file, line, func_name, input, rows, cols, cols,
+                      output, cols, cudaMemcpyDeviceToDevice);
 }
 
 //==============================================================================

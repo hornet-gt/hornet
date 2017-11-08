@@ -2,10 +2,10 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date July, 2017
- * @version v1.3
+ * @date November, 2017
+ * @version v1.4
  *
- * @copyright Copyright © 2017 Hornet. All rights reserved.
+ * @copyright Copyright © 2017 XLib. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -84,6 +84,8 @@ enum timer_type {  HOST = 0       /// Wall (real) clock host time
                  , DEVICE = 3     /// GPU device time
 };
 
+namespace detail {
+
 /**
  * @brief Timer class
  * @tparam type Timer type (default = HOST)
@@ -99,18 +101,7 @@ class TimerBase {
 
     static_assert(is_duration<ChronoPrecision>::value,
                   "Wrong type : typename is not std::chrono::duration");
-protected:
-    ChronoPrecision   _time_elapsed       {};
-    ChronoPrecision   _time_squared       {};
-    ChronoPrecision   _total_time_elapsed {};
-    ChronoPrecision   _time_min           {};
-    ChronoPrecision   _time_max           {};
-    const int         _decimals           { 0 };
-    const int         _space              { 0 };
-    int               _num_executions     { 0 };
-    const xlib::Color _default_color      { xlib::Color::FG_DEFAULT };
-    bool              _start_flag         { false };
-
+public:
     /**
      * @brief Default costructor
      * @param[in] decimals precision to print the time elapsed
@@ -175,20 +166,35 @@ protected:
     virtual void reset() noexcept final;
 
     /**
-     *
-     */
-    virtual void register_time() noexcept final;
-
-    /**
      * @brief Print the time elapsed between start() and stop() calls
      * @param[in] str print string \p str before the time elapsed
      * @warning if start() and stop() not invoked undefined behavior
      */
-    virtual void print(const std::string& str = "") const noexcept;     //NOLINT
+    virtual void print(const std::string& str) const noexcept;
 
-    virtual void printAll(const std::string& str = "") const noexcept;  //NOLINT
+    virtual void printAll(const std::string& str) const noexcept;
+
+protected:
+    ChronoPrecision _time_elapsed    {};
+    const int         _space         { 0 };
+    const int         _decimals      { 0 };
+    const xlib::Color _default_color { xlib::Color::FG_DEFAULT };
+    bool              _start_flag    { false };
+
+    /**
+     *
+     */
+    virtual void register_time() noexcept final;
+
+private:
+    ChronoPrecision   _time_squared       {};
+    ChronoPrecision   _total_time_elapsed {};
+    ChronoPrecision   _time_min           {};
+    ChronoPrecision   _time_max           {};
+    int               _num_executions     { 0 };
 };
 
+} // namespace detail
 //------------------------------------------------------------------------------
 
 template<timer_type type, typename ChronoPrecision = milli>
@@ -196,87 +202,72 @@ class Timer;
 
 template<typename ChronoPrecision>
 class Timer<HOST, ChronoPrecision> final :
-            public TimerBase<HOST, ChronoPrecision> {
+            public timer::detail::TimerBase<HOST, ChronoPrecision> {
 public:
-    using TimerBase<HOST, ChronoPrecision>::print;
-    using TimerBase<HOST, ChronoPrecision>::duration;
-    using TimerBase<HOST, ChronoPrecision>::total_duration;
-    using TimerBase<HOST, ChronoPrecision>::average;
-    using TimerBase<HOST, ChronoPrecision>::std_deviation;
-    using TimerBase<HOST, ChronoPrecision>::min;
-    using TimerBase<HOST, ChronoPrecision>::max;
-    using TimerBase<HOST, ChronoPrecision>::reset;
-
     explicit Timer(int decimals = 1, int space = 15,
                    xlib::Color color = xlib::Color::FG_DEFAULT) noexcept;
-    virtual void start() noexcept final;
-    virtual void stop()  noexcept final;
+
+    void start() noexcept override;
+
+    void stop()  noexcept override;
+
 private:
-    using TimerBase<HOST, ChronoPrecision>::_time_elapsed;
-    using TimerBase<HOST, ChronoPrecision>::_time_squared;
-    using TimerBase<HOST, ChronoPrecision>::_total_time_elapsed;
-    using TimerBase<HOST, ChronoPrecision>::_num_executions;
-    using TimerBase<HOST, ChronoPrecision>::_start_flag;
+    using timer::detail::TimerBase<HOST, ChronoPrecision>::_time_elapsed;
+    using timer::detail::TimerBase<HOST, ChronoPrecision>::_start_flag;
 
     std::chrono::system_clock::time_point _start_time {};
     std::chrono::system_clock::time_point _stop_time  {};
 
-    using TimerBase<HOST, ChronoPrecision>::register_time;
+    using timer::detail::TimerBase<HOST, ChronoPrecision>::register_time;
 };
+
 //------------------------------------------------------------------------------
 
 template<typename ChronoPrecision>
 class Timer<CPU, ChronoPrecision> final :
-            public TimerBase<CPU, ChronoPrecision> {
+            public timer::detail::TimerBase<CPU, ChronoPrecision> {
 public:
-    using TimerBase<CPU, ChronoPrecision>::print;
-    using TimerBase<CPU, ChronoPrecision>::duration;
-    using TimerBase<CPU, ChronoPrecision>::total_duration;
-    using TimerBase<CPU, ChronoPrecision>::average;
-    using TimerBase<CPU, ChronoPrecision>::std_deviation;
-    using TimerBase<CPU, ChronoPrecision>::min;
-    using TimerBase<CPU, ChronoPrecision>::max;
-    using TimerBase<CPU, ChronoPrecision>::reset;
-
     explicit Timer(int decimals = 1, int space = 15,
                    xlib::Color color = xlib::Color::FG_DEFAULT) noexcept;
-    virtual void start() noexcept final;
-    virtual void stop()  noexcept final;
+
+    void start() noexcept override;
+
+    void stop()  noexcept override;
+
 private:
-    using TimerBase<CPU, ChronoPrecision>::_time_elapsed;
-    using TimerBase<CPU, ChronoPrecision>::_time_squared;
-    using TimerBase<CPU, ChronoPrecision>::_total_time_elapsed;
-    using TimerBase<CPU, ChronoPrecision>::_num_executions;
-    using TimerBase<CPU, ChronoPrecision>::_start_time;
-    using TimerBase<CPU, ChronoPrecision>::_stop_time;
-    using TimerBase<CPU, ChronoPrecision>::_start_flag;
+    using timer::detail::TimerBase<CPU, ChronoPrecision>::_time_elapsed;
+    using timer::detail::TimerBase<CPU, ChronoPrecision>::_start_flag;
 
     std::clock_t _start_clock { 0 };
     std::clock_t _stop_clock  { 0 };
 
-    using TimerBase<CPU, ChronoPrecision>::register_time;
+    using timer::detail::TimerBase<CPU, ChronoPrecision>::register_time;
 };
+
 //------------------------------------------------------------------------------
 
 #if defined(__linux__)
 
 template<typename ChronoPrecision>
 class Timer<SYS, ChronoPrecision> final :
-            public TimerBase<SYS, ChronoPrecision> {
+            public timer::detail::TimerBase<SYS, ChronoPrecision> {
 public:
     explicit Timer(int decimals = 1, int space = 15,
                    xlib::Color color = xlib::Color::FG_DEFAULT) noexcept;
-    virtual void start() noexcept final;
-    virtual void stop()  noexcept final;
-    virtual void print(const std::string& str = "")
-                       const noexcept final;                            //NOLINT
+
+    void start() noexcept override;
+
+    void stop()  noexcept override;
+
+    void print(const std::string& str = "") const noexcept override;
+
 private:
-    using TimerBase<SYS, ChronoPrecision>::_start_time;
-    using TimerBase<SYS, ChronoPrecision>::_stop_time;
-    using TimerBase<SYS, ChronoPrecision>::_start_flag;
-    using TimerBase<SYS, ChronoPrecision>::_default_color;
-    using TimerBase<SYS, ChronoPrecision>::_space;
-    using TimerBase<SYS, ChronoPrecision>::_decimals;
+    using timer::detail::TimerBase<SYS, ChronoPrecision>::_start_flag;
+    using timer::detail::TimerBase<SYS, ChronoPrecision>::_start_time;
+    using timer::detail::TimerBase<SYS, ChronoPrecision>::_stop_time;
+    using timer::detail::TimerBase<SYS, ChronoPrecision>::_default_color;
+    using timer::detail::TimerBase<SYS, ChronoPrecision>::_space;
+    using timer::detail::TimerBase<SYS, ChronoPrecision>::_decimals;
 
     struct ::tms _start_TMS {};
     struct ::tms _end_TMS   {};

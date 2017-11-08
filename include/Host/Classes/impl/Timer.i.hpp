@@ -2,10 +2,10 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date July, 2017
- * @version v1.3
+ * @date November, 2017
+ * @version v1.4
  *
- * @copyright Copyright © 2017 Hornet. All rights reserved.
+ * @copyright Copyright © 2017 XLib. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,7 @@ std::ostream& operator<<(std::ostream& os,
 
 //==============================================================================
 //-------------------------- GENERIC -------------------------------------------
+namespace detail {
 
 template<timer_type type, typename ChronoPrecision>
 TimerBase<type, ChronoPrecision>
@@ -125,34 +126,45 @@ void TimerBase<type, ChronoPrecision>::print(const std::string& str)    //NOLINT
                                              const noexcept {
     xlib::IosFlagSaver tmp;
     std::cout << _default_color
-              << std::right << std::setw(_space - 2) << str << "  "
               << std::fixed << std::setprecision(_decimals)
-              << duration() << ChronoPrecision() << xlib::Color::FG_DEFAULT
-              << std::endl;
+              << std::right << std::setw(_space - 2) << str << "  "
+              << duration() << ChronoPrecision()
+             << xlib::Color::FG_DEFAULT << std::endl;
 }
 
 template<timer_type type, typename ChronoPrecision>
 void TimerBase<type, ChronoPrecision>::printAll(const std::string& str) //NOLINT
-                                                const noexcept{
+                                                const noexcept {
+    xlib::IosFlagSaver tmp;
+    std::cout << _default_color
+              << std::right << std::setw(_space - 2) << str << ":"
+              << std::fixed << std::setprecision(_decimals)
+              << "\n  min: " << min()           << ChronoPrecision()
+              << "\n  max: " << max()           << ChronoPrecision()
+              << "\n  avg: " << average()       << ChronoPrecision()
+              << "\n  dev: " << std_deviation() << ChronoPrecision()
+              << xlib::Color::FG_DEFAULT << std::endl;
 }
+
+} // namespace detail
 
 //==============================================================================
 //-----------------------  HOST ------------------------------------------------
 
 template<typename ChronoPrecision>
-inline Timer<HOST, ChronoPrecision>::Timer(int decimals, int space,
+Timer<HOST, ChronoPrecision>::Timer(int decimals, int space,
                                            xlib::Color color) noexcept :
-        TimerBase<HOST, ChronoPrecision>(decimals, space, color) {}
+      timer::detail::TimerBase<HOST, ChronoPrecision>(decimals, space, color) {}
 
 template<typename ChronoPrecision>
-inline void Timer<HOST, ChronoPrecision>::start() noexcept {
+void Timer<HOST, ChronoPrecision>::start() noexcept {
     assert(!_start_flag);
     _start_flag = true;
     _start_time = std::chrono::system_clock::now();
 }
 
 template<typename ChronoPrecision>
-inline void Timer<HOST, ChronoPrecision>::stop() noexcept {
+void Timer<HOST, ChronoPrecision>::stop() noexcept {
     _stop_time     = std::chrono::system_clock::now();
     _time_elapsed  = ChronoPrecision(_stop_time - _start_time);
     register_time();
@@ -162,19 +174,19 @@ inline void Timer<HOST, ChronoPrecision>::stop() noexcept {
 //-------------------------- CPU -----------------------------------------------
 
 template<typename ChronoPrecision>
-inline Timer<CPU, ChronoPrecision>::Timer(int decimals, int space,
-                                          xlib::Color color) noexcept :
-        TimerBase<CPU, ChronoPrecision>(decimals, space, color) {}
+Timer<CPU, ChronoPrecision>::Timer(int decimals, int space, xlib::Color color)
+                                   noexcept :
+       timer::detail::TimerBase<CPU, ChronoPrecision>(decimals, space, color) {}
 
 template<typename ChronoPrecision>
-inline void Timer<CPU, ChronoPrecision>::start() noexcept {
+void Timer<CPU, ChronoPrecision>::start() noexcept {
     assert(!_start_flag);
-    _start_flag = true;
+    _start_flag  = true;
     _start_clock = std::clock();
 }
 
 template<typename ChronoPrecision>
-inline void Timer<CPU, ChronoPrecision>::stop() noexcept {
+void Timer<CPU, ChronoPrecision>::stop() noexcept {
     _stop_clock = std::clock();
     auto clock_time_elapsed = static_cast<float>(_stop_clock - _start_clock) /
                               static_cast<float>(CLOCKS_PER_SEC);
@@ -189,12 +201,12 @@ inline void Timer<CPU, ChronoPrecision>::stop() noexcept {
 #if defined(__linux__)
 
 template<typename ChronoPrecision>
-inline Timer<SYS, ChronoPrecision>::Timer(int decimals, int space,
-                                          xlib::Color color) noexcept :
-        TimerBase<SYS, ChronoPrecision>(decimals, space, color) {}
+Timer<SYS, ChronoPrecision>::Timer(int decimals, int space, xlib::Color color)
+                                   noexcept :
+       timer::detail::TimerBase<SYS, ChronoPrecision>(decimals, space, color) {}
 
 template<typename ChronoPrecision>
-inline void Timer<SYS, ChronoPrecision>::start() noexcept {
+void Timer<SYS, ChronoPrecision>::start() noexcept {
     assert(!_start_flag);
     _start_flag = true;
     _start_time = std::chrono::system_clock::now();
@@ -202,7 +214,7 @@ inline void Timer<SYS, ChronoPrecision>::start() noexcept {
 }
 
 template<typename ChronoPrecision>
-inline void Timer<SYS, ChronoPrecision>::stop() noexcept {
+void Timer<SYS, ChronoPrecision>::stop() noexcept {
     assert(_start_flag);
     _stop_time = std::chrono::system_clock::now();
     ::times(&_end_TMS);
@@ -210,8 +222,8 @@ inline void Timer<SYS, ChronoPrecision>::stop() noexcept {
 }
 
 template<typename ChronoPrecision>
-inline void Timer<SYS, ChronoPrecision>::print(const std::string& str)  //NOLINT
-                                               const noexcept {
+void Timer<SYS, ChronoPrecision>::print(const std::string& str)  //NOLINT
+                                        const noexcept {
     xlib::IosFlagSaver tmp;
     auto  wall_time_ms = std::chrono::duration_cast<ChronoPrecision>(
                                              _stop_time - _start_time ).count();

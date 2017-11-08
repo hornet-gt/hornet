@@ -1,13 +1,11 @@
 /**
- * @internal
- * @brief Vec-Tree interface
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date August, 2017
- * @version v2
+ * @date November, 2017
+ * @version v1.4
  *
- * @copyright Copyright © 2017 Hornet. All rights reserved.
+ * @copyright Copyright © 2017 XLib. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +32,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
- *
- * @file
  */
 #include <cassert>
 
@@ -44,7 +40,7 @@ namespace timer {
 template<typename ChronoPrecision>
 Timer<DEVICE, ChronoPrecision>
 ::Timer(int decimals, int space, xlib::Color color) noexcept :
-                    TimerBase<DEVICE, ChronoPrecision>(decimals, space, color) {
+     timer::detail::TimerBase<DEVICE, ChronoPrecision>(decimals, space, color) {
     cudaEventCreate(&_start_event);
     cudaEventCreate(&_stop_event);
 }

@@ -220,6 +220,74 @@ void cuMemsetAux(const char* file, int line, const char* func_name,
 }
 
 //==============================================================================
+//////////////////
+//  cuMemset2D  //
+//////////////////
+
+template<typename T>
+void cuMemset2DAsyncGenericAux(const char* file, int line, const char* func_name,
+                          T* ptr, size_t rows, size_t cols, size_t pitch,
+                          unsigned char mask, cudaStream_t stream) noexcept {
+    assert(ptr != nullptr && rows > 0 && cols > 0 && pitch >= cols);
+    char api_name[] = "cudaMemset2DAsync(0x__)";
+    char value1 = static_cast<char>(mask / (0xF));
+    char value2 = static_cast<char>(mask % (0xF));
+    api_name[13] = (value1 <= '9') ? '0' + value1 : 'A' + value1 - 10;
+    api_name[14] = (value2 <= '9') ? '0' + value2 : 'A' + value2 - 10;
+    xlib::__cudaErrorHandler(cudaMemset2DAsync(ptr, pitch * sizeof(T), mask,
+                                               cols * sizeof(T), rows, stream),
+                                               api_name, file, line, func_name);
+}
+
+template<typename T>
+void cuMemset2DAsync0x00Aux(const char* file, int line, const char* func_name,
+                       T* ptr, size_t rows, size_t cols, size_t pitch,
+                       cudaStream_t stream = 0) noexcept {
+    cuMemset2DAsyncGenericAux(file, line, func_name, ptr, rows, cols, pitch,
+                              0x00, stream);
+}
+
+template<typename T>
+void cuMemset2DAsync0x00Aux(const char* file, int line, const char* func_name,
+                       T* ptr, size_t rows, size_t cols,
+                       cudaStream_t stream = 0) noexcept {
+    cuMemset2DAsyncGenericAux(file, line, func_name, ptr, rows, cols, cols,
+                              0x00, stream);
+}
+
+template<typename T>
+void cuMemset2DAsync0xFFAux(const char* file, int line, const char* func_name,
+                       T* ptr, size_t rows, size_t cols,
+                       cudaStream_t stream = 0) noexcept {
+    cuMemset2DAsyncGenericAux(file, line, func_name, ptr, rows, cols, cols,
+                              0xFF, stream);
+}
+
+template<typename T>
+void cuMemset2DAsync0xFFAux(const char* file, int line, const char* func_name,
+                       T* ptr, size_t rows, size_t cols, size_t pitch,
+                       cudaStream_t stream = 0) noexcept {
+    cuMemset2DAsyncGenericAux(file, line, func_name, ptr, rows, cols, pitch,
+                              0xFF, stream);
+}
+
+template<typename T>
+void cuMemset2DAsyncAux(const char* file, int line, const char* func_name,
+                   T* ptr, size_t rows, size_t cols, unsigned char mask,
+                   cudaStream_t stream = 0) noexcept {
+    cuMemset2DAsyncGenericAux(file, line, func_name, ptr, rows, cols, cols,
+                              mask, stream);
+}
+
+template<typename T>
+void cuMemset2DAsyncAux(const char* file, int line, const char* func_name,
+                        T* ptr, size_t rows, size_t cols, size_t pitch,
+                        unsigned char mask, cudaStream_t stream = 0) noexcept {
+    cuMemset2DAsyncGenericAux(file, line, func_name, ptr, rows, cols, pitch,
+                              mask, stream);
+}
+
+//==============================================================================
 ////////////////
 //  cuMemcpy  //
 ////////////////

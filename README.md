@@ -53,7 +53,7 @@ CXX=<path_to_host_C++_compiler>
 To force a different host compiler to compile host side `nvcc` code (`*.cu`)
 substitute `cmake ..` with
  ```bash
-cmake -DCUDAHC=<path_to_host_C++_compiler>
+cmake -DCUDAHC=<path_to_host_C++_compiler> ..
 ```
 Note: host compiler and host side `nvcc` compiler may be different.
 The host side `nvcc` compiler must be compatible with the current CUDA toolkit

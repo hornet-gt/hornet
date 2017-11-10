@@ -1,3 +1,5 @@
+#include "Device/Timer.cuh"
+
 namespace hornets_nest {
 namespace detail {
 
@@ -35,6 +37,7 @@ __global__ void forAllEdgesAdjUnionSequentialKernel(HornetDevice hornet, T* __re
 }
 
 namespace adj_union {
+    /*
     __device__ __forceinline__
     void initialize(degree_t diag_id,
                     degree_t u_len,
@@ -156,10 +159,13 @@ namespace adj_union {
                 high = middle - 1;
         }
     }
+*/
 }
 
 template<typename HornetDevice, typename T, typename Operator>
 __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __restrict__ array, int size, size_t threads_per_union, int flag, Operator op) {
+    return;
+    /*
     using namespace adj_union;
     int       id = blockIdx.x * blockDim.x + threadIdx.x;
     int queue_id = id / threads_per_union;
@@ -200,6 +206,7 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
 
         printf("thread %d - on edge %p %p\n", thread_id, src_adj_iter, dst_adj_iter);
     }
+    */
 }
 
 template<typename Operator>
@@ -281,15 +288,20 @@ namespace adj_unions {
         OPERATOR(Vertex& src, Vertex& dst, Edge& edge) {
             // Choose the bin to place this edge into
             if (src.id() > dst.id()) return; // imposes ordering
-            int bin = 1;
-            if (src.degree() + dst.degree() > 128)
+            int bin = 0;
+            //bin = bin | (1 * (src.degree() + dst.degree() > 128));
+            if (src.degree() + dst.degree() <= 256)
+                bin = 0;
+            else if (src.degree() + dst.degree() <= 256)
                 bin = 1;
+            else if (src.degree() + dst.degree() > 256)
+                return;
 
             // Either count or add the item to the appropriate queue
             if (countOnly)
                 atomicAdd(&(d_queue_info.ptr()->queue_sizes[bin]), 1);
             else
-                d_queue_info().queues[bin].insert({ src.id(), edge.dst_id() });
+                d_queue_info().queues[bin].insert({ src.id(), dst.id() });
         }
     };
 }
@@ -310,7 +322,12 @@ void forAllAdjUnions(HornetClass&         hornet,
 
     // Phase 1: determine and bin all edges based on edge neighbor properties
     // First, count the number to avoid creating excessive queues
+    timer::Timer<timer::DEVICE> TM(5);
+    TM.start();
     forAllEdgesSrcDst(hornet, bin_edges {hd_queue_info, true}, load_balancing);
+    TM.stop();
+    TM.print("counting queues");
+    TM.reset();
     hd_queue_info.sync();
 
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++)
@@ -318,26 +335,34 @@ void forAllAdjUnions(HornetClass&         hornet,
 
     // Next, add each edge into the correct corresponding queue
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++)
-        hd_queue_info().queues[i].initialize((size_t)hd_queue_info().queue_sizes[i]+1);
+        hd_queue_info().queues[i].initialize((size_t)10000000);
+        //hd_queue_info().queues[i].initialize((size_t)hd_queue_info().queue_sizes[i]*2+2);
+    TM.start();
     forAllEdgesSrcDst(hornet, bin_edges {hd_queue_info, false}, load_balancing);
+    TM.stop();
+    TM.print("adding to queues");
+    TM.reset();
 
     // Phase 2: run the operator on each queued edge as appropriate
-    for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++) {
-        hd_queue_info().queues[i].swap();
+    for (auto bin = 0; bin < MAX_ADJ_UNIONS_BINS; bin++) {
+        hd_queue_info().queues[bin].swap();
         size_t threads_per = 0;
         int flag = 0;
         // FIXME: change Operator and its args as well
-        if (hd_queue_info().queue_sizes[i] == 0) continue;
-        if (i == 0) {
+        if (hd_queue_info().queue_sizes[bin] == 0) continue;
+        if (bin == 0 || true) {
             threads_per = 1;
-            forAllEdgesAdjUnionSequential(hornet, hd_queue_info().queues[i], op, flag);
-        } else if (i == 1) {
+            TM.start();
+            forAllEdgesAdjUnionSequential(hornet, hd_queue_info().queues[bin], op, flag);
+            TM.stop();
+            TM.print("running next bin");
+            TM.reset();
+        } else if (bin == 1) {
             threads_per = 8;
-            forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().queues[i], op, threads_per, flag);
-        } else if (i == 2) {
+            //forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().queues[bin], op, threads_per, flag);
+        } else if (bin == 2) {
             // Imbalance case, flag = 1
             flag = 1;
-            //forAllEdgesAdjUnionSequential(hd_queue_info().queues[i], op, threads_per, flag);
         }
     }
 }

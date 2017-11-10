@@ -28,7 +28,7 @@ using namespace hornets_nest;
 // int arrayThreadShift[]={3,4,5};
 int arrayBlocks[]={96000};
 int arrayBlockSize[]={192};
-int arrayThreadPerIntersection[]={8};
+int arrayThreadPerIntersection[]={16};
 int arrayThreadShift[]={3};
 
 int cutoff[]={-1, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300,
@@ -90,7 +90,7 @@ void testTriangleCountingConfigurations(HornetGraph& hornet, vid_t nv,degree_t n
                         int nbl=sps/tsp;
 
                         running_time[q] = time;
-                        //printf("### %d %d %d %d %d \t\t %ld \t %f\n", blocks,sps, tsp, nbl, shifter,sumDevice, time);
+                        printf("### %d %d %d %d %d \t\t %ld \t %f\n", blocks,sps, tsp, nbl, shifter,sumDevice, time);
                         average += time;
                     }
                     average = average/10;
@@ -203,9 +203,9 @@ int* hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
             if((destLen < srcLen - 1380) || destLen > srcLen + 1380) {
                 count ++;
             }
-            int64_t tris= hostSingleIntersection (src, srcLen, ind+off[src],
-                                                    dest, destLen, ind+off[dest]);
-            sum+=tris;
+            //int64_t tris= hostSingleIntersection (src, srcLen, ind+off[src],
+            //                                        dest, destLen, ind+off[dest]);
+            //sum+=tris;
         }
     }    
     printf("max: %d\n", maxd);

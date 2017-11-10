@@ -68,7 +68,7 @@ struct OPERATOR_AdjIntersectionCount2 {
         vid_t vid_curr1;
         vid_t vid_curr2;
         int comp;
-        printf("comparing: %p %p\n", eit1, eit2);
+        //printf("comparing: %p %p\n", eit1, eit2);
         while (eit1 != end1 && eit2 != end2) {
             vid_curr1 = (*eit1).get<0>();
             vid_curr2 = (*eit2).get<0>();

@@ -43,7 +43,7 @@
 #include <iomanip>
 
 namespace xlib {
-
+/*
 void __getLastCudaError(const char* file, int line, const char* func_name) {
     __cudaErrorHandler(cudaGetLastError(), "", file, line, func_name);
 }
@@ -53,8 +53,9 @@ void __safe_call(cudaError_t error, const char* file, int line,
     __cudaErrorHandler(error, "", file, line, func_name);
 }
 
-void __cudaErrorHandler(cudaError_t error, const char* error_message,
-                        const char* file, int line, const char* func_name) {
+void inline __cudaErrorHandler(cudaError_t error, const char* error_message,
+                               const char* file, int line,
+                               const char* func_name) {
     if (cudaSuccess != error) {
         std::cerr << Color::FG_RED << "\nCUDA error\n" << Color::FG_DEFAULT
                   << Emph::SET_UNDERLINE << file
@@ -75,7 +76,7 @@ void __cudaErrorHandler(cudaError_t error, const char* error_message,
         std::atexit(reinterpret_cast<void(*)()>(cudaDeviceReset));
         std::exit(EXIT_FAILURE);
     }
-}
+}*/
 
 int DeviceProperty::NUM_OF_STREAMING_MULTIPROCESSOR = 0;                //NOLINT
 
@@ -93,7 +94,8 @@ void device_info(int device_id) {
     xlib::ThousandSep  tmp2;
 
     int dev_peak_clock;
-    cudaDeviceGetAttribute(&dev_peak_clock, cudaDevAttrClockRate, device_id);
+    SAFE_CALL( cudaDeviceGetAttribute(&dev_peak_clock, cudaDevAttrClockRate,
+                                      device_id) )
     cudaDeviceProp prop;
     SAFE_CALL( cudaGetDeviceProperties(&prop, device_id) )
 

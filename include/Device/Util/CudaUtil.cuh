@@ -42,33 +42,6 @@
 #include <array>            //std::array
 #include <limits>           //std::numeric_limits
 
-#if !defined(NO_CHECK_CUDA_ERROR)
-    #define CHECK_CUDA_ERROR                                                   \
-        {                                                                      \
-            cudaDeviceSynchronize();                                           \
-            xlib::__getLastCudaError(__FILE__, __LINE__, __func__);            \
-        }
-    /*#define CUDA_ERROR(msg)                                                  \
-        {                                                                      \
-            cudaDeviceSynchronize();                                           \
-            xlib::__getLastCudaError(msg, __FILE__, __LINE__, __func__);       \
-        }*/
-#else
-    #define CHECK_CUDA_ERROR
-    //#define CUDA_ERROR(msg)
-#endif
-
-#define SAFE_CALL(function)                                                    \
-    {                                                                          \
-        xlib::__safe_call(function, __FILE__, __LINE__, __func__);             \
-    }
-
-#define CHECK_CUDA_ERROR2                                                      \
-    {                                                                          \
-        cudaDeviceSynchronize();                                               \
-        xlib::__getLastCudaError(__FILE__, __LINE__, __func__);                \
-    }
-
 namespace xlib {
 
 enum THREAD_GROUP { VOID = 0, WARP, BLOCK };
@@ -81,7 +54,7 @@ struct numeric_limits {         // available in CUDA kernels
 };
 
 //------------------------------------------------------------------------------
-
+/*
 void __getLastCudaError(const char* file, int line, const char* func_name);
 
 void __safe_call(cudaError_t error, const char* file, int line,
@@ -89,7 +62,7 @@ void __safe_call(cudaError_t error, const char* file, int line,
 
 void __cudaErrorHandler(cudaError_t error, const char* error_message,
                         const char* file, int line, const char* func_name);
-
+*/
 class DeviceProperty {
     public:
         static int num_SM();

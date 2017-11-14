@@ -33,8 +33,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Host/PrintExt.hpp"             //xlib::printArray
-#include "Device/Util/SafeCudaAPI.cuh"   //cuMemcpyFromSymbol
+#include "Host/PrintExt.hpp"                 //xlib::printArray
+#include "Device/Util/SafeCudaAPISync.cuh"   //cuMemcpyFromSymbol
 
 namespace xlib {
 namespace gpu {

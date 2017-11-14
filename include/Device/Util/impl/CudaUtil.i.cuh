@@ -34,6 +34,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
+#include "Device/Util/SafeCudaAPI.cuh"   //cuFree
+
 namespace xlib {
 
 template<int SIZE>
@@ -43,7 +45,7 @@ CuFreeAtExit<SIZE>::CuFreeAtExit(TArgs... args) noexcept : _tmp {{ args... }} {}
 template<int SIZE>
 CuFreeAtExit<SIZE>::~CuFreeAtExit() noexcept {
     for (const auto& it : _tmp)
-        SAFE_CALL( cudaFree(it) )
+        cuFree(it);
 }
 
 } // namespace xlib

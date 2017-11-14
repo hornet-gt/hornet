@@ -83,6 +83,36 @@ struct OPERATOR_AdjIntersectionCount2 {
     }
 };
 
+/*
+ * Intersect operator optimized for better work-balance opportunities.
+ * Assumption: operates on subarrays of adjacencies of v1 and v2
+ * @input FLAG: indicates specific information regarding this operation
+ */
+struct OPERATOR_AdjIntersectionCount3 {
+    int* vTriangleCounts;
+
+    OPERATOR(vid_t* ui_begin, vid_t* ui_end, vid_t* vi_begin, vid_t* vi_end, int FLAG) {
+        int count = 0;
+        int comp_equals, comp1, comp2, ui_bound, vi_bound;
+        while (vi_begin <= vi_end && ui_begin <= ui_end) {
+            comp_equals = (*ui_begin == *vi_begin);
+            count += comp_equals;
+            comp1 = (*ui_begin >= *vi_begin);
+            comp2 = (*ui_begin <= *vi_begin);
+            ui_bound = (ui_begin == ui_end);
+            vi_bound = (vi_begin == vi_end);
+            // early termination
+            if ((ui_bound && comp2) || (vi_bound && comp1))
+                break;
+            if ((comp1 && !vi_bound) || ui_bound)
+                vi_begin += 1;
+            if ((comp2 && !ui_bound) || vi_bound)
+                ui_begin += 1;
+        }
+        //atomicAdd(vTriangleCounts+v1.id(), equalCount);
+    }
+};
+
 int main(int argc, char* argv[]) {
 
     graph::GraphStd<vid_t, eoff_t> graph;
@@ -102,7 +132,7 @@ int main(int argc, char* argv[]) {
     // Get the edge values
     //load_balacing::VertexBased1 load_balancing { hornet_graph };
     //forAllEdges(hornet_graph, GetAttr { }, load_balancing);
-    forAllAdjUnions(hornet_graph, OPERATOR_AdjIntersectionCount2 { NULL });
+    forAllAdjUnions(hornet_graph, OPERATOR_AdjIntersectionCount3 { NULL });
 
     TM.stop();
     cudaProfilerStop();

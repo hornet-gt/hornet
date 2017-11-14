@@ -37,176 +37,143 @@ __global__ void forAllEdgesAdjUnionSequentialKernel(HornetDevice hornet, T* __re
 }
 
 namespace adj_union {
-    /*
+    
     __device__ __forceinline__
-    void initialize(degree_t diag_id,
-                    degree_t u_len,
-                    degree_t v_len,
-                    vid_t* __restrict__ u_min,
-                    vid_t* __restrict__ u_max,
-                    vid_t* __restrict__ v_min,
-                    vid_t* __restrict__ v_max,
-                    int*   __restrict__ found) {
-        if (diag_id == 0) {
-            *u_min = *u_max = *v_min = *v_max = 0;
-            *found = 1;
-        }
-        else if (diag_id < u_len) {
-            *u_min = 0;
-            *u_max = diag_id;
-            *v_max = diag_id;
-            *v_min = 0;
-        }
-        else if (diag_id < v_len) {
-            *u_min = 0;
-            *u_max = u_len;
-            *v_max = diag_id;
-            *v_min = diag_id - u_len;
-        }
-        else {
-            *u_min = diag_id - v_len;
-            *u_max = u_len;
-            *v_min = diag_id - u_len;
-            *v_max = v_len;
-        }
+    void bSearchPath(vid_t* u, vid_t *v, int u_len, int v_len, 
+                     vid_t low_vi, vid_t low_ui, 
+                     vid_t high_vi, vid_t high_ui, 
+                     vid_t* curr_vi, vid_t* curr_ui) {
+        vid_t mid_ui, mid_vi;
+        int comp1, comp2, comp3;
+        while (1) {
+            mid_ui = (low_ui+high_ui)/2;
+            mid_vi = (low_vi+high_vi+1)/2;
+
+            comp1 = (u[mid_ui] < v[mid_vi]);
+            
+            if (low_ui == high_ui && low_vi == high_vi) {
+                *curr_vi = mid_vi;
+                *curr_ui = mid_ui;
+                break;
+            }
+            if (!comp1) {
+                low_ui = mid_ui;
+                low_vi = mid_vi;
+                continue;
+            }
+
+            comp2 = (u[mid_ui+1] >= v[mid_vi-1]);
+            if (comp1 && !comp2) {
+                high_ui = mid_ui+1;
+                high_vi = mid_vi-1;
+            } else if (comp1 && comp2) {
+                comp3 = (u[mid_ui+1] < v[mid_vi]);
+                *curr_vi = mid_vi-comp3;
+                *curr_ui = mid_ui+comp3;
+                break;
+            }
+       }
     }
-
-    __device__ __forceinline__
-    void workPerThread(degree_t uLength,
-                    degree_t vLength,
-                    int threadsPerIntersection,
-                    int threadId,
-                    int* __restrict__ outWorkPerThread,
-                    int* __restrict__ outDiagonalId) {
-    int      totalWork = uLength + vLength;
-    int  remainderWork = totalWork % threadsPerIntersection;
-    int  workPerThread = totalWork / threadsPerIntersection;
-
-    int longDiagonals  = threadId > remainderWork ? remainderWork : threadId;
-    int shortDiagonals = threadId > remainderWork ? threadId - remainderWork : 0;
-
-    *outDiagonalId     = (workPerThread + 1) * longDiagonals +
-                            workPerThread * shortDiagonals;
-    *outWorkPerThread  = workPerThread + (threadId < remainderWork);
-    }
-
-    __device__ __forceinline__
-    void bSearch(unsigned found,
-                degree_t    diagonalId,
-                const vid_t*  __restrict__ uNodes,
-                const vid_t*  __restrict__ vNodes,
-                const degree_t*  __restrict__ uLength,
-                vid_t* __restrict__ outUMin,
-                vid_t* __restrict__ outUMax,
-                vid_t* __restrict__ outVMin,
-                vid_t* __restrict__ outVMax,
-                vid_t* __restrict__ outUCurr,
-                vid_t* __restrict__ outVCurr) {
-        vid_t length;
-        while (!found){
-            *outUCurr = (*outUMin + *outUMax) >> 1;
-            *outVCurr = diagonalId - *outUCurr;
-            if (*outVCurr >= *outVMax){
-                length = *outUMax - *outUMin;
-                if (length == 1){
-                    found = 1;
-                    continue;
-                }
-            }
-
-            unsigned comp1 = uNodes[*outUCurr] > vNodes[*outVCurr - 1];
-            unsigned comp2 = uNodes[*outUCurr - 1] > vNodes[*outVCurr];
-            if (comp1 && !comp2)
-                found = 1;
-            else if (comp1){
-                *outVMin = *outVCurr;
-                *outUMax = *outUCurr;
-            }
-            else{
-                *outVMax = *outVCurr;
-                *outUMin = *outUCurr;
-            }
-        }
-
-        if (*outVCurr >= *outVMax && length == 1 && *outVCurr > 0 &&
-                *outUCurr > 0 && *outUCurr < *uLength - 1)
-        {
-            unsigned comp1 = uNodes[*outUCurr] > vNodes[*outVCurr - 1];
-            unsigned comp2 = uNodes[*outUCurr - 1] > vNodes[*outVCurr];
-            if (!comp1 && !comp2)
-            {
-                (*outUCurr)++;
-                (*outVCurr)--;
-            }
-        }
-    }
-
-    __device__ __forceinline__
-    void indexBinarySearch(vid_t* data, vid_t arrLen, vid_t key, int& pos) {
-        int low = 0;
-        int high = arrLen - 1;
-        while (high >= low)
-        {
-            int middle = (low + high) / 2;
-            if (data[middle] == key)
-            {
-                pos = middle;
-                return;
-            }
-            if (data[middle] < key)
-                low = middle + 1;
-            if (data[middle] > key)
-                high = middle - 1;
-        }
-    }
-*/
 }
 
 template<typename HornetDevice, typename T, typename Operator>
 __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __restrict__ array, int size, size_t threads_per_union, int flag, Operator op) {
-    return;
-    /*
     using namespace adj_union;
     int       id = blockIdx.x * blockDim.x + threadIdx.x;
     int queue_id = id / threads_per_union;
     int thread_id = id % threads_per_union;
+    int block_local_id = threadIdx.x;
     int stride = blockDim.x * gridDim.x;
     int queue_stride = stride / threads_per_union;
+
+    // TODO: dynamic vs. static shared memory allocation?
+    __shared__ vid_t pathPoints[1024*2]; // i*2+0 = vi, i+2+1 = u_i
     for (auto i = queue_id; i < size; i += queue_stride) {
         auto src_vtx = hornet.vertex(array[i].x);
         auto dst_vtx = hornet.vertex(array[i].y);
-        int u_len = src_vtx.out_degree();
-        int v_len = dst_vtx.out_degree();
+        int srcLen = src_vtx.out_degree();
+        int destLen = dst_vtx.out_degree();
+        int total_work = srcLen + destLen;
+        vid_t src = src_vtx.id();
+        vid_t dest = dst_vtx.id();
+        if (dest < src) //opt
+            continue;   //opt
+
+        bool avoidCalc = (src == dest) || (destLen < 2) || (srcLen < 2);
+        if (avoidCalc)
+            continue;
+
+        // determine u,v where |adj(u)| <= |adj(v)|
+        bool sourceSmaller = srcLen < destLen;
+        vid_t u = sourceSmaller ? src : dest;
+        vid_t v = sourceSmaller ? dest : src;
+        degree_t u_len = sourceSmaller ? srcLen : destLen;
+        degree_t v_len = sourceSmaller ? destLen : srcLen;
+        const vid_t* u_nodes = hornet.vertex(u).neighbor_ptr();
+        const vid_t* v_nodes = hornet.vertex(v).neighbor_ptr();
         
-        // Find the work required per thread
-        int work_per_thread, diag_id;
-        workPerThread(u_len, v_len, threads_per_block, id,
-                    &work_per_thread, &diag_id);
+        int work_per_thread = std::max(total_work/threads_per_union, 1);
+        int diag_id;
+        diag_id = thread_id*work_per_thread;
 
-        int       work_index = 0;
-        int            found = 0;
-        vid_t u_min, u_max, v_min, v_max, u_curr, v_curr;
-        // firstFound logic
-        __shared__ vid_t firstFound[1024];
-        int tId = threadIdx.x % threads_per_union // ~
-        firstFound[(queue_id*threads_per_union)+tId] = 0; // ~ check
-
-        if (work_per_thread > 0) {
+        vid_t low_ui, low_vi, high_vi, high_ui, u_curr, v_curr;
+        if ((diag_id > 0) && (diag_id < total_work-1)) {
             // For the binary search, we are figuring out the initial poT of search.
-            initialize(diag_id, u_len, v_len, &u_min, &u_max,
-                    &v_min, &v_max, &found);
-            u_curr = 0;
-            v_curr = 0;
-
-            bSearch(found, diag_id, u_nodes, v_nodes, &u_len, &u_min, &u_max,
-                    &v_min, &v_max, &u_curr, &v_curr);
-
-            op(u_curr, u_len, v_curr, v_len, flag);
+            if (diag_id < u_len) {
+                low_ui = diag_id-1;
+                high_ui = 0;
+                low_vi = 0;
+                high_vi = diag_id-1;
+            } else if (diag_id < v_len) {
+                low_ui = u_len-1;
+                high_ui = 0;
+                low_vi = diag_id-u_len;
+                high_vi = diag_id-1;
+            } else {
+                low_ui = u_len-1;
+                high_ui = diag_id - v_len;
+                low_vi = diag_id-u_len;
+                high_vi = v_len-1;
+            }
+            bSearchPath(u_nodes, v_nodes, u_len, v_len, low_vi, low_ui, high_vi,
+                     high_ui, &u_curr, &v_curr);
+            pathPoints[block_local_id*2] = v_curr; 
+            pathPoints[block_local_id*2+1] = u_curr; 
         }
 
-        printf("thread %d - on edge %p %p\n", thread_id, src_adj_iter, dst_adj_iter);
+        __syncthreads();
+
+        vid_t vi_begin, ui_begin, vi_end, ui_end;
+        int vi_inBounds, ui_inBounds;
+        if (diag_id == 0) {
+            vi_begin = 0;
+            ui_begin = 0;
+        } else if (diag_id < total_work - 1) {
+            vi_begin = v_curr;
+            ui_begin = u_curr;
+            vi_inBounds = (vi_curr < v_len-1);
+            ui_inBounds = (ui_curr < u_len-1);
+            if (vi_inBounds && ui_inBounds) {
+                int comp = (u_nodes[ui_curr+1] >= v[vi_curr+1]);
+                vi_begin += comp;
+                ui_begin += !comp;
+            } else {
+                vi_begin += vi_inBounds;
+                ui_begin += ui_inBounds;
+            }
+        }
+        if (diag_id < total_work - 1) {
+            vi_end = pathPoints[(block_local_id+1)*2];
+            ui_end = pathPoints[(block_local_id+1)*2+1];
+        } else if ((diag_id < total_work-1) && (diag_id+work_per_thread >= total_work-1)) {
+            vi_end = v_len - 1;
+            ui_end = u_len - 1;
+        }
+        if (diag_id < total_work-1) {
+            op(u_nodes+ui_begin, u_nodes+ui_end, v_nodes+vi_begin, v_nodes+vi_end, flag);
+            // printf("thread %d - on edge %p %p\n", thread_id, src_adj_iter, dst_adj_iter);
+        {
     }
-    */
 }
 
 template<typename Operator>
@@ -359,7 +326,7 @@ void forAllAdjUnions(HornetClass&         hornet,
             TM.reset();
         } else if (bin == 1) {
             threads_per = 8;
-            //forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().queues[bin], op, threads_per, flag);
+            forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().queues[bin], op, threads_per, flag);
         } else if (bin == 2) {
             // Imbalance case, flag = 1
             flag = 1;

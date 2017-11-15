@@ -107,6 +107,8 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
         bool sourceSmaller = srcLen < destLen;
         vid_t u = sourceSmaller ? src : dest;
         vid_t v = sourceSmaller ? dest : src;
+        auto u_vtx = sourceSmaller ? src_vtx : dst_vtx;
+        auto v_vtx = sourceSmaller ? dst_vtx : src_vtx;
         degree_t u_len = sourceSmaller ? srcLen : destLen;
         degree_t v_len = sourceSmaller ? destLen : srcLen;
         vid_t* u_nodes = hornet.vertex(u).neighbor_ptr();
@@ -136,7 +138,7 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
                 high_vi = v_len-1;
             }
             bSearchPath(u_nodes, v_nodes, u_len, v_len, low_vi, low_ui, high_vi,
-                     high_ui, &ui_curr, &vi_curr);
+                     high_ui, &vi_curr, &ui_curr);
             pathPoints[block_local_id*2] = vi_curr; 
             pathPoints[block_local_id*2+1] = ui_curr; 
         }
@@ -162,16 +164,20 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
                 ui_begin += ui_inBounds;
             }
         }
-        if (diag_id < total_work - 1) {
-            vi_end = pathPoints[(block_local_id+1)*2];
-            ui_end = pathPoints[(block_local_id+1)*2+1];
-        } else if ((diag_id < total_work-1) && (diag_id+work_per_thread >= total_work-1)) {
+        
+        if ((diag_id < total_work-1) && (diag_id+work_per_thread >= total_work-1)) {
             vi_end = v_len - 1;
             ui_end = u_len - 1;
+            printf("u=%d, v=%d intersect, diag_id %d: (%d, %d) -> (%d, %d))\n", 
+                    u, v, diag_id, vi_begin, ui_begin, vi_end, ui_end); 
+        } else if (diag_id < total_work - 1) {
+            vi_end = pathPoints[(block_local_id+1)*2];
+            ui_end = pathPoints[(block_local_id+1)*2+1];
+            printf("u=%d, v=%d intersect, diag_id %d: (%d, %d) -> (%d, %d))\n", 
+                    u, v, diag_id, vi_begin, ui_begin, vi_end, ui_end); 
         }
         if (diag_id < total_work-1) {
-            op(u_nodes+ui_begin, u_nodes+ui_end, v_nodes+vi_begin, v_nodes+vi_end, flag);
-            // printf("thread %d - on edge %p %p\n", thread_id, src_adj_iter, dst_adj_iter);
+            op(u_vtx, v_vtx, u_nodes+ui_begin, u_nodes+ui_end, v_nodes+vi_begin, v_nodes+vi_end, flag);
         }
     }
 }

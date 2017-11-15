@@ -91,9 +91,10 @@ struct OPERATOR_AdjIntersectionCount2 {
 struct OPERATOR_AdjIntersectionCount3 {
     int* vTriangleCounts;
 
-    OPERATOR(vid_t* ui_begin, vid_t* ui_end, vid_t* vi_begin, vid_t* vi_end, int FLAG) {
+    OPERATOR(Vertex &u, Vertex& v, vid_t* ui_begin, vid_t* ui_end, vid_t* vi_begin, vid_t* vi_end, int FLAG) {
         int count = 0;
         int comp_equals, comp1, comp2, ui_bound, vi_bound;
+        printf("Intersecting %d, %d: %d -> %d, %d -> %d\n", u.id(), v.id(), *ui_begin, *ui_end, *vi_begin, *vi_end);
         while (vi_begin <= vi_end && ui_begin <= ui_end) {
             comp_equals = (*ui_begin == *vi_begin);
             count += comp_equals;
@@ -115,10 +116,13 @@ struct OPERATOR_AdjIntersectionCount3 {
 
 int main(int argc, char* argv[]) {
 
-    graph::GraphStd<vid_t, eoff_t> graph;
-    CommandLineParam cmd(graph, argc, argv);
-    //graph.print();
+    using namespace graph::structure_prop;
+    using namespace graph::parsing_prop;
 
+    graph::GraphStd<vid_t, eoff_t> graph(UNDIRECTED);
+    //CommandLineParam cmd(graph, argc, argv);
+    //graph.print();
+    graph.read(argv[1], SORT | PRINT_INFO);
     HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
                            graph.csr_out_edges());
 
@@ -129,9 +133,6 @@ int main(int argc, char* argv[]) {
     cudaProfilerStart();
     TM.start();
 
-    // Get the edge values
-    //load_balacing::VertexBased1 load_balancing { hornet_graph };
-    //forAllEdges(hornet_graph, GetAttr { }, load_balancing);
     forAllAdjUnions(hornet_graph, OPERATOR_AdjIntersectionCount3 { NULL });
 
     TM.stop();

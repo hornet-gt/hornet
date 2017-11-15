@@ -50,18 +50,24 @@ void cuSetDevice(int device_index) noexcept {
     SAFE_CALL( cudaSetDevice (device_index) )
 }
 
+int cuGetDevice() noexcept {
+    int device_index;
+    SAFE_CALL( cudaGetDevice (&device_index) )
+    return device_index;
+}
+
 namespace xlib {
 
 void __getLastCudaError(const char* file, int line, const char* func_name) {
     __cudaErrorHandler(cudaGetLastError(), "", file, line, func_name);
 }
 
-void __safe_call(cudaError_t error, const char* file, int line,
+inline void __safe_call(cudaError_t error, const char* file, int line,
                         const char* func_name) {
     __cudaErrorHandler(error, "", file, line, func_name);
 }
 
-void __cudaErrorHandler(cudaError_t error, const char* error_message,
+inline void __cudaErrorHandler(cudaError_t error, const char* error_message,
                                const char* file, int line,
                                const char* func_name) {
     if (cudaSuccess != error) {

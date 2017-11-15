@@ -141,7 +141,13 @@ std::string type_name(T Obj);
 template <class T>
 std::string type_name();
 
-bool is_integer(const std::string& str);
+bool is_integer(const std::string& str) noexcept;
+
+template<unsigned BYTE_SIZE>
+bool is_aligned(void* ptr) noexcept;
+
+template<typename T>
+bool is_aligned(void* ptr) noexcept;
 
 //------------------------------------------------------------------------------
 

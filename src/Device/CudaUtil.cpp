@@ -43,40 +43,6 @@
 #include <iomanip>
 
 namespace xlib {
-/*
-void __getLastCudaError(const char* file, int line, const char* func_name) {
-    __cudaErrorHandler(cudaGetLastError(), "", file, line, func_name);
-}
-
-void __safe_call(cudaError_t error, const char* file, int line,
-                 const char* func_name) {
-    __cudaErrorHandler(error, "", file, line, func_name);
-}
-
-void inline __cudaErrorHandler(cudaError_t error, const char* error_message,
-                               const char* file, int line,
-                               const char* func_name) {
-    if (cudaSuccess != error) {
-        std::cerr << Color::FG_RED << "\nCUDA error\n" << Color::FG_DEFAULT
-                  << Emph::SET_UNDERLINE << file
-                  << Emph::SET_RESET  << "(" << line << ")"
-                  << " [ "
-                  << Color::FG_L_CYAN << func_name << Color::FG_DEFAULT
-                  << " ] : " << error_message
-                  << " -> " << cudaGetErrorString(error)
-                  << "(" << static_cast<int>(error) << ")\n";
-        if (error == cudaErrorMemoryAllocation) {
-            size_t free, total;
-            cudaMemGetInfo(&free, &total);
-            std::cerr << "\nActual allocated memory: " << std::setprecision(1)
-                      << std::fixed << (total - free) / xlib::MB << " MB\n";
-        }
-        std::cerr << std::endl;
-        assert(false);                                                  //NOLINT
-        std::atexit(reinterpret_cast<void(*)()>(cudaDeviceReset));
-        std::exit(EXIT_FAILURE);
-    }
-}*/
 
 int DeviceProperty::NUM_OF_STREAMING_MULTIPROCESSOR = 0;                //NOLINT
 

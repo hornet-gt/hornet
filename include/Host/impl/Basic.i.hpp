@@ -92,8 +92,18 @@ void printRecursive(T x, Ts... args) {
 
 } // namespace detail
 
-inline bool is_integer(const std::string& str) {
+inline bool is_integer(const std::string& str) noexcept {
     return str.find_first_not_of("0123456789") == std::string::npos;
+}
+
+template<unsigned BYTE_SIZE>
+bool is_aligned(void* ptr) noexcept {
+    return (reinterpret_cast<size_t>(ptr) % BYTE_SIZE) == 0;
+}
+
+template<typename T>
+bool is_aligned(void* ptr) noexcept {
+    return is_aligned<sizeof(T)>(ptr);
 }
 
 //------------------------------------------------------------------------------

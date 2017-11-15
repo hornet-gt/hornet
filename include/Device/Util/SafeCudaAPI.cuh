@@ -106,6 +106,8 @@ int cuGetDeviceCount() noexcept;
 
 void cuSetDevice(int device_index) noexcept;
 
+int cuGetDevice() noexcept;
+
 namespace xlib {
 
 void __getLastCudaError(const char* file, int line, const char* func_name);
@@ -216,7 +218,7 @@ void cuMallocHostAux(const char* file, int line, const char* func_name,
 //////////////
 
 template<typename T>
-void cuFreeAux(const char* file, int line, const char* func_name, T* ptr)
+void cuFreeAux(const char* file, int line, const char* func_name, const T* ptr)
                noexcept {
     using   R = typename std::remove_cv<T>::type;
     auto ptr1 = const_cast<R*>(ptr);
@@ -225,11 +227,22 @@ void cuFreeAux(const char* file, int line, const char* func_name, T* ptr)
 
 template<typename T, typename... TArgs>
 void cuFreeAux(const char* file, int line, const char* func_name,
-               T* ptr, TArgs*... ptrs) noexcept {
+               const T* ptr, TArgs*... ptrs) noexcept {
     using   R = typename std::remove_cv<T>::type;
     auto ptr1 = const_cast<R*>(ptr);
     xlib::__cudaErrorHandler(cudaFree(ptr1), "cudaFree", file, line, func_name);
     cuFreeAux(file, line, func_name, ptrs...);
+}
+
+template<typename T, int SIZE>
+void cuFreeAux(const char* file, int line, const char* func_name,
+               T* (&ptr)[SIZE]) noexcept {
+    using   R = typename std::remove_cv<T>::type;
+    for (int i = 0; i < SIZE; i++) {
+        auto ptr1 = const_cast<R*>(ptr[i]);
+        xlib::__cudaErrorHandler(cudaFree(ptr1), "cudaFree", file, line,
+                                 func_name);
+    }
 }
 
 template<typename T>

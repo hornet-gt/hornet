@@ -91,8 +91,8 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
     for (auto i = queue_id; i < size; i += queue_stride) {
         auto src_vtx = hornet.vertex(array[i].x);
         auto dst_vtx = hornet.vertex(array[i].y);
-        int srcLen = src_vtx.out_degree();
-        int destLen = dst_vtx.out_degree();
+        int srcLen = src_vtx.degree();
+        int destLen = dst_vtx.degree();
         int total_work = srcLen + destLen;
         vid_t src = src_vtx.id();
         vid_t dest = dst_vtx.id();
@@ -116,7 +116,7 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
         int diag_id;
         diag_id = thread_id*work_per_thread;
 
-        vid_t low_ui, low_vi, high_vi, high_ui, u_curr, v_curr;
+        vid_t low_ui, low_vi, high_vi, high_ui, ui_curr, vi_curr;
         if ((diag_id > 0) && (diag_id < total_work-1)) {
             // For the binary search, we are figuring out the initial poT of search.
             if (diag_id < u_len) {
@@ -136,9 +136,9 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
                 high_vi = v_len-1;
             }
             bSearchPath(u_nodes, v_nodes, u_len, v_len, low_vi, low_ui, high_vi,
-                     high_ui, &u_curr, &v_curr);
-            pathPoints[block_local_id*2] = v_curr; 
-            pathPoints[block_local_id*2+1] = u_curr; 
+                     high_ui, &ui_curr, &vi_curr);
+            pathPoints[block_local_id*2] = vi_curr; 
+            pathPoints[block_local_id*2+1] = ui_curr; 
         }
 
         __syncthreads();
@@ -149,12 +149,12 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
             vi_begin = 0;
             ui_begin = 0;
         } else if (diag_id < total_work - 1) {
-            vi_begin = v_curr;
-            ui_begin = u_curr;
-            vi_inBounds = (v_curr < v_len-1);
-            ui_inBounds = (u_curr < u_len-1);
+            vi_begin = vi_curr;
+            ui_begin = ui_curr;
+            vi_inBounds = (vi_curr < v_len-1);
+            ui_inBounds = (ui_curr < u_len-1);
             if (vi_inBounds && ui_inBounds) {
-                int comp = (u_nodes[u_curr+1] >= v[v_curr+1]);
+                int comp = (u_nodes[ui_curr+1] >= v_nodes[vi_curr+1]);
                 vi_begin += comp;
                 ui_begin += !comp;
             } else {
@@ -255,15 +255,16 @@ namespace adj_unions {
         OPERATOR(Vertex& src, Vertex& dst, Edge& edge) {
             // Choose the bin to place this edge into
             if (src.id() > dst.id()) return; // imposes ordering
-            int bin = 0;
+            int bin = 1;
             //bin = bin | (1 * (src.degree() + dst.degree() > 128));
+            /*
             if (src.degree() + dst.degree() <= 256)
                 bin = 0;
             else if (src.degree() + dst.degree() <= 256)
                 bin = 1;
             else if (src.degree() + dst.degree() > 256)
                 return;
-
+            */
             // Either count or add the item to the appropriate queue
             if (countOnly)
                 atomicAdd(&(d_queue_info.ptr()->queue_sizes[bin]), 1);
@@ -317,10 +318,10 @@ void forAllAdjUnions(HornetClass&         hornet,
         int flag = 0;
         // FIXME: change Operator and its args as well
         if (hd_queue_info().queue_sizes[bin] == 0) continue;
-        if (bin == 0 || true) {
+        if (false) { // bin == 0
             threads_per = 1;
             TM.start();
-            forAllEdgesAdjUnionSequential(hornet, hd_queue_info().queues[bin], op, flag);
+            // forAllEdgesAdjUnionSequential(hornet, hd_queue_info().queues[bin], op, flag);
             TM.stop();
             TM.print("running next bin");
             TM.reset();

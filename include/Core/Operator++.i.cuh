@@ -151,10 +151,10 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
         } else if (diag_id < total_work - 1) {
             vi_begin = v_curr;
             ui_begin = u_curr;
-            vi_inBounds = (vi_curr < v_len-1);
-            ui_inBounds = (ui_curr < u_len-1);
+            vi_inBounds = (v_curr < v_len-1);
+            ui_inBounds = (u_curr < u_len-1);
             if (vi_inBounds && ui_inBounds) {
-                int comp = (u_nodes[ui_curr+1] >= v[vi_curr+1]);
+                int comp = (u_nodes[u_curr+1] >= v[v_curr+1]);
                 vi_begin += comp;
                 ui_begin += !comp;
             } else {

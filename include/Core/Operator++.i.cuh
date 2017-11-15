@@ -172,7 +172,7 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
         if (diag_id < total_work-1) {
             op(u_nodes+ui_begin, u_nodes+ui_end, v_nodes+vi_begin, v_nodes+vi_end, flag);
             // printf("thread %d - on edge %p %p\n", thread_id, src_adj_iter, dst_adj_iter);
-        {
+        }
     }
 }
 

@@ -112,7 +112,7 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
         const vid_t* u_nodes = hornet.vertex(u).neighbor_ptr();
         const vid_t* v_nodes = hornet.vertex(v).neighbor_ptr();
         
-        int work_per_thread = std::max(total_work/threads_per_union, 1);
+        int work_per_thread = std::max(total_work/threads_per_union, (unsigned long)1);
         int diag_id;
         diag_id = thread_id*work_per_thread;
 

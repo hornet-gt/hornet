@@ -196,7 +196,8 @@ set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-std=c++11"
 ######################
 
 set(GPU_ARCH "" CACHE STRING "compute capability")
-set(SM "" CACHE STRING "streaming multiprocessor number")
+set(GPU_SM   "" CACHE STRING "streaming multiprocessor number")
+set(GPU_NAME "" CACHE STRING "gpu name")
 
 if(GPU_ARCH STREQUAL "")
     if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/build/getDeviceInfo)
@@ -209,14 +210,15 @@ if(GPU_ARCH STREQUAL "")
                     OUTPUT_VARIABLE OUT_VARIABLE)
 
     list(GET OUT_VARIABLE 0 GPU_ARCH)
-    list(GET OUT_VARIABLE 1 SM)
+    list(GET OUT_VARIABLE 1 GPU_SM)
+    list(GET OUT_VARIABLE 2 GPU_NAME)
 endif()
 
-if(NOT SM STREQUAL "")
-    message("\n==> GPU architecture: CC ${GPU_ARCH}"
-            " with ${SM} streaming multiprocessors\n")
+if(NOT GPU_SM STREQUAL "")
+    message("\n==> GPU architecture: ${GPU_NAME}  CC ${GPU_ARCH}"
+            " with ${GPU_SM} streaming multiprocessors\n")
 
-    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DSM=${SM}")
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DSM=${GPU_SM}")
 else()
     message("\n==> GPU architecture: ${GPU_ARCH}\n")
 endif()
@@ -241,9 +243,11 @@ elseif (GPU_ARCH STREQUAL "61")
     list(APPEND CUDA_NVCC_FLAGS "-arch=sm_61" "-DARCH=610")
 elseif (GPU_ARCH STREQUAL "62")
     list(APPEND CUDA_NVCC_FLAGS "-arch=sm_62" "-DARCH=620")
+elseif (GPU_ARCH STREQUAL "70")
+    list(APPEND CUDA_NVCC_FLAGS "-arch=sm_70" "-DARCH=700")
 else()
     message(FATAL_ERROR "\nplease select GPU architecture:
-    \"cmake -DARCH=[ 30 | 32 | 35 | 37 | 50 | 52 | 53 | 60 | 61 | 62 ]\"")
+    \"cmake -DARCH=[ 30 | 32 | 35 | 37 | 50 | 52 | 53 | 60 | 61 | 62 | 70 ]\"")
 endif()
 
 #===============================================================================

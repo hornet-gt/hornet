@@ -143,7 +143,7 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
             pathPoints[block_local_id*2+1] = ui_curr; 
         }
 
-        __syncthreads();
+        //__syncthreads();
 
         vid_t vi_begin, ui_begin, vi_end, ui_end;
         int vi_inBounds, ui_inBounds;

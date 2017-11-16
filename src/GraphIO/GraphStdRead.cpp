@@ -150,7 +150,7 @@ void GraphStd<vid_t, eoff_t>::readDimacs10(std::ifstream& fin, bool print){
         if (print)
             progress.next(lines);
     }
-    assert(count_edges == static_cast<size_t>(_nE));
+    //assert(count_edges == ginfo.num_edges);
 }
 
 //------------------------------------------------------------------------------

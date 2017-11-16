@@ -84,7 +84,8 @@ template<typename vid_t, typename eoff_t>
 void GraphStd<vid_t, eoff_t>::allocate(const GInfo& ginfo) noexcept {
     allocateAux(ginfo);
     try {
-        _coo_edges = new coo_t[ _nE ];
+        size_t allocate_size = _undirected_to_directed ? ginfo.num_edges : _nE;
+        _coo_edges = new coo_t[ allocate_size ];
     } catch (const std::bad_alloc&) {
         ERROR("OUT OF MEMORY: Graph too Large !!  V: ", _nV, " E: ", _nE)
     }

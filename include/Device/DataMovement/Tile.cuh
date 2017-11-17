@@ -1,118 +1,120 @@
+#pragma once
 
-template<unsigned BLOCK_SIZE, typename VType, unsigned UNROLL_STEPS = 1>
+#define TileT1      Tile<BLOCK_SIZE,T,VType,UNROLL_STEPS>
+#define TileT2      Tile<BLOCK_SIZE,T,VType,UNROLL_STEPS,2>
+#define TileT       Tile<BLOCK_SIZE,T,VType,UNROLL_STEPS,LDG_FACTOR>
+#define LoadTileT   LoadTile<BLOCK_SIZE,T,VType,UNROLL_STEPS>
+#define IlLoadTileT IlLoadTile<BLOCK_SIZE,T,VType,UNROLL_STEPS>
+#define StoreTileT  StoreTile<BLOCK_SIZE,T,VType,UNROLL_STEPS>
+
+template<unsigned BLOCK_SIZE, typename T, typename VType,
+         unsigned UNROLL_STEPS, unsigned LDG_FACTOR = 1>
 class Tile {
+    static_assert(sizeof(VType) % sizeof(T) == 0,
+                  "sizeof(VType) must be a multiple of sizeof(T)");
+protected:
     static const unsigned        RATIO = sizeof(VType) / sizeof(T);
 public:
+    static const unsigned THREAD_ITEMS = UNROLL_STEPS * RATIO * LDG_FACTOR;
 
     __device__ __forceinline__
-    bool is_valid() const {
-        return _index < _size;
-    }
+    Tile(int num_items);
 
     __device__ __forceinline__
-    int last_index() const {
-        return _size * THREAD_ITEMS;
-    }
+    bool is_valid() const;
 
-private:
-    int _index;
-    int _size;
-    T*  _ptr;
-    int _stride;
-    int _full_stride
+    __device__ __forceinline__
+    int last_index() const;
+
+    __device__ __forceinline__
+    int stride() const;
+
+protected:
+    int   _index;
+    int   _stride;
+    int   _size;
+    int   _full_stride;
 };
 
+//==============================================================================
 
-    template<typename T, int SIZE>
-    __device__ __forceinline__
-    void write(const T (&array)[SIZE]) {
-
-    }
-
-
-template<unsigned BLOCK_SIZE, typename VType, unsigned UNROLL_STEPS = 1>
-class IlLoadTile : public Tile<> {
-    static const unsigned THREAD_ITEMS = UNROLL_STEPS * 2 * RATIO;
-
-    template<typename T>
-    IlLoad(const T* ptr, int num_items) :
-                _index(blockIdx.x * BLOCK_SIZE + threadIdx.x),
-                _size(xlib::lower_approx<WARP_SIZE>(num_items / THREAD_ITEMS)),
-                _stride(gridDim.x * BLOCK_SIZE),
-                _ptr(ptr + _index * RATIO),
-                _full_stride(_stride * THREAD_ITEMS) {
-
-        static_assert(sizeof(VType) % sizeof(T) == 0,
-                      "VType and T do not match");
-        assert(xlib::is_aligned<VType>(ptr) && "ptr not aligned to VType");
-    }
-
-    template<typename T, int SIZE>
-    void load(T (&array)[SIZE]) {
-        const auto& d_in = reinterpret_cast<const VType*>(_ptr);
-        auto&      l_out = reinterpret_cast<VType*>(array);
-
-        #pragma unroll
-        for (int J = 0; J < UNROLL_STEPS; J++) {
-            l_out[J * 2]     = d_in[_stride * J * 2];
-            l_out[J * 2 + 1] = __ldg(&d_in[_stride * (J * 2 + 1)]);
-        }
-        _index += _full_stride;
-        _ptr   += _full_stride;
-    }
-
-    template<typename T, int SIZE>
-    __device__ __forceinline__
-    void load(T (&array)[SIZE], int (&indices)[SIZE]) {
-        const auto& d_in = reinterpret_cast<const VType*>(_ptr);
-        auto&      l_out = reinterpret_cast<VType*>(array);
-
-        #pragma unroll
-        for (int J = 0; J < UNROLL_STEPS; J++) {
-            #pragma unroll
-            for (int K = 0; K < RATIO; K++) {
-                const int STEP1 = RATIO * (J * 2) + K;
-                const int STEP2 = RATIO * (J * 2 + 1) + K;
-                indices[STEP1]  = RATIO * (i + _stride * J * 2) + K;
-                indices[STEP2]  = RATIO * (i + _stride * (J * 2 + 1)) + K;
-            }
-            l_out[J * 2]     = d_in[_stride * J * 2];
-            l_out[J * 2 + 1] = __ldg(&d_in[_stride * (J * 2 + 1)]);
-        }
-        _index += _full_stride;
-        _ptr   += _full_stride;
-    }
-};
-
-template<unsigned BLOCK_SIZE, typename VType, unsigned UNROLL_STEPS = 1>
-class LoadTile : public Tile<> {
+template<unsigned BLOCK_SIZE, typename T, typename VType = T,
+         unsigned UNROLL_STEPS = 1>
+class StoreTile : public TileT1 {
 public:
+    using TileT1::THREAD_ITEMS;
 
-    template<typename T, int SIZE>
-    void load(T (&array)[SIZE]) {
-        const auto& d_in = reinterpret_cast<const VType*>(_ptr);
-        auto&      l_out = reinterpret_cast<VType*>(array);
-
-        #pragma unroll
-        for (int J = 0; J < UNROLL_STEPS; J++)
-            l_out[J] = d_in[stride * J];
-        _index += _full_stride;
-        _ptr   += _full_stride;
-    }
-
-    template<typename T, int SIZE>
     __device__ __forceinline__
-    void load(T (&array)[SIZE], int (&indices)[SIZE]) {
-        const auto& d_in = reinterpret_cast<const VType*>(_ptr);
-        auto&      l_out = reinterpret_cast<VType*>(array);
+    StoreTile(T* ptr, int num_items);
 
-        #pragma unroll
-        for (int J = 0; J < UNROLL_STEPS; J++) {
-            #pragma unroll
-            for (int K = 0; K < RATIO; K++)
-                indices[RATIO * J + K] = RATIO * (_index + _stride * J) + K;
-            l_out[J] = d_in[_stride * J];
-        }
-        _index += _full_stride;
-        _ptr   += _full_stride;
-    }
+    __device__ __forceinline__
+    void store(T (&array)[THREAD_ITEMS]);
+private:
+    T* _ptr;
+    using TileT1::_index;
+    using TileT1::_stride;
+    using TileT1::_full_stride;
+
+    using TileT1::_size;
+};
+
+//==============================================================================
+
+template<unsigned BLOCK_SIZE, typename T, typename VType = T,
+         unsigned UNROLL_STEPS = 1>
+class LoadTile : public TileT1 {
+public:
+    using TileT1::THREAD_ITEMS;
+
+    __device__ __forceinline__
+    LoadTile(const T* ptr, int num_items);
+
+    __device__ __forceinline__
+    void load(T (&array)[THREAD_ITEMS]);
+
+    __device__ __forceinline__
+    void load(T (&array)[THREAD_ITEMS],
+              int (&indices)[THREAD_ITEMS]);
+private:
+    const T* _ptr;
+    using TileT1::_index;
+    using TileT1::_stride;
+    using TileT1::_full_stride;
+    using TileT1::RATIO;
+
+    using TileT1::_size;
+
+};
+
+//==============================================================================
+
+template<unsigned BLOCK_SIZE, typename T, typename VType,
+         unsigned UNROLL_STEPS = 1>
+class IlLoadTile : public TileT2 {
+public:
+    using TileT2::THREAD_ITEMS;
+
+    __device__ __forceinline__
+    IlLoadTile(const T* ptr, int num_items);
+
+    __device__ __forceinline__
+    void load(T (&array)[THREAD_ITEMS]);
+
+    __device__ __forceinline__
+    void load(T (&array)[THREAD_ITEMS], int (&indices)[THREAD_ITEMS]);
+private:
+    const T* _ptr;
+    using TileT2::_index;
+    using TileT2::_stride;
+    using TileT2::_full_stride;
+    using TileT2::RATIO;
+};
+
+#include "Tile.i.cuh"
+
+#undef TileT
+#undef TileT1
+#undef TileT2
+#undef IlLoadTileT
+#undef LoadTileT
+#undef StoreTileT

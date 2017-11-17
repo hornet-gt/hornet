@@ -97,12 +97,14 @@ inline bool is_integer(const std::string& str) noexcept {
 }
 
 template<unsigned BYTE_SIZE>
-bool is_aligned(void* ptr) noexcept {
+HOST_DEVICE
+bool is_aligned(const void* ptr) noexcept {
     return (reinterpret_cast<size_t>(ptr) % BYTE_SIZE) == 0;
 }
 
 template<typename T>
-bool is_aligned(void* ptr) noexcept {
+HOST_DEVICE
+bool is_aligned(const void* ptr) noexcept {
     return is_aligned<sizeof(T)>(ptr);
 }
 

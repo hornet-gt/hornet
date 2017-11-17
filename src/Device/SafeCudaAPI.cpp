@@ -62,14 +62,14 @@ void __getLastCudaError(const char* file, int line, const char* func_name) {
     __cudaErrorHandler(cudaGetLastError(), "", file, line, func_name);
 }
 
-inline void __safe_call(cudaError_t error, const char* file, int line,
-                        const char* func_name) {
+void __safe_call(cudaError_t error, const char* file, int line,
+                 const char* func_name) {
     __cudaErrorHandler(error, "", file, line, func_name);
 }
 
-inline void __cudaErrorHandler(cudaError_t error, const char* error_message,
-                               const char* file, int line,
-                               const char* func_name) {
+void __cudaErrorHandler(cudaError_t error, const char* error_message,
+                        const char* file, int line,
+                        const char* func_name) {
     if (cudaSuccess != error) {
         std::cerr << Color::FG_RED << "\nCUDA error\n" << Color::FG_DEFAULT
                   << Emph::SET_UNDERLINE << file

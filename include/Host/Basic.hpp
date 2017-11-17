@@ -144,10 +144,12 @@ std::string type_name();
 bool is_integer(const std::string& str) noexcept;
 
 template<unsigned BYTE_SIZE>
-bool is_aligned(void* ptr) noexcept;
+HOST_DEVICE
+bool is_aligned(const void* ptr) noexcept;
 
 template<typename T>
-bool is_aligned(void* ptr) noexcept;
+HOST_DEVICE
+bool is_aligned(const void* ptr) noexcept;
 
 //------------------------------------------------------------------------------
 

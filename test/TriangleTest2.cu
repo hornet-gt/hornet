@@ -68,7 +68,7 @@ void hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
         }
     }    
     *allTriangles=sum;
-    printf("Sequential number of triangles %ld\n",sum);
+    //printf("Sequential number of triangles %ld\n",sum);
 }
 
 
@@ -85,9 +85,7 @@ int main(int argc, char* argv[]) {
     HornetGraph hornet_graph(hornet_init);
     //hornet_graph.print();
     TriangleCounting2 tc(hornet_graph);
-    printf("After tc constructor\n");
     tc.init();
-    printf("After tc.init()\n");
     Timer<DEVICE> TM(5);
     cudaProfilerStart();
     TM.start();

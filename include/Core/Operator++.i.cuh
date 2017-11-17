@@ -82,6 +82,7 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
     int       id = blockIdx.x * blockDim.x + threadIdx.x;
     int queue_id = id / threads_per_union;
     int thread_id = id % threads_per_union;
+    int thread_union_id = threadIdx.x % threads_per_union;
     int block_local_id = threadIdx.x;
     int stride = blockDim.x * gridDim.x;
     int queue_stride = stride / threads_per_union;
@@ -93,7 +94,7 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
         auto dst_vtx = hornet.vertex(array[i].y);
         int srcLen = src_vtx.degree();
         int destLen = dst_vtx.degree();
-        int total_work = srcLen + destLen;
+        int total_work = srcLen + destLen - 1;
         vid_t src = src_vtx.id();
         vid_t dest = dst_vtx.id();
         if (dest < src) //opt
@@ -114,12 +115,15 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
         vid_t* u_nodes = hornet.vertex(u).neighbor_ptr();
         vid_t* v_nodes = hornet.vertex(v).neighbor_ptr();
         
-        int work_per_thread = std::max(total_work/threads_per_union, (unsigned long)1);
-        int diag_id;
-        diag_id = thread_id*work_per_thread;
-
+        int work_per_thread = total_work/threads_per_union;
+        int remainder_work = total_work % threads_per_union;
+        int diag_id, next_diag_id;
+        diag_id = thread_union_id*work_per_thread + std::min(thread_union_id, remainder_work);
+        next_diag_id = (thread_union_id+1)*work_per_thread + std::min(thread_union_id+1, remainder_work);
+        //printf("u=%d, v=%d, diag_id=%d, union_id=%d, total_work=%d, work_per_thread=%d, remainder_work=%d\n",
+        //        u, v, diag_id, thread_union_id, total_work, work_per_thread, remainder_work);
         vid_t low_ui, low_vi, high_vi, high_ui, ui_curr, vi_curr;
-        if ((diag_id > 0) && (diag_id < total_work-1)) {
+        if (diag_id > 0 && diag_id < total_work) {
             // For the binary search, we are figuring out the initial poT of search.
             if (diag_id < u_len) {
                 low_ui = diag_id-1;
@@ -151,7 +155,7 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
         if (diag_id == 0) {
             vi_begin = 0;
             ui_begin = 0;
-        } else if (diag_id < total_work - 1) {
+        } else if (diag_id > 0 && diag_id < total_work) {
             vi_begin = vi_curr;
             ui_begin = ui_curr;
             vi_inBounds = (vi_curr < v_len-1);
@@ -166,18 +170,19 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
             }
         }
         
-        if ((diag_id < total_work-1) && (diag_id+work_per_thread >= total_work-1)) {
+        if ((diag_id < total_work) && (next_diag_id >= total_work)) {
             vi_end = v_len - 1;
             ui_end = u_len - 1;
-            printf("u=%d, v=%d intersect, diag_id %d: (%d, %d) -> (%d, %d))\n", 
-                    u, v, diag_id, vi_begin, ui_begin, vi_end, ui_end); 
-        } else if (diag_id < total_work - 1) {
+            //printf("u=%d, v=%d intersect, diag_id %d, union_id %d: (%d, %d) -> (%d, %d))\n", 
+            //        u, v, diag_id, thread_union_id, vi_begin, ui_begin, vi_end, ui_end); 
+        } else if (diag_id < total_work) {
             vi_end = pathPoints[(block_local_id+1)*2];
             ui_end = pathPoints[(block_local_id+1)*2+1];
-            printf("u=%d, v=%d intersect, diag_id %d: (%d, %d) -> (%d, %d))\n", 
-                    u, v, diag_id, vi_begin, ui_begin, vi_end, ui_end); 
+
+            //printf("u=%d, v=%d intersect, diag_id %d, union_id %d: (%d, %d) -> (%d, %d))\n", 
+            //        u, v, diag_id, thread_union_id, vi_begin, ui_begin, vi_end, ui_end); 
         }
-        if (diag_id < total_work-1) {
+        if (diag_id < total_work) {
             op(u_vtx, v_vtx, u_nodes+ui_begin, u_nodes+ui_end, v_nodes+vi_begin, v_nodes+vi_end, flag);
         }
     }
@@ -293,16 +298,12 @@ void forAllAdjUnions(HornetClass&         hornet,
 
     // Initialize queue sizes to zero
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++)
-        hd_queue_info().queue_sizes[i] = 0;
-
-    // Phase 1: determine and bin all edges based on edge neighbor properties
-    // First, count the number to avoid creating excessive queues
     timer::Timer<timer::DEVICE> TM(5);
-    TM.start();
+    //TM.start();
     forAllEdgesSrcDst(hornet, bin_edges {hd_queue_info, true}, load_balancing);
-    TM.stop();
-    TM.print("counting queues");
-    TM.reset();
+    //TM.stop();
+    //TM.print("counting queues");
+    //TM.reset();
     hd_queue_info.sync();
 
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++)
@@ -310,13 +311,13 @@ void forAllAdjUnions(HornetClass&         hornet,
 
     // Next, add each edge into the correct corresponding queue
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++)
-        hd_queue_info().queues[i].initialize((size_t)10000000);
+        hd_queue_info().queues[i].initialize((size_t)100000000);
         //hd_queue_info().queues[i].initialize((size_t)hd_queue_info().queue_sizes[i]*2+2);
-    TM.start();
+    //TM.start();
     forAllEdgesSrcDst(hornet, bin_edges {hd_queue_info, false}, load_balancing);
-    TM.stop();
-    TM.print("adding to queues");
-    TM.reset();
+    //TM.stop();
+    //TM.print("adding to queues");
+    //TM.reset();
 
     // Phase 2: run the operator on each queued edge as appropriate
     for (auto bin = 0; bin < MAX_ADJ_UNIONS_BINS; bin++) {
@@ -327,13 +328,13 @@ void forAllAdjUnions(HornetClass&         hornet,
         if (hd_queue_info().queue_sizes[bin] == 0) continue;
         if (false) { // bin == 0
             threads_per = 1;
-            TM.start();
+            //TM.start();
             // forAllEdgesAdjUnionSequential(hornet, hd_queue_info().queues[bin], op, flag);
-            TM.stop();
-            TM.print("running next bin");
-            TM.reset();
+            //TM.stop();
+            //TM.print("running next bin");
+            //TM.reset();
         } else if (bin == 1) {
-            threads_per = 4;
+            threads_per = 8;
             forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().queues[bin], op, threads_per, flag);
         } else if (bin == 2) {
             // Imbalance case, flag = 1

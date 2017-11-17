@@ -143,9 +143,10 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
             pathPoints[block_local_id*2+1] = ui_curr; 
         }
 
-        //__syncthreads();
+        //  __syncthreads();
 
         vid_t vi_begin, ui_begin, vi_end, ui_end;
+        vi_begin = ui_begin = vi_end = ui_end = -1;
         int vi_inBounds, ui_inBounds;
         if (diag_id == 0) {
             vi_begin = 0;
@@ -332,7 +333,7 @@ void forAllAdjUnions(HornetClass&         hornet,
             TM.print("running next bin");
             TM.reset();
         } else if (bin == 1) {
-            threads_per = 8;
+            threads_per = 4;
             forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().queues[bin], op, threads_per, flag);
         } else if (bin == 2) {
             // Imbalance case, flag = 1

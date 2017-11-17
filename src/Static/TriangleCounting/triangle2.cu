@@ -4,14 +4,15 @@
 
 #include "Static/TriangleCounting/triangle2.cuh"
 
-using namespace hornets_nest;
+namespace hornets_nest {
 
-TriangleCounting::TriangleCounting(HornetGraph& hornet) :
+TriangleCounting2::TriangleCounting2(HornetGraph& hornet) :
                                        StaticAlgorithm(hornet)
+
 {                                       
 }
 
-TriangleCounting::~TriangleCounting(){
+TriangleCounting2::~TriangleCounting2(){
     release();
 }
 
@@ -81,7 +82,7 @@ struct OPERATOR_AdjIntersectionCountBalanced {
 };
 
 
-triangle_t TriangleCounting::countTriangles(){
+triangle_t TriangleCounting2::countTriangles(){
 
     triangle_t* h_triPerVertex;
     host::allocate(h_triPerVertex, hornet.nV());
@@ -98,23 +99,27 @@ triangle_t TriangleCounting::countTriangles(){
 }
 
 
-void TriangleCounting::reset(){
+void TriangleCounting2::reset(){
+    //printf("Inside reset()\n");
     forAllVertices(hornet, OPERATOR_InitTriangleCounts { triPerVertex });
 }
 
-void TriangleCounting::run(){
+void TriangleCounting2::run(){
+    //printf("Inside run()\n");
     forAllAdjUnions(hornet, OPERATOR_AdjIntersectionCountBalanced { triPerVertex });
 }
 
 
-void TriangleCounting::release(){
+void TriangleCounting2::release(){
+    //printf("Inside release\n");
     gpu::free(triPerVertex);
     triPerVertex = nullptr;
 }
 
-void TriangleCounting::init(){
+void TriangleCounting2::init(){
+    //printf("Inside init()\n");
     gpu::allocate(triPerVertex, hornet.nV());
     reset();
 }
 
-
+} // namespace hornets_nest

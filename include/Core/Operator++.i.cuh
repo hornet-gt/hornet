@@ -252,34 +252,35 @@ void forAllEdgesKernel(const eoff_t* __restrict__ csr_offsets,
 //==============================================================================
 //==============================================================================
 // stub
-#define MAX_ADJ_UNIONS_BINS 2
+#define MAX_ADJ_UNIONS_BINS 5
 namespace adj_unions {
     struct queue_info {
-        int queue_sizes[MAX_ADJ_UNIONS_BINS];
+        int queue_sizes[MAX_ADJ_UNIONS_BINS] = {0,0,0,0,0};
         TwoLevelQueue<vid2_t> queues[MAX_ADJ_UNIONS_BINS];
+        int threads_per_intersect[MAX_ADJ_UNIONS_BINS] = {1,4,8,16,32};
     };
 
     struct bin_edges {
         HostDeviceVar<queue_info> d_queue_info;
         bool countOnly;
+        int total_work, work_per_thread, bin_index;
         OPERATOR(Vertex& src, Vertex& dst, Edge& edge) {
             // Choose the bin to place this edge into
-            if (src.id() > dst.id()) return; // imposes ordering
-            int bin = 1;
-            //bin = bin | (1 * (src.degree() + dst.degree() > 128));
-            /*
-            if (src.degree() + dst.degree() <= 256)
-                bin = 0;
-            else if (src.degree() + dst.degree() <= 256)
-                bin = 1;
-            else if (src.degree() + dst.degree() > 256)
-                return;
-            */
+            if (src.id() >= dst.id()) return; // imposes ordering
+            total_work = dst.degree() + src.degree() - 1;
+            bin_index = MAX_ADJ_UNIONS_BINS-1;
+            while (bin_index > 0) {
+               work_per_thread = total_work / (d_queue_info.ptr()->threads_per_intersect[bin_index]);
+               //printf("work_per_thread: %d\n", work_per_thread);
+               if (work_per_thread >= 7)
+                   break;
+               bin_index -= 1;
+            }
             // Either count or add the item to the appropriate queue
             if (countOnly)
-                atomicAdd(&(d_queue_info.ptr()->queue_sizes[bin]), 1);
+                atomicAdd(&(d_queue_info.ptr()->queue_sizes[bin_index]), 1);
             else
-                d_queue_info().queues[bin].insert({ src.id(), dst.id() });
+                d_queue_info().queues[bin_index].insert({ src.id(), dst.id() });
         }
     };
 }
@@ -322,8 +323,11 @@ void forAllAdjUnions(HornetClass&         hornet,
         hd_queue_info().queues[bin].swap();
         size_t threads_per = 0;
         int flag = 0;
-        // FIXME: change Operator and its args as well
         if (hd_queue_info().queue_sizes[bin] == 0) continue;
+        threads_per = hd_queue_info().threads_per_intersect[bin];
+        printf("Running with threads_per = %d\n", threads_per);
+        forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().queues[bin], op, threads_per, flag);
+        /*
         if (false) { // bin == 0
             threads_per = 1;
             //TM.start();
@@ -332,12 +336,13 @@ void forAllAdjUnions(HornetClass&         hornet,
             //TM.print("running next bin");
             //TM.reset();
         } else if (bin == 1) {
-            threads_per = 32;
+            threads_per = hd;
             forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().queues[bin], op, threads_per, flag);
         } else if (bin == 2) {
             // Imbalance case, flag = 1
             flag = 1;
         }
+        */
     }
 }
 

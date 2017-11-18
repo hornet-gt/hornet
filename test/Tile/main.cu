@@ -3,6 +3,7 @@
 #include "Device/DataMovement/Tile.cuh"
 #include "Device/Util/Timer.cuh"
 #include "Device/Util/SafeCudaAPI.cuh"
+#include "Device/Util/PTX.cuh"
 #include "Device/Util/SafeCudaAPISync.cuh"
 #include "cublas_v2.h"
 
@@ -15,7 +16,7 @@ using namespace timer;
 
 const unsigned BLOCK_SIZE = 256;
 const unsigned     UNROLL = 1;
-using VType = int;
+using VType = int4;
 
 template<typename T>
 __global__
@@ -37,6 +38,13 @@ void copyKernel(const T* __restrict__ d_in, int size, T* d_out) {
     int id = blockIdx.x * BLOCK_SIZE + threadIdx.x;
     for (int i = load_tile.last_index() + id; i < size; i += load_tile.stride())
         d_out[i] = d_in[i];
+}
+
+template<typename T>
+__global__
+void workStructKernel(const T* __restrict__ d_in, int size, T* d_out) {
+    xlib::WordArray<int, 10> test(d_out);
+    d_out[0] = test[size];
 }
 
 int main(int argc, char* argv[]) {
@@ -85,4 +93,9 @@ int main(int argc, char* argv[]) {
     TM.stop();
     TM.print("cublas");
     SAFE_CUBLAS_CALL( cublasDestroy(handle) )
+
+    workStructKernel
+        <<< xlib::ceil_div<BLOCK_SIZE * MUL>(size), BLOCK_SIZE >>>
+    //copyKernel <<< xlib::ResidentBlocks<BLOCK_SIZE>::value, BLOCK_SIZE >>>
+        (d_in, size, d_out);
 }

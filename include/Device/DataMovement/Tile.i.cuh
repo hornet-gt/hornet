@@ -9,8 +9,9 @@ __device__ __forceinline__
 TileT::Tile(int num_items) :
     _index(blockIdx.x * BLOCK_SIZE + threadIdx.x),
     _stride(gridDim.x * BLOCK_SIZE),
-    _size(xlib::lower_approx(num_items / THREAD_ITEMS, _stride * UNROLL_STEPS)),
-    _full_stride(_stride * THREAD_ITEMS) {}
+    _full_stride(_stride * THREAD_ITEMS),
+    _size(xlib::lower_approx(num_items / THREAD_ITEMS, _stride * UNROLL_STEPS))
+    {}
 
 template<unsigned BLOCK_SIZE, typename T, typename VType,
          unsigned UNROLL_STEPS, unsigned LDG_FACTOR>
@@ -39,7 +40,8 @@ template<unsigned BLOCK_SIZE, typename T, typename VType, unsigned UNROLL_STEPS>
 __device__ __forceinline__
 StoreTileT::StoreTile(T* ptr, int num_items) :
                                     TileT1(num_items),
-                                    _ptr(ptr + _index * TileT1::RATIO) {
+                                    _ptr(ptr) {
+                                    //_ptr(ptr + _index * TileT1::RATIO) {
     assert(xlib::is_aligned<VType>(ptr) && "ptr not aligned to VType");
 }
 
@@ -51,9 +53,14 @@ void StoreTileT::store(T (&array)[THREAD_ITEMS]) {
 
     #pragma unroll
     for (int J = 0; J < UNROLL_STEPS; J++)
+        d_out[_index + _stride * J] = l_int[J];
+    _index += _stride;
+
+    /*#pragma unroll
+    for (int J = 0; J < UNROLL_STEPS; J++)
         d_out[_stride * J] = l_int[J];
     _index += _stride;
-    _ptr   += _full_stride;
+    _ptr   += _full_stride;*/
 }
 
 //==============================================================================
@@ -62,6 +69,8 @@ template<unsigned BLOCK_SIZE, typename T, typename VType, unsigned UNROLL_STEPS>
 __device__ __forceinline__
 LoadTileT::LoadTile(const T* ptr, int num_items) :
                                     TileT1(num_items),
+                                    //_ptr(ptr) {
+                                    //_ptr(reinterpret_cast<const VType*>(ptr)) {
                                     _ptr(ptr + _index * TileT1::RATIO) {
     assert(xlib::is_aligned<VType>(ptr) && "ptr not aligned to VType");
 }
@@ -70,13 +79,19 @@ template<unsigned BLOCK_SIZE, typename T, typename VType, unsigned UNROLL_STEPS>
 __device__ __forceinline__
 void LoadTileT::load(T (&array)[THREAD_ITEMS]) {
     auto  d_in = reinterpret_cast<const VType*>(_ptr);
+    //auto d_in = _ptr;
     auto l_out = reinterpret_cast<VType*>(array);
 
     #pragma unroll
     for (int J = 0; J < UNROLL_STEPS; J++)
+        l_out[J] = d_in[_index + _stride * J];
+    _index += _stride;
+
+    /*#pragma unroll
+    for (int J = 0; J < UNROLL_STEPS; J++)
         l_out[J] = d_in[_stride * J];
     _index += _stride;
-    _ptr   += _full_stride;
+    _ptr   += _full_stride;*/
 }
 
 template<unsigned BLOCK_SIZE, typename T, typename VType, unsigned UNROLL_STEPS>

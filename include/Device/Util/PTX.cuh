@@ -165,9 +165,11 @@ struct WordArray {
     const unsigned WORD_SIZE = sizeof(T) * 8;
     const unsigned DATA_SIZE = _DATA_SIZE;
 public:
+    __device__ __forceinline__
     WordArray(T* array) : _array(array) {}
 
-    __device__ __forceinline__ T operator[](int index) const {
+    __device__ __forceinline__
+    T operator[](int index) const {
         unsigned     start = index * DATA_SIZE;
         unsigned       end = start + DATA_SIZE;
         unsigned start_pos = start / WORD_SIZE;
@@ -181,7 +183,9 @@ public:
         }
         return data1;
     }
-    __device__ __forceinline__ void insert(T data, int index) {
+
+    __device__ __forceinline__
+    void insert(T data, int index) {
         unsigned     start = index * DATA_SIZE;
         unsigned       end = start + DATA_SIZE;
         unsigned start_pos = start / WORD_SIZE;
@@ -194,6 +198,7 @@ public:
             auto      data2 = __bfi(_array[start + 1], data >> head, 0, remain);
         }
     }
+
 private:
     T* _array;
 };

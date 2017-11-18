@@ -32,8 +32,9 @@ public:
 protected:
     int   _index;
     int   _stride;
-    int   _size;
     int   _full_stride;
+private:
+    int   _size;
 };
 
 //==============================================================================
@@ -54,8 +55,6 @@ private:
     using TileT1::_index;
     using TileT1::_stride;
     using TileT1::_full_stride;
-
-    using TileT1::_size;
 };
 
 //==============================================================================
@@ -81,9 +80,6 @@ private:
     using TileT1::_stride;
     using TileT1::_full_stride;
     using TileT1::RATIO;
-
-    using TileT1::_size;
-
 };
 
 //==============================================================================

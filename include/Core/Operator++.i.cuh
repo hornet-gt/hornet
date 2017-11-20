@@ -274,10 +274,11 @@ namespace adj_unions {
             while (bin_index > 0) {
                work_per_thread = total_work / (d_queue_info.ptr()->threads_per_intersect[bin_index]);
                //printf("work_per_thread: %d\n", work_per_thread);
-               if (work_per_thread >= 7)
+               if (work_per_thread >= 1)
                    break;
                bin_index -= 1;
             }
+            bin_index = MAX_ADJ_UNIONS_BINS-1;
             // Either count or add the item to the appropriate queue
             if (countOnly)
                 atomicAdd(&(d_queue_info.ptr()->queue_sizes[bin_index]), 1);

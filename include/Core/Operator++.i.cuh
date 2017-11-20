@@ -307,11 +307,10 @@ void forAllAdjUnions(HornetClass&         hornet,
 
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++)
         printf("queue=%d number of edges: %d\n", i, hd_queue_info().queue_sizes[i]);
-
     // Next, add each edge into the correct corresponding queue
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++)
-        hd_queue_info().queues[i].initialize((size_t)100000000);
-        //hd_queue_info().queues[i].initialize((size_t)hd_queue_info().queue_sizes[i]*2+2);
+        //hd_queue_info().queues[i].initialize((size_t)100000000);
+        hd_queue_info().queues[i].initialize((size_t)hd_queue_info().queue_sizes[i]);
     //TM.start();
     forAllEdgesSrcDst(hornet, bin_edges {hd_queue_info, false}, load_balancing);
     //TM.stop();
@@ -325,7 +324,7 @@ void forAllAdjUnions(HornetClass&         hornet,
         int flag = 0;
         if (hd_queue_info().queue_sizes[bin] == 0) continue;
         threads_per = hd_queue_info().threads_per_intersect[bin];
-        printf("Running with threads_per = %d\n", threads_per);
+        printf("Running with threads_per = %lu\n", threads_per);
         forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().queues[bin], op, threads_per, flag);
         /*
         if (false) { // bin == 0

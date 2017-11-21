@@ -235,19 +235,21 @@ GInfo GraphBase<vid_t, eoff_t>::getDimacs10Header(std::ifstream& fin) {
     fin >> num_vertices >> num_edges;
     StructureProp direction;
 
-    if (fin.peek() == '\n')
+    if (fin.peek() == '\n') {
         direction = structure_prop::UNDIRECTED;
+        num_edges *= 2;
+    }
     else {
         std::string flag;
         fin >> flag;
-        direction = flag == "100" ? structure_prop::DIRECTED
-                                  : structure_prop::UNDIRECTED;
-        if (flag == "1")
+        direction = flag == "100" || flag == "0" ? structure_prop::DIRECTED
+                                                 : structure_prop::UNDIRECTED;
+        if (flag == "0")
+            num_edges *= 2;
+        else if (flag == "1")
             ERROR("Weighted Dimacs10th graphs not supported")
         xlib::skip_lines(fin);
     }
-    if (direction == structure_prop::UNDIRECTED)
-        num_edges *= 2;
     _stored_undirected = direction == structure_prop::UNDIRECTED;
     return { num_vertices, num_edges, num_vertices, direction };
 }

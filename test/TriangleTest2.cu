@@ -94,15 +94,16 @@ int main(int argc, char* argv[]) {
 
     TM.stop();
     cudaProfilerStop();
-    TM.print("ForAllAdjUnions Time");
+    TM.print("Computation time");
 
     triangle_t deviceTriangleCount = tc.countTriangles();
     printf("Device triangles: %d\n", deviceTriangleCount);
-   
+  
+    /*
     int64_t hostTriCount = 0;
     std::cout << "Starting host triangle counting" << std::endl;
     hostCountTriangles(graph.nV(), graph.nE(),graph.csr_out_offsets(), graph.csr_out_edges(),&hostTriCount);
     std::cout << "Host triangles: " << hostTriCount << std::endl;
-
+    */
     return 0;
 }

@@ -88,7 +88,7 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
     int queue_stride = stride / threads_per_union;
 
     // TODO: dynamic vs. static shared memory allocation?
-    __shared__ vid_t pathPoints[512*2]; // i*2+0 = vi, i+2+1 = u_i
+    __shared__ vid_t pathPoints[256*2]; // i*2+0 = vi, i+2+1 = u_i
     for (auto i = queue_id; i < size; i += queue_stride) {
         auto src_vtx = hornet.vertex(array[2*i]);
         auto dst_vtx = hornet.vertex(array[2*i+1]);
@@ -278,7 +278,6 @@ namespace adj_unions {
                    break;
                bin_index -= 1;
             }
-            bin_index = MAX_ADJ_UNIONS_BINS-1;
             // Either count or add the item to the appropriate queue
             if (countOnly)
                 atomicAdd(&(d_queue_info.ptr()->queue_sizes[bin_index]), 1);
@@ -310,8 +309,8 @@ void forAllAdjUnions(HornetClass&         hornet,
     //TM.reset();
     hd_queue_info.sync();
 
-    //for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++)
-    //    printf("queue=%d number of edges: %d\n", i, hd_queue_info().queue_sizes[i]);
+    for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++)
+        printf("queue=%d number of edges: %d\n", i, hd_queue_info().queue_sizes[i]);
     // Next, add each edge into the correct corresponding queue
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++)
         cudaMalloc(&(hd_queue_info().d_queues[i]), 2*hd_queue_info().queue_sizes[i]*sizeof(vid_t));
@@ -332,22 +331,6 @@ void forAllAdjUnions(HornetClass&         hornet,
         threads_per = hd_queue_info().threads_per_intersect[bin];
         //printf("Running with threads_per = %lu\n", threads_per);
         forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, flag);
-        /*
-        if (false) { // bin == 0
-            threads_per = 1;
-            //TM.start();
-            // forAllEdgesAdjUnionSequential(hornet, hd_queue_info().queues[bin], op, flag);
-            //TM.stop();
-            //TM.print("running next bin");
-            //TM.reset();
-        } else if (bin == 1) {
-            threads_per = hd;
-            forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().queues[bin], op, threads_per, flag);
-        } else if (bin == 2) {
-            // Imbalance case, flag = 1
-            flag = 1;
-        }
-        */
     }
 }
 

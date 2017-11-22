@@ -170,6 +170,9 @@ void forAllEdgesAdjUnionSequential(HornetClass &hornet, vid_t* queue, const int 
 template<typename HornetClass, typename Operator>
 void forAllEdgesAdjUnionBalanced(HornetClass &hornet, vid_t* queue, const int size, const Operator &op, size_t threads_per_union, int flag);
 
+template<typename HornetClass, typename Operator>
+void forAllEdgesAdjUnionImbalanced(HornetClass &hornet, vid_t* queue, const int size, const Operator &op, size_t threads_per_union, int flag);
+
 /**
  * @brief apply the `Operator` to all vertices in the graph
  * @tparam    Operator typename of the operator (deduced)

@@ -34,15 +34,16 @@
  *
  * @file
  */
-#include "Device/Atomic.cuh"
-#include "Device/Basic.cuh"
-#include "Device/PTX.cuh"
+#include "Device/Util/Atomic.cuh"
+#include "Device/Util/Basic.cuh"
+#include "Device/Util/PTX.cuh"
 
 namespace xlib {
+namespace detail {
 
 #define WARP_SEG_REDUCE_MACRO(ASM_OP, ASM_T, ASM_CL)                           \
-    const unsigned member_mask = member_mask<WARP_SZ>();                       \
-    const unsigned    max_lane = segmented_maxlane<WARP_SZ>(mask);             \
+    const unsigned member_mask = xlib::member_mask<WARP_SZ>();                 \
+    const unsigned max_lane    = segmented_maxlane<WARP_SZ>(mask);             \
     _Pragma("unroll")                                                          \
     for (int STEP = 0; STEP < xlib::Log2<WARP_SZ>::value; STEP++) {            \
         asm(                                                                   \
@@ -58,7 +59,7 @@ namespace xlib {
     }
 
 #define WARP_SEG_REDUCE_MACRO2(ASM_OP, ASM_T, ASM_CL)                          \
-    const unsigned member_mask = member_mask<WARP_SZ>();                       \
+    const unsigned member_mask = xlib::member_mask<WARP_SZ>();                 \
     const unsigned    max_lane = segmented_maxlane<WARP_SZ>(mask);             \
     _Pragma("unroll")                                                          \
     for (int STEP = 0; STEP < xlib::Log2<WARP_SZ>::value; STEP++) {            \
@@ -102,6 +103,9 @@ unsigned segmented_minlane(unsigned mask) {
 //==============================================================================
 //==============================================================================
 
+template<unsigned WARP_SZ, typename T>
+struct WarpSegReduceHelper;
+
 template<int WARP_SZ>
 struct WarpSegReduceHelper<WARP_SZ, int> {
 
@@ -122,7 +126,6 @@ struct WarpSegReduceHelper<WARP_SZ, int> {
 };
 
 //------------------------------------------------------------------------------
-
 
 template<int WARP_SZ>
 struct WarpSegReduceHelper<WARP_SZ, unsigned> {
@@ -230,7 +233,7 @@ struct WarpSegReduceHelper<WARP_SZ, long long int> {
 //------------------------------------------------------------------------------
 
 template<int WARP_SZ>
-struct WarpSegReduceHelper<WARP_SZ, long int> {
+struct WarpSegReduceHelper<WARP_SZ, long unsigned> {
 
     __device__ __forceinline__
     static  void add(long unsigned& value, unsigned mask) {
@@ -280,31 +283,31 @@ struct WarpSegReduceHelper<WARP_SZ, long long unsigned> {
 template<int WARP_SZ>
 template<typename T>
 __device__ __forceinline__
-void WarpReduce<WARP_SZ>::add(T& value, unsigned mask) {
+void WarpSegmentedReduce<WARP_SZ>::add(T& value, unsigned mask) {
     detail::WarpSegReduceHelper<WARP_SZ, T>::add(value, mask);
 }
 
 template<int WARP_SZ>
 template<typename T>
 __device__ __forceinline__
-void WarpReduce<WARP_SZ>::min(T& value, unsigned mask) {
+void WarpSegmentedReduce<WARP_SZ>::min(T& value, unsigned mask) {
     detail::WarpSegReduceHelper<WARP_SZ, T>::min(value, mask);
 }
 
 template<int WARP_SZ>
 template<typename T>
 __device__ __forceinline__
-void WarpReduce<WARP_SZ>::max(T& value, unsigned mask) {
+void WarpSegmentedReduce<WARP_SZ>::max(T& value, unsigned mask) {
     detail::WarpSegReduceHelper<WARP_SZ, T>::max(value, mask);
 }
 
 //==============================================================================
-
+/*
 template<int WARP_SZ>
 template<typename T>
 __device__ __forceinline__
-void WarpReduce<WARP_SZ>::addAll(T& value, unsigned mask) {
-    const unsigned    min_lane = segmented_minlane(mask);
+void WarpSegmentedReduce<WARP_SZ>::addAll(T& value, unsigned mask) {
+    const unsigned min_lane    = segmented_minlane(mask);
     const unsigned member_mask = member_mask<WARP_SZ>();
     detail::WarpSegReduceHelper<WARP_SZ, T>::add(value);
     value = xlib::shfl(member_mask, value, 0, min_lane);
@@ -313,8 +316,8 @@ void WarpReduce<WARP_SZ>::addAll(T& value, unsigned mask) {
 template<int WARP_SZ>
 template<typename T>
 __device__ __forceinline__
-void WarpReduce<WARP_SZ>::minAll(T& value, unsigned mask) {
-    const unsigned    min_lane = segmented_minlane(mask);
+void WarpSegmentedReduce<WARP_SZ>::minAll(T& value, unsigned mask) {
+    const unsigned min_lane    = segmented_minlane(mask);
     const unsigned member_mask = member_mask<WARP_SZ>();
     detail::WarpSegReduceHelper<WARP_SZ, T>::min(value);
     value = xlib::shfl(member_mask, value, 0, min_lane);
@@ -323,33 +326,43 @@ void WarpReduce<WARP_SZ>::minAll(T& value, unsigned mask) {
 template<int WARP_SZ>
 template<typename T>
 __device__ __forceinline__
-void WarpReduce<WARP_SZ>::maxAll(T& value, unsigned mask) {
+void WarpSegmentedReduce<WARP_SZ>::maxAll(T& value, unsigned mask) {
     const unsigned    min_lane = segmented_minlane(mask);
     const unsigned member_mask = member_mask<WARP_SZ>();
     detail::WarpSegReduceHelper<WARP_SZ, T>::max(value);
     value = xlib::shfl(member_mask, value, 0, min_lane);
-}
+}*/
 
 //==============================================================================
 
+template<int WARP_SZ>
 template<typename T, typename R>
 __device__ __forceinline__
-T WarpSegmentedReduce::atomicAdd(const T& value, R* pointer, unsigned mask) {
+void WarpSegmentedReduce<WARP_SZ>
+::atomicAdd(const T& value, R* pointer, unsigned mask) {
     auto value_tmp = value;
     WarpSegmentedReduce::add(value_tmp, mask);
-    if (lanemask_eq() & mask) {
+    /*if (lanemask_eq() & mask) {
         if (lanemask_gt() & mask) //there is no marked lanes after me
             xlib::atomic::add(value_tmp, pointer);
         else
             *pointer = value_tmp;
     }
     else if (lane_id() == 0)
+        xlib::atomic::add(value_tmp, pointer);*/
+
+    bool flag = lanemask_eq() & mask;
+    if (lane_id() == 0 || (flag && (lanemask_gt() & mask)))
         xlib::atomic::add(value_tmp, pointer);
+    else if (flag)
+        *pointer = value_tmp;
 }
 
+template<int WARP_SZ>
 template<typename T, typename R>
 __device__ __forceinline__
-void WarpSegmentedReduce::atomicMin(const T& value, R* pointer, unsigned mask) {
+void WarpSegmentedReduce<WARP_SZ>
+::atomicMin(const T& value, R* pointer, unsigned mask) {
     auto value_tmp = value;
     WarpSegmentedReduce::min(value_tmp, mask);
     if (lanemask_eq() & mask) {
@@ -362,10 +375,11 @@ void WarpSegmentedReduce::atomicMin(const T& value, R* pointer, unsigned mask) {
         xlib::atomic::add(value_tmp, pointer);
 }
 
+template<int WARP_SZ>
 template<typename T, typename R>
 __device__ __forceinline__
-void WarpSegmentedReduce::atomicMax(const T& value, R* pointer,
-                                    unsigned mask) {
+void WarpSegmentedReduce<WARP_SZ>
+::atomicMax(const T& value, R* pointer, unsigned mask) {
     auto value_tmp = value;
     WarpSegmentedReduce::max(value_tmp, mask);
     if (lanemask_eq() & mask) {

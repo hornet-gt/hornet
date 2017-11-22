@@ -40,6 +40,7 @@
 
 namespace xlib {
 
+template<int WARP_SZ = 32>
 struct WarpSegmentedReduce {
 
     template<typename T>
@@ -58,7 +59,7 @@ struct WarpSegmentedReduce {
 
     template<typename T, typename R>
     __device__ __forceinline__
-    static T atomicAdd(const T& value, R* pointer, unsigned mask);
+    static void atomicAdd(const T& value, R* pointer, unsigned mask);
 
     template<typename T, typename R>
     __device__ __forceinline__

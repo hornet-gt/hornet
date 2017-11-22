@@ -42,12 +42,12 @@
 
 namespace xlib {
 
-const unsigned     SM_THREADS = 2048;
+const unsigned SM_THREADS     = 2048;
 const unsigned MAX_BLOCK_SIZE = 1024;
 const unsigned MAX_BLOCK_SMEM = 49152;
-const unsigned   CONSTANT_MEM = 65536;
-const unsigned   MEMORY_BANKS = 32;
-const unsigned      WARP_SIZE = 32;
+const unsigned CONSTANT_MEM   = 65536;
+const unsigned MEMORY_BANKS   = 32;
+const unsigned WARP_SIZE      = 32;
 
 #if (defined(__CUDACC__) && !defined(ARCH))
     #pragma error("ARCH MACRO NOT DEFINED IN CUDA PROJECT")

@@ -59,23 +59,47 @@ struct OPERATOR_AdjIntersectionCountBalanced {
 
     OPERATOR(Vertex &u, Vertex& v, vid_t* ui_begin, vid_t* ui_end, vid_t* vi_begin, vid_t* vi_end, int FLAG) {
         int count = 0;
-        int comp_equals, comp1, comp2, ui_bound, vi_bound;
-        //printf("Intersecting %d, %d: %d -> %d, %d -> %d\n", u.id(), v.id(), *ui_begin, *ui_end, *vi_begin, *vi_end);
-        while (vi_begin <= vi_end && ui_begin <= ui_end) {
-            comp_equals = (*ui_begin == *vi_begin);
-            count += comp_equals;
-            comp1 = (*ui_begin >= *vi_begin);
-            comp2 = (*ui_begin <= *vi_begin);
-            ui_bound = (ui_begin == ui_end);
-            vi_bound = (vi_begin == vi_end);
-            // early termination
-            if ((ui_bound && comp2) || (vi_bound && comp1))
-                break;
-            if ((comp1 && !vi_bound) || ui_bound)
-                vi_begin += 1;
-            if ((comp2 && !ui_bound) || vi_bound)
+        if (!FLAG) {
+            int comp_equals, comp1, comp2, ui_bound, vi_bound;
+            //printf("Intersecting %d, %d: %d -> %d, %d -> %d\n", u.id(), v.id(), *ui_begin, *ui_end, *vi_begin, *vi_end);
+            while (vi_begin <= vi_end && ui_begin <= ui_end) {
+                comp_equals = (*ui_begin == *vi_begin);
+                count += comp_equals;
+                comp1 = (*ui_begin >= *vi_begin);
+                comp2 = (*ui_begin <= *vi_begin);
+                ui_bound = (ui_begin == ui_end);
+                vi_bound = (vi_begin == vi_end);
+                // early termination
+                if ((ui_bound && comp2) || (vi_bound && comp1))
+                    break;
+                if ((comp1 && !vi_bound) || ui_bound)
+                    vi_begin += 1;
+                if ((comp2 && !ui_bound) || vi_bound)
+                    ui_begin += 1;
+            }
+        } else {
+            vid_t vi_low, vi_high, vi_mid;
+            while (ui_begin <= ui_end) {
+                auto search_val = *ui_begin;
+                vi_low = 0;
+                vi_high = vi_end-vi_begin;
+                while (vi_low <= vi_high) {
+                    vi_mid = (vi_low+vi_high)/2;
+                    auto comp = (*(vi_begin+vi_mid) - search_val);
+                    if (!comp) {
+                        count += 1;
+                        break;
+                    }
+                    if (comp > 0) {
+                        vi_high = vi_mid-1;
+                    } else if (comp < 0) {
+                        vi_low = vi_mid+1;
+                    }
+                }
                 ui_begin += 1;
+            }
         }
+
         atomicAdd(d_triPerVertex+u.id(), count);
         atomicAdd(d_triPerVertex+v.id(), count);
     }

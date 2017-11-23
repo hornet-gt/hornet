@@ -201,7 +201,9 @@ constexpr unsigned member_mask() {
 }
 
 template<typename T>
+__device__ __forceinline__
 unsigned discontinuity_mask(const T& value, unsigned member_mask = 0xFFFFFFFF) {
+    //T tmp = xlib::shfl_down(member_mask, value, 1);
     T tmp = xlib::shfl_up(member_mask, value, 1);
     return __ballot_sync(member_mask, tmp != value);
 }
@@ -210,6 +212,12 @@ __device__ __forceinline__
 unsigned max_lane(unsigned mask) {
     return __clz(__brev((xlib::lanemask_gt() & mask))) - 1;
 }
+
+/*
+__device__ __forceinline__
+unsigned max_lane(unsigned mask) {
+    return __clz(__brev(xlib::lanemask_ge() & mask));
+}*/
 
 __device__ __forceinline__
 unsigned min_lane(unsigned mask) {

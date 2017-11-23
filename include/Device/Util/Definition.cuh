@@ -64,7 +64,7 @@ const unsigned WARP_SIZE      = 32;
     #elif ARCH == 500 || ARCH == 530 || ARCH == 600 ||  ARCH == 620
         const unsigned SMEM_PER_SM = 65536;
 
-    #elif ARCH == 520 || ARCH == 610
+    #elif ARCH == 520 || ARCH == 610 || ARCH == 700
         const unsigned SMEM_PER_SM = 98304;
     #else
         #error("Unsupported Compute Cabalitity")
@@ -77,7 +77,7 @@ const unsigned WARP_SIZE      = 32;
     #endif
 
     template<typename T = char, unsigned BLOCK_SIZE = 0>
-    class SMemPerThread {
+    struct SMemPerThread {
         static_assert(BLOCK_SIZE == 0 || xlib::is_power2(BLOCK_SIZE),
                       "BLOCK_SIZE must be a power of 2");
 

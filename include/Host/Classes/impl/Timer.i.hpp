@@ -49,10 +49,11 @@ template<class Rep, std::intmax_t Num, std::intmax_t Denom>
 std::ostream& operator<<(std::ostream& os,
                          const std::chrono::duration
                             <Rep, std::ratio<Num, Denom>>&) {
-    if (Num == 3600 && Denom == 1)  return os << " h";
-    if (Num == 60 && Denom == 1)    return os << " min";
-    if (Num == 1 && Denom == 1)     return os << " s";
-    if (Num == 1 && Denom == 1000)  return os << " ms";
+    if (Num == 3600 && Denom == 1)    return os << " h";
+    if (Num == 60 && Denom == 1)      return os << " min";
+    if (Num == 1 && Denom == 1)       return os << " s";
+    if (Num == 1 && Denom == 1000)    return os << " ms";
+    if (Num == 1 && Denom == 1000000) return os << " us";
     return os << " Unsupported";
 }
 

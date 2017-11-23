@@ -103,7 +103,7 @@ unsigned segmented_minlane(unsigned mask) {
 //==============================================================================
 //==============================================================================
 
-template<unsigned WARP_SZ, typename T>
+template<int WARP_SZ, typename T>
 struct WarpSegReduceHelper;
 
 template<int WARP_SZ>
@@ -173,7 +173,7 @@ template<int WARP_SZ>
 struct WarpSegReduceHelper<WARP_SZ, double> {
 
     __device__ __forceinline__
-    static  void add(double& value, unsigned mask) {
+    static void add(double& value, unsigned mask) {
         WARP_SEG_REDUCE_MACRO2(add, f64, d)
     }
 
@@ -194,7 +194,7 @@ template<int WARP_SZ>
 struct WarpSegReduceHelper<WARP_SZ, long int> {
 
     __device__ __forceinline__
-    static  void add(long int& value, unsigned mask) {
+    static void add(long int& value, unsigned mask) {
         WARP_SEG_REDUCE_MACRO2(add, s64, l)
     }
 
@@ -215,7 +215,7 @@ template<int WARP_SZ>
 struct WarpSegReduceHelper<WARP_SZ, long long int> {
 
     __device__ __forceinline__
-    static  void add(long long int& value, unsigned mask) {
+    static void add(long long int& value, unsigned mask) {
         WARP_SEG_REDUCE_MACRO2(add, s64, l)
     }
 
@@ -236,7 +236,7 @@ template<int WARP_SZ>
 struct WarpSegReduceHelper<WARP_SZ, long unsigned> {
 
     __device__ __forceinline__
-    static  void add(long unsigned& value, unsigned mask) {
+    static void add(long unsigned& value, unsigned mask) {
         WARP_SEG_REDUCE_MACRO2(add, u64, l)
     }
 
@@ -257,7 +257,7 @@ template<int WARP_SZ>
 struct WarpSegReduceHelper<WARP_SZ, long long unsigned> {
 
     __device__ __forceinline__
-    static  void add(long long unsigned& value, unsigned mask) {
+    static void add(long long unsigned& value, unsigned mask) {
         WARP_SEG_REDUCE_MACRO2(add, u64, l)
     }
 
@@ -341,21 +341,13 @@ __device__ __forceinline__
 void WarpSegmentedReduce<WARP_SZ>
 ::atomicAdd(const T& value, R* pointer, unsigned mask) {
     auto value_tmp = value;
-    WarpSegmentedReduce::add(value_tmp, mask);
-    /*if (lanemask_eq() & mask) {
-        if (lanemask_gt() & mask) //there is no marked lanes after me
-            xlib::atomic::add(value_tmp, pointer);
-        else
+    WarpSegmentedReduce<WARP_SZ>::add(value_tmp, mask);
+    if (lanemask_eq() & mask) {
+        if (lane_id() != 0 && lanemask_gt() & mask)
             *pointer = value_tmp;
+        else
+            xlib::atomic::add(value_tmp, pointer);
     }
-    else if (lane_id() == 0)
-        xlib::atomic::add(value_tmp, pointer);*/
-
-    bool flag = lanemask_eq() & mask;
-    if (lane_id() == 0 || (flag && (lanemask_gt() & mask)))
-        xlib::atomic::add(value_tmp, pointer);
-    else if (flag)
-        *pointer = value_tmp;
 }
 
 template<int WARP_SZ>

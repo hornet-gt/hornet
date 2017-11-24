@@ -10,7 +10,8 @@
 
 namespace hornets_nest {
 
-using triangle_t = unsigned int;
+//using triangle_t = int;
+using triangle_t = unsigned long long int;
 using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
 
 

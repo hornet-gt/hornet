@@ -22,18 +22,18 @@ __global__ void forAllKernel(T* __restrict__ array, int size, Operator op) {
 }
 
 template<typename HornetDevice, typename T, typename Operator>
-__global__ void forAllEdgesAdjUnionSequentialKernel(HornetDevice hornet, T* __restrict__ array, int size, int flag, Operator op) {
+__global__ void forAllEdgesAdjUnionSequentialKernel(HornetDevice hornet, T* __restrict__ array, int size, Operator op, int flag) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
     for (auto i = id; i < size; i += stride) {
         auto src_vtx = hornet.vertex(array[2*i]);
         auto dst_vtx = hornet.vertex(array[2*i+1]);
-        auto src_adj_iter = src_vtx.edge_begin();
-        auto dst_adj_iter = dst_vtx.edge_begin();
-        auto src_adj_end = src_vtx.edge_end();
-        auto dst_adj_end = dst_vtx.edge_end();
-        op(src_adj_iter, src_adj_end, dst_adj_iter, dst_adj_end, flag);
+        //vid_t* u_nodes = hornet.vertex(u).neighbor_ptr();
+        //vid_t* v_nodes = hornet.vertex(v).neighbor_ptr();
+        op(src_vtx, dst_vtx, flag);
     }
+
+    //OPERATOR(Vertex &u, Vertex& v, vid_t* ui_begin, vid_t* ui_end, vid_t* vi_begin, vid_t* vi_end, int FLAG) {
 }
 
 namespace adj_union {
@@ -320,10 +320,11 @@ namespace adj_unions {
             degree_t v_len = (src_len > dst_len) ? dst_len : src_len;
             unsigned int log_u = 32-__clz(u_len-1);
             unsigned int log_v = 32-__clz(v_len-1);
+            int K = 4; // TODO: tune
             int imbalanced_work_est = ((u_len+W-1)/W)*log_v;
             int balanced_work_est = ((total_work+W-1)/W) + log_u;
-            bin_index = (balanced_work_est > imbalanced_work_est);
-            //bin_index=0;
+            bin_index = (K*balanced_work_est > imbalanced_work_est);
+            bin_index=1;
             // Either count or add the item to the appropriate queue
             if (countOnly)
                 atomicAdd(&(d_queue_info.ptr()->queue_sizes[bin_index]), 1);
@@ -375,13 +376,11 @@ void forAllAdjUnions(HornetClass&         hornet,
         int flag = bin;
         const int threads_per = W;
 
-        // forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, flag);
-        //printf("Running with threads_per = %lu\n", threads_per);
-        
         if (bin == 0) { 
-            forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, flag);
+            //forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, flag);
         } else if (bin == 1) {
-            forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, flag);
+            //forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, flag);
+            forAllEdgesAdjUnionSequential(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, flag);
         }
     }
 }
@@ -393,7 +392,7 @@ void forAllEdgesAdjUnionSequential(HornetClass &hornet, vid_t* queue, const int 
         return;
     detail::forAllEdgesAdjUnionSequentialKernel
         <<< xlib::ceil_div<BLOCK_SIZE_OP2>(size), BLOCK_SIZE_OP2 >>>
-        (hornet.device_side(), queue, size, flag, op);
+        (hornet.device_side(), queue, size, op, flag);
     CHECK_CUDA_ERROR
 }
 

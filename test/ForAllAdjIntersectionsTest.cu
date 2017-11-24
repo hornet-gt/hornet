@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
     cudaProfilerStart();
     TM.start();
 
-    forAllAdjUnions(hornet_graph, OPERATOR_AdjIntersectionCount3 { NULL });
+    //forAllAdjUnions(hornet_graph, OPERATOR_AdjIntersectionCount3 { NULL });
 
     TM.stop();
     cudaProfilerStop();

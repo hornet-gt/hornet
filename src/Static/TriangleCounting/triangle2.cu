@@ -29,27 +29,34 @@ struct OPERATOR_InitTriangleCounts {
  * Assumption: access to entire adjacencies of v1 and v2 required
  */
 struct OPERATOR_AdjIntersectionCount {
-    int* d_triPerVertex;
+    triangle_t* d_triPerVertex;
 
-    OPERATOR(Vertex& v1, Vertex& v2) {
-        int equalCount = 0;
-        int outDeg1 = v1.out_degree();
-        int outDeg2 = v2.out_degree();
-        int eoff1 = 0;
-        int eoff2 = 0;
-        vid_t vid_curr1;
-        vid_t vid_curr2;
-        int comp;
-        while (eoff1 < outDeg1 && eoff2 < outDeg2) {
-            vid_curr1 = v1.edge(eoff1).dst_id();
-            vid_curr2 = v2.edge(eoff2).dst_id();
-            comp = vid_curr1 - vid_curr2;
-            equalCount += (comp == 0);
-            eoff1 += (comp <= 0 && !0);
-            eoff2 += (comp >= 0 && !0);
+    OPERATOR(Vertex& v1, Vertex& v2, int flag) {
+        unsigned long long int count = 0;
+        int deg1 = v1.degree();
+        int deg2 = v2.degree();
+        vid_t* ui_begin = v1.neighbor_ptr();
+        vid_t* vi_begin = v2.neighbor_ptr();
+        vid_t* ui_end = ui_begin+deg1-1;
+        vid_t* vi_end = vi_begin+deg2-1;
+        int ui_bound, vi_bound, comp_equals, comp1, comp2;
+        while (vi_begin <= vi_end && ui_begin <= ui_end) {
+            comp_equals = (*ui_begin == *vi_begin);
+            count += comp_equals;
+            comp1 = (*ui_begin >= *vi_begin);
+            comp2 = (*ui_begin <= *vi_begin);
+            ui_bound = (ui_begin == ui_end);
+            vi_bound = (vi_begin == vi_end);
+            // early termination
+            if ((ui_bound && comp2) || (vi_bound && comp1))
+                break;
+            if ((comp1 && !vi_bound) || ui_bound)
+                vi_begin += 1;
+            if ((comp2 && !ui_bound) || vi_bound)
+                ui_begin += 1;
         }
-        atomicAdd(d_triPerVertex+v1.id(), equalCount);
-        atomicAdd(d_triPerVertex+v2.id(), equalCount);
+        atomicAdd(d_triPerVertex+v1.id(), count);
+        atomicAdd(d_triPerVertex+v2.id(), count);
     }
 };
 
@@ -130,7 +137,8 @@ void TriangleCounting2::reset(){
 
 void TriangleCounting2::run(){
     //printf("Inside run()\n");
-    forAllAdjUnions(hornet, OPERATOR_AdjIntersectionCountBalanced { triPerVertex });
+    //forAllAdjUnions(hornet, OPERATOR_AdjIntersectionCountBalanced { triPerVertex });
+    forAllAdjUnions(hornet, OPERATOR_AdjIntersectionCount { triPerVertex });
 }
 
 

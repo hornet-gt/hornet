@@ -94,10 +94,10 @@ int main(int argc, char* argv[]) {
 
     TM.stop();
     cudaProfilerStop();
-    TM.print("Computation time");
+    TM.print("Computation time:");
 
     triangle_t deviceTriangleCount = tc.countTriangles();
-    printf("Device triangles: %d\n", deviceTriangleCount);
+    printf("Device triangles: %lu\n", deviceTriangleCount);
   
     /*
     int64_t hostTriCount = 0;

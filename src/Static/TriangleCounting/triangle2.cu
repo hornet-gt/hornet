@@ -137,8 +137,8 @@ void TriangleCounting2::reset(){
 
 void TriangleCounting2::run(){
     //printf("Inside run()\n");
-    //forAllAdjUnions(hornet, OPERATOR_AdjIntersectionCountBalanced { triPerVertex });
-    forAllAdjUnions(hornet, OPERATOR_AdjIntersectionCount { triPerVertex });
+    forAllAdjUnions(hornet, OPERATOR_AdjIntersectionCountBalanced { triPerVertex });
+    //forAllAdjUnions(hornet, OPERATOR_AdjIntersectionCount { triPerVertex });
 }
 
 
@@ -149,7 +149,7 @@ void TriangleCounting2::release(){
 }
 
 void TriangleCounting2::init(){
-    //printf("Inside init()\n");
+    //printf("Inside init. Printing hornet.nV(): %d\n", hornet.nV());
     gpu::allocate(triPerVertex, hornet.nV());
     reset();
 }

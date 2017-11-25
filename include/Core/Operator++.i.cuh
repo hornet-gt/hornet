@@ -28,12 +28,14 @@ __global__ void forAllEdgesAdjUnionSequentialKernel(HornetDevice hornet, T* __re
     for (auto i = id; i < size; i += stride) {
         auto src_vtx = hornet.vertex(array[2*i]);
         auto dst_vtx = hornet.vertex(array[2*i+1]);
-        //vid_t* u_nodes = hornet.vertex(u).neighbor_ptr();
-        //vid_t* v_nodes = hornet.vertex(v).neighbor_ptr();
-        op(src_vtx, dst_vtx, flag);
+        degree_t src_deg = src_vtx.degree();
+        degree_t dst_deg = dst_vtx.degree();
+        vid_t* src_begin = src_vtx.neighbor_ptr();
+        vid_t* dst_begin = dst_vtx.neighbor_ptr();
+        vid_t* src_end = src_begin+src_deg-1;
+        vid_t* dst_end = dst_begin+dst_deg-1;
+        op(src_vtx, dst_vtx, src_begin, src_end, dst_begin, dst_end, flag);
     }
-
-    //OPERATOR(Vertex &u, Vertex& v, vid_t* ui_begin, vid_t* ui_end, vid_t* vi_begin, vid_t* vi_end, int FLAG) {
 }
 
 namespace adj_union {
@@ -380,7 +382,7 @@ void forAllAdjUnions(HornetClass&         hornet,
             //forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, flag);
         } else if (bin == 1) {
             //forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, flag);
-            forAllEdgesAdjUnionSequential(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, flag);
+            forAllEdgesAdjUnionSequential(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, 0);
         }
     }
 }

@@ -1,7 +1,7 @@
 set(PROJECT "TILE")
 project(${PROJECT} CXX)
 
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.5)
 FIND_PACKAGE(CUDA REQUIRED)
 
 set(XLIB_DIR  ../../)

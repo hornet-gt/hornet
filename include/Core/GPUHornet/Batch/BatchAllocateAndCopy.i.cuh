@@ -104,8 +104,8 @@ void HORNET::allocatePrepocessing(size_t max_batch_size, size_t csr_size)
 }
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
-[[deprecated]]
 void HORNET::allocateOOPEdgeDeletion(size_t csr_size) noexcept {
+    ERROR("cuMalloc with multiple arguments should be tested")
     /*cuMalloc(_d_degree_tmp,  csr_size + 1,
              _d_degree_new,  csr_size + 1,
              _d_tmp,         _nE,

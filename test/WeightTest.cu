@@ -1,5 +1,5 @@
 #include "Hornet.hpp"
-#include <GraphIO/GraphWeight.hpp>
+#include <Graph/GraphWeight.hpp>
 
 using weight_t = float;
 

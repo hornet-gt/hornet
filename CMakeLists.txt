@@ -21,7 +21,7 @@ include_directories(externals/xlib/include)
 include_directories(${CUDA_INCLUDE_DIRS})
 
 #set(WARNING_FLAGS ON)
-include(util/CMakeLists.txt)
+include(externals/xlib/util/CMakeLists.txt)
 #-------------------------------------------------------------------------------
 file(GLOB_RECURSE CPP_SRCS ${PROJECT_SOURCE_DIR}/src/*.cpp)
 file(GLOB_RECURSE CU_SRCS  ${PROJECT_SOURCE_DIR}/src/*.cu)

@@ -35,7 +35,7 @@
  * </blockquote>}
  */
 #include "Kernels/BatchCopyKernels.cuh"
-
+#include <Device/Util/SafeCudaAPI.cuh>
 //#define DEBUG_FIXINTERNAL
 
 namespace hornets_nest {
@@ -104,12 +104,13 @@ void HORNET::allocatePrepocessing(size_t max_batch_size, size_t csr_size)
 }
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
+[[deprecated]]
 void HORNET::allocateOOPEdgeDeletion(size_t csr_size) noexcept {
-    cuMalloc(_d_degree_tmp,  csr_size + 1,
+    /*cuMalloc(_d_degree_tmp,  csr_size + 1,
              _d_degree_new,  csr_size + 1,
              _d_tmp,         _nE,
              _d_ptrs_array,  csr_size,
-             _d_inverse_pos, _nV);
+             _d_inverse_pos, _nV);*/
 }
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>

@@ -34,6 +34,7 @@
  * </blockquote>}
  */
 #include <Device/Util/SafeCudaAPI.cuh>
+#include <Device/Util/SafeCudaAPISync.cuh>
 #include <cstring>
 
 namespace hornets_nest {

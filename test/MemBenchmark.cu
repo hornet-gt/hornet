@@ -1,4 +1,5 @@
 #include <Device/Util/SafeCudaAPI.cuh>
+#include <Device/Util/SafeCudaAPISync.cuh>
 #include <Device/Util/SafeCudaAPIAsync.cuh>
 #include <Device/Primitives/SimpleKernels.cuh>
 #include <Device/Util/Timer.cuh>

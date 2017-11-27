@@ -33,7 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "GraphIO/GraphBase.hpp"            //graph::StructureProp
+#include <Graph/GraphBase.hpp>               //graph::StructureProp
 #include "HornetKernels.cuh"
 #include <Device/Primitives/CubWrapper.cuh> //xlib::CubSortByKey
 #include <Host/FileUtil.hpp>                //xlib::MemoryMapped

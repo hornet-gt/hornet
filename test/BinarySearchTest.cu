@@ -4,7 +4,7 @@
 #include "Device/Util/Algorithm.cuh"
 #include "Device/Primitives/BinarySearchLB.cuh"
 #include "Device/Util/Timer.cuh"
-#include "GraphIO/GraphStd.hpp"
+#include <Graph/GraphStd.hpp>
 #include <iostream>
 //#include <moderngpu/kernel_load_balance.hxx>
 

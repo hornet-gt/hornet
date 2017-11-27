@@ -38,7 +38,7 @@
 #pragma once
 
 #include "BasicTypes.hpp"       //vid_t
-#include "GraphIO/GraphStd.hpp" //GraphStd
+#include <Graph/GraphStd.hpp>   //GraphStd
 
 namespace hornets_nest {
 

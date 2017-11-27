@@ -34,11 +34,10 @@
  * </blockquote>}
  */
 #include "Util/CommandLineParam.hpp"
-#include <Device/Util/CudaUtil.cuh> //SAFE_CALL
-#include <Host/Basic.hpp>           //ERROR, xlib::is_integer
-#include <Host/FileUtil.hpp>        //xlib::extract_filepath_noextension
-#include <cuda_runtime.h>           //cudaSetDevice
-#include <fstream>                  //std::ifstream
+#include <Device/Util/SafeCudaAPI.cuh>  //SAFE_CALL
+#include <Host/Basic.hpp>               //ERROR, xlib::is_integer
+#include <Host/FileUtil.hpp>            //xlib::extract_filepath_noextension
+#include <fstream>                      //std::ifstream
 
 namespace hornets_nest {
 
@@ -73,7 +72,7 @@ L1:     std::ifstream syntax_file("../docs/Syntax.txt");
         else if (str == "--device-info")
             xlib::device_info();
         else if (str == "--device" && xlib::is_integer(argv[i + 1]))
-            SAFE_CALL( cudaSetDevice(std::stoi(argv[++i])) )
+            cuSetDevice(std::stoi(argv[++i]));
         /*if (str == "--insert" && xlib::is_integer(argv[i + 1])) {
             insert     = true;
             batch_size = std::stoi(argv[++i]);

@@ -186,7 +186,7 @@ template<typename vid_t, typename eoff_t>
 inline typename GraphStd<vid_t, eoff_t>::Edge
 GraphStd<vid_t, eoff_t>::EdgeIt::operator*() const noexcept {
     return Edge(
-            static_cast<vid_t>(_current_offset - _graph._out_offsets)
+            static_cast<vid_t>(_current_offset - _graph._out_offsets),
             static_cast<eoff_t>(_current - _graph._out_edges), _graph);
 }
 

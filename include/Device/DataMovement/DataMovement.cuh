@@ -1,78 +1,159 @@
+#pragma once
 
+#include "Host/Numeric.hpp" //xlib::is_power2
 
+namespace xlib {
+namespace block {
 
-
-template<int NUM_LOOPS, unsigned BLOCK_SIZE, typename T>
-void stride_load(const T* __restrict__ input,
-                 int                   num_items,
-                 T*       __restrict__ output) {
+template<unsigned BLOCK_SIZE, typename T, typename = void>
+__device__ __forceinline__
+void stride_load_smem_aux(const T* __restrict__ d_in,
+                          int                   num_items,
+                          T*       __restrict__ smem_out) {
     #pragma unroll
-    for (int i = 0; i < NUM_LOOPS * BLOCK_SIZE; i += BLOCK_SIZE)
-        output[i] = input[i];
-    if (threadIdx.x < (NUM_LOOPS == 0 ? num_items : num_items % BLOCK_SIZE))
-        output[NUM_LOOPS * BLOCK_SIZE] = input[NUM_LOOPS * BLOCK_SIZE];
-}
-
-template<unsigned BLOCK_SIZE, typename T>
-void stride_load(const T* __restrict__ input,
-                 int                   num_items,
-                 T*       __restrict__ output) {
-
-    int              num_loop = num_items / BLOCK_SIZE;
-    const auto&  input_stride = input + threadIdx.x;
-    const auto& output_stride = input + threadIdx.x;
-    switch (num_loop) {
-        case 0: stride_load<0, BLOCK_SIZE>(input_stride, num_items,
-                                           output_stride);
-                break;
-        case 1: stride_load<1, BLOCK_SIZE>(input_stride, num_items,
-                                           output_stride);
-                break;
-        case 2: stride_load<2, BLOCK_SIZE>(input_stride, num_items,
-                                           output_stride);
-                break;
-        case 3: stride_load<3, BLOCK_SIZE>(input_stride, num_items,
-                                           output_stride);
-                break;
-        case 4: stride_load<4, BLOCK_SIZE>(input_stride, num_items,
-                                           output_stride);
-                break;
-        case 5: stride_load<5, BLOCK_SIZE>(input_stride, num_items,
-                                           output_stride);
-                break;
-        case 6: stride_load<6, BLOCK_SIZE>(input_stride, num_items,
-                                           output_stride);
-                break;
-        case 7: stride_load<7, BLOCK_SIZE>(input_stride, num_items,
-                                           output_stride);
-                break;
-        case 8: stride_load<8, BLOCK_SIZE>(input_stride, num_items,
-                                           output_stride);
-                break;
-        case 9: stride_load<9, BLOCK_SIZE>(input_stride, num_items,
-                                           output_stride);
-                break;
-        case 10: stride_load<10, BLOCK_SIZE>(input_stride, num_items,
-                                             output_stride);
-                break;
-        case 11: stride_load<11, BLOCK_SIZE>(input_stride, num_items,
-                                             output_stride);
-                break;
-        case 12: stride_load<12, BLOCK_SIZE>(input_stride, num_items,
-                                             output_stride);
-                break;
-        case 13: stride_load<13, BLOCK_SIZE>(input_stride, num_items,
-                                       output_stride);
-                break;
-        case 14: stride_load<14, BLOCK_SIZE>(input_stride, num_items,
-                                       output_stride);
-            break;
-        case 15: stride_load<15, BLOCK_SIZE>(input_stride, num_items,
-                                       output_stride);
-                break;
-        default:
-            assert(false);
-            *static_cast<int*>(nullptr) = 0;
-
+    for (int i = 0; i < num_items; i += BLOCK_SIZE) {
+        auto index = threadIdx.x + i;
+        if (index < num_items)
+            smem_out[index] = d_in[index];
     }
 }
+
+template<unsigned BLOCK_SIZE, typename T,
+         typename V1, typename V2, typename... VArgs>
+__device__ __forceinline__
+void stride_load_smem_aux(const T* __restrict__ d_in,
+                          int                   num_items,
+                          T*       __restrict__ smem_out) {
+
+    const int RATIO = sizeof(V1) / sizeof(T);
+    const int LOOP  = num_items / (RATIO * BLOCK_SIZE);
+    static_assert(RATIO > 0, "Ratio must be greater than zero");
+    static_assert(xlib::is_power2(sizeof(T)) &&
+                  sizeof(T) >= 1 && sizeof(T) <= 16,
+                  "size(T) constraits");
+
+    auto in_ptr  = reinterpret_cast<const V1*>(d_in) + threadIdx.x;
+    auto out_ptr = reinterpret_cast<V1*>(smem_out) + threadIdx.x;
+    #pragma unroll
+    for (int i = 0; i < LOOP; i++)
+        out_ptr[i * BLOCK_SIZE] = in_ptr[i * BLOCK_SIZE];
+
+    const int STEP = LOOP * RATIO * BLOCK_SIZE;
+    const int REM  = num_items - STEP;
+    stride_load_smem_aux<BLOCK_SIZE, T, V2, VArgs...>
+        (d_in + STEP, REM, smem_out + STEP);
+}
+
+//==============================================================================
+
+template<unsigned BLOCK_SIZE>
+__device__ __forceinline__
+void stride_load_smem(const double* __restrict__ d_in,
+                      int                        num_items,
+                      double*       __restrict__ smem_out) {
+
+    stride_load_smem_aux<BLOCK_SIZE, double2>(d_in, num_items, smem_out);
+}
+
+template<unsigned BLOCK_SIZE>
+__device__ __forceinline__
+void stride_load_smem(const float* __restrict__ d_in,
+                      int                       num_items,
+                      float*       __restrict__ smem_out) {
+
+    stride_load_smem_aux<BLOCK_SIZE, float4, float2>
+        (d_in, num_items, smem_out);
+}
+
+template<unsigned BLOCK_SIZE>
+__device__ __forceinline__
+void stride_load_smem(const int64_t* __restrict__ d_in,
+                      int                         num_items,
+                      int64_t*       __restrict__ smem_out) {
+
+    stride_load_smem_aux<BLOCK_SIZE, longlong2>
+        (d_in, num_items, smem_out);
+}
+
+template<unsigned BLOCK_SIZE>
+__device__ __forceinline__
+void stride_load_smem(const uint64_t* __restrict__ d_in,
+                      int                          num_items,
+                      uint64_t*       __restrict__ smem_out) {
+
+    stride_load_smem_aux< BLOCK_SIZE, ulonglong2>
+        (d_in, num_items, smem_out);
+}
+
+template<unsigned BLOCK_SIZE>
+__device__ __forceinline__
+void stride_load_smem(const int* __restrict__ d_in,
+                      int                     num_items,
+                      int*       __restrict__ smem_out) {
+
+    stride_load_smem_aux<BLOCK_SIZE, int4, int2>
+    (d_in, num_items, smem_out);
+}
+
+template<unsigned BLOCK_SIZE>
+__device__ __forceinline__
+void stride_load_smem(const unsigned* __restrict__ d_in,
+                      int                          num_items,
+                      unsigned*       __restrict__ smem_out) {
+
+    stride_load_smem_aux<BLOCK_SIZE, uint4, uint2>
+        (d_in, num_items, smem_out);
+}
+
+template<unsigned BLOCK_SIZE>
+__device__ __forceinline__
+void stride_load_smem(const int16_t* __restrict__ d_in,
+                      int                         num_items,
+                      int16_t*       __restrict__ smem_out) {
+
+    stride_load_smem_aux<BLOCK_SIZE, int4, short4, short2>
+        (d_in, num_items, smem_out);
+}
+
+template<unsigned BLOCK_SIZE>
+__device__ __forceinline__
+void stride_load_smem(const uint16_t* __restrict__ d_in,
+                      int                          num_items,
+                      uint16_t*       __restrict__ smem_out) {
+
+    stride_load_smem_aux<BLOCK_SIZE, uint4, ushort4, ushort2>
+        (d_in, num_items, smem_out);
+}
+
+template<unsigned BLOCK_SIZE>
+__device__ __forceinline__
+void stride_load_smem(const char* __restrict__ d_in,
+                      int                      num_items,
+                      char*       __restrict__ smem_out) {
+
+    stride_load_smem_aux<BLOCK_SIZE, char, int4, int2, char4, char2>
+        (d_in, num_items, smem_out);
+}
+
+template<unsigned BLOCK_SIZE>
+__device__ __forceinline__
+void stride_load_smem(const int8_t* __restrict__ d_in,
+                      int                        num_items,
+                      int8_t*       __restrict__ smem_out) {
+
+    stride_load_smem_aux<BLOCK_SIZE, int8_t, int4, int2, char4, char2>
+        (d_in, num_items, smem_out);
+}
+
+template<unsigned BLOCK_SIZE>
+__device__ __forceinline__
+void stride_load_smem(const unsigned char* __restrict__ d_in,
+                      int                               num_items,
+                      unsigned char*       __restrict__ smem_out) {
+
+    stride_load_smem_aux<BLOCK_SIZE, unsigned char, uint4, uint2, uchar4, uchar2>
+        (d_in, num_items, smem_out);
+}
+
+} // namespace block
+} // namespace xlib

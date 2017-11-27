@@ -121,8 +121,8 @@ __device__ __forceinline__
 typename std::enable_if<sizeof(T) != 8, unsigned>::type
 __bfe(T word, unsigned pos, unsigned length) {
     unsigned ret;
-    asm ("bfe.u32 %0, %1, %2, %3;" : "=r"(ret) : "r"(word),
-         "r"(pos), "r"(length));
+    asm ("bfe.u32 %0, %1, %2, %3;" : "=r"(ret) :
+         "r"(reinterpret_cast<unsigned&>(word)), "r"(pos), "r"(length));
     return ret;
 }
 
@@ -131,7 +131,8 @@ __device__ __forceinline__
 typename std::enable_if<sizeof(T) == 8, long long unsigned>::type
 __bfe(T dword, unsigned pos, unsigned length) {
     long long unsigned ret;
-    asm ("bfe.u64 %0, %1, %2, %3;" : "=l"(ret) : "l"(dword),
+    asm ("bfe.u64 %0, %1, %2, %3;" : "=l"(ret) :
+         "l"(reinterpret_cast<long long unsigned&>(dword)),
          "r"(pos), "r"(length));
     return ret;
 }

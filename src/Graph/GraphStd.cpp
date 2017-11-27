@@ -428,7 +428,7 @@ template<typename vid_t, typename eoff_t>
 void GraphStd<vid_t, eoff_t>::print_degree_analysis() const noexcept {
     auto avg      = static_cast<float>(_nE) / static_cast<float>(_nV);
     auto std_dev  = xlib::std_deviation(_out_degrees, _out_degrees + _nV);
-    auto sparsity = 1.0f - static_cast<float>(static_cast<uint64_t>(_nE)) /
+    auto sparsity = 1.0f - static_cast<float>(_nE) /
                      static_cast<float>(static_cast<uint64_t>(_nV) * _nV);
     auto gini     = xlib::gini_coefficient(_out_degrees, _out_degrees + _nV);
     auto variance_coeff = std_dev / std::abs(avg);
@@ -445,14 +445,24 @@ void GraphStd<vid_t, eoff_t>::print_degree_analysis() const noexcept {
     auto ring_percent = xlib::per_cent(rings.size(), _nV);
 
     degree_t out_degree_0 = 0, in_degree_0 = 0, out_degree_1 = 0,
-              in_degree_1 = 0,   singleton = 0,     out_leaf = 0, in_leaf = 0;
+             in_degree_1  = 0, singleton   = 0, out_leaf     = 0,
+             in_leaf      = 0, max_consec_0 = 0;
     auto max_out_degree = std::numeric_limits<degree_t>::min();
     auto  max_in_degree = std::numeric_limits<degree_t>::min();
     bool     is_inverse = _in_degrees != nullptr;
+    degree_t      count = 0;
     for (vid_t i = 0; i < _nV; i++) {
         if (_out_degrees[i] > max_out_degree)
             max_out_degree = _out_degrees[i];
-        if (_out_degrees[i] == 0) out_degree_0++;
+        if (_out_degrees[i] == 0) {
+            out_degree_0++;
+            count++;
+            if (count > max_consec_0)
+                max_consec_0 = count;
+        }
+        else
+            count = 0;
+
         if (_out_degrees[i] == 1) out_degree_1++;
         if (((_out_degrees[i] == 2 && is_undirected()) ||
             (_out_degrees[i] == 1 && is_directed())) && rings[i])
@@ -518,8 +528,12 @@ void GraphStd<vid_t, eoff_t>::print_degree_analysis() const noexcept {
         std::cout << "\n In-Degree = 1:        " << std::setw(W2)
                                                  << in_degree_1 << std::setw(W3)
                                                  << in_degree_1_percent
-                                                 << " %\n"
-                  << "\n Leafs:                " << std::setw(W2)
+                                                 << " %\n";
+    }
+    std::cout << "\n Max. Consec. 0:       " << std::setw(W2) << max_consec_0;
+
+    if (is_directed() && is_inverse) {
+        std::cout << "\n Leafs:                " << std::setw(W2)
                                                  << singleton << std::setw(W3)
                                                  << singleton_percent << " %";
     }

@@ -133,7 +133,7 @@ public:
         const eoff_t    _edge_id;
         vid_t     _src_id;
 
-        explicit Edge(eoff_t id, const GraphStd& graph) noexcept;
+        explicit Edge(vid_t src_id, eoff_t id, const GraphStd& graph) noexcept;
     };
 
     class EdgeIt : public std::iterator<std::forward_iterator_tag, vid_t> {
@@ -145,6 +145,7 @@ public:
     private:
         const GraphStd& _graph;
         vid_t*          _current;
+        eoff_t*         _current_offset;
 
         explicit EdgeIt(vid_t* current, const GraphStd& graph) noexcept;
     };

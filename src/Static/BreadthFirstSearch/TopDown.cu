@@ -36,8 +36,8 @@
 
 #include "Static/BreadthFirstSearch/TopDown.cuh"
 #include "Core/Auxilary/DuplicateRemoving.cuh"
-#include <GraphIO/GraphStd.hpp>
-#include <GraphIO/BFS.hpp>
+#include <Graph/GraphStd.hpp>
+#include <Graph/BFS.hpp>
 
 namespace hornets_nest {
 

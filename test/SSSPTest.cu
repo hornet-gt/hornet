@@ -3,7 +3,7 @@
  * @file
  */
 #include "Static/ShortestPath/SSSP.cuh"
-#include <GraphIO/GraphStd.hpp>
+#include <Graph/GraphStd.hpp>
 #include <Util/CommandLineParam.hpp>
 
 int main(int argc, char* argv[]) {

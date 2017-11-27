@@ -1,6 +1,6 @@
 #include "Static/KTruss/KTruss.cuh"
 #include <Device/Util/Timer.cuh>
-#include <GraphIO/GraphStd.hpp>
+#include <Graph/GraphStd.hpp>
 
 using namespace timer;
 using namespace hornets_nest;

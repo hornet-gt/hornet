@@ -34,7 +34,7 @@
  * </blockquote>}
  */
 #include "Static/ConnectedComponents/CC.cuh"
-#include <GraphIO/WCC.hpp>
+#include <Graph/WCC.hpp>
 
 namespace hornets_nest {
 

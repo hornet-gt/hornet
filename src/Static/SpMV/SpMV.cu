@@ -34,7 +34,7 @@
  * </blockquote>}
  */
 #include "Static/SpMV/SpMV.cuh"
-#include <GraphIO/GraphWeight.hpp>
+#include <Graph/GraphWeight.hpp>
 
 namespace hornets_nest {
 ///////////////

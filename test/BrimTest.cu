@@ -3,8 +3,8 @@
  * @file
  */
 //#include "Static/ShortestPath/SSSP.cuh"
-#include <GraphIO/GraphWeight.hpp>
-#include <GraphIO/Brim.hpp>
+#include <Graph/GraphWeight.hpp>
+#include <Graph/Brim.hpp>
 #include <BasicTypes.hpp>
 #include <Device/Util/Timer.cuh>
 

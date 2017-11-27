@@ -38,7 +38,7 @@
  */
 #include "Static/KatzCentrality/Katz.cuh"
 #include <Device/Util/Timer.cuh>
-#include <GraphIO/GraphStd.hpp>
+#include <Graph/GraphStd.hpp>
 
 int main(int argc, char* argv[]) {
     using namespace graph::structure_prop;

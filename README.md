@@ -38,7 +38,7 @@ The following basic steps are required to build and execute the Hornet algorithm
 git clone --recursive https://github.com/hornet-gt/hornetsnest
 cd hornetsnest/build
 cmake ..
-make -j
+make ps
 ```
 
 By default the cuda compiler `nvcc` uses `gcc/g++` found in the current

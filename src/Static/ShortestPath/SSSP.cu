@@ -34,8 +34,8 @@
  * </blockquote>}
  */
 #include "Static/ShortestPath/SSSP.cuh"
-#include <GraphIO/GraphWeight.hpp>
-#include <GraphIO/BellmanFord.hpp>
+#include <Graph/GraphWeight.hpp>
+#include <Graph/BellmanFord.hpp>
 
 namespace hornets_nest {
 

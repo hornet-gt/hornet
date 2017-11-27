@@ -35,9 +35,10 @@
  */
 #include "Device/Primitives/CubWrapper.cuh"
 #include "Device/Util/SafeCudaAPI.cuh"
+#include "Device/Util/SafeCudaAPISync.cuh"
 #include "Device/Util/VectorUtil.cuh"
 #include "Host/Numeric.hpp"
-#include "Core/DataLayout/DataLayout.cuh" //<-- !!!!
+//#include "Core/DataLayout/DataLayout.cuh" //<-- !!!!
 #include <cub/cub.cuh>
 
 namespace xlib {
@@ -535,6 +536,6 @@ template class CubRunLengthEncode<int>;
 template class CubExclusiveSum<int>;
 template class CubSelectFlagged<int>;
 
-template class CubSelectFlagged<hornets_nest::AoSData<int>>;
+//template class CubSelectFlagged<hornets_nest::AoSData<int>>;
 
 } //namespace xlib

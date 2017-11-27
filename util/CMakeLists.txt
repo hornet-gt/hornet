@@ -119,9 +119,9 @@ if (DEFINED CUDAHC)
     set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-ccbin=${CUDAHC}" )
 else()
     execute_process(COMMAND bash "-c" "gcc --version | head -n 1"
-                    OUTPUT_VARIABLE CUDAHC)
+                    OUTPUT_VARIABLE GCC_INFO)
     if (QUIET_SUBMODULE)
-        message("\n==> Cuda Host compiler: ${CUDAHC}"
+        message("\n==> Cuda Host compiler: ${GCC_INFO}"
                 "    (-DCUDAHC=<path_to_host_compiler>)")
     endif()
 endif()
@@ -415,6 +415,8 @@ add_custom_target(sass
 
 if (DEFINED CUDAHC)
     set(CUDAHC_FLAG -DCUDAHC=${CUDAHC})
+else()
+    set(CUDAHC_FLAG "")
 endif()
 
 add_custom_target(p

@@ -322,7 +322,7 @@ namespace adj_unions {
             degree_t v_len = (src_len > dst_len) ? dst_len : src_len;
             unsigned int log_u = 32-__clz(u_len-1);
             unsigned int log_v = 32-__clz(v_len-1);
-            int K = 4; // TODO: tune
+            int K = 1; // TODO: tune
             int imbalanced_work_est = ((u_len+W-1)/W)*log_v;
             int balanced_work_est = ((total_work+W-1)/W) + log_u;
             bin_index = (K*balanced_work_est > imbalanced_work_est);
@@ -351,25 +351,33 @@ void forAllAdjUnions(HornetClass&         hornet,
     load_balancing::VertexBased1 load_balancing ( hornet );
 
     timer::Timer<timer::DEVICE> TM(5);
+    TM.start();
     //TM.start();
     forAllEdgesSrcDst(hornet, bin_edges {hd_queue_info, true}, load_balancing);
     //TM.stop();
-    //TM.print("counting queues");
+    //TM.print("counting queues:");
     //TM.reset();
     hd_queue_info.sync();
 
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++)
         printf("queue=%d number of edges: %d\n", i, hd_queue_info().queue_sizes[i]);
     // Next, add each edge into the correct corresponding queue
+    //TM.start();
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++)
         cudaMalloc(&(hd_queue_info().d_queues[i]), 2*hd_queue_info().queue_sizes[i]*sizeof(vid_t));
+    //TM.stop();
+    //TM.print("queue allocation:");
+    //TM.start();
+    //TM.reset();
 
-    TM.start();
     forAllEdgesSrcDst(hornet, bin_edges {hd_queue_info, false}, load_balancing);
+    //TM.stop();
+    //TM.print("adding to queues:");
+    //TM.reset();
     TM.stop();
-    TM.print("adding to queues");
+    TM.print("queueing and binning:");
     TM.reset();
-    //
+
     hd_queue_info.sync();
 
     // Phase 2: run the operator on each queued edge as appropriate
@@ -377,13 +385,15 @@ void forAllAdjUnions(HornetClass&         hornet,
         if (hd_queue_info().queue_sizes[bin] == 0) continue;
         int flag = bin;
         const int threads_per = W;
-
+        TM.start();
         if (bin == 0) { 
-            //forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, flag);
+            forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, flag);
         } else if (bin == 1) {
-            //forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, flag);
-            forAllEdgesAdjUnionSequential(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, 0);
+            forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, flag);
         }
+        TM.stop();
+        TM.print("queue processing:");
+        TM.reset();
     }
 }
 

@@ -59,6 +59,20 @@ struct WarpSegmentedReduce {
 
     template<typename T, typename R>
     __device__ __forceinline__
+    static void add(T value, R* pointer, unsigned mask);
+
+    template<typename T, typename R>
+    __device__ __forceinline__
+    static void min(T value, R* pointer, unsigned mask);
+
+    template<typename T, typename R>
+    __device__ __forceinline__
+    static void max(T value, R* pointer, unsigned mask);
+
+    //--------------------------------------------------------------------------
+
+    template<typename T, typename R>
+    __device__ __forceinline__
     static void atomicAdd(const T& value, R* pointer, unsigned mask);
 
     template<typename T, typename R>
@@ -72,4 +86,4 @@ struct WarpSegmentedReduce {
 
 } // namespace xlib
 
-#include "impl/WarpSegmentedReduce2.i.cuh"
+#include "impl/WarpSegmentedReduce.i.cuh"

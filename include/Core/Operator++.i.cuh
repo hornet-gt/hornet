@@ -22,7 +22,7 @@ __global__ void forAllKernel(T* __restrict__ array, int size, Operator op) {
 }
 
 template<typename HornetDevice, typename T, typename Operator>
-__global__ void forAllEdgesAdjUnionSequentialKernel(HornetDevice hornet, T* __restrict__ array, int size, Operator op, int flag) {
+__global__ void forAllEdgesAdjUnionSequentialKernel(HornetDevice hornet, T* __restrict__ array, unsigned long long size, Operator op, int flag) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
     for (auto i = id; i < size; i += stride) {
@@ -79,7 +79,7 @@ namespace adj_union {
 }
 
 template<typename HornetDevice, typename T, typename Operator>
-__global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __restrict__ array, int size, size_t threads_per_union, int flag, Operator op) {
+__global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __restrict__ array, unsigned long long size, size_t threads_per_union, int flag, Operator op) {
 
     using namespace adj_union;
     int       id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -187,7 +187,7 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
 }
 
 template<typename HornetDevice, typename T, typename Operator>
-__global__ void forAllEdgesAdjUnionImbalancedKernel(HornetDevice hornet, T* __restrict__ array, int size, size_t threads_per_union, int flag, Operator op) {
+__global__ void forAllEdgesAdjUnionImbalancedKernel(HornetDevice hornet, T* __restrict__ array, unsigned long long size, size_t threads_per_union, int flag, Operator op) {
 
     using namespace adj_union;
     int       id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -301,9 +301,9 @@ void forAllEdgesKernel(const eoff_t* __restrict__ csr_offsets,
 #define MAX_ADJ_UNIONS_BINS 4
 namespace adj_unions {
     struct queue_info {
-        int queue_sizes[MAX_ADJ_UNIONS_BINS] = {0,};
+        unsigned long long queue_sizes[MAX_ADJ_UNIONS_BINS] = {0,};
         vid_t *d_queues[MAX_ADJ_UNIONS_BINS] = {NULL,};
-        int queue_pos[MAX_ADJ_UNIONS_BINS] = {0,};
+        unsigned long long queue_pos[MAX_ADJ_UNIONS_BINS] = {0,};
         int queue_threads_per[MAX_ADJ_UNIONS_BINS] = {1,8,16,32};
     };
 
@@ -334,10 +334,10 @@ namespace adj_unions {
             //bin_index=0;
             // Either count or add the item to the appropriate queue
             if (countOnly)
-                atomicAdd(&(d_queue_info.ptr()->queue_sizes[bin_index]), 1);
+                atomicAdd(&(d_queue_info.ptr()->queue_sizes[bin_index]), 1ULL);
             else {
                 // How do I get the value returned by atomicAdd?
-                int id = atomicAdd(&(d_queue_info.ptr()->queue_pos[bin_index]), 1);
+                int id = atomicAdd(&(d_queue_info.ptr()->queue_pos[bin_index]), 1ULL);
                 d_queue_info.ptr()->d_queues[bin_index][id*2] = src.id();
                 d_queue_info.ptr()->d_queues[bin_index][id*2+1] = dst.id();
             }
@@ -365,7 +365,7 @@ void forAllAdjUnions(HornetClass&         hornet,
     hd_queue_info.sync();
 
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++)
-        printf("queue=%d number of edges: %d\n", i, hd_queue_info().queue_sizes[i]);
+        printf("queue=%d number of edges: %llu\n", i, hd_queue_info().queue_sizes[i]);
     // Next, add each edge into the correct corresponding queue
     //TM.start();
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++)
@@ -407,7 +407,7 @@ void forAllAdjUnions(HornetClass&         hornet,
 
 
 template<typename HornetClass, typename Operator>
-void forAllEdgesAdjUnionSequential(HornetClass &hornet, vid_t* queue, const int size, const Operator &op, int flag) {
+void forAllEdgesAdjUnionSequential(HornetClass &hornet, vid_t* queue, const unsigned long long size, const Operator &op, int flag) {
     if (size == 0)
         return;
     detail::forAllEdgesAdjUnionSequentialKernel
@@ -417,8 +417,8 @@ void forAllEdgesAdjUnionSequential(HornetClass &hornet, vid_t* queue, const int 
 }
 
 template<typename HornetClass, typename Operator>
-void forAllEdgesAdjUnionBalanced(HornetClass &hornet, vid_t* queue, const int size, const Operator &op, size_t threads_per_union, int flag) {
-    //printf("queue size: %d\n", size);
+void forAllEdgesAdjUnionBalanced(HornetClass &hornet, vid_t* queue, const unsigned long long size, const Operator &op, size_t threads_per_union, int flag) {
+    //printf("queue size: %llu\n", size);
     if (size == 0)
         return;
     detail::forAllEdgesAdjUnionBalancedKernel
@@ -428,8 +428,8 @@ void forAllEdgesAdjUnionBalanced(HornetClass &hornet, vid_t* queue, const int si
 }
 
 template<typename HornetClass, typename Operator>
-void forAllEdgesAdjUnionImbalanced(HornetClass &hornet, vid_t* queue, const int size, const Operator &op, size_t threads_per_union, int flag) {
-    //printf("queue size: %d\n", size);
+void forAllEdgesAdjUnionImbalanced(HornetClass &hornet, vid_t* queue, const unsigned long long size, const Operator &op, size_t threads_per_union, int flag) {
+    //printf("queue size: %llu\n", size);
     if (size == 0)
         return;
     detail::forAllEdgesAdjUnionImbalancedKernel

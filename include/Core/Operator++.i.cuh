@@ -298,13 +298,13 @@ void forAllEdgesKernel(const eoff_t* __restrict__ csr_offsets,
 //==============================================================================
 //==============================================================================
 // stub
-#define MAX_ADJ_UNIONS_BINS 2
-#define W 32
+#define MAX_ADJ_UNIONS_BINS 4
 namespace adj_unions {
     struct queue_info {
         int queue_sizes[MAX_ADJ_UNIONS_BINS] = {0,};
         vid_t *d_queues[MAX_ADJ_UNIONS_BINS] = {NULL,};
         int queue_pos[MAX_ADJ_UNIONS_BINS] = {0,};
+        int queue_threads_per[MAX_ADJ_UNIONS_BINS] = {1,8,16,32};
     };
 
     struct bin_edges {
@@ -322,11 +322,16 @@ namespace adj_unions {
             degree_t v_len = (src_len > dst_len) ? dst_len : src_len;
             unsigned int log_u = 32-__clz(u_len-1);
             unsigned int log_v = 32-__clz(v_len-1);
-            int K = 1; // TODO: tune
-            int imbalanced_work_est = ((u_len+W-1)/W)*log_v;
-            int balanced_work_est = ((total_work+W-1)/W) + log_u;
-            bin_index = (K*balanced_work_est > imbalanced_work_est);
-            bin_index=1;
+            unsigned int bin_index = std::min((int)log_u, 5);
+            if (bin_index < 3) {
+                bin_index = 0;
+            } else {
+                bin_index -= 2;
+            }
+            //int imbalanced_work_est = ((u_len+W-1)/W)*log_v;
+            //int balanced_work_est = ((total_work+W-1)/W) + log_u;
+            //bin_index = (K*balanced_work_est > imbalanced_work_est);
+            //bin_index=0;
             // Either count or add the item to the appropriate queue
             if (countOnly)
                 atomicAdd(&(d_queue_info.ptr()->queue_sizes[bin_index]), 1);
@@ -383,14 +388,17 @@ void forAllAdjUnions(HornetClass&         hornet,
     // Phase 2: run the operator on each queued edge as appropriate
     for (auto bin = 0; bin < MAX_ADJ_UNIONS_BINS; bin++) {
         if (hd_queue_info().queue_sizes[bin] == 0) continue;
-        int flag = bin;
-        const int threads_per = W;
+        int flag = 1;
+        int threads_per = hd_queue_info().queue_threads_per[bin]; 
         TM.start();
-        if (bin == 0) { 
-            forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, flag);
+        /*if (bin == 0) { 
+            //forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, flag);
+            forAllEdgesAdjUnionSequential(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, flag);
         } else if (bin == 1) {
             forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, flag);
-        }
+        }*/
+        
+        forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, flag);
         TM.stop();
         TM.print("queue processing:");
         TM.reset();

@@ -2,10 +2,10 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date June, 2017
- * @version v1.3
+ * @date November, 2017
+ * @version v1.4
  *
- * @copyright Copyright © 2017 cuStinger. All rights reserved.
+ * @copyright Copyright © 2017 XLib. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
+ *
+ * @file
  */
 #include "Graph/GraphBase.hpp"
 #include "Host/Basic.hpp"   //WARNING
@@ -191,6 +193,8 @@ GInfo GraphBase<vid_t, eoff_t>::getMarketHeader(std::ifstream& fin) {
     std::getline(fin, header_lines);
     auto direction = header_lines.find("symmetric") != std::string::npos ?
                         structure_prop::UNDIRECTED : structure_prop::DIRECTED;
+    if (header_lines.find("array") != std::string::npos)
+        ERROR("The matrix is a vector")
     /*if (header_lines.find("integer") != std::string::npos)
         _structure._wtype = Structure::INTEGER;
     if (header_lines.find("real") != std::string::npos)
@@ -203,6 +207,9 @@ GInfo GraphBase<vid_t, eoff_t>::getMarketHeader(std::ifstream& fin) {
     fin >> rows >> columns >> num_lines;
     if (rows != columns)
         WARNING("Rectangular matrix");
+    //if (columns == 1)
+    //    ERROR("The matrix is a vector")
+
     xlib::skip_lines(fin);
     size_t num_edges = direction == structure_prop::UNDIRECTED ? num_lines * 2
                                                                : num_lines;

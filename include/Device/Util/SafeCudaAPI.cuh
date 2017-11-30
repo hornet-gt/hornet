@@ -56,11 +56,11 @@
  */
 #pragma once
 
-#include "Device/Util/CudaUtil.cuh" //__cudaErrorHandler
-#include "Host/Basic.hpp"           //xlib::byte_t
-#include "Host/Numeric.hpp"         //xlib::upper_approx
-#include <cassert>                  //assert
-#include <utility>                  //std::forward
+#include "Host/Basic.hpp"    //xlib::byte_t
+#include "Host/Numeric.hpp"  //xlib::upper_approx
+#include <cassert>           //assert
+#include <cuda_runtime.h>    //cudaError_t
+#include <utility>           //std::forward
 
 #if defined(NEVER_DEFINED)
     #include "SafeFunctions_.cuh"
@@ -83,6 +83,14 @@
         xlib::__safe_call(function, __FILE__, __LINE__, __func__);             \
     }
 
+int cuGetDeviceCount() noexcept;
+
+void cuSetDevice(int device_index) noexcept;
+
+int cuGetDevice() noexcept;
+
+//==============================================================================
+
 #define cuGetSymbolAddress(symbol, ptr)                                        \
     xlib::detail::cuGetSymbolAddressAux(__FILE__, __LINE__, __func__,          \
                                         symbol, ptr)                           \
@@ -102,11 +110,7 @@
 #define cuFreeHost(...)                                                        \
     xlib::detail::cuFreeHostAux(__FILE__, __LINE__, __func__, __VA_ARGS__)     \
 
-int cuGetDeviceCount() noexcept;
-
-void cuSetDevice(int device_index) noexcept;
-
-int cuGetDevice() noexcept;
+//==============================================================================
 
 namespace xlib {
 
@@ -134,6 +138,7 @@ void cuGetSymbolAddressAux(const char* file, int line, const char* func_name,
                              "cudaGetSymbolAddress", file, line, func_name);
 }
 
+//==============================================================================
 ////////////////
 //  cuMalloc  //
 ////////////////
@@ -212,7 +217,7 @@ void cuMallocHostAux(const char* file, int line, const char* func_name,
     set_ptr(base_ptr, std::forward<TArgs>(args)...);
 }
 
-//------------------------------------------------------------------------------
+//==============================================================================
 //////////////
 //  cuFree  //
 //////////////

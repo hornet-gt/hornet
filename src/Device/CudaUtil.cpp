@@ -34,6 +34,8 @@
  * </blockquote>}
  */
 #include "Device/Util/CudaUtil.cuh"
+#define ARCH -1
+#include "Device/Util/Definition.cuh"
 #include "Host/Basic.hpp"       //xlib::MB
 #include "Host/PrintExt.hpp"    //Color
 #include <cuda_runtime_api.h>
@@ -44,16 +46,32 @@
 
 namespace xlib {
 
-int DeviceProperty::NUM_OF_STREAMING_MULTIPROCESSOR = 0;                //NOLINT
+int DeviceProperty::_num_sm[DeviceProperty::MAX_GPUS] = {};             //NOLINT
 
-int DeviceProperty::num_SM() {
-    if (NUM_OF_STREAMING_MULTIPROCESSOR == 0) {
+int DeviceProperty::num_SM() noexcept {
+    auto id = cuGetDevice();
+    if (_num_sm[id] == 0) {
         cudaDeviceProp prop;
         SAFE_CALL( cudaGetDeviceProperties(&prop, 0) );
-        NUM_OF_STREAMING_MULTIPROCESSOR = prop.multiProcessorCount;
+        _num_sm[id] = prop.multiProcessorCount;
     }
-    return NUM_OF_STREAMING_MULTIPROCESSOR;
+    return _num_sm[id];
 }
+
+int DeviceProperty::resident_threads() noexcept {
+    return num_SM() * xlib::THREADS_PER_SM;
+}
+
+int DeviceProperty::resident_warps() noexcept {
+    return num_SM() * (xlib::THREADS_PER_SM / xlib::WARP_SIZE);
+}
+
+int DeviceProperty::resident_blocks(int block_size) noexcept {
+    auto size = xlib::upper_approx<xlib::WARP_SIZE>(block_size);
+    return num_SM() * (xlib::THREADS_PER_SM / static_cast<unsigned>(size));
+}
+
+//==============================================================================
 
 void device_info(int device_id) {
     xlib::IosFlagSaver tmp1;
@@ -65,22 +83,22 @@ void device_info(int device_id) {
     cudaDeviceProp prop;
     SAFE_CALL( cudaGetDeviceProperties(&prop, device_id) )
 
-    auto smem = std::to_string(prop.sharedMemPerMultiprocessor /xlib::KB)
-                       + " KB";
-    auto gmem = xlib::format(prop.totalGlobalMem /xlib::MB) + " MB";
+    auto smem        = std::to_string(prop.sharedMemPerMultiprocessor /xlib::KB)
+                          + " KB";
+    auto gmem        = xlib::format(prop.totalGlobalMem /xlib::MB) + " MB";
     auto smem_thread = prop.sharedMemPerMultiprocessor /
-                        prop.maxThreadsPerMultiProcessor;
-    auto  thread_regs = prop.regsPerMultiprocessor /
-                        prop.maxThreadsPerMultiProcessor;
-    auto      l2cache = std::to_string(prop.l2CacheSize / xlib::MB) + " MB";
+                       prop.maxThreadsPerMultiProcessor;
+    auto thread_regs = prop.regsPerMultiprocessor /
+                       prop.maxThreadsPerMultiProcessor;
+    auto l2cache     = std::to_string(prop.l2CacheSize / xlib::MB) + " MB";
 
     std::cout << std::boolalpha << std::setprecision(1) << std::left
               << std::fixed << "\n"
     << "    GPU: " << prop.name
     << "   CC: "   << prop.major << "." << prop.minor
     << "   #SM: "  << prop.multiProcessorCount
-    << "   @"      << (prop.clockRate / 1000) << "/"
-                   << (dev_peak_clock / 1000) << " MHz\n"
+    << "   @"      << (static_cast<float>(prop.clockRate) / 1000.0f) << "/"
+                   << (static_cast<float>(dev_peak_clock) / 1000.0f) << " MHz\n"
     << "           Threads (SM): " << std::setw(13)
                                    << prop.maxThreadsPerMultiProcessor
     << "Registers (thread): "      << thread_regs << "\n"
@@ -105,7 +123,7 @@ void device_info(int device_id) {
 namespace nvtx {
 
 void push_range(const std::string& event_name, NvColor color) noexcept {
-    nvtxEventAttributes_t eventAttrib = { 0 };
+    nvtxEventAttributes_t eventAttrib = {};
     eventAttrib.version       = NVTX_VERSION;
     eventAttrib.size          = NVTX_EVENT_ATTRIB_STRUCT_SIZE;
     eventAttrib.colorType     = NVTX_COLOR_ARGB;

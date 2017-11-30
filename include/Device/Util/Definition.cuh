@@ -1,12 +1,11 @@
 /**
- * @internal
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
- * @version v1.3
+ * @date November, 2017
+ * @version v1.4
  *
- * @copyright Copyright © 2017 Hornet. All rights reserved.
+ * @copyright Copyright © 2017 XLib. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +41,7 @@
 
 namespace xlib {
 
-const unsigned SM_THREADS     = 2048;
+const unsigned THREADS_PER_SM = 2048;
 const unsigned MAX_BLOCK_SIZE = 1024;
 const unsigned MAX_BLOCK_SMEM = 49152;
 const unsigned CONSTANT_MEM   = 65536;
@@ -83,12 +82,12 @@ const unsigned WARP_SIZE      = 32;
 
         static const unsigned _BLOCK_SIZE = BLOCK_SIZE == 0 ? MAX_BLOCK_SIZE :
                                             BLOCK_SIZE;
-        static const unsigned SMEM_PER_THREAD = SMEM_PER_SM / SM_THREADS;
+        static const unsigned SMEM_PER_THREAD = SMEM_PER_SM / THREADS_PER_SM;
         //max block size for full occupancy
-        static const unsigned  SM_BLOCKS = SM_THREADS / _BLOCK_SIZE;
+        static const unsigned SM_BLOCKS  = THREADS_PER_SM / _BLOCK_SIZE;
         static const unsigned OCC_RATIO1 = SM_BLOCKS / RESIDENT_BLOCKS_PER_SM;
-        static const unsigned  OCC_RATIO = xlib::max(OCC_RATIO1, 1u);
-        static const unsigned   SMEM_OCC = SMEM_PER_THREAD * OCC_RATIO;
+        static const unsigned OCC_RATIO  = xlib::max(OCC_RATIO1, 1u);
+        static const unsigned SMEM_OCC   = SMEM_PER_THREAD * OCC_RATIO;
 
         static const unsigned SMEM_LIMIT = MAX_BLOCK_SMEM / _BLOCK_SIZE;
     public:
@@ -107,6 +106,8 @@ const unsigned WARP_SIZE      = 32;
         static const unsigned value = SMemPerThread<T, BLOCK_SIZE>::value *
                                       BLOCK_SIZE;
     };
+#elif ARCH -1
+    //no op
 #else
     #error("Unsupported Compute Cabalitity (CC < 3.0)")
 #endif
@@ -115,16 +116,21 @@ const unsigned WARP_SIZE      = 32;
 #endif
 #undef ARCH
 
+/*
 #if defined(SM)
-    const unsigned           NUM_SM = SM;
-    const unsigned RESIDENT_THREADS = SM * SM_THREADS;
-    const unsigned   RESIDENT_WARPS = RESIDENT_THREADS / 32;
+    const unsigned NUM_SM           = SM;
+    const unsigned RESIDENT_THREADS = SM * THREADS_PER_SM;
+    const unsigned RESIDENT_WARPS   = RESIDENT_THREADS / xlib::WARP_SIZE;
 
     template<unsigned BLOCK_SIZE>
     struct ResidentBlocks {
-        static const unsigned value = RESIDENT_THREADS / BLOCK_SIZE;
+        static const unsigned value;// = RESIDENT_THREADS / BLOCK_SIZE;
     };
+
+    template<unsigned BLOCK_SIZE>
+    const unsigned ResidentBlocks<BLOCK_SIZE>::value = RESIDENT_THREADS / BLOCK_SIZE;
+
 #endif
-#undef SM
+#undef SM*/
 
 } // namespace xlib

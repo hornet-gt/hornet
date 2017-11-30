@@ -1,34 +1,43 @@
-/*------------------------------------------------------------------------------
-Copyright © 2016 by Nicola Bombieri
-
-XLib is provided under the terms of The MIT License (MIT):
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-------------------------------------------------------------------------------*/
 /**
- * @author Federico Busato
- * Univerity of Verona, Dept. of Computer Science
- * federico.busato@univr.it
+ * @author Federico Busato                                                  <br>
+ *         Univerity of Verona, Dept. of Computer Science                   <br>
+ *         federico.busato@univr.it
+ * @date November, 2017
+ * @version v1.4
+ *
+ * @copyright Copyright © 2017 XLib. All rights reserved.
+ *
+ * @license{<blockquote>
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ * * Neither the name of the copyright holder nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * </blockquote>}
+ *
+ * @file
  */
 #pragma once
 
-#include "Device/Util/PTX.cuh"
-#include <type_traits>
+#include <type_traits>  //std::remove_cv
 
 namespace xlib {
 
@@ -281,21 +290,10 @@ double LoadSupport<CACHE_MOD, double>(double* pointer) {                       \
 }
 
 //==============================================================================
-
-template<CacheModifier M, typename T>
-__device__ __forceinline__  T LoadSupport(T* pointer);
-
-//------------------------------------------------------------------------------
+//==============================================================================
 
 template<CacheModifier MODIFIER = DF>
 struct ThreadLoad;
-
-template<CacheModifier MODIFIER, typename T>
-__device__ __forceinline__ T Load(T* pointer) {
-    return ThreadLoad<MODIFIER>::op(pointer);
-}
-
-//------------------------------------------------------------------------------
 
 template<CacheModifier MODIFIER>
 struct ThreadLoad {
@@ -309,19 +307,8 @@ struct ThreadLoad {
 template<>
 struct ThreadLoad<DF> {
     template<typename T>
-    static __device__ __forceinline__ T op(T* pointer) {
-        return *pointer;
-    }
-    template<typename T>
-    static __device__ __forceinline__ T op(volatile T* pointer) {
-        return *pointer;
-    }
-    template<typename T>
-    static __device__ __forceinline__ T op(const T* pointer) {
-        return *pointer;
-    }
-    template<typename T>
-    static __device__ __forceinline__ T op(const volatile T* pointer) {
+    __device__ __forceinline__
+    static T op(T* pointer) {
         return *pointer;
     }
 };
@@ -329,31 +316,24 @@ struct ThreadLoad<DF> {
 template<>
 struct ThreadLoad<NC> {
     template<typename T>
-    static __device__ __forceinline__ T op(T* pointer) {
-        return __ldg(pointer);
-    }
-    template<typename T>
-    static __device__ __forceinline__ T op(volatile T* pointer) {
-        return __ldg(pointer);
-    }
-    template<typename T>
-    static __device__ __forceinline__ T op(const T* pointer) {
-        return __ldg(pointer);
-    }
-    template<typename T>
-    static __device__ __forceinline__ T op(const volatile T* pointer) {
+    __device__ __forceinline__
+    static T op(T* pointer) {
         return __ldg(pointer);
     }
 };
 
-//------------------------------------------------------------------------------
+//==============================================================================
+
+template<CacheModifier M, typename T>
+__device__ __forceinline__  T LoadSupport(T* pointer);
 
 #define LoadStruct_MACRO(CACHE_MOD)                                            \
                                                                                \
 template<>                                                                     \
 struct ThreadLoad<CACHE_MOD> {                                                 \
     template<typename T>                                                       \
-    static __device__ __forceinline__ T op(T* pointer) {                       \
+    __device__ __forceinline__                                                 \
+    static T op(T* pointer) {                                                  \
         return LoadSupport<CACHE_MOD>(                                         \
                const_cast<typename std::remove_cv<T>::type*>(pointer));        \
     }                                                                          \
@@ -377,5 +357,14 @@ Load_MACRO(NC_CS, global.cs.nc)
 
 #undef LoadStruct_MACRO
 #undef Load_MACRO
+
+//==============================================================================
+//==============================================================================
+
+template<CacheModifier MODIFIER, typename T>
+__device__ __forceinline__
+T Load(T* pointer) {
+    return ThreadLoad<MODIFIER>::op(pointer);
+}
 
 } // namespace xlib

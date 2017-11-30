@@ -34,10 +34,14 @@
  * </blockquote>}
  */
 #include "Host/FileUtil.hpp"
-#include "Host/Basic.hpp" //ERROR
-#include <cassert>                //assert
-#include <fstream>                //std::ifstream
-#include <limits>                 //std::numeric_limits
+#include "Host/Basic.hpp"   //ERROR
+#include <cassert>          //assert
+#include <fstream>          //std::ifstream
+#include <limits>           //std::numeric_limits
+#if defined(__linux__)
+    #include <sys/types.h>
+    #include <sys/stat.h>
+#endif
 
 namespace xlib {
 
@@ -65,8 +69,13 @@ void check_regular_file(std::ifstream& fin, const char* filename) {
         char c;
         fin >> c;
     } catch (std::ios_base::failure&) {
-        ERROR("Unable to read the file ", filename);
+        ERROR("Unable to read the file: ", filename);
     }
+    struct stat info;
+    if (stat( filename, &info ) != 0)
+        ERROR("Unable to read the file: ", filename)
+    else if (info.st_mode & S_IFDIR)
+        ERROR("The file is a directory: ", filename)
     fin.seekg(0L, std::ios::beg);
 }
 

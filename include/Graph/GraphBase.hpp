@@ -39,7 +39,7 @@
 #pragma once
 
 #include "Host/Basic.hpp"   //xlib::PropertyClass
-#include <string>                   //std::string
+#include <string>           //std::string
 
 namespace graph {
 
@@ -121,7 +121,7 @@ public:
 
     virtual void read(const char* filename,
                       const ParsingProp& prop =
-                            ParsingProp(parsing_prop::PRINT_INFO)) final;    //NOLINT
+                        ParsingProp(parsing_prop::PRINT_INFO)) final;   //NOLINT
 
     virtual void print()     const noexcept = 0;
     virtual void print_raw() const noexcept = 0;

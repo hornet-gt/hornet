@@ -2,10 +2,10 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
- * @version v1.3
+ * @date November, 2017
+ * @version v1.4
  *
- * @copyright Copyright © 2017 Hornet. All rights reserved.
+ * @copyright Copyright © 2017 XLib. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ class SCC;
 
 template<typename vid_t = int, typename eoff_t = int>
 class GraphStd : public GraphBase<vid_t, eoff_t> {
-    using    coo_t = typename std::pair<vid_t, vid_t>;
+    using coo_t    = typename std::pair<vid_t, vid_t>;
     using degree_t = int;
     friend class BFS<vid_t, eoff_t>;
     friend class WCC<vid_t, eoff_t>;
@@ -198,11 +198,10 @@ public:
     explicit GraphStd(StructureProp structure = StructureProp()) noexcept;
 
     explicit GraphStd(const char* filename,
-                      const ParsingProp& property
-                        = ParsingProp(parsing_prop::PRINT_INFO)) noexcept;
+                      const ParsingProp& property = ParsingProp()) noexcept;
 
     explicit GraphStd(StructureProp structure, const char* filename,
-                      const ParsingProp& property) noexcept;
+                      const ParsingProp& property = ParsingProp()) noexcept;
 
     explicit GraphStd(const eoff_t* csr_offsets, vid_t nV,
                       const vid_t* csr_edges, eoff_t nE) noexcept;
@@ -233,8 +232,10 @@ public:
 
     void print()     const noexcept override;
     void print_raw() const noexcept override;
-    void print_degree_distrib()  const noexcept;
-    void print_degree_analysis() const noexcept;
+    void print_degree_distrib() const noexcept;
+    void print_analysis() const noexcept;
+    void write_analysis(const char* filename) const noexcept;
+
     void writeBinary(const std::string& filename, bool print = true) const;
     void writeMarket(const std::string& filename, bool print = true) const;
     void writeDimacs10th(const std::string& filename, bool print = true)
@@ -279,6 +280,26 @@ private:
     coo_t* _coo_edges { nullptr };
 
     void allocate(const GInfo& ginfo) noexcept;
+
+    struct GraphAnalysisProp {
+        degree_t num_rings      = 0;
+        degree_t max_out_degree = 0;
+        degree_t max_in_degree  = 0;
+
+        degree_t out_degree_0 = 0;
+        degree_t in_degree_0  = 0;
+        degree_t out_degree_1 = 0;
+        degree_t in_degree_1  = 0;
+        degree_t singleton    = 0;
+        degree_t out_leaf     = 0;
+        degree_t in_leaf      = 0;
+        degree_t max_consec_0 = 0;
+
+        float std_dev = 0.0f;
+        float gini    = 0.0f;
+    };
+
+    GraphAnalysisProp _collect_analysis() const noexcept;
 };
 
 } // namespace graph

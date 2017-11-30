@@ -3,6 +3,9 @@
 #include "Device/Util/Definition.cuh"   //xlib::WARP_SIZE
 #include <cassert>                      //assert
 
+namespace device {
+namespace detail {
+
 template<unsigned BLOCK_SIZE, typename T, typename VType,
          unsigned UNROLL_STEPS, unsigned LDG_FACTOR>
 __device__ __forceinline__
@@ -33,6 +36,8 @@ __device__ __forceinline__
 int TileT::stride() const {
     return _stride;
 }
+
+} // namespace detail
 
 //==============================================================================
 
@@ -156,3 +161,5 @@ void IlLoadTileT::load(T (&array)[THREAD_ITEMS],
     _index += _stride;
     _ptr   += _full_stride;
 }
+
+} // namespace device

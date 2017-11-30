@@ -425,13 +425,12 @@ void GraphStd<vid_t, eoff_t>::print_degree_distrib() const noexcept {
 }
 
 template<typename vid_t, typename eoff_t>
-void GraphStd<vid_t, eoff_t>::print_degree_analysis() const noexcept {
-    auto avg      = static_cast<float>(_nE) / static_cast<float>(_nV);
-    auto std_dev  = xlib::std_deviation(_out_degrees, _out_degrees + _nV);
-    auto sparsity = 1.0f - static_cast<float>(_nE) /
-                     static_cast<float>(static_cast<uint64_t>(_nV) * _nV);
-    auto gini     = xlib::gini_coefficient(_out_degrees, _out_degrees + _nV);
-    auto variance_coeff = std_dev / std::abs(avg);
+typename GraphStd<vid_t, eoff_t>::GraphAnalysisProp
+GraphStd<vid_t, eoff_t>::_collect_analysis() const noexcept {
+    GraphAnalysisProp prop;
+    prop.std_dev = xlib::std_deviation(_out_degrees, _out_degrees + _nV);
+    prop.gini    = xlib::gini_coefficient(_out_degrees, _out_degrees + _nV);
+
     xlib::Bitmask rings(_nV);
     for (auto i = 0; i < _nV; i++) {
         for (auto j = _out_offsets[i]; j < _out_offsets[i + 1]; j++) {
@@ -441,108 +440,152 @@ void GraphStd<vid_t, eoff_t>::print_degree_analysis() const noexcept {
             }
         }
     }
-    int     num_rings = rings.size();
-    auto ring_percent = xlib::per_cent(rings.size(), _nV);
+    prop.num_rings  = rings.size();
+    bool is_inverse = _in_degrees != nullptr;
+    degree_t count  = 0;
 
-    degree_t out_degree_0 = 0, in_degree_0 = 0, out_degree_1 = 0,
-             in_degree_1  = 0, singleton   = 0, out_leaf     = 0,
-             in_leaf      = 0, max_consec_0 = 0;
-    auto max_out_degree = std::numeric_limits<degree_t>::min();
-    auto  max_in_degree = std::numeric_limits<degree_t>::min();
-    bool     is_inverse = _in_degrees != nullptr;
-    degree_t      count = 0;
     for (vid_t i = 0; i < _nV; i++) {
-        if (_out_degrees[i] > max_out_degree)
-            max_out_degree = _out_degrees[i];
+        if (_out_degrees[i] > prop.max_out_degree)
+            prop.max_out_degree = _out_degrees[i];
         if (_out_degrees[i] == 0) {
-            out_degree_0++;
+            prop.out_degree_0++;
             count++;
-            if (count > max_consec_0)
-                max_consec_0 = count;
+            if (count > prop.max_consec_0)
+                prop.max_consec_0 = count;
         }
         else
             count = 0;
 
-        if (_out_degrees[i] == 1) out_degree_1++;
+        if (_out_degrees[i] == 1)
+            prop.out_degree_1++;
         if (((_out_degrees[i] == 2 && is_undirected()) ||
-            (_out_degrees[i] == 1 && is_directed())) && rings[i])
-            out_leaf++;
+                (_out_degrees[i] == 1 && is_directed())) && rings[i]) {
+            prop.out_leaf++;
+        }
+        if (is_undirected() && (_out_degrees[i] == 0 ||
+                (_out_degrees[i] == 1 && rings[i]))) {
+            prop.singleton++;
+        }
         if (!is_inverse)
             continue;
-        if (_in_degrees[i] > max_in_degree)
-            max_in_degree = _in_degrees[i];
-        if (_in_degrees[i] == 0)  in_degree_0++;
-        if (_in_degrees[i] == 1)  in_degree_1++;
+        if (_in_degrees[i] > prop.max_in_degree)
+            prop.max_in_degree = _in_degrees[i];
+        if (_in_degrees[i] == 0)
+            prop.in_degree_0++;
+        if (_in_degrees[i] == 1)
+            prop.in_degree_1++;
         if (((_in_degrees[i] == 2 && is_undirected()) ||
-            (_in_degrees[i] == 1 && is_directed())) && rings[i])
-            in_leaf++;
+                (_in_degrees[i] == 1 && is_directed())) && rings[i]) {
+            prop.in_leaf++;
+        }
+        if (is_undirected())
+            continue;
         if ((_out_degrees[i] == 0 && _in_degrees[i] == 0) ||
-            (_out_degrees[i] == 1 && _in_degrees[i] == 1 && rings[i]))
-            singleton++;
+                (_out_degrees[i] == 1 && _in_degrees[i] == 1 && rings[i])) {
+            prop.singleton++;
+        }
     }
-    auto out_degree_0_percent = xlib::per_cent(out_degree_0, _nV);
-    auto out_degree_1_percent = xlib::per_cent(out_degree_1, _nV);
-    auto in_degree_0_percent  = xlib::per_cent(in_degree_0, _nV);
-    auto in_degree_1_percent  = xlib::per_cent(in_degree_1, _nV);
-    auto singleton_percent    = xlib::per_cent(singleton, _nV);
-    auto out_leaf_percent     = xlib::per_cent(out_leaf, _nV);
-    auto in_leaf_percent      = xlib::per_cent(in_leaf, _nV);
+    return prop;
+}
+
+template<typename vid_t, typename eoff_t>
+void GraphStd<vid_t, eoff_t>
+::write_analysis(const char* filename) const noexcept {
+    auto prop = _collect_analysis();
+    std::ofstream fout(filename, std::ofstream::out | std::ofstream::app);
+
+    auto dir = is_directed() ? "D" : "U";
+    fout << _graph_name  << "\t" << dir << "\t"
+         << _nV << "\t" << _nE << "\t"
+         << prop.std_dev        << "\t" << prop.gini          << "\t"
+         << prop.max_out_degree << "\t" << prop.max_in_degree << "\t"
+         << prop.num_rings      << "\t" << prop.singleton     << "\t"
+         << prop.out_degree_0   << "\t" << prop.in_degree_0   << "\t"
+         << prop.out_degree_1   << "\t" << prop.in_degree_1   << "\t"
+         << prop.max_consec_0   << "\t"
+         << prop.out_leaf       << "\t" << prop.in_leaf << "\n";
+    fout.close();
+}
+
+template<typename vid_t, typename eoff_t>
+void GraphStd<vid_t, eoff_t>::print_analysis() const noexcept {
+    auto prop     = _collect_analysis();
+    auto avg      = static_cast<float>(_nE) / static_cast<float>(_nV);
+    auto sparsity = 1.0f - static_cast<float>(_nE) / static_cast<float>(
+                     static_cast<uint64_t>(_nV) * static_cast<uint64_t>(_nV));
+    auto variance_coeff = prop.std_dev / avg;
+    auto ring_percent   = xlib::per_cent(prop.num_rings, _nV);
+    bool is_inverse     = _in_degrees != nullptr;
+
+    auto out_degree_0_percent = xlib::per_cent(prop.out_degree_0, _nV);
+    auto out_degree_1_percent = xlib::per_cent(prop.out_degree_1, _nV);
+    auto in_degree_0_percent  = xlib::per_cent(prop.in_degree_0, _nV);
+    auto in_degree_1_percent  = xlib::per_cent(prop.in_degree_1, _nV);
+    auto singleton_percent    = xlib::per_cent(prop.singleton, _nV);
+    auto out_leaf_percent     = xlib::per_cent(prop.out_leaf, _nV);
+    auto in_leaf_percent      = xlib::per_cent(prop.in_leaf, _nV);
 
     const int W2 = 5;
     const int W3 = 8;
     xlib::IosFlagSaver tmp1;
     xlib::ThousandSep tmp2;
 
-    std::cout << "Degree analysis:"
-              << std::setprecision(1) << std::fixed << "\n"
+    std::cout << std::setprecision(1) << std::fixed
+              << "Degree analysis:\n"
               << "\n Average:              " << std::setw(W2) << avg
-              << "\n Std. Deviation:       " << std::setw(W2) << std_dev
+              << "\n Std. Deviation:       " << std::setw(W2) << prop.std_dev
               << "\n Coeff. of variation:  " << std::setw(W2) << variance_coeff
               << "\n Gini Coeff:           " << std::setprecision(2)
-                                             << std::setw(W2) << gini
+                                             << std::setw(W2) << prop.gini
                                              << std::setprecision(1)
               << "\n Sparsity:             " << std::setw(W2)
                                              << sparsity * 100.0f << " %\n"
               << "\n Max Out-Degree:       " << std::setw(W2)
-                                             << max_out_degree;
+                                             << prop.max_out_degree;
     if (is_directed() && is_inverse)
         std::cout << "\n Max In-Degree:        " << std::setw(W2)
-                                                 << max_in_degree;
+                                                 << prop.max_in_degree;
 
-    std::cout << "\n Rings:                " << std::setw(W2) << num_rings
+    std::cout << "\n Rings:                " << std::setw(W2) << prop.num_rings
                                              << std::setw(W3)
                                              << ring_percent << " %"
               << "\n Out-Degree = 0:       " << std::setw(W2)
-                                             << out_degree_0 << std::setw(W3)
+                                             << prop.out_degree_0
+                                             << std::setw(W3)
                                              << out_degree_0_percent << " %";
     if (is_directed() && is_inverse) {
         std::cout << "\n In-Degree = 0:        " << std::setw(W2)
-                                                 << in_degree_0 << std::setw(W3)
-                                                 << in_degree_0_percent
-                                                 << " %";
+                                                 << prop.in_degree_0
+                                                 << std::setw(W3)
+                                                 << in_degree_0_percent << " %";
     }
     std::cout << "\n Out-Degree = 1:       " << std::setw(W2)
-                                             << out_degree_1 << std::setw(W3)
+                                             << prop.out_degree_1
+                                             << std::setw(W3)
                                              << out_degree_1_percent << " %";
     if (is_directed() && is_inverse) {
         std::cout << "\n In-Degree = 1:        " << std::setw(W2)
-                                                 << in_degree_1 << std::setw(W3)
+                                                 << prop.in_degree_1
+                                                 << std::setw(W3)
                                                  << in_degree_1_percent
                                                  << " %\n";
     }
-    std::cout << "\n Max. Consec. 0:       " << std::setw(W2) << max_consec_0;
+    std::cout << "\n Max. Consec. 0:       " << std::setw(W2)
+                                             << prop.max_consec_0;
 
-    if (is_directed() && is_inverse) {
-        std::cout << "\n Leafs:                " << std::setw(W2)
-                                                 << singleton << std::setw(W3)
+    if (is_inverse) {
+        std::cout << "\n Singleton:            " << std::setw(W2)
+                                                 << prop.singleton
+                                                 << std::setw(W3)
                                                  << singleton_percent << " %";
     }
     std::cout << "\n Out-Leaf:             " << std::setw(W2)
-                                             << out_leaf << std::setw(W3)
+                                             << prop.out_leaf << std::setw(W3)
                                              << out_leaf_percent << " %";
     if (is_directed() && is_inverse) {
         std::cout << "\n In-Leaf:              " << std::setw(W2)
-                                                 << in_leaf << std::setw(W3)
+                                                 << prop.in_leaf
+                                                 << std::setw(W3)
                                                  << in_leaf_percent << " %\n";
     }
     std::cout << std::endl;

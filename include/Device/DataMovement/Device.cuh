@@ -1,11 +1,14 @@
 #pragma once
 
-#define TileT1      Tile<BLOCK_SIZE,T,VType,UNROLL_STEPS>
-#define TileT2      Tile<BLOCK_SIZE,T,VType,UNROLL_STEPS,2>
-#define TileT       Tile<BLOCK_SIZE,T,VType,UNROLL_STEPS,LDG_FACTOR>
+#define TileT1      detail::Tile<BLOCK_SIZE,T,VType,UNROLL_STEPS>
+#define TileT2      detail::Tile<BLOCK_SIZE,T,VType,UNROLL_STEPS,2>
+#define TileT       detail::Tile<BLOCK_SIZE,T,VType,UNROLL_STEPS,LDG_FACTOR>
 #define LoadTileT   LoadTile<BLOCK_SIZE,T,VType,UNROLL_STEPS>
 #define IlLoadTileT IlLoadTile<BLOCK_SIZE,T,VType,UNROLL_STEPS>
 #define StoreTileT  StoreTile<BLOCK_SIZE,T,VType,UNROLL_STEPS>
+
+namespace device {
+namespace detail {
 
 template<unsigned BLOCK_SIZE, typename T, typename VType,
          unsigned UNROLL_STEPS, unsigned LDG_FACTOR = 1>
@@ -36,6 +39,8 @@ protected:
 private:
     int   _size;
 };
+
+} // namespace detail
 
 //==============================================================================
 
@@ -106,7 +111,9 @@ private:
     using TileT2::RATIO;
 };
 
-#include "Tile.i.cuh"
+} // namespace device
+
+#include "impl/Device.i.cuh"
 
 #undef TileT
 #undef TileT1

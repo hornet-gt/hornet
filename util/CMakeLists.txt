@@ -14,12 +14,11 @@ set(MARCH_COMPILER_OPTIONS OFF)     #march compiler flag
 # INCLUDE AND SRC #
 ###################
 
-
 if (CMAKE_BUILD_TYPE STREQUAL "")
     set (CMAKE_BUILD_TYPE Release)
 endif()
 
-if (QUIET_SUBMODULE)
+if (NOT QUIET_SUBMODULE)
     message("\n==> Test on cmake v" ${CMAKE_VERSION}
             "  System: " ${CMAKE_SYSTEM})
     message("\n==> Selected CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
@@ -39,18 +38,15 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 #===============================================================================
+#===============================================================================
 #######################
 # HOST COMPILER FLAGS #
 #######################
 include(CheckCXXCompilerFlag)
 
-#CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
 if (COMPILER_SUPPORTS_CXX14)
     add_compile_options("-std=c++14")
-#else()
-#if (COMPILER_SUPPORTS_CXX11)
-#    add_compile_options("-std=c++11")
 else()
     message(FATAL_ERROR "Compiler ${CMAKE_CXX_COMPILER} has no C++14 support.")
 endif()
@@ -59,10 +55,6 @@ CHECK_CXX_COMPILER_FLAG("-Qunused-arguments" UNUSED_FLAG)
 if (UNUSED_FLAG)
     add_compile_options("-Qunused-arguments")
 endif()
-
-#if (CMAKE_CXX_COMPILER_ID EQUAL "Clang")
-#    add_compile_options("-Wno-c++14-extensions")
-#endif()
 
 if (WARNING_FLAGS)
     if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
@@ -82,6 +74,7 @@ if (WARNING_FLAGS)
 endif()
 
 #===============================================================================
+#===============================================================================
 #########################
 # OPENMP COMPILER FLAGS #
 #########################
@@ -93,9 +86,10 @@ if (OPENMP_FOUND)
 endif()
 
 #===============================================================================
-#######################
-# CUDA COMPILER FLAGS #
-#######################
+#===============================================================================
+#########################
+## CUDA COMPILER FLAGS ##
+#########################
 
 if (CUDA_FOUND)
 
@@ -111,20 +105,21 @@ find_library(
     HINTS  ${CUDA_TOOLKIT_ROOT_DIR}/lib64
 )
 
-
+#-------------------------------------------------------------------------------
 if (DEFINED CUDAHC)
-    if (QUIET_SUBMODULE)
+    if (NOT QUIET_SUBMODULE)
         message("\n==> Cuda Host compiler: " ${CUDAHC})
     endif()
     set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-ccbin=${CUDAHC}" )
 else()
     execute_process(COMMAND bash "-c" "gcc --version | head -n 1"
                     OUTPUT_VARIABLE GCC_INFO)
-    if (QUIET_SUBMODULE)
+    if (NOT QUIET_SUBMODULE)
         message("\n==> Cuda Host compiler: ${GCC_INFO}"
                 "    (-DCUDAHC=<path_to_host_compiler>)")
     endif()
 endif()
+#-------------------------------------------------------------------------------
 
 if (CUB_LIBRARY)
     set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCUB_WRAPPER" )
@@ -137,6 +132,7 @@ if (NVTX)
     set(CUDA_NVTX_LIBRARY ${CUDA_TOOLKIT_ROOT_DIR}/lib64/libnvToolsExt.so)
 endif()
 
+#-------------------------------------------------------------------------------
 if (CMAKE_CXX_COMPILER_ID EQUAL "Clang")
     add_compile_options("-Wno-user-defined-literals")
 endif()
@@ -156,15 +152,16 @@ set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}
                      "-Xcompiler=${DEVICE_WARNING_EXTRA}")
 endif()
 endif()
+#-------------------------------------------------------------------------------
 
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-std=c++14" "--expt-extended-lambda"
-    "--expt-relaxed-constexpr"
-    "-Xcompiler=-Wno-unknown-pragmas"
+    "--expt-relaxed-constexpr" "-Xcompiler=-Wno-unknown-pragmas"
     -Xcudafe \\\"--diag_suppress=initialization_not_reachable\\\"
     -Xcudafe \\\"--diag_suppress=code_is_unreachable\\\"
     -isystem /usr/local/cuda/include
     -isystem /tmp)
 
+#===============================================================================
 #===============================================================================
 ######################
 # COMPUTE CABABILITY #
@@ -188,8 +185,9 @@ if(GPU_ARCH STREQUAL "")
     list(GET OUT_VARIABLE 1 GPU_SM)
     list(GET OUT_VARIABLE 2 GPU_NAME)
 endif()
+
 #-------------------------------------------------------------------------------
-if (QUIET_SUBMODULE)
+if (NOT QUIET_SUBMODULE)
 if(NOT GPU_SM STREQUAL "")
     message("\n==> GPU architecture: ${GPU_NAME}, CC ${GPU_ARCH}"
             " with ${GPU_SM} streaming multiprocessors")
@@ -199,8 +197,8 @@ else()
     message("\n==> GPU architecture: ${GPU_ARCH}")
 endif()
 endif()
-#-------------------------------------------------------------------------------
 
+#-------------------------------------------------------------------------------
 if (GPU_ARCH STREQUAL "30")
     list(APPEND CUDA_NVCC_FLAGS "-arch=sm_30" "-DARCH=300")
 elseif (GPU_ARCH STREQUAL "32")
@@ -229,6 +227,7 @@ else()
 endif()
 
 #===============================================================================
+#===============================================================================
 ######################
 # BUILD OPTIONS CUDA #
 ######################
@@ -241,26 +240,24 @@ endif()
 if (UNUSED_FLAG AND UNUSED_COMPILER_OPTIONS)
     set(D_QUNUSED "-Qunused-arguments," )
 endif()
-if (ARCH_FLAG AND MARCH_COMPILER_OPTIONS)
-    set(D_MARCH "-march=native,")
-endif()
+#if (ARCH_FLAG AND MARCH_COMPILER_OPTIONS)
+#    set(# "-march=native,")
+#endif()
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${FAST_MATH_FLAG} "-DNDEBUG"
-    "-Xcompiler=-O3,${D_QUNUSED}${D_MARCH}-mtune=native,-funroll-loops,-DNDEBUG")
+   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${FAST_MATH_FLAG} "-DNDEBUG"
+   "-Xcompiler=-O3,${D_QUNUSED}${D_MARCH}-mtune=native,-funroll-loops,-DNDEBUG")
 
 elseif (CMAKE_BUILD_TYPE STREQUAL "ReleaseEx")
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${FAST_MATH_FLAG} "-DNDEBUG"
-"-Xcompiler=-O3,${D_QUNUSED}${D_MARCH}-mtune=native,-funroll-loops,-DNDEBUG,\
--DNO_CHECK_CUDA_ERROR")
+   "-Xcompiler=-O3,${D_QUNUSED}${D_MARCH}-mtune=native,-funroll-loops,-DNDEBUG,\
+   -DNO_CHECK_CUDA_ERROR")
 
 elseif (CMAKE_BUILD_TYPE STREQUAL "Info")
     file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/build/TMP)
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-lineinfo" "-keep" "--use_fast_math"
-        "-DNDEBUG"
-         "--resource-usage"
-        "-keep-dir" "${PROJECT_SOURCE_DIR}/build/TMP"
-        "-Xcompiler=-DNDEBUG"
+        "-DNDEBUG" "--resource-usage"
+        "-keep-dir" "${PROJECT_SOURCE_DIR}/build/TMP" "-Xcompiler=-DNDEBUG"
     )
 
 elseif (CMAKE_BUILD_TYPE STREQUAL "Debug" OR
@@ -273,10 +270,15 @@ endif()
 endif() #end cuda
 
 #===============================================================================
+#===============================================================================
+###############
+# MAX THREADS #
+###############
+
 include(ProcessorCount)
 ProcessorCount(THREADS)
 
-if (QUIET_SUBMODULE)
+if (NOT QUIET_SUBMODULE)
 
 if(THREADS EQUAL 0)
     message(FATAL_ERROR "==> Get Number of CPU threads failed!\n")
@@ -286,6 +288,7 @@ endif()
 
 endif()
 
+#===============================================================================
 #===============================================================================
 ##########
 # OPENMP #
@@ -302,21 +305,7 @@ if (OPENMP_FOUND)
 endif()
 
 #===============================================================================
-######################
-# BUILD OPTIONS HOST #
-######################
-
-if (CMAKE_CXX_COMPILER_ID EQUAL "Clang")
-
-set(CMAKE_CXX_FLAGS_SANITAZE "-O1 -g -fsanitize=address -fno-omit-frame-pointer"
-                             " -fno-optimize-sibling-calls -fsanitize=undefined"
-                             " -fsanitize=integer")
-
-set(CMAKE_CXX_FLAGS_MEM      "-O2 -g -fsanitize=memory -fno-omit-frame-pointer"
-                             "-fsanitize-memory-track-origins")
-endif()
-
-#-------------------------------------------------------------------------------
+#===============================================================================
 ############################
 ## GOLD LINKER and MARCH  ##
 ############################
@@ -337,11 +326,16 @@ else()
     set(H_MARCH "-mtune=native")
 endif()
 
-#-------------------------------------------------------------------------------
+#===============================================================================
+#===============================================================================
+########################
+## BUILD OPTIONS HOST ##
+########################
 
 if (CMAKE_BUILD_TYPE STREQUAL "Info")
     add_compile_options("-O3")
     add_compile_options("-funroll-loops")
+    add_compile_options("-DNDEBUG")
     add_compile_options("${H_MARCH}")
     add_compile_options("${FLTO}")
     # -DNDEBUG")
@@ -388,30 +382,34 @@ elseif (CMAKE_BUILD_TYPE STREQUAL "Coverage")
     #lcov --capture --directory <project-dir> --output-file coverage.info
     #genhtml kernel.info
     #gcov <files> --function-summaries
+#[[
+if (CMAKE_CXX_COMPILER_ID EQUAL "Clang")
+
+set(CMAKE_CXX_FLAGS_SANITAZE "-O1 -g -fsanitize=address -fno-omit-frame-pointer"
+                             " -fno-optimize-sibling-calls -fsanitize=undefined"
+                             " -fsanitize=integer")
+
+set(CMAKE_CXX_FLAGS_MEM      "-O2 -g -fsanitize=memory -fno-omit-frame-pointer"
+                             "-fsanitize-memory-track-origins")
+endif()
+]]
+
 else()
     message(FATAL_ERROR "CMAKE_BUILD_TYPE not defined")
 endif()
 
 #===============================================================================
+#===============================================================================
 ###################
 ## CUSTOM TARGET ##
 ###################
 
-if (QUIET_SUBMODULE)
+if (NOT QUIET_SUBMODULE)
 
 add_custom_target(rm
                   COMMAND rm -rf *.cmake compile_commands.json CMakeCache.txt
                                  CMakeFiles Makefile Testing
                   COMMENT "Clear build directory")
-
-add_custom_target(ptx
-                  COMMAND cp TMP/*.ptx .
-                  COMMENT "PTX")
-
-add_custom_target(sass
-                  COMMAND cp `ls TMP/*.cubin | grep -v link` .
-                  COMMAND nvdisasm -c -g -sf *.cubin > code.sass
-                  COMMENT "SASS")
 
 if (DEFINED CUDAHC)
     set(CUDAHC_FLAG -DCUDAHC=${CUDAHC})
@@ -458,26 +456,28 @@ add_custom_target(update_coverage
                   COMMAND make -j ${THREADS}
                   COMMENT "UPDATE COVERAGE")
 
+#-fprofile-generate
+#-fprofile-use
+#-------------------------------------------------------------------------------
 
-#[[
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-
-add_custom_target(coverage
-                  COMMAND llvm-cov gcov --capture --directory ${PROJECT_SOURCE_DIR}/include
-                                   --output-file coverage.info
-                  COMMENT "UPDATE COVERAGE")
-
-elseif (CMAKE_COMPILER_IS_GNUCXX)
-]]
+if (CMAKE_COMPILER_IS_GNUCXX)
 
 add_custom_target(coverage
-                  COMMAND lcov --capture --directory ${PROJECT_SOURCE_DIR}/include
+                  COMMAND lcov --capture --directory
+                               ${PROJECT_SOURCE_DIR}/include
                                --output-file coverage.info
                   COMMENT "UPDATE COVERAGE")
 
-#endif()
+endif()
+#-------------------------------------------------------------------------------
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+
+add_custom_target(coverage
+                  COMMAND llvm-cov gcov --capture --directory
+                                   ${PROJECT_SOURCE_DIR}/include
+                                   --output-file coverage.info
+                  COMMENT "UPDATE COVERAGE")
 
 add_custom_target(update_sanitize
                   COMMAND rm -rf *.cmake compile_commands.json CMakeCache.txt
@@ -493,4 +493,18 @@ add_custom_target(update_mem
                   COMMAND make -j ${THREADS}
                   COMMENT "UPDATE MEM")
 endif()
+#-------------------------------------------------------------------------------
+
+if (CUDA_FOUND AND (CMAKE_BUILD_TYPE EQUAL "Info"))
+
+add_custom_target(ptx
+                  COMMAND cp TMP/*.ptx .
+                  COMMENT "PTX")
+
+add_custom_target(sass
+                  COMMAND cp `ls TMP/*.cubin | grep -v link` .
+                  COMMAND nvdisasm -c -g -sf *.cubin > code.sass
+                  COMMENT "SASS")
+endif()
+
 endif()

@@ -39,6 +39,9 @@
 #include "Device/Util/VectorUtil.cuh"
 #include "Host/Numeric.hpp"
 //#include "Core/DataLayout/DataLayout.cuh" //<-- !!!!
+
+#if defined(CUB_WRAPPER)
+
 #include <cub/cub.cuh>
 
 namespace xlib {
@@ -539,3 +542,5 @@ template class CubSelectFlagged<int>;
 //template class CubSelectFlagged<hornets_nest::AoSData<int>>;
 
 } //namespace xlib
+
+#endif

@@ -38,8 +38,8 @@
  */
 #pragma once
 
-#include <cuda_runtime.h>   //cudaError_t, cudaFree
 #include <array>            //std::array
+#include <cuda_runtime.h>   //cudaError_t, cudaFree
 #include <limits>           //std::numeric_limits
 
 namespace xlib {
@@ -48,26 +48,22 @@ enum THREAD_GROUP { VOID = 0, WARP, BLOCK };
 
 template<typename T>
 struct numeric_limits {         // available in CUDA kernels
-    static const T    min = std::numeric_limits<T>::min();
-    static const T    max = std::numeric_limits<T>::max();
+    static const T min    = std::numeric_limits<T>::min();
+    static const T max    = std::numeric_limits<T>::max();
     static const T lowest = std::numeric_limits<T>::lowest();
 };
 
 //------------------------------------------------------------------------------
-/*
-void __getLastCudaError(const char* file, int line, const char* func_name);
 
-void __safe_call(cudaError_t error, const char* file, int line,
-                 const char* func_name);
-
-void __cudaErrorHandler(cudaError_t error, const char* error_message,
-                        const char* file, int line, const char* func_name);
-*/
 class DeviceProperty {
     public:
-        static int num_SM();
+        static int num_SM()           noexcept;
+        static int resident_threads() noexcept;
+        static int resident_warps()   noexcept;
+        static int resident_blocks(int block_size) noexcept;
     private:
-        static int NUM_OF_STREAMING_MULTIPROCESSOR;
+        static const int MAX_GPUS = 8;
+        static int _num_sm[MAX_GPUS];
 };
 
 template<int SIZE>
@@ -83,6 +79,8 @@ private:
 void device_info(int device_id = 0);
 
 } // namespace xlib
+
+//------------------------------------------------------------------------------
 
 namespace nvtx {
 

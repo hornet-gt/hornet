@@ -100,6 +100,7 @@ unsigned segmented_minlane(unsigned mask) {
     return xlib::WARP_SIZE == WARP_SZ ? xlib::min_lane(mask) :
                 xlib::min_lane(mask | vwarp_mask(WARP_SZ));
 }
+
 //==============================================================================
 //==============================================================================
 

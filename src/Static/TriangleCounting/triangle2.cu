@@ -32,7 +32,7 @@ struct OPERATOR_AdjIntersectionCount {
     triangle_t* d_triPerVertex;
 
     OPERATOR(Vertex& v1, Vertex& v2, int flag) {
-        unsigned long long int count = 0;
+        triangle_t count = 0;
         int deg1 = v1.degree();
         int deg2 = v2.degree();
         vid_t* ui_begin = v1.neighbor_ptr();

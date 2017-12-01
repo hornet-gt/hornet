@@ -36,6 +36,7 @@ protected:
     int   _index;
     int   _stride;
     int   _full_stride;
+
 private:
     int   _size;
 };
@@ -55,6 +56,10 @@ public:
 
     __device__ __forceinline__
     void store(T (&array)[THREAD_ITEMS]);
+
+    __device__ __forceinline__
+    void store(T value);
+
 private:
     T* _ptr;
     using TileT1::_index;

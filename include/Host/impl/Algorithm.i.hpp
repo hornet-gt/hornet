@@ -157,10 +157,9 @@ void sort_by_key(T* start, T* end, R* data) {
     for (size_t i = 0; i < size; i++)
         pairs[i] = std::make_pair(start[i], data[i]);
 
-    auto lambda = [](const std::pair<T, R>& a,
-                     const std::pair<T, R>& b) {
-                        return a.first < b.first;
-                    };
+    const auto& lambda = [](const auto& a, const auto& b) {
+                                return a.first < b.first;
+                            };
     std::sort(pairs, pairs + size, lambda);
     for (size_t i = 0; i < size; i++) {
         start[i] = pairs[i].first;

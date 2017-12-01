@@ -42,27 +42,32 @@ namespace xlib {
 namespace ThreadInclusiveScan {
 
     template<typename T, int SIZE>
-    __device__ __forceinline__ static void Add(T (&Array)[SIZE]);
+    __device__ __forceinline__
+    static void add(T (&Array)[SIZE]);
 
     template<typename T>
-    __device__ __forceinline__ static void Add(T* Array, const int size);
+    __device__ __forceinline__
+    static void add(T* Array, const int size);
 
 } //@ThreadInclusiveScan
 
 namespace ThreadInclusiveScanILP {
 
     template<typename T, int SIZE>
-    __device__ __forceinline__ static void Add(T (&Array)[SIZE]);
+    __device__ __forceinline__
+    static void add(T (&Array)[SIZE]);
 
 } //@ThreadInclusiveScanILP
 
 namespace ThreadExclusiveScan {
 
     template<typename T, int SIZE>
-    __device__ __forceinline__ static void Add(T (&Array)[SIZE]);
+    __device__ __forceinline__
+    static void add(T (&Array)[SIZE]);
 
     template<typename T>
-    __device__ __forceinline__ static void Add(T* Array, const int size);
+    __device__ __forceinline__
+    static void add(T* Array, const int size);
 
 } //@ThreadExclusiveScan
 

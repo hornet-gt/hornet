@@ -39,6 +39,7 @@
 
 namespace xlib {
 namespace thread_reduce {
+
     template<typename T, int SIZE>
     __device__ __forceinline__
     static void add(T (&Array)[SIZE]);
@@ -55,9 +56,14 @@ namespace thread_reduce {
     __device__ __forceinline__
     static void logicAnd(T (&Array)[SIZE]);
 
+    template<typename T, int SIZE>
+    __device__ __forceinline__
+    static void logicOr(T (&Array)[SIZE]);
+
     template<typename T, int SIZE, typename Lambda>
     __device__ __forceinline__
-    static void custom(T (&Array)[SIZE], Lambda lambda);
+    static void custom(T (&Array)[SIZE], const Lambda& lambda);
+
 } // namespace thread_reduce
 } // namespace xlib
 

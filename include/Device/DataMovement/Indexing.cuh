@@ -42,6 +42,17 @@
 #include "Device/Util/Definition.cuh"
 #include <type_traits>
 
+// N === 2
+/*
+if (lane_id() % N == 0)
+    swap
+    col = lane_id() / (WARP_SIZE / N)
+source = (lane_id() * N + col) % WARP_SIZE;
+if (lane_id() % N == 0)
+    swap
+*/
+
+
 namespace xlib {
 
 namespace detail {

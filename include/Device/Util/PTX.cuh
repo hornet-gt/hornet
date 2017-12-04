@@ -61,6 +61,7 @@ namespace xlib {
  *  Provide the thread ID within the current warp (called lane).
  *  \return identification ID in the range 0 &le; ID &le; 31
  */
+template<unsigned WARP_SZ = xlib::WARP_SIZE> 
 __device__ __forceinline__
 unsigned lane_id();
 

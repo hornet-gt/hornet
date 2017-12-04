@@ -57,17 +57,18 @@ int cuGetDevice() noexcept {
 }
 
 namespace xlib {
+namespace detail {
 
-void __getLastCudaError(const char* file, int line, const char* func_name) {
-    __cudaErrorHandler(cudaGetLastError(), "", file, line, func_name);
+void getLastCudaError(const char* file, int line, const char* func_name) {
+    cudaErrorHandler(cudaGetLastError(), "", file, line, func_name);
 }
 
-void __safe_call(cudaError_t error, const char* file, int line,
+void safe_call(cudaError_t error, const char* file, int line,
                  const char* func_name) {
-    __cudaErrorHandler(error, "", file, line, func_name);
+    cudaErrorHandler(error, "", file, line, func_name);
 }
 
-void __cudaErrorHandler(cudaError_t error, const char* error_message,
+void cudaErrorHandler(cudaError_t error, const char* error_message,
                         const char* file, int line,
                         const char* func_name) {
     if (cudaSuccess != error) {
@@ -92,4 +93,5 @@ void __cudaErrorHandler(cudaError_t error, const char* error_message,
     }
 }
 
+} // namespace detail
 } // namespace xlib

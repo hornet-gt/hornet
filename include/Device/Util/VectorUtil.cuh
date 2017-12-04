@@ -53,35 +53,35 @@ namespace std {
  */
 
 template<>
-class numeric_limits<short2> {
+class numeric_limits<char2> {
 public:
-    static short2 min()    noexcept;
-    static short2 max()    noexcept;
-    static short2 lowest() noexcept;
+    static char2 min()    noexcept;
+    static char2 max()    noexcept;
+    static char2 lowest() noexcept;
 };
 
 template<>
-class numeric_limits<ushort2> {
+class numeric_limits<uchar2> {
 public:
-    static ushort2 min()    noexcept;
-    static ushort2 max()    noexcept;
-    static ushort2 lowest() noexcept;
+    static uchar2 min()    noexcept;
+    static uchar2 max()    noexcept;
+    static uchar2 lowest() noexcept;
 };
 
 template<>
-class numeric_limits<short4> {
+class numeric_limits<char4> {
 public:
-    static short4 min()    noexcept;
-    static short4 max()    noexcept;
-    static short4 lowest() noexcept;
+    static char4 min()    noexcept;
+    static char4 max()    noexcept;
+    static char4 lowest() noexcept;
 };
 
 template<>
-class numeric_limits<ushort4> {
+class numeric_limits<uchar4> {
 public:
-    static ushort4 min()    noexcept;
-    static ushort4 max()    noexcept;
-    static ushort4 lowest() noexcept;
+    static uchar4 min()    noexcept;
+    static uchar4 max()    noexcept;
+    static uchar4 lowest() noexcept;
 };
 
 template<>
@@ -234,33 +234,33 @@ inline std::ostream& operator<< (std::ostream& out, const double2& value);
  *  @{
  */
 
-HOST_DEVICE bool operator== (const short2& A, const short2& B);
-HOST_DEVICE bool operator!= (const short2& A, const short2& B);
-HOST_DEVICE bool operator<  (const short2& A, const short2& B);
-HOST_DEVICE bool operator<= (const short2& A, const short2& B);
-HOST_DEVICE bool operator>  (const short2& A, const short2& B);
-HOST_DEVICE bool operator>= (const short2& A, const short2& B);
+HOST_DEVICE bool operator== (const char2& A, const char2& B);
+HOST_DEVICE bool operator!= (const char2& A, const char2& B);
+HOST_DEVICE bool operator<  (const char2& A, const char2& B);
+HOST_DEVICE bool operator<= (const char2& A, const char2& B);
+HOST_DEVICE bool operator>  (const char2& A, const char2& B);
+HOST_DEVICE bool operator>= (const char2& A, const char2& B);
 
-HOST_DEVICE bool operator== (const ushort2& A, const ushort2& B);
-HOST_DEVICE bool operator!= (const ushort2& A, const ushort2& B);
-HOST_DEVICE bool operator<  (const ushort2& A, const ushort2& B);
-HOST_DEVICE bool operator<= (const ushort2& A, const ushort2& B);
-HOST_DEVICE bool operator>  (const ushort2& A, const ushort2& B);
-HOST_DEVICE bool operator>= (const ushort2& A, const ushort2& B);
+HOST_DEVICE bool operator== (const uchar2& A, const uchar2& B);
+HOST_DEVICE bool operator!= (const uchar2& A, const uchar2& B);
+HOST_DEVICE bool operator<  (const uchar2& A, const uchar2& B);
+HOST_DEVICE bool operator<= (const uchar2& A, const uchar2& B);
+HOST_DEVICE bool operator>  (const uchar2& A, const uchar2& B);
+HOST_DEVICE bool operator>= (const uchar2& A, const uchar2& B);
 
-HOST_DEVICE bool operator== (const short4& A, const short4& B);
-HOST_DEVICE bool operator!= (const short4& A, const short4& B);
-HOST_DEVICE bool operator<  (const short4& A, const short4& B);
-HOST_DEVICE bool operator<= (const short4& A, const short4& B);
-HOST_DEVICE bool operator>  (const short4& A, const short4& B);
-HOST_DEVICE bool operator>= (const short4& A, const short4& B);
+HOST_DEVICE bool operator== (const char4& A, const char4& B);
+HOST_DEVICE bool operator!= (const char4& A, const char4& B);
+HOST_DEVICE bool operator<  (const char4& A, const char4& B);
+HOST_DEVICE bool operator<= (const char4& A, const char4& B);
+HOST_DEVICE bool operator>  (const char4& A, const char4& B);
+HOST_DEVICE bool operator>= (const char4& A, const char4& B);
 
-HOST_DEVICE bool operator== (const ushort4& A, const ushort4& B);
-HOST_DEVICE bool operator!= (const ushort4& A, const ushort4& B);
-HOST_DEVICE bool operator<  (const ushort4& A, const ushort4& B);
-HOST_DEVICE bool operator<= (const ushort4& A, const ushort4& B);
-HOST_DEVICE bool operator>  (const ushort4& A, const ushort4& B);
-HOST_DEVICE bool operator>= (const ushort4& A, const ushort4& B);
+HOST_DEVICE bool operator== (const uchar4& A, const uchar4& B);
+HOST_DEVICE bool operator!= (const uchar4& A, const uchar4& B);
+HOST_DEVICE bool operator<  (const uchar4& A, const uchar4& B);
+HOST_DEVICE bool operator<= (const uchar4& A, const uchar4& B);
+HOST_DEVICE bool operator>  (const uchar4& A, const uchar4& B);
+HOST_DEVICE bool operator>= (const uchar4& A, const uchar4& B);
 
 HOST_DEVICE bool operator== (const short2& A, const short2& B);
 HOST_DEVICE bool operator!= (const short2& A, const short2& B);

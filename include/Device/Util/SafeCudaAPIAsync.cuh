@@ -381,9 +381,9 @@ void cuMemcpy2DAsyncGeneric(const char* file, int line, const char* func_name,
                                "cuda2DMemcpy(DeviceToDevice)", "" };
     const auto& selected = api_name[static_cast<int>(cuda_memcpy_kind)];
     cudaErrorHandler(cudaMemcpy2DAsync(output, dst_pitch * sizeof(T),
-                                               input, src_pitch * sizeof(T),
-                                               cols * sizeof(T), rows,
-                                               cuda_memcpy_kind, stream),                        ,
+                                       input, src_pitch * sizeof(T),
+                                       cols * sizeof(T), rows,
+                                       cuda_memcpy_kind, stream),
                      selected, file, line, func_name);
 }
 

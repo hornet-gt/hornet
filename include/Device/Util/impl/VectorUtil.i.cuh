@@ -36,55 +36,55 @@
 
 namespace std {
 
-char2 numeric_limits<char2>::max() noexcept {
+inline char2 numeric_limits<char2>::max() noexcept {
     return make_char2(std::numeric_limits<char>::max(),
                       std::numeric_limits<char>::max());
 }
 
-char2 numeric_limits<char2>::min() noexcept {
+inline char2 numeric_limits<char2>::min() noexcept {
     return make_char2(std::numeric_limits<char>::min(),
                       std::numeric_limits<char>::min());
 }
 
-char2 numeric_limits<char2>::lowest() noexcept {
+inline char2 numeric_limits<char2>::lowest() noexcept {
     return make_char2(std::numeric_limits<char>::lowest(),
                       std::numeric_limits<char>::lowest());
 }
 
 //------------------------------------------------------------------------------
 
-uchar2 numeric_limits<uchar2>::max() noexcept {
+inline uchar2 numeric_limits<uchar2>::max() noexcept {
     return make_uchar2(std::numeric_limits<unsigned char>::max(),
                        std::numeric_limits<unsigned char>::max());
 }
 
-uchar2 numeric_limits<uchar2>::min() noexcept {
-    return make_char2(std::numeric_limits<unsigned char>::min(),
-                      std::numeric_limits<unsigned char>::min());
+inline uchar2 numeric_limits<uchar2>::min() noexcept {
+    return make_uchar2(std::numeric_limits<unsigned char>::min(),
+                       std::numeric_limits<unsigned char>::min());
 }
 
-uchar2 numeric_limits<uchar2>::lowest() noexcept {
-    return make_char2(std::numeric_limits<unsigned char>::lowest(),
-                      std::numeric_limits<unsigned char>::lowest());
+inline uchar2 numeric_limits<uchar2>::lowest() noexcept {
+    return make_uchar2(std::numeric_limits<unsigned char>::lowest(),
+                       std::numeric_limits<unsigned char>::lowest());
 }
 
 //------------------------------------------------------------------------------
 
-char4 numeric_limits<char4>::max() noexcept {
+inline char4 numeric_limits<char4>::max() noexcept {
     return make_char4(std::numeric_limits<char>::max(),
                       std::numeric_limits<char>::max(),
                       std::numeric_limits<char>::max(),
                       std::numeric_limits<char>::max());
 }
 
-char4 numeric_limits<char4>::min() noexcept {
+inline char4 numeric_limits<char4>::min() noexcept {
     return make_char4(std::numeric_limits<char>::min(),
                       std::numeric_limits<char>::min(),
                       std::numeric_limits<char>::min(),
                       std::numeric_limits<char>::min());
 }
 
-char4 numeric_limits<char4>::lowest() noexcept {
+inline char4 numeric_limits<char4>::lowest() noexcept {
     return make_char4(std::numeric_limits<char>::lowest(),
                       std::numeric_limits<char>::lowest(),
                       std::numeric_limits<char>::lowest(),
@@ -93,78 +93,78 @@ char4 numeric_limits<char4>::lowest() noexcept {
 
 //------------------------------------------------------------------------------
 
-ushort4 numeric_limits<ushort4>::max() noexcept {
+inline uchar4 numeric_limits<uchar4>::max() noexcept {
     return make_uchar4(std::numeric_limits<unsigned char>::max(),
                        std::numeric_limits<unsigned char>::max(),
                        std::numeric_limits<unsigned char>::max(),
                        std::numeric_limits<unsigned char>::max());
 }
 
-ushort4 numeric_limits<ushort4>::min() noexcept {
-    return make_char4(std::numeric_limits<unsigned char>::min(),
-                      std::numeric_limits<unsigned char>::min(),
-                      std::numeric_limits<unsigned char>::min(),
-                      std::numeric_limits<unsigned char>::min());
+inline uchar4 numeric_limits<uchar4>::min() noexcept {
+    return make_uchar4(std::numeric_limits<unsigned char>::min(),
+                       std::numeric_limits<unsigned char>::min(),
+                       std::numeric_limits<unsigned char>::min(),
+                       std::numeric_limits<unsigned char>::min());
 }
 
-ushort4 numeric_limits<ushort4>::lowest() noexcept {
-    return make_char4(std::numeric_limits<unsigned char>::lowest(),
-                      std::numeric_limits<unsigned char>::lowest(),
-                      std::numeric_limits<unsigned char>::lowest(),
-                      std::numeric_limits<unsigned char>::lowest());
+inline uchar4 numeric_limits<uchar4>::lowest() noexcept {
+    return make_uchar4(std::numeric_limits<unsigned char>::lowest(),
+                       std::numeric_limits<unsigned char>::lowest(),
+                       std::numeric_limits<unsigned char>::lowest(),
+                       std::numeric_limits<unsigned char>::lowest());
 }
 
 //------------------------------------------------------------------------------
 
-short2 numeric_limits<short2>::max() noexcept {
+inline short2 numeric_limits<short2>::max() noexcept {
     return make_short2(std::numeric_limits<short>::max(),
                        std::numeric_limits<short>::max());
 }
 
-short2 numeric_limits<short2>::min() noexcept {
+inline short2 numeric_limits<short2>::min() noexcept {
     return make_short2(std::numeric_limits<short>::min(),
                        std::numeric_limits<short>::min());
 }
 
-short2 numeric_limits<short2>::lowest() noexcept {
+inline short2 numeric_limits<short2>::lowest() noexcept {
     return make_short2(std::numeric_limits<short>::lowest(),
                        std::numeric_limits<short>::lowest());
 }
 
 //------------------------------------------------------------------------------
 
-ushort2 numeric_limits<ushort2>::max() noexcept {
+inline ushort2 numeric_limits<ushort2>::max() noexcept {
     return make_ushort2(std::numeric_limits<unsigned short>::max(),
                         std::numeric_limits<unsigned short>::max());
 }
 
-ushort2 numeric_limits<ushort2>::min() noexcept {
-    return make_short2(std::numeric_limits<unsigned short>::min(),
-                       std::numeric_limits<unsigned short>::min());
+inline ushort2 numeric_limits<ushort2>::min() noexcept {
+    return make_ushort2(std::numeric_limits<unsigned short>::min(),
+                        std::numeric_limits<unsigned short>::min());
 }
 
-ushort2 numeric_limits<ushort2>::lowest() noexcept {
-    return make_short2(std::numeric_limits<unsigned short>::lowest(),
-                       std::numeric_limits<unsigned short>::lowest());
+inline ushort2 numeric_limits<ushort2>::lowest() noexcept {
+    return make_ushort2(std::numeric_limits<unsigned short>::lowest(),
+                        std::numeric_limits<unsigned short>::lowest());
 }
 
 //------------------------------------------------------------------------------
 
-short4 numeric_limits<short4>::max() noexcept {
+inline short4 numeric_limits<short4>::max() noexcept {
     return make_short4(std::numeric_limits<short>::max(),
                        std::numeric_limits<short>::max(),
                        std::numeric_limits<short>::max(),
                        std::numeric_limits<short>::max());
 }
 
-short4 numeric_limits<short4>::min() noexcept {
+inline short4 numeric_limits<short4>::min() noexcept {
     return make_short4(std::numeric_limits<short>::min(),
                        std::numeric_limits<short>::min(),
                        std::numeric_limits<short>::min(),
                        std::numeric_limits<short>::min());
 }
 
-short4 numeric_limits<short4>::lowest() noexcept {
+inline short4 numeric_limits<short4>::lowest() noexcept {
     return make_short4(std::numeric_limits<short>::lowest(),
                        std::numeric_limits<short>::lowest(),
                        std::numeric_limits<short>::lowest(),
@@ -173,78 +173,78 @@ short4 numeric_limits<short4>::lowest() noexcept {
 
 //------------------------------------------------------------------------------
 
-ushort4 numeric_limits<ushort4>::max() noexcept {
+inline ushort4 numeric_limits<ushort4>::max() noexcept {
     return make_ushort4(std::numeric_limits<unsigned short>::max(),
                         std::numeric_limits<unsigned short>::max(),
                         std::numeric_limits<unsigned short>::max(),
                         std::numeric_limits<unsigned short>::max());
 }
 
-ushort4 numeric_limits<ushort4>::min() noexcept {
-    return make_short4(std::numeric_limits<unsigned short>::min(),
-                       std::numeric_limits<unsigned short>::min(),
-                       std::numeric_limits<unsigned short>::min(),
-                       std::numeric_limits<unsigned short>::min());
+inline ushort4 numeric_limits<ushort4>::min() noexcept {
+    return make_ushort4(std::numeric_limits<unsigned short>::min(),
+                        std::numeric_limits<unsigned short>::min(),
+                        std::numeric_limits<unsigned short>::min(),
+                        std::numeric_limits<unsigned short>::min());
 }
 
-ushort4 numeric_limits<ushort4>::lowest() noexcept {
-    return make_short4(std::numeric_limits<unsigned short>::lowest(),
-                       std::numeric_limits<unsigned short>::lowest(),
-                       std::numeric_limits<unsigned short>::lowest(),
-                       std::numeric_limits<unsigned short>::lowest());
-}
-
-//------------------------------------------------------------------------------
-
-float2 numeric_limits<float2>::max() noexcept {
-    return make_unsigned2(std::numeric_limits<unsigned>::max(),
-                          std::numeric_limits<unsigned>::max());
-}
-
-float2 numeric_limits<float2>::min() noexcept {
-    return make_unsigned2(std::numeric_limits<unsigned>::min(),
-                          std::numeric_limits<unsigned>::min());
-}
-
-float2 numeric_limits<float2>::lowest() noexcept {
-    return make_unsigned2(std::numeric_limits<unsigned>::lowest(),
-                          std::numeric_limits<unsigned>::lowest());
+inline ushort4 numeric_limits<ushort4>::lowest() noexcept {
+    return make_ushort4(std::numeric_limits<unsigned short>::lowest(),
+                        std::numeric_limits<unsigned short>::lowest(),
+                        std::numeric_limits<unsigned short>::lowest(),
+                        std::numeric_limits<unsigned short>::lowest());
 }
 
 //------------------------------------------------------------------------------
 
-float2 numeric_limits<float2>::max() noexcept {
-    return make_uunsigned2(std::numeric_limits<unsigned>::max(),
-                           std::numeric_limits<unsigned>::max());
+inline int2 numeric_limits<int2>::max() noexcept {
+    return make_int2(std::numeric_limits<int>::max(),
+                     std::numeric_limits<int>::max());
 }
 
-float2 numeric_limits<float2>::min() noexcept {
-    return make_uunsigned2(std::numeric_limits<unsigned>::min(),
-                           std::numeric_limits<unsigned>::min());
+inline int2 numeric_limits<int2>::min() noexcept {
+    return make_int2(std::numeric_limits<int>::min(),
+                     std::numeric_limits<int>::min());
 }
 
-float2 numeric_limits<float2>::lowest() noexcept {
-    return make_uunsigned2(std::numeric_limits<unsigned>::lowest(),
-                           std::numeric_limits<unsigned>::lowest());
+inline int2 numeric_limits<int2>::lowest() noexcept {
+    return make_int2(std::numeric_limits<int>::lowest(),
+                     std::numeric_limits<int>::lowest());
 }
 
 //------------------------------------------------------------------------------
 
-int4 numeric_limits<int4>::max() noexcept {
+inline uint2 numeric_limits<uint2>::max() noexcept {
+    return make_uint2(std::numeric_limits<unsigned>::max(),
+                      std::numeric_limits<unsigned>::max());
+}
+
+inline uint2 numeric_limits<uint2>::min() noexcept {
+    return make_uint2(std::numeric_limits<unsigned>::min(),
+                      std::numeric_limits<unsigned>::min());
+}
+
+inline uint2 numeric_limits<uint2>::lowest() noexcept {
+    return make_uint2(std::numeric_limits<unsigned>::lowest(),
+                      std::numeric_limits<unsigned>::lowest());
+}
+
+//------------------------------------------------------------------------------
+
+inline int4 numeric_limits<int4>::max() noexcept {
     return make_int4(std::numeric_limits<int>::max(),
                      std::numeric_limits<int>::max(),
                      std::numeric_limits<int>::max(),
                      std::numeric_limits<int>::max());
 }
 
-int4 numeric_limits<int4>::min() noexcept {
+inline int4 numeric_limits<int4>::min() noexcept {
     return make_int4(std::numeric_limits<int>::min(),
                      std::numeric_limits<int>::min(),
                      std::numeric_limits<int>::min(),
                      std::numeric_limits<int>::min());
 }
 
-int4 numeric_limits<int4>::lowest() noexcept {
+inline int4 numeric_limits<int4>::lowest() noexcept {
     return make_int4(std::numeric_limits<int>::lowest(),
                      std::numeric_limits<int>::lowest(),
                      std::numeric_limits<int>::lowest(),
@@ -253,21 +253,21 @@ int4 numeric_limits<int4>::lowest() noexcept {
 
 //------------------------------------------------------------------------------
 
-uint4 numeric_limits<uint4>::max() noexcept {
+inline uint4 numeric_limits<uint4>::max() noexcept {
     return make_uint4(std::numeric_limits<unsigned>::max(),
                       std::numeric_limits<unsigned>::max(),
                       std::numeric_limits<unsigned>::max(),
                       std::numeric_limits<unsigned>::max());
 }
 
-uint4 numeric_limits<uint4>::min() noexcept {
+inline uint4 numeric_limits<uint4>::min() noexcept {
     return make_uint4(std::numeric_limits<unsigned>::min(),
                       std::numeric_limits<unsigned>::min(),
                       std::numeric_limits<unsigned>::min(),
                       std::numeric_limits<unsigned>::min());
 }
 
-uint4 numeric_limits<uint4>::lowest() noexcept {
+inline uint4 numeric_limits<uint4>::lowest() noexcept {
     return make_uint4(std::numeric_limits<unsigned>::lowest(),
                       std::numeric_limits<unsigned>::lowest(),
                       std::numeric_limits<unsigned>::lowest(),
@@ -276,72 +276,72 @@ uint4 numeric_limits<uint4>::lowest() noexcept {
 
 //------------------------------------------------------------------------------
 
-longlong2 numeric_limits<longlong2>::max() noexcept {
+inline longlong2 numeric_limits<longlong2>::max() noexcept {
     return make_longlong2(std::numeric_limits<long long>::max(),
                           std::numeric_limits<long long>::max());
 }
 
-longlong2 numeric_limits<longlong2>::min() noexcept {
+inline longlong2 numeric_limits<longlong2>::min() noexcept {
     return make_longlong2(std::numeric_limits<long long>::min(),
                           std::numeric_limits<long long>::min());
 }
 
-longlong2 numeric_limits<longlong2>::lowest() noexcept {
+inline longlong2 numeric_limits<longlong2>::lowest() noexcept {
     return make_longlong2(std::numeric_limits<long long>::lowest(),
                           std::numeric_limits<long long>::lowest());
 }
 
 //------------------------------------------------------------------------------
 
-ulonglong2 numeric_limits<ulonglong2>::max() noexcept {
+inline ulonglong2 numeric_limits<ulonglong2>::max() noexcept {
     return make_ulonglong2(std::numeric_limits<long long unsigned>::max(),
                            std::numeric_limits<long long unsigned>::max());
 }
 
-ulonglong2 numeric_limits<ulonglong2>::min() noexcept {
+inline ulonglong2 numeric_limits<ulonglong2>::min() noexcept {
     return make_ulonglong2(std::numeric_limits<long long unsigned>::min(),
                            std::numeric_limits<long long unsigned>::min());
 }
 
-ulonglong2 numeric_limits<ulonglong2>::lowest() noexcept {
+inline ulonglong2 numeric_limits<ulonglong2>::lowest() noexcept {
     return make_ulonglong2(std::numeric_limits<long long unsigned>::lowest(),
                            std::numeric_limits<long long unsigned>::lowest());
 }
 
 //------------------------------------------------------------------------------
 
-float2 numeric_limits<float2>::max() noexcept {
+inline float2 numeric_limits<float2>::max() noexcept {
     return make_float2(std::numeric_limits<float>::max(),
                        std::numeric_limits<float>::max());
 }
 
-float2 numeric_limits<float2>::min() noexcept {
+inline float2 numeric_limits<float2>::min() noexcept {
     return make_float2(std::numeric_limits<float>::min(),
                        std::numeric_limits<float>::min());
 }
 
-float2 numeric_limits<float2>::lowest() noexcept {
+inline float2 numeric_limits<float2>::lowest() noexcept {
     return make_float2(std::numeric_limits<float>::lowest(),
                        std::numeric_limits<float>::lowest());
 }
 
 //------------------------------------------------------------------------------
 
-float4 numeric_limits<float4>::max() noexcept {
+inline float4 numeric_limits<float4>::max() noexcept {
     return make_float4(std::numeric_limits<float>::max(),
                        std::numeric_limits<float>::max(),
                        std::numeric_limits<float>::max(),
                        std::numeric_limits<float>::max());
 }
 
-float4 numeric_limits<float4>::min() noexcept {
+inline float4 numeric_limits<float4>::min() noexcept {
     return make_float4(std::numeric_limits<float>::min(),
                        std::numeric_limits<float>::min(),
                        std::numeric_limits<float>::min(),
                        std::numeric_limits<float>::min());
 }
 
-float4 numeric_limits<float4>::lowest() noexcept {
+inline float4 numeric_limits<float4>::lowest() noexcept {
     return make_float4(std::numeric_limits<float>::lowest(),
                        std::numeric_limits<float>::lowest(),
                        std::numeric_limits<float>::lowest(),
@@ -350,17 +350,17 @@ float4 numeric_limits<float4>::lowest() noexcept {
 
 //------------------------------------------------------------------------------
 
-double2 numeric_limits<double2>::max() noexcept {
+inline double2 numeric_limits<double2>::max() noexcept {
     return make_double2(std::numeric_limits<double>::max(),
                         std::numeric_limits<double>::max());
 }
 
-double2 numeric_limits<double2>::min() noexcept {
+inline double2 numeric_limits<double2>::min() noexcept {
     return make_double2(std::numeric_limits<double>::min(),
                         std::numeric_limits<double>::min());
 }
 
-double2 numeric_limits<double2>::lowest() noexcept {
+inline double2 numeric_limits<double2>::lowest() noexcept {
     return make_double2(std::numeric_limits<double>::lowest(),
                         std::numeric_limits<double>::lowest());
 }
@@ -385,7 +385,7 @@ inline std::ostream& operator<< (std::ostream& out, const char4& value) {
     return out;
 }
 
-inline std::ostream& operator<< (std::ostream& out, const ushort4& value) {
+inline std::ostream& operator<< (std::ostream& out, const uchar4& value) {
     out << "(" << value.x << "," << value.y << "," << value.z << ","
         << value.w << ")";
     return out;
@@ -418,7 +418,7 @@ inline std::ostream& operator<< (std::ostream& out, const int2& value) {
     return out;
 }
 
-inline std::ostream& operator<< (std::ostream& out, const float2& value) {
+inline std::ostream& operator<< (std::ostream& out, const uint2& value) {
     out << "(" << value.x << "," << value.y << ")";
     return out;
 }
@@ -436,8 +436,7 @@ inline std::ostream& operator<< (std::ostream& out, const uint4& value) {
 }
 
 inline std::ostream& operator<<(std::ostream& out, const longlong2& value) {
-    out << "(" << value.x << "," << value.y << ","
-        << value.z << "," << value.w << ")";
+    out << "(" << value.x << "," << value.y << ")";
     return out;
 }
 
@@ -594,27 +593,27 @@ HOST_DEVICE bool operator> (const int2& A, const int2& B) {
 
 //------------------------------------------------------------------------------
 
-HOST_DEVICE bool operator== (const float2& A, const float2& B) {
+HOST_DEVICE bool operator== (const uint2& A, const uint2& B) {
     return A.x == B.x && A.y == B.y;
 }
 
-HOST_DEVICE bool operator!= (const float2& A, const float2& B) {
+HOST_DEVICE bool operator!= (const uint2& A, const uint2& B) {
     return A.x != B.x || A.y != B.y;
 }
 
-HOST_DEVICE bool operator< (const float2& A, const float2& B) {
+HOST_DEVICE bool operator< (const uint2& A, const uint2& B) {
     return A.x < B.x || (A.x == B.x && A.y < B.y);
 }
 
-HOST_DEVICE bool operator<= (const float2& A, const float2& B) {
+HOST_DEVICE bool operator<= (const uint2& A, const uint2& B) {
     return A.x <= B.x && A.y <= B.y;
 }
 
-HOST_DEVICE bool operator>= (const float2& A, const float2& B) {
+HOST_DEVICE bool operator>= (const uint2& A, const uint2& B) {
     return A.x >= B.x && A.y >= B.y;
 }
 
-HOST_DEVICE bool operator> (const float2& A, const float2& B) {
+HOST_DEVICE bool operator> (const uint2& A, const uint2& B) {
     return A.x > B.x || (A.x == B.x && A.y > B.y);
 }
 
@@ -698,6 +697,32 @@ HOST_DEVICE bool operator> (const ulonglong2& A, const ulonglong2& B) {
 
 //------------------------------------------------------------------------------
 
+HOST_DEVICE bool operator== (const double2& A, const double2& B) {
+    return A.x == B.x && A.y == B.y;
+}
+
+HOST_DEVICE bool operator!= (const double2& A, const double2& B) {
+    return A.x != B.x || A.y != B.y;
+}
+
+HOST_DEVICE bool operator< (const double2& A, const double2& B) {
+    return A.x < B.x || (A.x == B.x && A.y < B.y);
+}
+
+HOST_DEVICE bool operator<= (const double2& A, const double2& B) {
+    return A.x <= B.x && A.y <= B.y;
+}
+
+HOST_DEVICE bool operator>= (const double2& A, const double2& B) {
+    return A.x >= B.x && A.y >= B.y;
+}
+
+HOST_DEVICE bool operator> (const double2& A, const double2& B) {
+    return A.x > B.x || (A.x == B.x && A.y > B.y);
+}
+
+//------------------------------------------------------------------------------
+
 HOST_DEVICE bool operator== (const char4& A, const char4& B) {
     return A.x == B.x && A.y == B.y && A.z == B.z && A.w == B.w;
 }
@@ -728,29 +753,29 @@ HOST_DEVICE bool operator> (const char4& A, const char4& B) {
 
 //------------------------------------------------------------------------------
 
-HOST_DEVICE bool operator== (const ushort4& A, const ushort4& B) {
+HOST_DEVICE bool operator== (const uchar4& A, const uchar4& B) {
     return A.x == B.x && A.y == B.y && A.z == B.z && A.w == B.w;
 }
 
-HOST_DEVICE bool operator!= (const ushort4& A, const ushort4& B) {
+HOST_DEVICE bool operator!= (const uchar4& A, const uchar4& B) {
     return A.x != B.x || A.y != B.y || A.z != B.z || A.w != B.w;
 }
 
-HOST_DEVICE bool operator< (const ushort4& A, const ushort4& B) {
+HOST_DEVICE bool operator< (const uchar4& A, const uchar4& B) {
     return A.x < B.x || (A.x == B.x && A.y < B.y) ||
                         (A.y == B.y && A.z < B.z) ||
                         (A.z == B.z && A.w < B.w);
 }
 
-HOST_DEVICE bool operator<= (const ushort4& A, const ushort4& B) {
+HOST_DEVICE bool operator<= (const uchar4& A, const uchar4& B) {
     return A.x <= B.x && A.y <= B.y && A.z <= B.z && A.w <= B.w;
 }
 
-HOST_DEVICE bool operator>= (const ushort4& A, const ushort4& B) {
+HOST_DEVICE bool operator>= (const uchar4& A, const uchar4& B) {
     return A.x >= B.x && A.y >= B.y & A.z >= B.z & A.w >= B.w;
 }
 
-HOST_DEVICE bool operator> (const ushort4& A, const ushort4& B) {
+HOST_DEVICE bool operator> (const uchar4& A, const uchar4& B) {
     return A.x > B.x || (A.x == B.x && A.y > B.y)
                      || (A.y == B.y && A.z > B.z)
                      || (A.z == B.z && A.w > B.w);
@@ -966,13 +991,13 @@ struct Make2Str<unsigned> {
 
     __host__ __device__ __forceinline__
     static type get(unsigned a, unsigned b) {
-        return make_uint2(a, b);
+        return make_float2(a, b);
     }
 };
 
 template<>
 struct Make2Str<long long> {
-    using type = long2;
+    using type = longlong2;
 
     __host__ __device__ __forceinline__
     static type get(long long a, long long b) {
@@ -1023,7 +1048,7 @@ struct Make4Str<char> {
 
 template<>
 struct Make4Str<unsigned char> {
-    using type = ushort4;
+    using type = uchar4;
 
     __host__ __device__ __forceinline__
     static type get(unsigned char a, unsigned char b,
@@ -1055,7 +1080,7 @@ struct Make4Str<unsigned short> {
 
 template<>
 struct Make4Str<int> {
-    using type = uint4;
+    using type = int4;
 
     __host__ __device__ __forceinline__
     static type get(int a, int b, int c, int d) {

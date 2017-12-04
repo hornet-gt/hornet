@@ -77,7 +77,7 @@ char add<char, int>(const char& value, int* address) {
 
 template<>
 __device__ __forceinline__
-int8_t add<char, int>(const int8_t& value, int* address) {
+int8_t add<int8_t, int>(const int8_t& value, int* address) {
     return static_cast<int8_t>(atomicAdd(address, static_cast<int>(value)));
 }
 

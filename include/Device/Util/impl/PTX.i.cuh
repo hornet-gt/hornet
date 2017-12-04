@@ -36,11 +36,12 @@
 
 namespace xlib {
 
+template<unsigned WARP_SZ>
 __device__ __forceinline__
 unsigned lane_id() {
     unsigned ret;
     asm ("mov.u32 %0, %laneid;" : "=r"(ret) );
-    return ret;
+    return WARP_SZ == xlib::WARP_SIZE ? ret : ret % WARP_SZ;
 }
 
 __device__ __forceinline__

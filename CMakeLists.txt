@@ -12,7 +12,6 @@ include_directories(externals/hornet/externals/cub-1.7.4)
 include_directories(externals/hornet/externals/cpp-btree-master)
 include_directories(externals/hornet/externals/xlib/include)
 
-set(QUIET_SUBMODULE ON)
 include(externals/hornet/externals/xlib/util/CMakeLists.txt)
 #-------------------------------------------------------------------------------
 file(GLOB_RECURSE CU_SRCS ${PROJECT_SOURCE_DIR}/src/*.cu)

@@ -6,7 +6,7 @@
  * @date April, 2017
  * @version v1.3
  *
- * @copyright Copyright © 2017 Hornet. All rights reserved.
+ * @copyright Copyright © 2017 XLib. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -61,9 +61,48 @@ namespace xlib {
  *  Provide the thread ID within the current warp (called lane).
  *  \return identification ID in the range 0 &le; ID &le; 31
  */
-template<unsigned WARP_SZ = 32>
 __device__ __forceinline__
 unsigned lane_id();
+
+/** @fn unsigned int LaneMaskEQ()
+ *  @brief 32-bit mask with bit set in position equal to the thread's
+ *         lane number in the warp
+ *  \return 1 << laneid
+ */
+__device__ __forceinline__
+unsigned lanemask_eq();
+
+/** @fn unsigned int LaneMaskLT()
+ *  @brief 32-bit mask with bits set in positions less than the thread's lane
+ *         number in the warp
+ *  \return (1 << laneid) - 1
+ */
+__device__ __forceinline__
+unsigned lanemask_lt();
+
+/** @fn unsigned int LaneMaskLE()
+ *  @brief 32-bit mask with bits set in positions less than or equal to the
+ *         thread's lane number in the warp
+ *  \return (1 << (laneid + 1)) - 1
+ */
+__device__ __forceinline__
+unsigned lanemask_le();
+
+/** @fn unsigned int LaneMaskGT()
+ *  @brief 32-bit mask with bit set in position equal to the thread's
+ *         lane number in the warp
+ *  \return ~((1 << (laneid + 1)) - 1)
+ */
+__device__ __forceinline__
+unsigned lanemask_gt();
+
+/** @fn unsigned int LaneMaskGE()
+ *  @brief 32-bit mask with bits set in positions greater than or equal to the
+ *         thread's lane number in the warp
+ *  \return ~((1 << laneid) - 1)
+ */
+__device__ __forceinline__
+unsigned lanemask_ge();
 
 /**
  *  @brief terminate the current thread
@@ -114,7 +153,7 @@ __msb(T dword);
 
 template<typename T>
 __device__ __forceinline__
-typename std::enable_if<sizeof(T) < 8, unsigned>::type
+typename std::enable_if<sizeof(T) <= 4, unsigned>::type
 __be(T word, unsigned pos);
 
 template<typename T>
@@ -126,7 +165,7 @@ __be(T dword, unsigned pos);
 
 template<typename T>
 __device__ __forceinline__
-typename std::enable_if<sizeof(T) < 8, T>::type
+typename std::enable_if<sizeof(T) == 4, T>::type
 __bi(T word, unsigned pos);
 
 template<typename T>
@@ -138,7 +177,7 @@ __bi(T dword, unsigned pos);
 
 template<typename T>
 __device__ __forceinline__
-typename std::enable_if<sizeof(T) != 8, unsigned>::type
+typename std::enable_if<sizeof(T) <= 4, unsigned>::type
 __bfe(T word, unsigned pos, unsigned length);
 
 template<typename T>
@@ -150,7 +189,7 @@ __bfe(T dword, unsigned pos, unsigned length);
 
 template<typename T>
 __device__ __forceinline__
-typename std::enable_if<sizeof(T) != 8>::type
+typename std::enable_if<sizeof(T) == 4>::type
 __bfi(T& word, unsigned bitmask, unsigned pos, unsigned length);
 
 template<typename T>
@@ -203,45 +242,7 @@ private:
     T* _array;
 };
 
-/** @fn unsigned int LaneMaskEQ()
- *  @brief 32-bit mask with bit set in position equal to the thread's
- *         lane number in the warp
- *  \return 1 << laneid
- */
-__device__ __forceinline__
-unsigned lanemask_eq();
 
-/** @fn unsigned int LaneMaskLT()
- *  @brief 32-bit mask with bits set in positions less than the thread's lane
- *         number in the warp
- *  \return (1 << laneid) - 1
- */
-__device__ __forceinline__
-unsigned lanemask_lt();
-
-/** @fn unsigned int LaneMaskLE()
- *  @brief 32-bit mask with bits set in positions less than or equal to the
- *         thread's lane number in the warp
- *  \return (1 << (laneid + 1)) - 1
- */
-__device__ __forceinline__
-unsigned lanemask_le();
-
-/** @fn unsigned int LaneMaskGT()
- *  @brief 32-bit mask with bit set in position equal to the thread's
- *         lane number in the warp
- *  \return ~((1 << (laneid + 1)) - 1)
- */
-__device__ __forceinline__
-unsigned lanemask_gt();
-
-/** @fn unsigned int LaneMaskGE()
- *  @brief 32-bit mask with bits set in positions greater than or equal to the
- *         thread's lane number in the warp
- *  \return ~((1 << laneid) - 1)
- */
-__device__ __forceinline__
-unsigned lanemask_ge();
 
 } // namespace xlib
 

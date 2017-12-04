@@ -72,7 +72,7 @@
     #define CHECK_CUDA_ERROR                                                   \
         {                                                                      \
             cudaDeviceSynchronize();                                           \
-            xlib::__getLastCudaError(__FILE__, __LINE__, __func__);            \
+            xlib::detail::getLastCudaError(__FILE__, __LINE__, __func__);      \
         }
 #else
     #define CHECK_CUDA_ERROR
@@ -80,7 +80,7 @@
 
 #define SAFE_CALL(function)                                                    \
     {                                                                          \
-        xlib::__safe_call(function, __FILE__, __LINE__, __func__);             \
+        xlib::detail::safe_call(function, __FILE__, __LINE__, __func__);       \
     }
 
 int cuGetDeviceCount() noexcept;
@@ -114,28 +114,28 @@ int cuGetDevice() noexcept;
 
 namespace xlib {
 
-void __getLastCudaError(const char* file, int line, const char* func_name);
-
-void __safe_call(cudaError_t error, const char* file, int line,
-                 const char* func_name);
-
-void __cudaErrorHandler(cudaError_t error, const char* error_message,
-                        const char* file, int line, const char* func_name);
-
 namespace detail {
+
+void getLastCudaError(const char* file, int line, const char* func_name);
+
+void safe_call(cudaError_t error, const char* file, int line,
+               const char* func_name);
+
+void cudaErrorHandler(cudaError_t error, const char* error_message,
+                      const char* file, int line, const char* func_name);
 
 template<typename T>
 void cuGetSymbolAddressAux(const char* file, int line, const char* func_name,
                            T& symbol, T*& ptr) noexcept {
-    xlib::__cudaErrorHandler(cudaGetSymbolAddress((void**)&ptr, symbol),
-                             "cudaGetSymbolAddress", file, line, func_name);
+    cudaErrorHandler(cudaGetSymbolAddress((void**)&ptr, symbol),
+                     "cudaGetSymbolAddress", file, line, func_name);
 }
 
 template<typename T, int SIZE>
 void cuGetSymbolAddressAux(const char* file, int line, const char* func_name,
                            T (&symbol)[SIZE], T*& ptr) noexcept {
-    xlib::__cudaErrorHandler(cudaGetSymbolAddress((void**)&ptr, symbol),
-                             "cudaGetSymbolAddress", file, line, func_name);
+    cudaErrorHandler(cudaGetSymbolAddress((void**)&ptr, symbol),
+                     "cudaGetSymbolAddress", file, line, func_name);
 }
 
 //==============================================================================
@@ -147,8 +147,8 @@ template<typename T>
 void cuMallocAux(const char* file, int line, const char* func_name,
                  T*& ptr, size_t num_items) noexcept {
     assert(num_items > 0);
-    xlib::__cudaErrorHandler(cudaMalloc(&ptr, num_items * sizeof(T)),
-                             "cudaMalloc", file, line, func_name);
+    cudaErrorHandler(cudaMalloc(&ptr, num_items * sizeof(T)), "cudaMalloc",
+                     file, line, func_name);
 }
 
 //------------------------------------------------------------------------------
@@ -189,8 +189,8 @@ template<typename T>
 void cuMalloc2DAux(const char* file, int line, const char* func_name,
                    T*& pointer, size_t rows, size_t cols) noexcept {
     assert(rows > 0 && cols > 0);
-    xlib::__cudaErrorHandler(cudaMalloc(&pointer, rows * cols * sizeof(T)),
-                                        "cudaMalloc2D", file, line, func_name);
+    cudaErrorHandler(cudaMalloc(&pointer, rows * cols * sizeof(T)),
+                     "cudaMalloc2D", file, line, func_name);
 }
 
 template<typename T>
@@ -198,10 +198,9 @@ void cuMalloc2DAux(const char* file, int line, const char* func_name,
                    T*& pointer, size_t rows, size_t cols, size_t& pitch)
                    noexcept {
     assert(rows > 0 && cols > 0);
-    xlib::__cudaErrorHandler(cudaMallocPitch(&pointer, &pitch,
-                                             rows * sizeof(T)), cols,
-                                             "cudaMalloc2D",
-                                             file, line, func_name);
+    cudaErrorHandler(cudaMallocPitch(&pointer, &pitch,
+                                     rows * sizeof(T)), cols,
+                    "cudaMalloc2D", file, line, func_name);
     assert(pitch % sizeof(T) == 0);
     pitch /= sizeof(T);
 }
@@ -212,8 +211,8 @@ void cuMallocHostAux(const char* file, int line, const char* func_name,
     size_t num_bytes = byte_size(args...);
     assert(num_bytes > 0);
     xlib::byte_t* base_ptr;
-    xlib::__cudaErrorHandler(cudaMallocHost(&base_ptr, num_bytes), "cudaMalloc",
-                             file, line, func_name);
+    cudaErrorHandler(cudaMallocHost(&base_ptr, num_bytes),
+                     "cudaMalloc", file, line, func_name);
     set_ptr(base_ptr, std::forward<TArgs>(args)...);
 }
 
@@ -227,7 +226,7 @@ void cuFreeAux(const char* file, int line, const char* func_name, const T* ptr)
                noexcept {
     using   R = typename std::remove_cv<T>::type;
     auto ptr1 = const_cast<R*>(ptr);
-    xlib::__cudaErrorHandler(cudaFree(ptr1), "cudaFree", file, line, func_name);
+    cudaErrorHandler(cudaFree(ptr1), "cudaFree", file, line, func_name);
 }
 
 template<typename T, typename... TArgs>
@@ -235,18 +234,17 @@ void cuFreeAux(const char* file, int line, const char* func_name,
                const T* ptr, TArgs*... ptrs) noexcept {
     using   R = typename std::remove_cv<T>::type;
     auto ptr1 = const_cast<R*>(ptr);
-    xlib::__cudaErrorHandler(cudaFree(ptr1), "cudaFree", file, line, func_name);
+    cudaErrorHandler(cudaFree(ptr1), "cudaFree", file, line, func_name);
     cuFreeAux(file, line, func_name, ptrs...);
 }
 
 template<typename T, int SIZE>
 void cuFreeAux(const char* file, int line, const char* func_name,
                T* (&ptr)[SIZE]) noexcept {
-    using   R = typename std::remove_cv<T>::type;
+    using R = typename std::remove_cv<T>::type;
     for (int i = 0; i < SIZE; i++) {
         auto ptr1 = const_cast<R*>(ptr[i]);
-        xlib::__cudaErrorHandler(cudaFree(ptr1), "cudaFree", file, line,
-                                 func_name);
+        cudaErrorHandler(cudaFree(ptr1), "cudaFree", file, line,  func_name);
     }
 }
 
@@ -255,8 +253,7 @@ void cuFreeHostAux(const char* file, int line, const char* func_name, T* ptr)
                    noexcept {
     using   R = typename std::remove_cv<T>::type;
     auto ptr1 = const_cast<R*>(ptr);
-    xlib::__cudaErrorHandler(cudaFreeHost(ptr1), "cudaFreeHost", file, line,
-                             func_name);
+    cudaErrorHandler(cudaFreeHost(ptr1), "cudaFreeHost", file, line, func_name);
 }
 
 template<typename T, typename... TArgs>
@@ -264,8 +261,7 @@ void cuFreeHostAux(const char* file, int line, const char* func_name,
                    T* ptr, TArgs*... ptrs) noexcept {
     using   R = typename std::remove_cv<T>::type;
     auto ptr1 = const_cast<R*>(ptr);
-    xlib::__cudaErrorHandler(cudaFreeHost(ptr1), "cudaFreeHost", file, line,
-                             func_name);
+    cudaErrorHandler(cudaFreeHost(ptr1), "cudaFreeHost", file, line, func_name);
     cuFreeHostAux(file, line, func_name, ptrs...);
 }
 

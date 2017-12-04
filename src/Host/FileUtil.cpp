@@ -54,9 +54,9 @@ size_t file_size(const char* filename) {
 
 size_t file_size(std::ifstream& fin) {
      fin.seekg(0L, std::ios::beg);
-     std::iostream::pos_type start_pos = fin.tellg();
+     auto start_pos = fin.tellg();
      fin.seekg(0L, std::ios::end);
-     std::iostream::pos_type end_pos = fin.tellg();
+     auto end_pos = fin.tellg();
      assert(end_pos > start_pos);
      fin.seekg(0L, std::ios::beg);
      return static_cast<size_t>(end_pos - start_pos);
@@ -72,7 +72,7 @@ void check_regular_file(std::ifstream& fin, const char* filename) {
         ERROR("Unable to read the file: ", filename);
     }
     struct stat info;
-    if (stat( filename, &info ) != 0)
+    if (::stat( filename, &info ) != 0)
         ERROR("Unable to read the file: ", filename)
     else if (info.st_mode & S_IFDIR)
         ERROR("The file is a directory: ", filename)

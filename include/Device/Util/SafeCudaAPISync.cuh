@@ -67,7 +67,7 @@
 
 #define cuMemcpyDevToDev(...)                                                  \
     xlib::detail::cuMemcpyDevToDevAux(__FILE__, __LINE__,__func__,             \
-                                            __VA_ARGS__)                       \
+                                      __VA_ARGS__)                             \
 
 #define cuMemcpyToDevice(...)                                                  \
     xlib::detail::cuMemcpyToDeviceAux(__FILE__, __LINE__,__func__, __VA_ARGS__)\
@@ -138,8 +138,8 @@ void cuMemsetGenericAux(const char* file, int line, const char* func_name,
     char value2 = static_cast<char>(mask % (0xF));
     api_name[13] = (value1 <= '9') ? '0' + value1 : 'A' + value1 - 10;
     api_name[14] = (value2 <= '9') ? '0' + value2 : 'A' + value2 - 10;
-    xlib::__cudaErrorHandler(cudaMemset(ptr, mask, num_items * sizeof(T)),
-                                        api_name, file, line, func_name);
+    cudaErrorHandler(cudaMemset(ptr, mask, num_items * sizeof(T)),
+                     api_name, file, line, func_name);
 }
 
 template<typename T>
@@ -223,9 +223,9 @@ void cuMemset2DGenericAux(const char* file, int line, const char* func_name,
     char value2 = static_cast<char>(mask % (0xF));
     api_name[13] = (value1 <= '9') ? '0' + value1 : 'A' + value1 - 10;
     api_name[14] = (value2 <= '9') ? '0' + value2 : 'A' + value2 - 10;
-    xlib::__cudaErrorHandler(cudaMemset2D(ptr, pitch * sizeof(T), mask,
-                                          cols * sizeof(T), rows),
-                                          api_name, file, line, func_name);
+    cudaErrorHandler(cudaMemset2D(ptr, pitch * sizeof(T), mask,
+                                  cols * sizeof(T), rows),
+                     api_name, file, line, func_name);
 }
 
 template<typename T>
@@ -274,9 +274,9 @@ void cuMemcpyGenericAux(const char* file, int line, const char* func_name,
                                "cudaMemcpy(ToHost)",
                                "cudaMemcpy(DeviceToDevice)", "" };
     const auto& selected = api_name[static_cast<int>(cuda_memcpy_kind)];
-    xlib::__cudaErrorHandler(cudaMemcpy(output, input, num_items * sizeof(T),
-                                        cuda_memcpy_kind), selected,
-                                        file, line, func_name);
+    cudaErrorHandler(cudaMemcpy(output, input, num_items * sizeof(T),
+                                        cuda_memcpy_kind),
+                     selected, file, line, func_name);
 }
 
 //------------------------------------------------------------------------------
@@ -344,11 +344,10 @@ void cuMemcpy2DGeneric(const char* file, int line, const char* func_name,
                                "cuda2DMemcpy(ToHost)",
                                "cuda2DMemcpy(DeviceToDevice)", "" };
     const auto& selected = api_name[static_cast<int>(cuda_memcpy_kind)];
-    xlib::__cudaErrorHandler(cudaMemcpy2D(output, dst_pitch * sizeof(T), input,
-                                          src_pitch * sizeof(T),
-                                          cols * sizeof(T), rows,
-                                          cuda_memcpy_kind), selected,
-                                          file, line, func_name);
+    cudaErrorHandler(cudaMemcpy2D(output, dst_pitch * sizeof(T), input,
+                                  src_pitch * sizeof(T), cols * sizeof(T),
+                                  rows, cuda_memcpy_kind),
+                     selected, file, line, func_name);
 }
 
 //------------------------------------------------------------------------------
@@ -465,15 +464,15 @@ void cuMemcpy2DDevToDevAux(const char* file, int line, const char* func_name,
 template<typename T>
 void cuMemcpyToSymbolAux(const char* file, int line, const char* func_name,
                          const T& input, T& symbol) noexcept {
-    xlib::__cudaErrorHandler(cudaMemcpyToSymbol(symbol, &input, sizeof(T)),
-                             "cudaMemcpyToSymbol", file, line, func_name);
+    cudaErrorHandler(cudaMemcpyToSymbol(symbol, &input, sizeof(T)),
+                     "cudaMemcpyToSymbol", file, line, func_name);
 }
 
 template<typename T, int SIZE>
 void cuMemcpyToSymbolAux(const char* file, int line, const char* func_name,
                          const T& input, T (&symbol)[SIZE]) noexcept {
-    xlib::__cudaErrorHandler(cudaMemcpyToSymbol(symbol, &input, sizeof(T)),
-                             "cudaMemcpyToSymbol", file, line, func_name);
+    cudaErrorHandler(cudaMemcpyToSymbol(symbol, &input, sizeof(T)),
+                     "cudaMemcpyToSymbol", file, line, func_name);
 }
 
 //Pointer To Fixed Array
@@ -482,11 +481,9 @@ void cuMemcpyToSymbolAux(const char* file, int line, const char* func_name,
                          const T* input, size_t num_items, T (&symbol)[SIZE],
                          size_t item_offset = 0) noexcept {
     assert(num_items + item_offset <= SIZE && input != nullptr);
-    xlib::__cudaErrorHandler(cudaMemcpyToSymbol(symbol, input,
-                                                num_items * sizeof(T),
-                                                item_offset * sizeof(T)),
-                                                "cudaMemcpyToSymbol",
-                                                file, line, func_name);
+    cudaErrorHandler(cudaMemcpyToSymbol(symbol, input, num_items * sizeof(T),
+                                        item_offset * sizeof(T)),
+                    "cudaMemcpyToSymbol", file, line, func_name);
 }
 
 //==============================================================================
@@ -498,9 +495,8 @@ void cuMemcpyToSymbolAux(const char* file, int line, const char* func_name,
 template<typename T>
 void cuMemcpyFromSymbolAux(const char* file, int line, const char* func_name,
                            const T& symbol, T& output) noexcept {
-    xlib::__cudaErrorHandler(cudaMemcpyFromSymbol(&output, symbol, sizeof(T),
-                                                  "cudaMemcpyFromSymbol"),
-                                                  file, line, func_name);
+    cudaErrorHandler(cudaMemcpyFromSymbol(&output, symbol, sizeof(T)),
+                    "cudaMemcpyFromSymbol", file, line, func_name);
 }
 
 template<typename T, int SIZE1, int SIZE2>
@@ -508,10 +504,8 @@ void cuMemcpyFromSymbolAux(const char* file, int line, const char* func_name,
                            const T (&symbol)[SIZE1], T (&output)[SIZE2])
                            noexcept {
     assert(SIZE1 < SIZE2);
-    xlib::__cudaErrorHandler(cudaMemcpyFromSymbol(&output, symbol,
-                                                  SIZE1 * sizeof(T),
-                                                  "cudaMemcpyFromSymbol"),
-                                                  file, line, func_name);
+    cudaErrorHandler(cudaMemcpyFromSymbol(&output, symbol, SIZE1 * sizeof(T)),
+                     "cudaMemcpyFromSymbol", file, line, func_name);
 }
 
 
@@ -519,10 +513,8 @@ template<typename T, int SIZE1, int SIZE2>
 void cuMemcpyFromSymbolAux(const char* file, int line, const char* func_name,
                            const T (&symbol)[SIZE1], T* output) noexcept {
     assert(output != nullptr);
-    xlib::__cudaErrorHandler(cudaMemcpyFromSymbol(output, symbol,
-                                                  SIZE1 * sizeof(T)),
-                                                  "cudaMemcpyFromSymbol",
-                                                  file, line, func_name);
+    cudaErrorHandler(cudaMemcpyFromSymbol(output, symbol, SIZE1 * sizeof(T)),
+                     "cudaMemcpyFromSymbol", file, line, func_name);
 }
 
 ///@endcond

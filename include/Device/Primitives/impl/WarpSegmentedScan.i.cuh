@@ -4,7 +4,7 @@
  *         federico.busato@univr.it
  * @date September, 2017
  *
- * @copyright Copyright © 2017 Hornet. All rights reserved.
+ * @copyright Copyright © 2017 XLib. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without

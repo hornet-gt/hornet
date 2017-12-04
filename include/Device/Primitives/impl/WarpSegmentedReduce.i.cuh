@@ -4,7 +4,7 @@
  *         federico.busato@univr.it
  * @date October, 2017
  *
- * @copyright Copyright © 2017 Hornet. All rights reserved.
+ * @copyright Copyright © 2017 XLib. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -356,13 +356,11 @@ void WarpSegmentedReduce<WARP_SZ>
     auto value_tmp = value;
     WarpSegmentedReduce::min(value_tmp, mask);
     if (lanemask_eq() & mask) {
-        if (lanemask_gt() & mask) //there is no marked lanes after me
-            xlib::atomic::min(value_tmp, pointer);
-        else
+        if (lane_id() != 0 && lanemask_gt() & mask)
             *pointer = value_tmp;
+        else
+            xlib::atomic::min(value_tmp, pointer);
     }
-    else if (lane_id() == 0)
-        xlib::atomic::add(value_tmp, pointer);
 }
 
 template<int WARP_SZ>
@@ -373,13 +371,11 @@ void WarpSegmentedReduce<WARP_SZ>
     auto value_tmp = value;
     WarpSegmentedReduce::max(value_tmp, mask);
     if (lanemask_eq() & mask) {
-        if (lanemask_gt() & mask) //there is no marked lanes after me
-            xlib::atomic::max(value_tmp, pointer);
-        else
+        if (lane_id() != 0 && lanemask_gt() & mask)
             *pointer = value_tmp;
+        else
+            xlib::atomic::max(value_tmp, pointer);
     }
-    else if (lane_id() == 0)
-        xlib::atomic::add(value_tmp, pointer);
 }
 
 } // namespace xlib

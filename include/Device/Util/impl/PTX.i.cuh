@@ -2,9 +2,9 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date October, 2017
+ * @date December, 2017
  *
- * @copyright Copyright © 2017 Hornet. All rights reserved.
+ * @copyright Copyright © 2017 XLib. All rights reserved.
  *
  * @license{<blockquote>
  * Redistribution and use in source and binary forms, with or without
@@ -36,126 +36,12 @@
 
 namespace xlib {
 
-template<unsigned WARP_SZ>
 __device__ __forceinline__
 unsigned lane_id() {
     unsigned ret;
     asm ("mov.u32 %0, %laneid;" : "=r"(ret) );
-    return WARP_SZ == xlib::WARP_SIZE ? ret : ret % WARP_SZ;
-}
-
-__device__ __forceinline__
-void thread_exit() {
-    asm ("exit;");
-}
-
-//==============================================================================
-
-template<typename T>
-__device__ __forceinline__
-typename std::enable_if<sizeof(T) <= 4, unsigned>::type
-__msb(T word) {
-    unsigned ret;
-    asm ("bfind.u32 %0, %1;" : "=r"(ret) : "r"(word));
     return ret;
 }
-
-template<typename T>
-__device__ __forceinline__
-typename std::enable_if<sizeof(T) == 8, unsigned>::type
-__msb(T dword) {
-    unsigned ret;
-    asm ("bfind.u64 %0, %1;" : "=r"(ret) : "l"(dword));
-    return ret;
-}
-
-//==============================================================================
-
-template<typename T>
-__device__ __forceinline__
-typename std::enable_if<sizeof(T) < 8, unsigned>::type
-__be(T word, unsigned pos) {
-    unsigned ret;
-    asm ("bfe.u32 %0, %1, %2, %3;" : "=r"(ret) :
-            "r"(reinterpret_cast<unsigned&>(word)), "r"(pos), "r"(1u));
-    return ret;
-}
-
-template<typename T>
-__device__ __forceinline__
-typename std::enable_if<sizeof(T) == 8, long long unsigned>::type
-__be(T dword, unsigned pos) {
-    long long unsigned ret;
-    asm ("bfe.u64 %0, %1, %2, %3;" : "=l"(ret) :
-          "l"(reinterpret_cast<long long unsigned&>(dword)), "r"(pos), "r"(1u));
-    return ret;
-}
-
-//------------------------------------------------------------------------------
-
-template<typename T>
-__device__ __forceinline__
-typename std::enable_if<sizeof(T) < 8, T>::type
-__bi(T word, unsigned pos) {
-    unsigned ret;
-    asm ("bfi.b32 %0, %1, %2, %3, %4;" : "=r"(ret)
-          : "r"(1u), "r"(reinterpret_cast<unsigned&>(word)), "r"(pos), "r"(1u));
-    return reinterpret_cast<T&>(ret);
-}
-
-template<typename T>
-__device__ __forceinline__
-typename std::enable_if<sizeof(T) == 8, T>::type
-__bi(T dword, unsigned pos) {
-    long long unsigned ret;
-    asm ("bfi.b64 %0, %1, %2, %3, %4;" :
-            "=l"(ret) : "l"(reinterpret_cast<long long unsigned&>(dword)),
-            "l"(1ull), "r"(pos), "r"(1u));
-    return reinterpret_cast<T&>(ret);
-}
-
-//==============================================================================
-
-template<typename T>
-__device__ __forceinline__
-typename std::enable_if<sizeof(T) != 8, unsigned>::type
-__bfe(T word, unsigned pos, unsigned length) {
-    unsigned ret;
-    asm ("bfe.u32 %0, %1, %2, %3;" : "=r"(ret) :
-         "r"(reinterpret_cast<unsigned&>(word)), "r"(pos), "r"(length));
-    return ret;
-}
-
-template<typename T>
-__device__ __forceinline__
-typename std::enable_if<sizeof(T) == 8, long long unsigned>::type
-__bfe(T dword, unsigned pos, unsigned length) {
-    long long unsigned ret;
-    asm ("bfe.u64 %0, %1, %2, %3;" : "=l"(ret) :
-         "l"(reinterpret_cast<long long unsigned&>(dword)),
-         "r"(pos), "r"(length));
-    return ret;
-}
-
-//------------------------------------------------------------------------------
-
-template<typename T>
-__device__ __forceinline__
-typename std::enable_if<sizeof(T) != 8>::type
-__bfi(T& word, unsigned bitmask, unsigned pos, unsigned length) {
-    asm ("bfi.b32 %0, %1, %2, %3, %4;" : "=r"(word) : "r"(bitmask),
-         "r"(word), "r"(pos), "r"(length));
-}
-
-template<typename T>
-__device__ __forceinline__
-typename std::enable_if<sizeof(T) == 8>::type
-__bfi(T& dword, long long unsigned bitmask, unsigned pos, unsigned length) {
-    asm ("bfi.b64 %0, %1, %2, %3, %4;" : "=l"(dword) : "l"(bitmask),
-         "l"(dword), "r"(pos), "r"(length));
-}
-
-//------------------------------------------------------------------------------
 
 __device__ __forceinline__
 unsigned int lanemask_eq() {
@@ -190,6 +76,123 @@ unsigned int lanemask_ge() {
     unsigned int ret;
     asm("mov.u32 %0, %lanemask_ge;" : "=r"(ret) );
     return ret;
+}
+
+__device__ __forceinline__
+void thread_exit() {
+    asm ("exit;");
+}
+
+//==============================================================================
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<sizeof(T) <= 4, unsigned>::type
+__msb(T word) {
+    unsigned ret;
+    asm ("bfind.u32 %0, %1;" : "=r"(ret) : "r"(word));
+    return ret;
+}
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<sizeof(T) == 8, unsigned>::type
+__msb(T dword) {
+    unsigned ret;
+    asm ("bfind.u64 %0, %1;" : "=r"(ret) : "l"(dword));
+    return ret;
+}
+
+//==============================================================================
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<sizeof(T) <= 4, unsigned>::type
+__be(T word, unsigned pos) {
+    assert(pos <= sizeof(T) * 8);
+    unsigned ret;
+    asm ("bfe.u32 %0, %1, %2, %3;" : "=r"(ret) :
+         "r"(reinterpret_cast<unsigned&>(word)), "r"(pos), "r"(1u));
+    return ret;
+}
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<sizeof(T) == 8, long long unsigned>::type
+__be(T dword, unsigned pos) {
+    assert(pos <= sizeof(T) * 8);
+    uint64_t ret;
+    asm ("bfe.u64 %0, %1, %2, %3;" : "=l"(ret) :
+         "l"(reinterpret_cast<uint64_t&>(dword)), "r"(pos), "r"(1u));
+    return ret;
+}
+
+//------------------------------------------------------------------------------
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<sizeof(T) == 4, T>::type
+__bi(T word, unsigned pos) {
+    unsigned ret;
+    asm ("bfi.b32 %0, %1, %2, %3, %4;" : "=r"(ret)
+          : "r"(1u), "r"(reinterpret_cast<unsigned&>(word)), "r"(pos), "r"(1u));
+    return reinterpret_cast<T&>(ret);
+}
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<sizeof(T) == 8, T>::type
+__bi(T dword, unsigned pos) {
+    uint64_t ret;
+    asm ("bfi.b64 %0, %1, %2, %3, %4;" :
+            "=l"(ret) : "l"(reinterpret_cast<uint64_t&>(dword)),
+            "l"(1ull), "r"(pos), "r"(1u));
+    return reinterpret_cast<T&>(ret);
+}
+
+//==============================================================================
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<sizeof(T) <= 4, unsigned>::type
+__bfe(T word, unsigned pos, unsigned length) {
+    assert(pos <= sizeof(T) * 8);
+    unsigned ret;
+    asm ("bfe.u32 %0, %1, %2, %3;" : "=r"(ret) :
+         "r"(reinterpret_cast<unsigned&>(word)), "r"(pos), "r"(length));
+    return ret;
+}
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<sizeof(T) == 8, long long unsigned>::type
+__bfe(T dword, unsigned pos, unsigned length) {
+    assert(pos <= sizeof(T) * 8);
+    uint64_t ret;
+    asm ("bfe.u64 %0, %1, %2, %3;" : "=l"(ret) :
+         "l"(reinterpret_cast<uint64_t&>(dword)),
+         "r"(pos), "r"(length));
+    return ret;
+}
+
+//------------------------------------------------------------------------------
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<sizeof(T) == 4>::type
+__bfi(T& word, unsigned bitmask, unsigned pos, unsigned length) {
+    assert(pos + length <= sizeof(T) * 8);
+    asm ("bfi.b32 %0, %1, %2, %3, %4;" : "=r"(word) : "r"(bitmask),
+         "r"(word), "r"(pos), "r"(length));
+}
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<sizeof(T) == 8>::type
+__bfi(T& dword, uint64_t bitmask, unsigned pos, unsigned length) {
+    assert(pos + length <= sizeof(T) * 8);
+    asm ("bfi.b64 %0, %1, %2, %3, %4;" : "=l"(dword) : "l"(bitmask),
+         "l"(dword), "r"(pos), "r"(length));
 }
 
 } // namespace xlib

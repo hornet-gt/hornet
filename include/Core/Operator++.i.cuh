@@ -146,7 +146,7 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
             pathPoints[block_local_id*2+1] = ui_curr; 
         }
 
-        //__syncthreads();
+        __syncthreads();
 
         vid_t vi_begin, ui_begin, vi_end, ui_end;
         vi_begin = ui_begin = vi_end = ui_end = -1;
@@ -331,7 +331,7 @@ namespace adj_unions {
             //int imbalanced_work_est = ((u_len+W-1)/W)*log_v;
             //int balanced_work_est = ((total_work+W-1)/W) + log_u;
             //bin_index = (K*balanced_work_est > imbalanced_work_est);
-            //bin_index=0;
+            bin_index=0;
             // Either count or add the item to the appropriate queue
             if (countOnly)
                 atomicAdd(&(d_queue_info.ptr()->queue_sizes[bin_index]), 1ULL);
@@ -420,10 +420,17 @@ void forAllEdgesAdjUnionSequential(HornetClass &hornet, vid_t* queue, const unsi
 template<typename HornetClass, typename Operator>
 void forAllEdgesAdjUnionBalanced(HornetClass &hornet, vid_t* queue, const unsigned long long size, const Operator &op, unsigned long long threads_per_union, int flag) {
     //printf("queue size: %llu\n", size);
+    auto grid_size = size*threads_per_union;
+    auto _size = size;
+    while (grid_size > (1ULL<<31)) {
+        // FIXME get 1<<31 from Hornet
+        _size >>= 1;
+        grid_size = _size*threads_per_union;
+    }
     if (size == 0)
         return;
     detail::forAllEdgesAdjUnionBalancedKernel
-        <<< xlib::ceil_div<BLOCK_SIZE_OP2>(size*threads_per_union), BLOCK_SIZE_OP2 >>>
+        <<< xlib::ceil_div<BLOCK_SIZE_OP2>(grid_size), BLOCK_SIZE_OP2 >>>
         (hornet.device_side(), queue, size, threads_per_union, flag, op);
     CHECK_CUDA_ERROR
 }

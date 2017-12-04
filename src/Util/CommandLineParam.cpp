@@ -34,6 +34,7 @@
  * </blockquote>}
  */
 #include "Util/CommandLineParam.hpp"
+#include <Device/Util/CudaUtil.cuh>     //xlib::device_info
 #include <Device/Util/SafeCudaAPI.cuh>  //SAFE_CALL
 #include <Host/Basic.hpp>               //ERROR, xlib::is_integer
 #include <Host/FileUtil.hpp>            //xlib::extract_filepath_noextension

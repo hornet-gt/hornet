@@ -1,8 +1,8 @@
 get_directory_property(has_parent PARENT_DIRECTORY)
 if (has_parent)
-    set(QUIET_SUBMODULE OFF)
-else()
     set(QUIET_SUBMODULE ON)
+else()
+    set(QUIET_SUBMODULE OFF)
 endif()
 
 #-------------------------------------------------------------------------------
@@ -21,6 +21,7 @@ include_directories(externals/xlib/include)
 include_directories(${CUDA_INCLUDE_DIRS})
 
 #set(WARNING_FLAGS ON)
+set(CUB_LIBRARY ON)
 include(externals/xlib/util/CMakeLists.txt)
 #-------------------------------------------------------------------------------
 file(GLOB_RECURSE CPP_SRCS ${PROJECT_SOURCE_DIR}/src/*.cpp)

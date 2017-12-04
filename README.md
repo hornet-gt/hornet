@@ -40,24 +40,26 @@ cmake ..
 make p
 ```
 
-By default the cuda compiler `nvcc` uses `gcc/g++` found in the current
-execution search path (`cc --version` to get the default compiler).
-To force a different host compiler to compile plain C++ files (`*.cpp`) set the
-following environment variables:
+By default, the CUDA compiler `nvcc` uses `gcc/g++` found in the current
+execution search path as host compiler
+(`cc --version` to get the default compiler on the actual system).
+To force a different host compiler for compiling C++ files (`*.cpp`)
+you need to set the following environment variables:
  ```bash
 CC=<path_to_host_C_compiler>
 CXX=<path_to_host_C++_compiler>
 ```
 
-To force a different host compiler to compile host side `nvcc` code (`*.cu`)
+To force a different host compiler for compiling host side code (`*.cu`)
 substitute `cmake ..` with
  ```bash
 cmake -DCUDAHC=<path_to_host_C++_compiler> ..
 ```
-Note: host compiler and host side `nvcc` compiler may be different.
-The host side `nvcc` compiler must be compatible with the current CUDA toolkit
+Note: host `.cpp` compiler and host side `.cu` compiler may be different.
+The host side compiler must be compatible with the current CUDA Toolkit
 version installed on the system
 (see [CUDA Installation Guide](http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html)).
+
 
 The syntax and the input parameters of Hornet are explained in detail in
  `docs/Syntax.txt`. They can also be found by typing `./HornetTest --help`.

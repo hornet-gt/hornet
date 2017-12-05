@@ -304,7 +304,7 @@ namespace adj_unions {
         unsigned long long queue_sizes[MAX_ADJ_UNIONS_BINS] = {0,};
         vid_t *d_queues[MAX_ADJ_UNIONS_BINS] = {NULL,};
         unsigned long long queue_pos[MAX_ADJ_UNIONS_BINS] = {0,};
-        int queue_threads_per[MAX_ADJ_UNIONS_BINS] = {1,8,16,32};
+        int queue_threads_per[MAX_ADJ_UNIONS_BINS] = {32, 64, 128, 256};
     };
 
     struct bin_edges {
@@ -317,21 +317,33 @@ namespace adj_unions {
             if (src.id() >= dst.id()) return; // imposes ordering
             degree_t src_len = dst.degree();
             degree_t dst_len = dst.degree();
+            int i = 3;
+            
             total_work = src_len + dst_len - 1;
-            degree_t u_len = (src_len <= dst_len) ? src_len : dst_len;
-            degree_t v_len = (src_len > dst_len) ? dst_len : src_len;
-            unsigned int log_u = 32-__clz(u_len-1);
-            unsigned int log_v = 32-__clz(v_len-1);
-            unsigned int bin_index = std::min((int)log_u, 5);
-            if (bin_index < 3) {
-                bin_index = 0;
-            } else {
-                bin_index -= 2;
+            int W;
+            while (i > 0) {
+                W = d_queue_info.ptr()->queue_threads_per[i];
+                if ((total_work+W-1)/W >= 4)
+                    break;
+                i-=1;
             }
+            /*
+            degree_t u_len = (src_len <= dst_len) ? src_len : dst_len;
+            //degree_t v_len = (src_len > dst_len) ? dst_len : src_len;
+            //unsigned int log_u = 32-__clz(u_len-1);
+            //unsigned int log_v = 32-__clz(v_len-1);
+            int W;
+            while (i > 0) {
+                W = d_queue_info.ptr()->queue_threads_per[i];
+                if ((u_len+W-1)/W >= 4)
+                    break;
+                i-=1;
+            }*/
+
             //int imbalanced_work_est = ((u_len+W-1)/W)*log_v;
             //int balanced_work_est = ((total_work+W-1)/W) + log_u;
             //bin_index = (K*balanced_work_est > imbalanced_work_est);
-            bin_index=0;
+            bin_index=i;
             // Either count or add the item to the appropriate queue
             if (countOnly)
                 atomicAdd(&(d_queue_info.ptr()->queue_sizes[bin_index]), 1ULL);
@@ -388,7 +400,6 @@ void forAllAdjUnions(HornetClass&         hornet,
     // Phase 2: run the operator on each queued edge as appropriate
     for (auto bin = 0; bin < MAX_ADJ_UNIONS_BINS; bin++) {
         if (hd_queue_info().queue_sizes[bin] == 0) continue;
-        int flag = 1;
         int threads_per = hd_queue_info().queue_threads_per[bin]; 
         TM.start();
         /*if (bin == 0) { 
@@ -398,8 +409,9 @@ void forAllAdjUnions(HornetClass&         hornet,
             forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, flag);
         }*/
         
-        threads_per = 32;
-        forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, flag);
+        //threads_per = 256;
+        forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, 0);
+        //forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, 1);
         TM.stop();
         TM.print("queue processing:");
         TM.reset();

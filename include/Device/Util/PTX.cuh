@@ -3,8 +3,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
- * @version v1.3
+ * @date December, 2017
  *
  * @copyright Copyright © 2017 XLib. All rights reserved.
  *
@@ -61,7 +60,7 @@ namespace xlib {
  *  Provide the thread ID within the current warp (called lane).
  *  \return identification ID in the range 0 &le; ID &le; 31
  */
-template<unsigned WARP_SZ = xlib::WARP_SIZE> 
+template<unsigned WARP_SZ = xlib::WARP_SIZE>
 __device__ __forceinline__
 unsigned lane_id();
 
@@ -113,6 +112,14 @@ void thread_exit();
 
 // --------------------------------- MATH --------------------------------------
 
+__device__ __forceinline__
+unsigned SM_id();
+
+__device__ __forceinline__
+unsigned num_warps();
+
+// --------------------------------- MATH --------------------------------------
+
 /**
  *  @brief sum three operands with one instruction
  *
@@ -142,7 +149,12 @@ unsigned int IADD3(unsigned int x, unsigned int y, unsigned int z);
 
 template<typename T>
 __device__ __forceinline__
-typename std::enable_if<sizeof(T) <= 4, unsigned>::type
+typename std::enable_if<sizeof(T) < 4, unsigned>::type
+__msb(T word);
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<sizeof(T) == 4, unsigned>::type
 __msb(T word);
 
 template<typename T>

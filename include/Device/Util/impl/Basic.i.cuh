@@ -3,7 +3,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
+ * @date December, 2017
  * @version v1.3
  *
  * @copyright Copyright © 2017 XLib. All rights reserved.
@@ -158,5 +158,78 @@ void cuWriteBit(T* devPointer, R pos) {
     ToCast value = xlib::__bi(Load<PROP::LOAD>(tmp_ptr), pos % SIZE);
     Store<PROP::STORE>(tmp_ptr, value);
 }*/
+
+//==============================================================================
+
+template<unsigned WARP_SZ>
+__device__ __forceinline__
+constexpr unsigned member_mask() {
+    const unsigned mask = 0xFFFFFFFF >> (xlib::WARP_SIZE - WARP_SZ);
+    return xlib::WARP_SIZE == WARP_SZ ? mask
+                : mask << (xlib::lane_id() & ~(WARP_SZ - 1));
+}
+
+//------------------------------------------------------------------------------
+
+template<typename T>
+__device__ __forceinline__
+unsigned discontinuity_mask(const T& value, unsigned member_mask) {
+    T tmp = xlib::shfl_up(member_mask, value, 1);
+    return __ballot_sync(member_mask, tmp != value);
+}
+
+template<typename T>
+__device__ __forceinline__
+unsigned discontinuity_mask(const T& value, bool& lane_bit,
+                            unsigned member_mask) {
+    lane_bit = xlib::shfl_up(member_mask, value, 1) != value ||
+               xlib::lane_id() == 0;
+    return __ballot_sync(member_mask, lane_bit);
+}
+
+template<typename T>
+__device__ __forceinline__
+unsigned discontinuity_mask(const T& value1, const T& value2, bool& lane_bit,
+                            unsigned member_mask) {
+    lane_bit = xlib::shfl_up(member_mask, value1, 1) != value2 ||
+               xlib::lane_id() == 0;
+    return __ballot_sync(member_mask, lane_bit);
+}
+
+//------------------------------------------------------------------------------
+
+template<unsigned WARP_SZ>
+constexpr unsigned warp_segmask() {
+    unsigned value = 0;
+    for (int i = 0; i < xlib::WARP_SIZE; i += WARP_SZ) {
+        value <<= WARP_SZ;
+        value |= 1;
+    }
+    return value;
+}
+
+template<>
+constexpr unsigned warp_segmask<WARP_SIZE>() {
+    return 0;
+}
+
+//------------------------------------------------------------------------------
+
+//[0, 31] exclusive
+template<unsigned WARP_SZ>
+__device__ __forceinline__
+int max_lane(unsigned mask) {
+    if (WARP_SZ != xlib::WARP_SIZE)
+        mask |= xlib::warp_segmask<WARP_SZ>();
+    return __clz(__brev((xlib::lanemask_gt() & mask))) - 1;
+}
+
+//[0, 31] inclusive
+template<unsigned WARP_SZ>
+__device__ __forceinline__
+int min_lane(unsigned mask) {
+    mask |= (WARP_SZ != xlib::WARP_SIZE) ? xlib::warp_segmask<WARP_SZ>() : 0x1;
+    return __msb(xlib::lanemask_le() & (mask));
+}
 
 } // namespace xlib

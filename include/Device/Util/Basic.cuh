@@ -171,6 +171,43 @@ T shfl_down(unsigned member_mask, const T& var, int src_lane, int width = 32) {
     return detail::generic_shfl(var, lambda);
 }
 
+//------------------------------------------------------------------------------
+
+template<typename T>
+__device__ __forceinline__
+T shfl(const T& var, int src_lane) {
+    const auto& lambda = [&](int value) {
+                               return __shfl_sync(0xFFFFFFFF, value, src_lane);
+                            };
+    return detail::generic_shfl(var, lambda);
+}
+
+template<typename T>
+__device__ __forceinline__
+T shfl_xor(const T& var, int src_lane) {
+    const auto& lambda = [&](int value) {
+                            return __shfl_xor_sync(0xFFFFFFFF, value, src_lane);
+                        };
+    return detail::generic_shfl(var, lambda);
+}
+
+template<typename T>
+__device__ __forceinline__
+T shfl_up(const T& var, int src_lane) {
+    const auto& lambda = [&](int value) {
+                             return __shfl_up_sync(0xFFFFFFFF, value, src_lane);
+                        };
+    return detail::generic_shfl(var, lambda);
+}
+
+template<typename T>
+__device__ __forceinline__
+T shfl_down(const T& var, int src_lane) {
+    const auto& lambda = [&](int value) {
+                           return __shfl_down_sync(0xFFFFFFFF, value, src_lane);
+                       };
+    return detail::generic_shfl(var, lambda);
+}
 
 /** @fn void swap(T& A, T& B)
  *  @brief swap A and B
@@ -193,46 +230,43 @@ template<int NUM_THREADS>
 __device__ __forceinline__
 void sync();
 
+//==============================================================================
+//==============================================================================
+
 template<unsigned WARP_SZ = xlib::WARP_SIZE>
 __device__ __forceinline__
-constexpr unsigned member_mask() {
-    return WARP_SZ == xlib::WARP_SIZE ? 0xFFFFFFFF :
-          (0xFFFFFFFF >> (32 - WARP_SZ)) << (xlib::lane_id() / WARP_SZ);
-}
+constexpr unsigned member_mask();
+
+//------------------------------------------------------------------------------
 
 template<typename T>
 __device__ __forceinline__
-unsigned discontinuity_mask(const T& value, unsigned member_mask = 0xFFFFFFFF) {
-    //T tmp = xlib::shfl_down(member_mask, value, 1);
-    T tmp = xlib::shfl_up(member_mask, value, 1);
-    return __ballot_sync(member_mask, tmp != value);
-}
+unsigned discontinuity_mask(const T& value, unsigned member_mask = 0xFFFFFFFF);
 
 template<typename T>
 __device__ __forceinline__
-unsigned discontinuity_mask(const T& value1, const T& value2,
-                            unsigned member_mask = 0xFFFFFFFF) {
-    //T tmp = xlib::shfl_down(member_mask, value, 1);
-    T tmp = xlib::shfl_up(member_mask, value1, 1);
-    return __ballot_sync(member_mask, tmp != value2);
-}
+unsigned discontinuity_mask(const T& value, bool& lane_bit,
+                            unsigned member_mask = 0xFFFFFFFF);
 
+template<typename T>
 __device__ __forceinline__
-unsigned max_lane(unsigned mask) {
-    return __clz(__brev((xlib::lanemask_gt() & mask))) - 1;
-}
+unsigned discontinuity_mask(const T& value1, const T& value2, bool& lane_bit,
+                            unsigned member_mask = 0xFFFFFFFF);
 
-/*
-__device__ __forceinline__
-unsigned max_lane(unsigned mask) {
-    return __clz(__brev(xlib::lanemask_ge() & mask));
-}*/
+//------------------------------------------------------------------------------
 
+template<unsigned WARP_SZ>
+constexpr unsigned warp_segmask();
+
+//[0, 31] exclusive
+template<unsigned WARP_SZ = xlib::WARP_SIZE>
 __device__ __forceinline__
-unsigned min_lane(unsigned mask) {
-    unsigned tmp = xlib::lanemask_le() & mask;
-    return tmp ? 31 - __clz(tmp) : 0;
-}
+int max_lane(unsigned mask);
+
+//[0, 31] inclusive
+template<unsigned WARP_SZ = xlib::WARP_SIZE>
+__device__ __forceinline__
+int min_lane(unsigned mask);
 
 } // namespace xlib
 

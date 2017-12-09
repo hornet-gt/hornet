@@ -3,7 +3,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date October, 2017
+ * @date December, 2017
  *
  * @copyright Copyright © 2017 XLib. All rights reserved.
  *
@@ -43,10 +43,9 @@ namespace xlib {
 
 template<int WARP_SZ = 32>  //VW_SIZE == 1  --> SPECIALIZATION
 struct WarpReduce {
-    static_assert(xlib::is_power2(WARP_SZ) &&
-                  WARP_SZ >= 1 && WARP_SZ <= WARP_SIZE,
-                  "WarpReduce : WARP_SZ must be a power of 2 and\
-                                2 <= WARP_SZ <= WARP_SIZE");
+    static_assert(xlib::is_power2(WARP_SZ) && WARP_SZ >= 1 &&
+                  WARP_SZ <= WARP_SIZE, "WarpReduce : WARP_SZ must be a power"
+                  " of 2 and 2 <= WARP_SZ <= WARP_SIZE");
 
     template<typename T>
     __device__ __forceinline__
@@ -59,6 +58,10 @@ struct WarpReduce {
     template<typename T>
     __device__ __forceinline__
     static void max(T& value);
+
+    template<typename T, int SIZE>
+    __device__ __forceinline__
+    static void add(T (&value)[SIZE]);
 
     //--------------------------------------------------------------------------
 

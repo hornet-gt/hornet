@@ -404,11 +404,13 @@ endif()
 ## CUSTOM TARGET ##
 ###################
 
+set(RM_LIST *.cmake compile_commands.json CMakeCache.txt CMakeFiles Makefile
+            Testing TMP)
+
 if (NOT QUIET_SUBMODULE)
 
 add_custom_target(rm
-                  COMMAND rm -rf *.cmake compile_commands.json CMakeCache.txt
-                                 CMakeFiles Makefile Testing
+                  COMMAND rm -rf ${RM_LIST}
                   COMMENT "Clear build directory")
 
 if (DEFINED CUDAHC)
@@ -422,36 +424,31 @@ add_custom_target(p
                   COMMENT "Make (${THREADS} threads)")
 
 add_custom_target(update
-                  COMMAND rm -rf *.cmake compile_commands.json CMakeCache.txt
-                                 CMakeFiles Makefile Testing
+                  COMMAND rm -rf ${RM_LIST}
                   COMMAND cmake ${CUDAHC_FLAG} ..
                   COMMAND make -j ${THREADS}
                   COMMENT "UPDATE RELEASE")
 
 add_custom_target(update_ex
-                  COMMAND rm -rf *.cmake compile_commands.json CMakeCache.txt
-                                 CMakeFiles Makefile Testing
+                  COMMAND rm -rf ${RM_LIST}
                   COMMAND cmake ${CUDAHC_FLAG} -DCMAKE_BUILD_TYPE=ReleaseEx ..
                   COMMAND make -j ${THREADS}
                   COMMENT "UPDATE RELEASE_EX")
 
 add_custom_target(update_info
-                  COMMAND rm -rf *.cmake compile_commands.json CMakeCache.txt
-                                 CMakeFiles Makefile Testing
+                  COMMAND rm -rf ${RM_LIST}
                   COMMAND cmake ${CUDAHC_FLAG} -DCMAKE_BUILD_TYPE=Info ..
                   COMMAND make -j ${THREADS}
                   COMMENT "UPDATE INFO")
 
 add_custom_target(update_debug
-                  COMMAND rm -rf *.cmake compile_commands.json CMakeCache.txt
-                                 CMakeFiles Makefile Testing
+                  COMMAND rm -rf ${RM_LIST}
                   COMMAND cmake ${CUDAHC_FLAG} -DCMAKE_BUILD_TYPE=Debug ..
                   COMMAND make -j ${THREADS}
                   COMMENT "UPDATE DEBUG")
 
 add_custom_target(update_coverage
-                  COMMAND rm -rf *.cmake compile_commands.json CMakeCache.txt
-                                 CMakeFiles Makefile Testing
+                  COMMAND rm -rf ${RM_LIST}
                   COMMAND cmake ${CUDAHC_FLAG} -DCMAKE_BUILD_TYPE=Coverage ..
                   COMMAND make -j ${THREADS}
                   COMMENT "UPDATE COVERAGE")
@@ -480,15 +477,13 @@ add_custom_target(coverage
                   COMMENT "UPDATE COVERAGE")
 
 add_custom_target(update_sanitize
-                  COMMAND rm -rf *.cmake compile_commands.json CMakeCache.txt
-                                 CMakeFiles Makefile Testing
+                  COMMAND rm -rf ${RM_LIST}
                   COMMAND cmake ${CUDAHC_FLAG} -DCMAKE_BUILD_TYPE=Sanitaze ..
                   COMMAND make -j ${THREADS}
                   COMMENT "UPDATE SANITAZE")
 
 add_custom_target(update_mem
-                  COMMAND rm -rf *.cmake compile_commands.json CMakeCache.txt
-                                 CMakeFiles Makefile Testing
+                  COMMAND rm -rf ${RM_LIST}
                   COMMAND cmake ${CUDAHC_FLAG} -DCMAKE_BUILD_TYPE=Mem ..
                   COMMAND make -j ${THREADS}
                   COMMENT "UPDATE MEM")
@@ -498,13 +493,13 @@ endif()
 if (CUDA_FOUND AND (CMAKE_BUILD_TYPE EQUAL "Info"))
 
 add_custom_target(ptx
-                  COMMAND cp TMP/*.ptx .
-                  COMMENT "PTX")
+                COMMAND cp `ls TMP/*.ptx | grep -vE \"CubWrapper|GlobalSync\"` .
+                COMMENT "PTX")
 
 add_custom_target(sass
-                  COMMAND cp `ls TMP/*.cubin | grep -v link` .
-                  COMMAND nvdisasm -c -g -sf *.cubin > code.sass
-                  COMMENT "SASS")
+         COMMAND cp `ls TMP/*.cubin | grep -vE \"link|CubWrapper|GlobalSync\"` .
+         COMMAND nvdisasm -c -g -sf *.cubin > code.sass
+         COMMENT "SASS")
 endif()
 
 endif()

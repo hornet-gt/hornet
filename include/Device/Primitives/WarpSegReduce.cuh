@@ -38,36 +38,85 @@
  */
 #pragma once
 
+#include "Device/Util/Definition.cuh"
+
 namespace xlib {
 
-template<int WARP_SZ = 32>
+template<int WARP_SZ = xlib::WARP_SIZE>
 struct WarpSegmentedReduce {
+    static_assert(xlib::is_power2(WARP_SZ) && WARP_SZ >= 1 &&
+                  WARP_SZ <= WARP_SIZE, "WarpReduce : WARP_SZ must be a power"
+                  " of 2 and 2 <= WARP_SZ <= WARP_SIZE");
 
     template<typename T>
     __device__ __forceinline__
-    static void add(T& value, unsigned mask);
+    static void add(T& value, int max_lane);
+
+    template<typename T, int SIZE>
+    __device__ __forceinline__
+    static void add(T (&value)[SIZE], int max_lane);
 
     template<typename T>
     __device__ __forceinline__
-    static void min(T& value, unsigned mask);
+    static void min(T& value, int max_lane);
 
     template<typename T>
     __device__ __forceinline__
-    static void max(T& value, unsigned mask);
+    static void max(T& value, int max_lane);
 
     //--------------------------------------------------------------------------
 
     template<typename T, typename R>
     __device__ __forceinline__
-    static void add(T value, R* pointer, unsigned mask);
+    static void add(const T& value, R* pointer, bool pivot, int max_lane);
 
     template<typename T, typename R>
     __device__ __forceinline__
-    static void min(T value, R* pointer, unsigned mask);
+    static void min(const T& value, R* pointer, bool pivot, int max_lane);
 
     template<typename T, typename R>
     __device__ __forceinline__
-    static void max(T value, R* pointer, unsigned mask);
+    static void max(const T& value, R* pointer, bool pivot, int max_lane);
+
+    //--------------------------------------------------------------------------
+
+    template<typename T, typename R>
+    __device__ __forceinline__
+    static void atomicAdd(const T& value, R* pointer, bool pivot, int max_lane);
+
+    template<typename T, typename R>
+    __device__ __forceinline__
+    static void atomicMin(const T& value, R* pointer, bool pivot, int max_lane);
+
+    template<typename T, typename R>
+    __device__ __forceinline__
+    static void atomicMax(const T& value, R* pointer, bool pivot, int max_lane);
+
+    //==========================================================================
+
+    template<typename T>
+    __device__ __forceinline__
+    static void mask_add(T& value, unsigned mask);
+
+    template<typename T>
+    __device__ __forceinline__
+    static void mask_min(T& value, unsigned mask);
+
+    template<typename T>
+    __device__ __forceinline__
+    static void mask_max(T& value, unsigned mask);
+
+    template<typename T, typename R>
+    __device__ __forceinline__
+    static void add(const T& value, R* pointer, unsigned mask);
+
+    template<typename T, typename R>
+    __device__ __forceinline__
+    static void min(const T& value, R* pointer, unsigned mask);
+
+    template<typename T, typename R>
+    __device__ __forceinline__
+    static void max(const T& value, R* pointer, unsigned mask);
 
     //--------------------------------------------------------------------------
 
@@ -82,8 +131,21 @@ struct WarpSegmentedReduce {
     template<typename T, typename R>
     __device__ __forceinline__
     static void atomicMax(const T& value, R* pointer, unsigned mask);
+
+    //--------------------------------------------------------------------------
+
+    template<typename T, typename R>
+    __device__ __forceinline__
+    static void atomicAdd(const T& value, R* pointer, bool normal_store,
+                          bool atomic_store, int max_lane);
+
+    template<typename T>
+    __device__ __forceinline__
+    static void conditional_add(T& left, T& right,
+                                int predicate, int max_lane);
+
 };
 
 } // namespace xlib
 
-#include "impl/WarpSegmentedReduce.i.cuh"
+#include "impl/WarpSegReduce.i.cuh"

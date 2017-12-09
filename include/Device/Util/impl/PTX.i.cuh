@@ -45,53 +45,78 @@ unsigned lane_id() {
 }
 
 __device__ __forceinline__
-unsigned int lanemask_eq() {
-    unsigned int ret;
-    asm("mov.u32 %0, %lanemask_eq;" : "=r"(ret) );
+unsigned lanemask_eq() {
+    unsigned ret;
+    asm("mov.u32 %0, %lanemask_eq;" : "=r"(ret));
     return ret;
 }
 
 __device__ __forceinline__
-unsigned int lanemask_lt() {
-    unsigned int ret;
-    asm("mov.u32 %0, %lanemask_lt;" : "=r"(ret) );
+unsigned lanemask_lt() {
+    unsigned ret;
+    asm("mov.u32 %0, %lanemask_lt;" : "=r"(ret));
     return ret;
 }
 
 __device__ __forceinline__
-unsigned int lanemask_le() {
-    unsigned int ret;
-    asm("mov.u32 %0, %lanemask_le;" : "=r"(ret) );
+unsigned lanemask_le() {
+    unsigned ret;
+    asm("mov.u32 %0, %lanemask_le;" : "=r"(ret));
     return ret;
 }
 
 __device__ __forceinline__
-unsigned int lanemask_gt() {
-    unsigned int ret;
-    asm("mov.u32 %0, %lanemask_gt;" : "=r"(ret) );
+unsigned lanemask_gt() {
+    unsigned ret;
+    asm("mov.u32 %0, %lanemask_gt;" : "=r"(ret));
     return ret;
 }
 
 __device__ __forceinline__
-unsigned int lanemask_ge() {
-    unsigned int ret;
-    asm("mov.u32 %0, %lanemask_ge;" : "=r"(ret) );
+unsigned lanemask_ge() {
+    unsigned ret;
+    asm("mov.u32 %0, %lanemask_ge;" : "=r"(ret));
     return ret;
 }
 
 __device__ __forceinline__
 void thread_exit() {
-    asm ("exit;");
+    asm("exit;");
+}
+
+//==============================================================================
+
+__device__ __forceinline__
+unsigned SM_id() {
+    unsigned ret;
+    asm("mov.u32 %0, %smid;" : "=r"(ret));
+    return ret;
+}
+
+__device__ __forceinline__
+unsigned num_warps() {
+    unsigned ret;
+    asm("mov.u32 %0, %nwarpid;" : "=r"(ret));
+    return ret;
 }
 
 //==============================================================================
 
 template<typename T>
 __device__ __forceinline__
-typename std::enable_if<sizeof(T) <= 4, unsigned>::type
+typename std::enable_if<sizeof(T) < 4, unsigned>::type
+__msb(T word) {
+    const unsigned mask = (1u << (sizeof(T) * 8u)) - 1;
+    return __msb(reinterpret_cast<unsigned>(word) & mask);
+}
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<sizeof(T) == 4, unsigned>::type
 __msb(T word) {
     unsigned ret;
-    asm ("bfind.u32 %0, %1;" : "=r"(ret) : "r"(word));
+    asm ("bfind.u32 %0, %1;" : "=r"(ret) :
+         "r"(reinterpret_cast<unsigned&>(word)));
     return ret;
 }
 
@@ -100,7 +125,8 @@ __device__ __forceinline__
 typename std::enable_if<sizeof(T) == 8, unsigned>::type
 __msb(T dword) {
     unsigned ret;
-    asm ("bfind.u64 %0, %1;" : "=r"(ret) : "l"(dword));
+    asm ("bfind.u64 %0, %1;" : "=r"(ret) :
+         "l"(reinterpret_cast<uint64_t&>(dword)));
     return ret;
 }
 

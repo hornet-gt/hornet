@@ -192,7 +192,8 @@ __global__ void forAllEdgesAdjUnionImbalancedKernel(HornetDevice hornet, T* __re
     using namespace adj_union;
     auto       id = blockIdx.x * blockDim.x + threadIdx.x;
     auto queue_id = id / threads_per_union;
-    auto thread_union_id = threadIdx.x % threads_per_union;
+    auto block_union_offset = blockIdx.x % ((threads_per_union+blockDim.x-1) / blockDim.x); // > 1 if threads_per_union > block size
+    auto thread_union_id = ((block_union_offset*blockDim.x)+threadIdx.x) % threads_per_union;
     auto stride = blockDim.x * gridDim.x;
     auto queue_stride = stride / threads_per_union;
     for (auto i = queue_id; i < size; i += queue_stride) {
@@ -298,13 +299,13 @@ void forAllEdgesKernel(const eoff_t* __restrict__ csr_offsets,
 //==============================================================================
 //==============================================================================
 // stub
-#define MAX_ADJ_UNIONS_BINS 4
+#define MAX_ADJ_UNIONS_BINS 6
 namespace adj_unions {
     struct queue_info {
         unsigned long long queue_sizes[MAX_ADJ_UNIONS_BINS] = {0,};
         vid_t *d_queues[MAX_ADJ_UNIONS_BINS] = {NULL,};
         unsigned long long queue_pos[MAX_ADJ_UNIONS_BINS] = {0,};
-        int queue_threads_per[MAX_ADJ_UNIONS_BINS] = {32, 64, 128, 256};
+        int queue_threads_per[MAX_ADJ_UNIONS_BINS] = {32, 64, 128, 256, 512, 1024};
     };
 
     struct bin_edges {
@@ -317,8 +318,12 @@ namespace adj_unions {
             if (src.id() >= dst.id()) return; // imposes ordering
             degree_t src_len = dst.degree();
             degree_t dst_len = dst.degree();
-            int i = 3;
-            
+            int i = MAX_ADJ_UNIONS_BINS-1;
+            /*
+            if (i > 3)
+                i = 3;
+            */
+            /*
             total_work = src_len + dst_len - 1;
             int W;
             while (i > 0) {
@@ -326,8 +331,8 @@ namespace adj_unions {
                 if ((total_work+W-1)/W >= 4)
                     break;
                 i-=1;
-            }
-            /*
+            }*/
+            
             degree_t u_len = (src_len <= dst_len) ? src_len : dst_len;
             //degree_t v_len = (src_len > dst_len) ? dst_len : src_len;
             //unsigned int log_u = 32-__clz(u_len-1);
@@ -338,12 +343,13 @@ namespace adj_unions {
                 if ((u_len+W-1)/W >= 4)
                     break;
                 i-=1;
-            }*/
+            }
 
             //int imbalanced_work_est = ((u_len+W-1)/W)*log_v;
             //int balanced_work_est = ((total_work+W-1)/W) + log_u;
             //bin_index = (K*balanced_work_est > imbalanced_work_est);
-            bin_index=i;
+            bin_index = i;
+            //bin_index=2;
             // Either count or add the item to the appropriate queue
             if (countOnly)
                 atomicAdd(&(d_queue_info.ptr()->queue_sizes[bin_index]), 1ULL);
@@ -410,8 +416,8 @@ void forAllAdjUnions(HornetClass&         hornet,
         }*/
         
         //threads_per = 256;
-        forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, 0);
-        //forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, 1);
+        //forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, 0);
+        forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, 1);
         TM.stop();
         TM.print("queue processing:");
         TM.reset();

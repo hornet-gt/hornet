@@ -35,6 +35,8 @@
  */
 #include "Host/PrintExt.hpp"                 //xlib::printArray
 #include "Device/Util/SafeCudaAPISync.cuh"   //cuMemcpyFromSymbol
+#include "Device/Util/Definition.cuh"        //xlib::WARP_SIZE
+#include "Device/Util/PTX.cuh"               //xlib::lane_id
 
 namespace xlib {
 namespace gpu {
@@ -231,4 +233,259 @@ operator<<(const Cout& obj, const T pointer) noexcept {
 }
 
 } // namespace gpu
+
+//==============================================================================
+
+namespace detail {
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<std::is_floating_point<T>::value>::type
+printfArrayAux(T* array, int size, char sep = ' ') {
+    for (int i = 0; i < size; i++)
+        printf("%f%c", array[i], sep);
+}
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<std::is_integral<T>::value &&
+                        std::is_unsigned<T>::value>::type
+printfArrayAux(T* array, int size, char sep = ' ') {
+    for (int i = 0; i < size; i++)
+        printf("%llu%c", static_cast<uint64_t>(array[i]), sep);
+}
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<std::is_integral<T>::value &&
+                        std::is_signed<T>::value>::type
+printfArrayAux(T* array, int size, char sep = ' ') {
+    for (int i = 0; i < size; i++)
+        printf("%lld%c", static_cast<int64_t>(array[i]), sep);
+}
+
+template<>
+__device__ __forceinline__
+void printfArrayAux<char>(char* array, int size, char sep) {
+    for (int i = 0; i < size; i++)
+        printf("%c%c", array[i], sep);
+}
+
+/*
+template<typename T, int SIZE>
+__device__ __forceinline__
+void printfArrayAux(T (&array)[SIZE]) {
+    printfArrayAux(array, SIZE, "\t");
+    printf("\n");
+}*/
+
+
+//------------------------------------------------------------------------------
+/*
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<std::is_floating_point<T>::value>::type
+printfArrayAux(T (&array)[1]) {
+    printf("%f\n", array[0]);
+}
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<std::is_floating_point<T>::value>::type
+printfArrayAux(T (&array)[2]) {
+    printf("%f\t%f\n", array[0], array[1]);
+}
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<std::is_floating_point<T>::value>::type
+printfArrayAux(T (&array)[3]) {
+    printf("%f\t%f\t%f\n", array[0], array[1], array[2]);
+}
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<std::is_floating_point<T>::value>::type
+printfArrayAux(T (&array)[4]) {
+    printf("%f\t%f\t%f\t%f\n", array[0], array[1], array[2], array[3]);
+}
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<std::is_floating_point<T>::value>::type
+printfArrayAux(T (&array)[5]) {
+    printf("%f\t%f\t%f\t%f\t%f\n", array[0], array[1], array[2], array[3],
+                                   array[4]);
+}
+
+//------------------------------------------------------------------------------
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<std::is_integral<T>::value &&
+                        std::is_unsigned<T>::value>::type
+printfArrayAux(T (&array)[1]) {
+    printf("%llu\n", static_cast<uint64_t>(array[0]));
+}
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<std::is_integral<T>::value &&
+                        std::is_unsigned<T>::value>::type
+printfArrayAux(T (&array)[2]) {
+    printf("%llu\t%llu\n", static_cast<uint64_t>(array[0]),
+                           static_cast<uint64_t>(array[1]));
+}
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<std::is_integral<T>::value &&
+                        std::is_unsigned<T>::value>::type
+printfArrayAux(T (&array)[3]) {
+    printf("%llu\t%llu\t%llu\n", static_cast<uint64_t>(array[0]),
+                                 static_cast<uint64_t>(array[1]),
+                                 static_cast<uint64_t>(array[2]));
+}
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<std::is_integral<T>::value &&
+                        std::is_unsigned<T>::value>::type
+printfArrayAux(T (&array)[4]) {
+    printf("%llu\t%llu\t%llu\t%llu\n", static_cast<uint64_t>(array[0]),
+                                       static_cast<uint64_t>(array[1]),
+                                       static_cast<uint64_t>(array[2]),
+                                       static_cast<uint64_t>(array[3]));
+}
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<std::is_integral<T>::value &&
+                        std::is_unsigned<T>::value>::type
+printfArrayAux(T (&array)[5]) {
+    printf("%llu\t%llu\t%llu\t%llu\t%llu\n", static_cast<uint64_t>(array[0]),
+                                             static_cast<uint64_t>(array[1]),
+                                             static_cast<uint64_t>(array[2]),
+                                             static_cast<uint64_t>(array[3]),
+                                             static_cast<uint64_t>(array[4]));
+}
+
+
+//------------------------------------------------------------------------------
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<std::is_integral<T>::value &&
+                        std::is_signed<T>::value>::type
+printfArrayAux(T (&array)[1]) {
+    printf("%lld\n", static_cast<int64_t>(array[0]));
+}
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<std::is_integral<T>::value &&
+                        std::is_signed<T>::value>::type
+printfArrayAux(T (&array)[2]) {
+    printf("%lld\t%lld\n", static_cast<int64_t>(array[0]),
+                           static_cast<int64_t>(array[1]));
+}
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<std::is_integral<T>::value &&
+                        std::is_signed<T>::value>::type
+printfArrayAux(T (&array)[3]) {
+    printf("%lld\t%lld\t%lld\n", static_cast<int64_t>(array[0]),
+                                 static_cast<int64_t>(array[1]),
+                                 static_cast<int64_t>(array[2]));
+}
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<std::is_integral<T>::value &&
+                        std::is_signed<T>::value>::type
+printfArrayAux(T (&array)[4]) {
+    printf("%lld\t%lld\t%lld\t%lld\n", static_cast<int64_t>(array[0]),
+                                       static_cast<int64_t>(array[1]),
+                                       static_cast<int64_t>(array[2]),
+                                       static_cast<int64_t>(array[3]));
+}
+
+template<typename T>
+__device__ __forceinline__
+typename std::enable_if<std::is_integral<T>::value &&
+                        std::is_signed<T>::value>::type
+printfArrayAux(T (&array)[5]) {
+    printf("%lld\t%lld\t%lld\t%lld\t%lld\n", static_cast<int64_t>(array[0]),
+                                             static_cast<int64_t>(array[1]),
+                                             static_cast<int64_t>(array[2]),
+                                             static_cast<int64_t>(array[3]),
+                                             static_cast<int64_t>(array[4]));
+}
+
+//------------------------------------------------------------------------------
+
+template<>
+__device__ __forceinline__
+void printfArrayAux<char, 1>(char (&array)[1]) {
+    printf("%c\n", array[0]);
+}
+
+template<>
+__device__ __forceinline__
+void printfArrayAux<char, 2>(char (&array)[2]) {
+    printf("%c\t%c\n", array[0], array[1]);
+}
+
+template<>
+__device__ __forceinline__
+void printfArrayAux<char, 3>(char (&array)[3]) {
+    printf("%c\t%c\t%c\n", array[0], array[1], array[2]);
+}
+
+template<>
+__device__ __forceinline__
+void printfArrayAux<char, 4>(char (&array)[4]) {
+    printf("%c\t%c\t%c\t%c\n", array[0], array[1], array[2], array[3]);
+}
+
+template<>
+__device__ __forceinline__
+void printfArrayAux<char, 5>(char (&array)[5]) {
+    printf("%c\t%c\t%c\t%c\t%c\n", array[0], array[1], array[2], array[3],
+                                   array[4]);
+}
+*/
+} // namespace detail
+
+//------------------------------------------------------------------------------
+
+template<typename T>
+__device__ __forceinline__
+void printfArray(T* array, int size) {
+    detail::printfArrayAux(array, size);
+    printf("\n");
+}
+
+template<typename T, int SIZE>
+__device__ __forceinline__
+void printfArray(T (&array)[SIZE]) {
+    detail::printfArrayAux(array);
+}
+
+namespace warp {
+
+template<typename T, int SIZE>
+__device__ __forceinline__
+void printfArray(T (&array)[SIZE]) {
+    for (int i = 0; i < xlib::WARP_SIZE; i++) {
+        if (i == xlib::lane_id()) {
+            xlib::detail::printfArrayAux(array, SIZE, '\t');
+            printf("\n");
+        }
+    }
+}
+
+} // namespace warp
+
 } // namespace xlib

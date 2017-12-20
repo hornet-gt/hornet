@@ -147,6 +147,24 @@ typename std::enable_if<std::is_pointer<T>::value, const Cout&>::type
 operator<<(const Cout& obj, const T pointer) noexcept;
 
 } // namespace gpu
+
+//------------------------------------------------------------------------------
+
+template<typename T>
+__device__ __forceinline__
+void printfArray(T* array, int size);
+
+template<typename T, int SIZE>
+__device__ __forceinline__
+void printfArray(T (&array)[SIZE]);
+
+namespace warp {
+
+template<typename T, int SIZE>
+__device__ __forceinline__
+void printfArray(T (&array)[SIZE]);
+
+} // namespace warp
 } // namespace xlib
 
 #include "impl/PrintExt.i.cuh"

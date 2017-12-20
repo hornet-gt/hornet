@@ -167,64 +167,72 @@ set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-std=c++14" "--expt-extended-lambda"
 # COMPUTE CABABILITY #
 ######################
 
-set(GPU_ARCH "" CACHE STRING "compute capability")
-set(GPU_SM   "" CACHE STRING "streaming multiprocessor number")
-set(GPU_NAME "" CACHE STRING "gpu name")
-
-if(GPU_ARCH STREQUAL "")
-    if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/getDeviceInfo)
-        execute_process(COMMAND ${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc
-                                    -Wno-deprecated-gpu-targets
-                                    ${CMAKE_CURRENT_LIST_DIR}/getDeviceInfo.cu
-                                    -o ${CMAKE_CURRENT_LIST_DIR}/getDeviceInfo)
+if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/getDeviceInfo)
+    execute_process(COMMAND ${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc
+                                -Wno-deprecated-gpu-targets
+                                ${CMAKE_CURRENT_LIST_DIR}/getDeviceInfo.cu
+                                -o ${CMAKE_CURRENT_LIST_DIR}/getDeviceInfo
+                    RESULT_VARIABLE EXEC_STATUS)
+    if(NOT ${EXEC_STATUS} EQUAL 0)
+        message(FATAL_ERROR "\nUnable to compile getDeviceInfo.cu")
     endif()
-    execute_process(COMMAND ${CMAKE_CURRENT_LIST_DIR}/getDeviceInfo
-                    OUTPUT_VARIABLE OUT_VARIABLE)
-
-    list(GET OUT_VARIABLE 0 GPU_ARCH)
-    list(GET OUT_VARIABLE 1 GPU_SM)
-    list(GET OUT_VARIABLE 2 GPU_NAME)
 endif()
 
-#-------------------------------------------------------------------------------
+execute_process(COMMAND ${CMAKE_CURRENT_LIST_DIR}/getDeviceInfo
+                OUTPUT_VARIABLE OUT_VARIABLE
+                RESULT_VARIABLE EXEC_STATUS)
+if(NOT ${EXEC_STATUS} EQUAL 0)
+    message(FATAL_ERROR "\nUnable to execute getDeviceInfo")
+endif()
+
+list(GET OUT_VARIABLE 0 NUM_GPUS)
+
 if (NOT QUIET_SUBMODULE)
-if(NOT GPU_SM STREQUAL "")
-    message("\n==> GPU architecture: ${GPU_NAME}, CC ${GPU_ARCH}"
-            " with ${GPU_SM} streaming multiprocessors")
-
-    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DSM=${GPU_SM}")
-else()
-    message("\n==> GPU architecture: ${GPU_ARCH}")
-endif()
+    message("\n==> Number of GPUs: ${NUM_GPUS}")
 endif()
 
-#-------------------------------------------------------------------------------
-if (GPU_ARCH STREQUAL "30")
-    list(APPEND CUDA_NVCC_FLAGS "-arch=sm_30" "-DARCH=300")
-elseif (GPU_ARCH STREQUAL "32")
-    list(APPEND CUDA_NVCC_FLAGS "-arch=sm_32" "-DARCH=320")
-elseif (GPU_ARCH STREQUAL "35")
-    list(APPEND CUDA_NVCC_FLAGS "-arch=sm_35" "-DARCH=350")
-elseif (GPU_ARCH STREQUAL "37")
-    list(APPEND CUDA_NVCC_FLAGS "-arch=sm_37" "-DARCH=370")
-elseif (GPU_ARCH STREQUAL "50")
-    list(APPEND CUDA_NVCC_FLAGS "-arch=sm_50" "-DARCH=500")
-elseif (GPU_ARCH STREQUAL "52")
-    list(APPEND CUDA_NVCC_FLAGS "-arch=sm_52" "-DARCH=520")
-elseif (GPU_ARCH STREQUAL "53")
-    list(APPEND CUDA_NVCC_FLAGS "-arch=sm_53" "-DARCH=530")
-elseif (GPU_ARCH STREQUAL "60")
-    list(APPEND CUDA_NVCC_FLAGS "-arch=sm_60" "-DARCH=600")
-elseif (GPU_ARCH STREQUAL "61")
-    list(APPEND CUDA_NVCC_FLAGS "-arch=sm_61" "-DARCH=610")
-elseif (GPU_ARCH STREQUAL "62")
-    list(APPEND CUDA_NVCC_FLAGS "-arch=sm_62" "-DARCH=620")
-elseif (GPU_ARCH STREQUAL "70")
-    list(APPEND CUDA_NVCC_FLAGS "-arch=sm_70" "-DARCH=700")
-else()
-    message(FATAL_ERROR "\nplease select GPU architecture:
-    \"cmake -DARCH=[ 30 | 32 | 35 | 37 | 50 | 52 | 53 | 60 | 61 | 62 | 70 ]\"")
-endif()
+MATH(EXPR MAX_ITERATION "${NUM_GPUS} - 1")
+
+foreach(ITERATION RANGE ${MAX_ITERATION})
+    MATH(EXPR ARCH_POS "${ITERATION} * 3 + 1")
+    MATH(EXPR SM_POS   "${ITERATION} * 3 + 2")
+    MATH(EXPR NAME_POS "${ITERATION} * 3 + 3")
+
+    list(GET OUT_VARIABLE ${ARCH_POS} GPU_ARCH)
+    list(GET OUT_VARIABLE ${SM_POS}   GPU_SM)
+    list(GET OUT_VARIABLE ${NAME_POS} GPU_NAME)
+
+    if (NOT QUIET_SUBMODULE)
+        message("\n==> GPU architecture: ${GPU_NAME}, CC ${GPU_ARCH}"
+                " with ${GPU_SM} streaming multiprocessors")
+    endif()
+
+    if (GPU_ARCH STREQUAL "30")
+        list(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_30,code=sm_30")
+    elseif (GPU_ARCH STREQUAL "32")
+        list(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_32,code=sm_32")
+    elseif (GPU_ARCH STREQUAL "35")
+        list(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_35,code=sm_35")
+    elseif (GPU_ARCH STREQUAL "37")
+        list(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_37,code=sm_37")
+    elseif (GPU_ARCH STREQUAL "50")
+        list(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_50,code=sm_50")
+    elseif (GPU_ARCH STREQUAL "52")
+        list(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_52,code=sm_52")
+    elseif (GPU_ARCH STREQUAL "53")
+        list(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_53,code=sm_53")
+    elseif (GPU_ARCH STREQUAL "60")
+        list(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_60,code=sm_60")
+    elseif (GPU_ARCH STREQUAL "61")
+        list(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_61,code=sm_61")
+    elseif (GPU_ARCH STREQUAL "62")
+        list(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_62,code=sm_62")
+    elseif (GPU_ARCH STREQUAL "70")
+        list(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_70,code=sm_70")
+    else()
+        message(FATAL_ERROR "\nGPU_ARCH not supported: \"${GPU_ARCH}\"\n")
+    endif()
+endforeach(ITERATION)
 
 #===============================================================================
 #===============================================================================
@@ -493,13 +501,13 @@ endif()
 if (CUDA_FOUND AND (CMAKE_BUILD_TYPE EQUAL "Info"))
 
 add_custom_target(ptx
-                COMMAND cp `ls TMP/*.ptx | grep -vE \"CubWrapper|GlobalSync\"` .
-                COMMENT "PTX")
+        COMMAND cp `ls TMP/*.ptx | grep -vE \"CubWrapper|GlobalSync\"` .
+        COMMENT "PTX")
 
 add_custom_target(sass
-         COMMAND cp `ls TMP/*.cubin | grep -vE \"link|CubWrapper|GlobalSync\"` .
-         COMMAND nvdisasm -c -g -sf *.cubin > code.sass
-         COMMENT "SASS")
+        COMMAND cp `ls TMP/*.cubin | grep -vE \"link|CubWrapper|GlobalSync\"` .
+        COMMAND nvdisasm -c -g -sf *.cubin > code.sass
+        COMMENT "SASS")
 endif()
 
 endif()

@@ -547,6 +547,18 @@ template<typename T, typename R>
 float per_cent(T part, R max) noexcept {
     return (static_cast<float>(part) / static_cast<float>(max)) * 100.0f;
 }
+
+template<typename T, typename R>
+constexpr typename std::common_type<T, R>::type mcd(T a, R b) noexcept {
+    using CT = typename std::common_type<T, R>::type;
+    static_assert(std::is_integral<T>::value && std::is_integral<T>::value,
+                  "T and R must be integral");
+    assert((std::is_unsigned<T>::value || a >= 0) &&
+           (std::is_unsigned<R>::value || b >= 0) &&
+            "a, b must be greater than zero");
+    return static_cast<CT>((b == 0) ? a : xlib::mcd(b, a % b));
+}
+
 /*
 HOST_DEVICE
 constexpr unsigned multiplyShiftHash32(unsigned A, unsigned B,

@@ -179,14 +179,6 @@ void printMatrixCM(const T* d_matrix, size_t rows, size_t cols, size_t ld,
 
 //------------------------------------------------------------------------------
 
-template<typename T>
-HOST_DEVICE
-void printfArray(T* array, int size);
-
-template<typename T, int SIZE>
-HOST_DEVICE
-void printfArray(T (&array)[SIZE]) ;
-
 /**
  * @brief left to right : char v = 1 -> 10000000
  */

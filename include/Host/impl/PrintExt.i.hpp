@@ -164,61 +164,6 @@ void printMatrixCM(const T* matrix, size_t rows, size_t cols, size_t ld,
 
 //==============================================================================
 
-namespace detail {
-
-template<typename T>
-HOST_DEVICE
-typename std::enable_if<std::is_floating_point<T>::value>::type
-printfArrayAux(T* array, int size) {
-    for (int i = 0; i < size; i++)
-        printf("%f ", array[i]);
-}
-
-template<typename T>
-HOST_DEVICE
-typename std::enable_if<std::is_integral<T>::value &&
-                        std::is_unsigned<T>::value>::type
-printfArrayAux(T* array, int size) {
-    for (int i = 0; i < size; i++)
-        printf("%llu ", static_cast<uint64_t>(array[i]));
-}
-
-template<typename T>
-HOST_DEVICE
-typename std::enable_if<std::is_integral<T>::value &&
-                        std::is_signed<T>::value>::type
-printfArrayAux(T* array, int size) {
-    for (int i = 0; i < size; i++)
-        printf("%lld ", static_cast<int64_t>(array[i]));
-}
-
-template<>
-HOST_DEVICE
-void printfArrayAux<char>(char* array, int size) {
-    for (int i = 0; i < size; i++)
-        printf("%c ", array[i]);
-}
-
-} // namespace detail
-
-//------------------------------------------------------------------------------
-
-template<typename T>
-HOST_DEVICE
-void printfArray(T* array, int size) {
-    detail::printfArrayAux(array, size);
-    printf("\n");
-}
-
-template<typename T, int SIZE>
-HOST_DEVICE
-void printfArray(T (&array)[SIZE]) {
-    printfArray(array, SIZE);
-    printf("\n");
-}
-
-//------------------------------------------------------------------------------
-
 template<typename T>
 HOST_DEVICE
 void printBits(T* array, int size) {

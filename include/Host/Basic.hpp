@@ -56,7 +56,7 @@
               << __FILE__ << xlib::Emph::SET_RESET  << "(" << __LINE__ << ")"  \
               << " [ " << xlib::Color::FG_L_CYAN << __func__                   \
               << xlib::Color::FG_DEFAULT << " ]\n" << std::endl;               \
-    assert(false);                                                  /*NOLINT*/ \
+    assert(false && "Fatal Error");                                 /*NOLINT*/ \
     ATEXIT                                                                     \
     std::exit(EXIT_FAILURE);                                                   \
 }
@@ -80,7 +80,7 @@
               << xlib::Color::FG_DEFAULT << xlib::Emph::SET_UNDERLINE          \
               << __FILE__ << xlib::Emph::SET_RESET  << "(" << __LINE__ << ")"  \
               << " [ " << xlib::Color::FG_L_CYAN << __func__                   \
-              << xlib::Color::FG_DEFAULT << " ]\n" << std::endl;               \
+              << xlib::Color::FG_DEFAULT << " ]\n\n";                          \
     xlib::detail::printRecursive(__VA_ARGS__);                                 \
     std::cerr << "\n" << std::endl;                                            \
     assert(false);                                              /*NOLINT*/     \

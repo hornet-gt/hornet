@@ -198,6 +198,9 @@ constexpr unsigned geometric_serie(unsigned repetition) noexcept;
 template<typename T, typename R>
 float per_cent(T part, R max) noexcept;
 
+template<typename T, typename R>
+constexpr typename std::common_type<T, R>::type mcd(T a, R b) noexcept;
+
 template<typename R>
 struct CompareFloatABS;
 

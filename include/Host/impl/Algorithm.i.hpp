@@ -40,8 +40,28 @@
 
 namespace xlib {
 
-template<typename T>
-struct numeric_limits;
+//template<typename T>
+//struct numeric_limits;
+
+template<int SIZE, int INDEX>
+struct Unroll {
+
+    template<typename Lambda>
+    HOST_DEVICE
+    static void apply(const Lambda& lambda) {
+        lambda(INDEX);
+        Unroll<SIZE, INDEX + 1>::apply(lambda);
+    }
+};
+
+template<int SIZE>
+struct Unroll<SIZE, SIZE> {
+    template<typename Lambda>
+    HOST_DEVICE
+    static void apply(const Lambda&) {}
+};
+
+//------------------------------------------------------------------------------
 
 template<typename T, typename R>
 R UniqueMap<T, R>::insert(T key) {
@@ -84,6 +104,7 @@ bool equal_sorted(Iterator1 start1, Iterator1 end1,
     return flag;
 }
 
+/*
 template<class FUN_T, typename... T>
 inline void Funtion_TO_multiThreads(bool MultiCore, FUN_T FUN, T... Args) {
     if (MultiCore) {
@@ -96,7 +117,7 @@ inline void Funtion_TO_multiThreads(bool MultiCore, FUN_T FUN, T... Args) {
             threadArray[i].join();
     } else
         FUN(Args..., 0, 1);
-}
+}*/
 
 namespace detail {
 

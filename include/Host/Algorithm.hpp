@@ -43,8 +43,12 @@
 
 namespace xlib {
 
-template<class FUN_T, typename... T>
-inline void Funtion_TO_multiThreads(bool MultiCore, FUN_T FUN, T... Args);
+template<int SIZE, int INDEX = 0>
+struct Unroll;
+
+
+//template<class FUN_T, typename... T>
+//inline void Funtion_TO_multiThreads(bool MultiCore, FUN_T FUN, T... Args);
 
 /**
  * @brief return the old value if exits

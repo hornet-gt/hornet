@@ -66,8 +66,7 @@
 ///@cond
 
 #define cuMemcpyDevToDev(...)                                                  \
-    xlib::detail::cuMemcpyDevToDevAux(__FILE__, __LINE__,__func__,             \
-                                      __VA_ARGS__)                             \
+    xlib::detail::cuMemcpyDevToDevAux(__FILE__, __LINE__,__func__, __VA_ARGS__)\
 
 #define cuMemcpyToDevice(...)                                                  \
     xlib::detail::cuMemcpyToDeviceAux(__FILE__, __LINE__,__func__, __VA_ARGS__)\
@@ -509,7 +508,7 @@ void cuMemcpyFromSymbolAux(const char* file, int line, const char* func_name,
 }
 
 
-template<typename T, int SIZE1, int SIZE2>
+template<typename T, int SIZE1>
 void cuMemcpyFromSymbolAux(const char* file, int line, const char* func_name,
                            const T (&symbol)[SIZE1], T* output) noexcept {
     assert(output != nullptr);

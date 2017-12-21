@@ -255,8 +255,6 @@ private:
     T* _array;
 };
 
-
-
 } // namespace xlib
 
 #include "impl/PTX.i.cuh"

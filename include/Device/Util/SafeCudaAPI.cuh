@@ -222,29 +222,28 @@ void cuMallocHostAux(const char* file, int line, const char* func_name,
 //////////////
 
 template<typename T>
-typename std::enable_if<std::is_pointer<T>::value &&
-                        std::is_const<T>::value>::type
-cuFreeAux(const char* file, int line, const char* func_name,  T ptr)
-               noexcept {
-    using   R = typename std::remove_cv<T>::type;
-    auto ptr1 = const_cast<R>(ptr);
+typename std::enable_if<std::is_pointer<T>::value>::type
+cuFreeAux(const char* file, int line, const char* func_name, T& ptr)  noexcept {
+    using R    = typename std::remove_cv<T>::type;
+    auto& ptr1 = const_cast<R&>(ptr);
+    ptr1 = nullptr;
     cudaErrorHandler(cudaFree(ptr1), "cudaFree", file, line, func_name);
 }
 
 template<typename T, typename... TArgs>
-typename std::enable_if<std::is_pointer<T>::value &&
-                        std::is_const<T>::value>::type
+typename std::enable_if<std::is_pointer<T>::value>::type
 cuFreeAux(const char* file, int line, const char* func_name,
-                T ptr, TArgs*... ptrs) noexcept {
-    using   R = typename std::remove_cv<T>::type;
-    auto ptr1 = const_cast<R>(ptr);
+          T& ptr, TArgs*... ptrs) noexcept {
+    using R   = typename std::remove_cv<T>::type;
+    auto& ptr1 = const_cast<R&>(ptr);
     cudaErrorHandler(cudaFree(ptr1), "cudaFree", file, line, func_name);
+    ptr1 = nullptr;
     cuFreeAux(file, line, func_name, ptrs...);
 }
 
 template<typename T, int SIZE>
 void cuFreeAux(const char* file, int line, const char* func_name,
-               T* (&ptr)[SIZE]) noexcept {
+               const T* (&ptr)[SIZE]) noexcept {
     using R = typename std::remove_cv<T*>::type;
     for (int i = 0; i < SIZE; i++) {
         auto ptr1 = const_cast<R>(ptr[i]);
@@ -252,12 +251,21 @@ void cuFreeAux(const char* file, int line, const char* func_name,
     }
 }
 
-//------------------------------------------------------------------------------
+template<typename T, int SIZE>
+void cuFreeAux(const char* file, int line, const char* func_name,
+               T* (&ptr)[SIZE]) noexcept {
+    for (int i = 0; i < SIZE; i++) {
+        cudaErrorHandler(cudaFree(ptr[i]), "cudaFree", file, line,  func_name);
+        ptr[i] = nullptr;
+    }
+}
 
+//------------------------------------------------------------------------------
+/*
 template<typename T>
 typename std::enable_if<std::is_pointer<T>::value &&
                         !std::is_const<T>::value>::type
-cuFreeAux(const char* file, int line, const char* func_name, T ptr) noexcept {
+cuFreeAux(const char* file, int line, const char* func_name, T& ptr) noexcept {
     cudaErrorHandler(cudaFree(ptr), "cudaFree", file, line, func_name);
     ptr = nullptr;
 }
@@ -266,11 +274,11 @@ template<typename T, typename... TArgs>
 typename std::enable_if<std::is_pointer<T>::value &&
                         !std::is_const<T>::value>::type
 cuFreeAux(const char* file, int line, const char* func_name,
-          T ptr, TArgs... ptrs) noexcept {
+          T& ptr, TArgs... ptrs) noexcept {
     cudaErrorHandler(cudaFree(ptr), "cudaFree", file, line, func_name);
     ptr = nullptr;
     cuFreeAux(file, line, func_name, ptrs...);
-}
+}*/
 
 //------------------------------------------------------------------------------
 

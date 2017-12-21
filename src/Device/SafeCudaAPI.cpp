@@ -69,8 +69,8 @@ void safe_call(cudaError_t error, const char* file, int line,
 }
 
 void cudaErrorHandler(cudaError_t error, const char* error_message,
-                        const char* file, int line,
-                        const char* func_name) {
+                      const char* file, int line,
+                      const char* func_name) {
     if (cudaSuccess != error) {
         std::cerr << Color::FG_RED << "\nCUDA error\n" << Color::FG_DEFAULT
                   << Emph::SET_UNDERLINE << file

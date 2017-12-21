@@ -570,7 +570,7 @@ void cuMemcpyFromSymbolAsyncAux(const char* file, int line, const char* func_nam
 }
 
 
-template<typename T, int SIZE1, int SIZE2>
+template<typename T, int SIZE1>
 void cuMemcpyFromSymbolAsyncAux(const char* file, int line, const char* func_name,
                                 const T (&symbol)[SIZE1], T* output,
                                 cudaStream_t stream = 0) noexcept {

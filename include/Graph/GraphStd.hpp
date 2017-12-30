@@ -43,14 +43,9 @@
 
 namespace graph {
 
-template<typename vid_t, typename eoff_t>
-class BFS;
-
-template<typename vid_t, typename eoff_t>
-class WCC;
-
-template<typename vid_t, typename eoff_t>
-class SCC;
+template<typename, typename> class BFS;
+template<typename, typename> class WCC;
+template<typename, typename> class SCC;
 
 template<typename vid_t = int, typename eoff_t = int>
 class GraphStd : public GraphBase<vid_t, eoff_t> {
@@ -195,13 +190,15 @@ public:
 
     //explicit GraphStd() = default;
 
-    explicit GraphStd(StructureProp structure = StructureProp()) noexcept;
+    explicit GraphStd(StructureProp structure = structure_prop::NONE) noexcept;
 
     explicit GraphStd(const char* filename,
-                      const ParsingProp& property = ParsingProp()) noexcept;
+                      const ParsingProp& property
+                            = parsing_prop::PRINT_INFO) noexcept;
 
     explicit GraphStd(StructureProp structure, const char* filename,
-                      const ParsingProp& property = ParsingProp()) noexcept;
+                      const ParsingProp& property
+                            = parsing_prop::PRINT_INFO) noexcept;
 
     explicit GraphStd(const eoff_t* csr_offsets, vid_t nV,
                       const vid_t* csr_edges, eoff_t nE) noexcept;
@@ -214,7 +211,7 @@ public:
     degree_t out_degree(vid_t index) const noexcept;
     degree_t in_degree (vid_t index) const noexcept;
 
-    const coo_t*    coo_ptr()       const noexcept;
+    const coo_t*    coo_ptr()         const noexcept;
     const eoff_t*   csr_out_offsets() const noexcept;
     const eoff_t*   csr_in_offsets()  const noexcept;
     const vid_t*    csr_out_edges()   const noexcept;
@@ -230,10 +227,10 @@ public:
     bool      is_directed()       const noexcept;
     bool      is_undirected()     const noexcept;
 
-    void print()     const noexcept override;
-    void print_raw() const noexcept override;
+    void print()                const noexcept override;
+    void print_raw()            const noexcept override;
     void print_degree_distrib() const noexcept;
-    void print_analysis() const noexcept;
+    void print_analysis()       const noexcept;
     void write_analysis(const char* filename) const noexcept;
 
     void writeBinary(const std::string& filename, bool print = true) const;
@@ -282,21 +279,21 @@ private:
     void allocate(const GInfo& ginfo) noexcept;
 
     struct GraphAnalysisProp {
-        degree_t num_rings      = 0;
-        degree_t max_out_degree = 0;
-        degree_t max_in_degree  = 0;
+        degree_t num_rings      { 0 };
+        degree_t max_out_degree { 0 };
+        degree_t max_in_degree  { 0 };
 
-        degree_t out_degree_0 = 0;
-        degree_t in_degree_0  = 0;
-        degree_t out_degree_1 = 0;
-        degree_t in_degree_1  = 0;
-        degree_t singleton    = 0;
-        degree_t out_leaf     = 0;
-        degree_t in_leaf      = 0;
-        degree_t max_consec_0 = 0;
+        degree_t out_degree_0 { 0 };
+        degree_t in_degree_0  { 0 };
+        degree_t out_degree_1 { 0 };
+        degree_t in_degree_1  { 0 };
+        degree_t singleton    { 0 };
+        degree_t out_leaf     { 0 };
+        degree_t in_leaf      { 0 };
+        degree_t max_consec_0 { 0 };
 
-        float std_dev = 0.0f;
-        float gini    = 0.0f;
+        float std_dev { 0.0f };
+        float gini    { 0.0f };
     };
 
     GraphAnalysisProp _collect_analysis() const noexcept;

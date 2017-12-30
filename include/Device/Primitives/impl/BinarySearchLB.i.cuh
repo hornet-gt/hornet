@@ -39,7 +39,7 @@
 #pragma once
 
 #include "Device/DataMovement/Indexing.cuh"
-#include "Device/Util/Definition.cuh"
+#include "Device/Util/DeviceProperties.cuh"
 #include "Device/Util/Basic.cuh"
 #include "Host/Algorithm.hpp"
 
@@ -183,13 +183,13 @@ void threadPartitionNoDup(const T* __restrict__ d_prefixsum,
                           int                   block_end_pos) {
 
     const unsigned ITEMS_PER_BLOCK = BLOCK_SIZE * ITEMS_PER_THREAD;
-    T  block_search_low = static_cast<T>(blockIdx.x) * ITEMS_PER_BLOCK;
-    T          searched = block_search_low +
-                          static_cast<T>(threadIdx.x) * ITEMS_PER_THREAD;
+    T block_search_low = static_cast<T>(blockIdx.x) * ITEMS_PER_BLOCK;
+    T searched         = block_search_low +
+                         static_cast<T>(threadIdx.x) * ITEMS_PER_THREAD;
 
-    const T* __restrict__ ptr = d_prefixsum + block_start_pos;
-    int    smem_size = block_end_pos - block_start_pos + 2;
-    auto smem_prefix = static_cast<T*>(smem);
+    const T* ptr         = d_prefixsum + block_start_pos;
+    int      smem_size   = block_end_pos - block_start_pos + 2;
+    auto     smem_prefix = static_cast<T*>(smem);
 
     #pragma unroll
     for (int i = 0; i < ITEMS_PER_THREAD; i++) {
@@ -200,9 +200,9 @@ void threadPartitionNoDup(const T* __restrict__ d_prefixsum,
     xlib::sync<BLOCK_SIZE>();
 
     int smem_pos = xlib::upper_bound_left(smem_prefix, smem_size, searched);
-    T       next = smem_prefix[smem_pos + 1];
-    T     offset = searched - smem_prefix[smem_pos];
-    T      limit = smem_prefix[smem_size - 1];
+    T   next     = smem_prefix[smem_pos + 1];
+    T   offset   = searched - smem_prefix[smem_pos];
+    T   limit    = smem_prefix[smem_size - 1];
 
     #pragma unroll
     for (int i = 0; i < ITEMS_PER_THREAD; i++) {
@@ -232,11 +232,12 @@ void binarySearchLBGen(const T* __restrict__ d_prefixsum,
                        const Lambda&         lambda) {
 
     const unsigned _ITEMS_PER_THREAD = ITEMS_PER_THREAD == 0 ?
-                                       SMemPerThread<T, BLOCK_SIZE>::value :
+                                       smem_per_thread<T, BLOCK_SIZE>() :
                                        ITEMS_PER_THREAD;
     int reg_pos[_ITEMS_PER_THREAD];
     T   reg_offset[_ITEMS_PER_THREAD];
 
+    static_assert(!BLOCK_PARTITION_FROM_GLOBAL, "Deprecated");
     int block_start_pos, block_end_pos;
     if (BLOCK_PARTITION_FROM_GLOBAL) {
         block_start_pos = d_partitions[ blockIdx.x ];
@@ -263,7 +264,6 @@ void binarySearchLBGen(const T* __restrict__ d_prefixsum,
         block_end_pos   = smem_prefix[1];
         xlib::sync<BLOCK_SIZE>();
     }
-
     if (NO_DUPLICATE) {
         detail::threadPartitionNoDup<BLOCK_SIZE>
             (d_prefixsum, prefixsum_size, smem, reg_pos, reg_offset,
@@ -276,9 +276,8 @@ void binarySearchLBGen(const T* __restrict__ d_prefixsum,
     }
 
     threadToWarpIndexing<_ITEMS_PER_THREAD>(reg_pos, reg_offset, smem);
-    //xlib::sync<BLOCK_SIZE>();
 
-    if (LAST_BLOCK_CHECK && blockIdx.x == gridDim.x - 1) {
+    //if (LAST_BLOCK_CHECK && blockIdx.x == gridDim.x - 1) {
         #pragma unroll
         for (int i = 0; i < _ITEMS_PER_THREAD; i++) {
             if (reg_pos[i] != -1) {
@@ -286,14 +285,14 @@ void binarySearchLBGen(const T* __restrict__ d_prefixsum,
                 lambda(reg_pos[i], reg_offset[i]);
             }
         }
-    }
-    else {
+    //}
+    /*else {
         #pragma unroll
         for (int i = 0; i < _ITEMS_PER_THREAD; i++) {
             assert(reg_pos[i] < prefixsum_size);
             lambda(reg_pos[i], reg_offset[i]);
         }
-    }
+    }*/
 }
 
 } // namespace detail

@@ -171,14 +171,13 @@ struct get_arity<R(C::*)(Args...) const> {
 //https://stackoverflow.com/a/12982320/6585879
 
 template<typename T>
-using Enable = decltype(
-                     std::declval<std::ostream&>() << std::declval<const T&>());
+using EnableP = decltype( std::declval<std::ostream&>() << std::declval<T>() );
 
-template<typename T, typename = std::ostream&>
-struct is_stream_insertable : std:: false_type {};
+template<typename T, typename = void>
+struct is_stream_insertable : std::false_type {};
 
 template<typename T>
-struct is_stream_insertable<T, Enable<T>> : std:: true_type {};
+struct is_stream_insertable<T, EnableP<T>> : std::true_type {};
 
 
 template<int, typename>
@@ -210,6 +209,16 @@ struct closure_type : public closure_type< decltype(&T::operator()) > {};
 template<typename C, typename R, typename... Args>
 struct closure_type<R (C::*)(Args...) const> {
   using ReturnType = R;
+};
+
+template<typename T>
+struct remove_const_ptr {
+    using type = T;
+};
+
+template<typename T>
+struct remove_const_ptr<const T*> {
+    using type = T*;
 };
 
 } // namespace xlib

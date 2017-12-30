@@ -1,10 +1,9 @@
 /**
- * @internal
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
- * @version v1.3
+ * @date December, 2017
+ * @version v1.4
  *
  * @copyright Copyright © 2017 XLib. All rights reserved.
  *
@@ -33,53 +32,62 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
- *
- * @file
  */
-#pragma once
-
-#include <array>    //std::array
-#include <limits>   //std::numeric_limits
+#include "Device/Util/DeviceProperties.cuh"     //xlib::DeviceProperty
+#include "Device/Util/SafeCudaAPI.cuh"          //SAFE_CALL
+#include <cuda_runtime.h>                       //cudaGetDeviceCount
 
 namespace xlib {
 
-enum THREAD_GROUP { VOID = 0, WARP, BLOCK }; //deprecated
+int  DeviceProperty::_num_sm[DeviceProperty::MAX_GPUS]        = {};
+int  DeviceProperty::_smem_per_SM[DeviceProperty::MAX_GPUS]   = {};
+int  DeviceProperty::_rblock_per_SM[DeviceProperty::MAX_GPUS] = {};
+int  DeviceProperty::_num_gpus  = 0;
+bool DeviceProperty::_init_flag = false;
 
-template<typename T>
-struct numeric_limits {         // available in CUDA kernels
-    static const T min    = std::numeric_limits<T>::min();
-    static const T max    = std::numeric_limits<T>::max();
-    static const T lowest = std::numeric_limits<T>::lowest();
-};
+void DeviceProperty::_init() noexcept {
+    _init_flag = true;
+    SAFE_CALL( cudaGetDeviceCount(&_num_gpus) )
+    for (int i = 0; i < _num_gpus; i++) {
+        cudaDeviceProp devive_prop;
+        SAFE_CALL( cudaGetDeviceProperties(&devive_prop, i) )
+        _num_sm[i]        = devive_prop.multiProcessorCount;
+        _smem_per_SM[i]   = devive_prop.sharedMemPerMultiprocessor;
+        _rblock_per_SM[i] = (devive_prop.major >= 5) ? 32 : 16;
+    }
+}
+
+int DeviceProperty::num_SM() noexcept {
+    if (!_init_flag)
+        _init();
+    return _num_sm[(_num_gpus == 1) ? 0 : cuGetDevice()];
+}
+
+int DeviceProperty::smem_per_SM()noexcept {
+    if (!_init_flag)
+        _init();
+    return _smem_per_SM[(_num_gpus == 1) ? 0 : cuGetDevice()];
+}
+
+int DeviceProperty::resident_blocks_per_SM() noexcept {
+    if (!_init_flag)
+        _init();
+    return _rblock_per_SM[(_num_gpus == 1) ? 0 : cuGetDevice()];
+}
 
 //------------------------------------------------------------------------------
 
-template<int SIZE>
-struct CuFreeAtExit {
-    template<typename... TArgs>
-    explicit CuFreeAtExit(TArgs... args) noexcept;
+int DeviceProperty::resident_threads() noexcept {
+    return num_SM() * xlib::THREADS_PER_SM;
+}
 
-    ~CuFreeAtExit() noexcept;
-private:
-    const std::array<void*, SIZE> _tmp;
-};
+int DeviceProperty::resident_warps() noexcept {
+    return num_SM() * (xlib::THREADS_PER_SM / xlib::WARP_SIZE);
+}
 
-void device_info(int device_id = 0);
+int DeviceProperty::resident_blocks(int block_size) noexcept {
+    auto size = xlib::upper_approx<xlib::WARP_SIZE>(block_size);
+    return num_SM() * (xlib::THREADS_PER_SM / static_cast<unsigned>(size));
+}
 
 } // namespace xlib
-
-//------------------------------------------------------------------------------
-
-namespace nvtx {
-
-enum class NvColor : int
-            { GREEN  = 0x0000FF00, BLUE = 0x000000FF, YELLOW = 0x00FFFF00,
-              PURPLE = 0x00FF00FF, CYAN = 0x0000FFFF, RED    = 0x00FF0000,
-              WHITE  = 0x00FFFFFF };
-
-void push_range(const std::string& event_name, NvColor color) noexcept;
-void pop_range() noexcept;
-
-} // namespace nvtx
-
-#include "impl/CudaUtil.i.cuh"

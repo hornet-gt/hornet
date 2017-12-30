@@ -58,6 +58,11 @@ bool ParsingProp::is_randomize() const noexcept {
 bool ParsingProp::is_print() const noexcept {
     return *this & parsing_prop::PRINT_INFO;
 }
+
+bool ParsingProp::is_rm_singleton() const noexcept {
+    return *this & parsing_prop::RM_SINGLETON;
+}
+
 //------------------------------------------------------------------------------
 
 StructureProp::StructureProp(const detail::StructureEnum& value) noexcept :
@@ -72,7 +77,8 @@ bool StructureProp::is_undirected() const noexcept {
 }
 
 bool StructureProp::is_reverse() const noexcept {
-    return *this & structure_prop::ENABLE_INGOING;
+    return (*this & structure_prop::ENABLE_INGOING) ||
+           (*this & structure_prop::UNDIRECTED);
 }
 
 bool StructureProp::is_coo() const noexcept {
@@ -81,6 +87,11 @@ bool StructureProp::is_coo() const noexcept {
 
 bool StructureProp::is_direction_set() const noexcept {
     return is_directed() || is_undirected();
+}
+
+bool StructureProp::_is_non_compatible() const noexcept {
+    return static_cast<bool>(*this & structure_prop::UNDIRECTED) &&
+           static_cast<bool>(*this & structure_prop::DIRECTED);
 }
 
 /*
@@ -240,7 +251,7 @@ GInfo GraphBase<vid_t, eoff_t>::getDimacs10Header(std::ifstream& fin) {
 
     size_t num_vertices, num_edges;
     fin >> num_vertices >> num_edges;
-    StructureProp direction;
+    StructureProp direction { structure_prop::NONE };
 
     if (fin.peek() == '\n') {
         direction = structure_prop::UNDIRECTED;

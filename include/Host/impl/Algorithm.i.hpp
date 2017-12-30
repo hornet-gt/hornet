@@ -33,7 +33,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Host/Basic.hpp"   //ERROR
+#include "Host/Basic.hpp"           //ERROR
+#include "Device/Util/CudaUtil.cuh" //xlib::numeric_limits
 #include <algorithm>                //std::transform, std::sort, std::equal
 #include <cassert>                  //assert
 #include <thread>                   //std::thread
@@ -243,12 +244,12 @@ void inplace_merge(T* left, S size_left, const T* right, S size_right) {
 template<bool RIGHT, typename T, typename R>
 HOST_DEVICE
 R lower_bound(const T* mem, R size, T searched) {
-    R start = 0, end = size, mid;
+    R start = 0, end = size;
     bool flag = false;
     assert(size < xlib::numeric_limits<R>::max / 2 && "May overflow");
 
-    while (start < end) {
-        mid = (start + end) / 2u;// mid = low + (high - low) / 2u avoid overflow
+    while (start < end) {        // mid = low + (high - low) / 2u avoid overflow
+        R mid = (start + end) / 2u;
         T tmp = mem[mid];
         if (searched <= tmp) {
             end  = mid;

@@ -68,11 +68,12 @@ class GraphWeight : public GraphStd<vid_t, eoff_t> {
     friend class Brim<vid_t, eoff_t, weight_t>;
 
 public:
-    explicit GraphWeight(StructureProp structure = StructureProp()) noexcept;
+    explicit GraphWeight(StructureProp structure = structure_prop::NONE)
+                         noexcept;
 
     explicit GraphWeight(const char* filename,
-                         const ParsingProp& property
-                             = ParsingProp(parsing_prop::PRINT_INFO)) noexcept;
+                         const ParsingProp& property = parsing_prop::PRINT_INFO)
+                         noexcept;
 
     explicit GraphWeight(StructureProp structure, const char* filename,
                          const ParsingProp& property) noexcept;

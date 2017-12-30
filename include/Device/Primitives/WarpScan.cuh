@@ -38,7 +38,7 @@
  */
 #pragma once
 
-#include "Device/Util/Definition.cuh"
+#include "Device/Util/DeviceProperties.cuh"
 
 namespace xlib {
 

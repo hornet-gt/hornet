@@ -33,8 +33,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Host/Algorithm.hpp"            //xlib::equal_sorted
-#include "Device/Util/SafeCudaAPI.cuh"   //cuMemcpyToHost
+#include "Device/Util/DeviceProperties.cuh"  //xlib::WARP_SIZE
+#include "Device/Util/SafeCudaAPI.cuh"       //cuMemcpyToHost
+#include "Host/Algorithm.hpp"                //xlib::equal_sorted
+#include "Host/Numeric.hpp"                  //xlib::is_power2
 
 namespace xlib {
 namespace gpu {
@@ -75,4 +77,35 @@ bool equal_sorted(HostIterator host_start, HostIterator host_end,
 }
 
 } // namespace gpu
+
+//==============================================================================
+//==============================================================================
+
+template<unsigned SIZE, typename T>
+__device__ __forceinline__
+int binary_search_pow2(const T* shared_mem, T searched) {
+    static_assert(xlib::is_power2(SIZE), "SIZE must be a power of 2");
+    int low = 0;
+    #pragma unroll
+    for (int i = 1; i <= xlib::Log2<SIZE>::value; i++) {
+        int pos = low + ((SIZE) >> i);
+        if (searched >= shared_mem[pos])
+            low = pos;
+    }
+    return low;
+}
+
+template<typename T>
+__device__ __forceinline__
+int binary_search_warp(T reg_value, T searched) {
+    int low = 0;
+    #pragma unroll
+    for (int i = 1; i <= xlib::Log2<WARP_SIZE>::value; i++) {
+        int pos = low + ((xlib::WARP_SIZE) >> i);
+        if (searched >= __shfl_sync(0xFFFFFFFF, reg_value, pos))
+            low = pos;
+    }
+    return low;
+}
+
 } // namespace xlib

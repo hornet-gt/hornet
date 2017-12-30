@@ -47,6 +47,18 @@ bool equal_sorted(HostIterator host_start, HostIterator host_end,
                   DeviceIterator device_start) noexcept;
 
 } // namespace gpu
+
+//==============================================================================
+//==============================================================================
+
+template<unsigned SIZE, typename T>
+__device__ __forceinline__
+int binary_search_pow2(const T* shared_mem, T searched);
+
+template<typename T>
+__device__ __forceinline__
+int binary_search_warp(T reg_value, T searched);
+
 } // namespace xlib
 
 #include "impl/Algorithm.i.cuh"

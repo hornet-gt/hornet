@@ -1,8 +1,9 @@
 /**
+ * @internal
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date November, 2017
+ * @date December, 2017
  * @version v1.4
  *
  * @copyright Copyright © 2017 XLib. All rights reserved.
@@ -37,20 +38,60 @@
  */
 #pragma once
 
-#include "Device/Util/DeviceProperties.cuh" //xlib::MAX_BLOCK_SIZE
-
 namespace xlib {
 
-extern __device__ unsigned GlobalSyncArray[MAX_BLOCK_SIZE];
+/**
+ * ITEMS_PER_THREAD == |reg1| == |reg2|     in the example: 3
+ * SMEM_ITEMS == shared memory items        in the example: 2
+ *
+ *  before:
+ *  thread0: reg1 = { 1,  2,  3,  4, 5 }
+ *  thread1: reg1 = { 6,  7,  8, 9, 10 }
+ *  thread2: reg1 = { 11, 12, 13, 14, 15}
+ *  thread3: reg1 = { 16, 17, 18, 19, 20}
+ *
+ *  after:
+ *  thread0: reg1 = { 1, 5,  9, 13, 17 }
+ *  thread1: reg1 = { 2, 6, 10, 14, 18 }
+ *  thread2: reg1 = { 3, 7, 11, 15, 19 }
+ *  thread3: reg1 = { 4, 8, 12, 16, 20 }
+ *
+ */
+template<unsigned ITEMS_PER_THREAD, typename T, typename R>
+ __device__ __forceinline__
+void smem_reordering(T   (&reg1)[ITEMS_PER_THREAD],
+                     R   (&reg2)[ITEMS_PER_THREAD],
+                     void* smem);
 
-template<unsigned BLOCK_SIZE>
-__device__ __forceinline__ void globalSync();
+template<unsigned SMEM_PER_WARP = 0, unsigned ITEMS_PER_THREAD, typename T>
+ __device__ __forceinline__
+void smem_reordering(T (&reg)[ITEMS_PER_THREAD], void* smem);
 
-template<unsigned BLOCK_SIZE>
-__device__ __forceinline__ void globalSync_v2();
+//------------------------------------------------------------------------------
 
-void globalSyncReset();
+template<typename T, int SIZE>
+__device__ __forceinline__
+void shuffle_reordering(T (&A)[SIZE]);
+
+template<typename T>
+__device__ __forceinline__
+void shuffle_reordering_v4(T (&A)[8]);
+
+//------------------------------------------------------------------------------
+
+template<unsigned ITEMS_PER_THREAD, typename T>
+ __device__ __forceinline__
+typename std::enable_if<xlib::mcd(ITEMS_PER_THREAD, xlib::WARP_SIZE) == 1 ||
+                        xlib::is_power2(ITEMS_PER_THREAD)>::type
+reordering_dispatch(T (&reg)[ITEMS_PER_THREAD], void* smem);
+
+
+template<unsigned ITEMS_PER_THREAD, typename T>
+ __device__ __forceinline__
+typename std::enable_if<xlib::mcd(ITEMS_PER_THREAD, xlib::WARP_SIZE) != 1 &&
+                        !xlib::is_power2(ITEMS_PER_THREAD)>::type
+reordering_dispatch(T (&reg)[ITEMS_PER_THREAD], void* smem);
 
 } // namespace xlib
 
-#include "impl/GlobalSync.i.cuh"
+#include "impl/RegReordering.i.cuh"

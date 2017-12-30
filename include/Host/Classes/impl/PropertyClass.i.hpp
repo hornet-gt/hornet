@@ -2,8 +2,8 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date November, 2017
- * @version v2
+ * @date April, 2017
+ * @version v1.3
  *
  * @copyright Copyright © 2017 XLib. All rights reserved.
  *
@@ -33,24 +33,57 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Device/Primitives/GlobalSync.cuh"
-#include "Device/Util/Definition.cuh"
-#include "Device/Util/CudaUtil.cuh"
+#include "Host/Basic.hpp"   //ERROR
 
 namespace xlib {
 
-__device__ unsigned GlobalSyncArray[MAX_BLOCK_SIZE];
+template<typename Enum, typename CRTP>
+PropertyClass<Enum, CRTP>::PropertyClass(const Enum& value) noexcept :
+                        _state(static_cast<uint64_t>(value)) {
+    if (_is_non_compatible())
+        ERROR("Incompatible Enumerator")
+}
 
-namespace {
-    __global__ void globalSyncResetKernel() {
-        if (threadIdx.x < MAX_BLOCK_SIZE)
-            GlobalSyncArray[threadIdx.x] = 0;
-    }
-} // namespace
+template<typename Enum, typename CRTP>
+CRTP PropertyClass<Enum, CRTP>::operator| (const CRTP& obj) const noexcept {
+    return CRTP(static_cast<Enum>(_state | obj._state));
+}
 
-void globalSyncReset() {
-    globalSyncResetKernel<<<1, MAX_BLOCK_SIZE>>>();
-    CHECK_CUDA_ERROR
+template<typename Enum, typename CRTP>
+bool PropertyClass<Enum, CRTP>::operator& (const CRTP& obj)  const noexcept {
+    return static_cast<bool>(_state & obj._state);
+}
+
+template<typename Enum, typename CRTP>
+bool PropertyClass<Enum, CRTP>::operator== (const CRTP& obj) const noexcept {
+    return _state == obj._state;
+}
+
+template<typename Enum, typename CRTP>
+void PropertyClass<Enum, CRTP>::operator+= (const CRTP& obj) noexcept {
+    _state |= obj._state;
+    if (_is_non_compatible())
+        ERROR("Incompatible Enumerator")
+}
+
+template<typename Enum, typename CRTP>
+void PropertyClass<Enum, CRTP>::operator-= (const CRTP& obj) noexcept {
+    _state &= ~obj._state;
+}
+
+template<typename Enum, typename CRTP>
+bool PropertyClass<Enum, CRTP>::operator!= (const CRTP& obj) const noexcept {
+    return _state != obj._state;
+}
+
+template<typename Enum, typename CRTP>
+bool PropertyClass<Enum, CRTP>::is_undefined() const noexcept {
+    return _state == 0;
+}
+
+template<typename Enum, typename CRTP>
+bool PropertyClass<Enum, CRTP>::_is_non_compatible() const noexcept {
+    return false;
 }
 
 } // namespace xlib

@@ -36,7 +36,7 @@
  *
  * @file
  */
-#include "Device/Util/Definition.cuh"
+#include "Device/Util/DeviceProperties.cuh"
 #include "Host/Numeric.hpp"
 
 namespace xlib {

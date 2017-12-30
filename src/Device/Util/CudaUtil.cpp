@@ -33,45 +33,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Device/Util/CudaUtil.cuh"
-#define ARCH -1
-#include "Device/Util/Definition.cuh"
-#include "Host/Basic.hpp"       //xlib::MB
-#include "Host/PrintExt.hpp"    //Color
-#include <cuda_runtime_api.h>
+#include "Device/Util/CudaUtil.cuh"     //xlib::device_info
+#include "Device/Util/SafeCudaAPI.cuh"  //SAFE_CALL
+#include "Host/Basic.hpp"               //xlib::MB
+#include "Host/PrintExt.hpp"            //Color
+#include <cuda_runtime_api.h>           //cudaDeviceGetAttribute
 #if defined(NVTX)
-    #include <nvToolsExt.h>
+    #include <nvToolsExt.h>     //nvtxRangePushEx
 #endif
-#include <iomanip>
+#include <iomanip>              //std::setw
 
 namespace xlib {
-
-int DeviceProperty::_num_sm[DeviceProperty::MAX_GPUS] = {};             //NOLINT
-
-int DeviceProperty::num_SM() noexcept {
-    auto id = cuGetDevice();
-    if (_num_sm[id] == 0) {
-        cudaDeviceProp prop;
-        SAFE_CALL( cudaGetDeviceProperties(&prop, 0) );
-        _num_sm[id] = prop.multiProcessorCount;
-    }
-    return _num_sm[id];
-}
-
-int DeviceProperty::resident_threads() noexcept {
-    return num_SM() * xlib::THREADS_PER_SM;
-}
-
-int DeviceProperty::resident_warps() noexcept {
-    return num_SM() * (xlib::THREADS_PER_SM / xlib::WARP_SIZE);
-}
-
-int DeviceProperty::resident_blocks(int block_size) noexcept {
-    auto size = xlib::upper_approx<xlib::WARP_SIZE>(block_size);
-    return num_SM() * (xlib::THREADS_PER_SM / static_cast<unsigned>(size));
-}
-
-//==============================================================================
 
 void device_info(int device_id) {
     xlib::IosFlagSaver tmp1;
@@ -85,7 +57,7 @@ void device_info(int device_id) {
 
     auto smem        = std::to_string(prop.sharedMemPerMultiprocessor /xlib::KB)
                           + " KB";
-    auto gmem        = xlib::format(prop.totalGlobalMem /xlib::MB) + " MB";
+    auto gmem        = xlib::format(prop.totalGlobalMem / xlib::MB) + " MB";
     auto smem_thread = prop.sharedMemPerMultiprocessor /
                        prop.maxThreadsPerMultiProcessor;
     auto thread_regs = prop.regsPerMultiprocessor /

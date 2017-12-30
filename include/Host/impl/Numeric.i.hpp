@@ -201,7 +201,9 @@ HOST_DEVICE
 constexpr T ceil_div(T value) noexcept {
     static_assert(std::is_integral<T>::value, "T must be integral");
     static_assert(DIV != 0, "division by zero in integer arithmetic");
+#if !defined(__NVCC__)
     assert(std::is_unsigned<T>::value || value >= 0);
+#endif
 
     const auto DIV_ = static_cast<T>(DIV);
     //return value == 0 ? 0 : 1 + ((value - 1) / DIV_);
@@ -234,7 +236,9 @@ HOST_DEVICE
 constexpr T round_div(T value) noexcept {
     static_assert(std::is_integral<T>::value, "T must be integral");
     static_assert(DIV > 0, "division by zero");
+#if !defined(__NVCC__)
     assert(std::is_unsigned<T>::value || value >= 0);
+#endif
     assert(addition_is_safe(value, static_cast<T>(DIV / 2u)));
 
     const auto DIV_ = static_cast<T>(DIV);
@@ -259,7 +263,9 @@ template<uint64_t MUL, typename T>
 HOST_DEVICE
 constexpr T upper_approx(T value) noexcept {
     static_assert(std::is_integral<T>::value, "T must be integral");
+#if !defined(__NVCC__)
     assert(std::is_unsigned<T>::value || value >= 0);
+#endif
 
     const auto MUL_ = static_cast<T>(MUL);
     return MUL == 1 ? value :
@@ -278,7 +284,9 @@ template<int64_t MUL, typename T>
 HOST_DEVICE
 constexpr T lower_approx(T value) noexcept {
     static_assert(std::is_integral<T>::value, "T must be integral");
+#if !defined(__NVCC__)
     assert(std::is_unsigned<T>::value || value >= 0);
+#endif
 
     const auto MUL_ = static_cast<T>(MUL);
     return MUL == 1 ? value :
@@ -290,10 +298,13 @@ constexpr T lower_approx(T value) noexcept {
 template<typename T>
 HOST_DEVICE
 constexpr bool is_power2(T value) noexcept {
+    static_assert(std::is_integral<T>::value, "T must be integral");
     using R = typename std::conditional<std::is_integral<T>::value,
                                         T, uint64_t>::type;
     auto value_ = static_cast<R>(value);
+#if !defined(__NVCC__)
     assert(std::is_unsigned<R>::value || value_ >= 0);
+#endif
     return (value_ != 0) && !(value_ & (value_ - 1));
 }
 

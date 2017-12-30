@@ -38,7 +38,7 @@
  */
 #pragma once
 
-#include "Host/PrintExt.hpp"
+#include "Host/PrintExt.hpp"        //xlib::Color
 #include <cassert>                  //assert
 #include <cstdlib>                  //std::exit
 #include <iostream>                 //std::cout
@@ -102,7 +102,7 @@
                          (&((reinterpret_cast<structure*>(0))->field))  //NOLINT
 
 //==============================================================================
-
+/*
 #if defined(__CYGWIN__)
 namespace std {
     template <typename T>
@@ -112,22 +112,21 @@ namespace std {
         return stm.str();
     }
 } // namespace std
-#endif
+#endif*/
 
 //==============================================================================
 
 namespace xlib {
 
-//using byte_t = uint8_t;
 enum class byte_t : std::uint8_t {};
 
-#if !defined(__NVCC__)
+//#if !defined(__NVCC__)
 
 constexpr int    operator"" _BIT ( long long unsigned value );         // NOLINT
-constexpr size_t operator"" _KB ( long long unsigned value );          // NOLINT
-constexpr size_t operator"" _MB ( long long unsigned value );          // NOLINT
+constexpr size_t operator"" _KB  ( long long unsigned value );         // NOLINT
+constexpr size_t operator"" _MB  ( long long unsigned value );         // NOLINT
 
-#endif
+//#endif
 
 const size_t KB = 1024llu;
 const size_t MB = 1024llu * 1024llu;
@@ -150,32 +149,6 @@ bool is_aligned(const void* ptr) noexcept;
 template<typename T>
 HOST_DEVICE
 bool is_aligned(const void* ptr) noexcept;
-
-//------------------------------------------------------------------------------
-
-//strongly typed + operator "|", "&", etc..
-//CRTP - curiously recurring template pattern
-template<typename Enum, typename CRTP>
-class PropertyClass {
-public:
-     PropertyClass() noexcept = default;
-     PropertyClass(const Enum& value) noexcept;
-
-    virtual CRTP  operator|  (const CRTP& obj) const noexcept final;
-    virtual bool  operator&  (const CRTP& obj) const noexcept final;
-    virtual bool  operator== (const CRTP& obj) const noexcept final;
-    virtual bool  operator!= (const CRTP& obj) const noexcept final;
-
-            CRTP& operator=  (const CRTP& obj) noexcept ;
-    virtual void  operator+= (const CRTP& obj) noexcept final;
-    virtual void  operator-= (const CRTP& obj) noexcept final;
-    virtual bool  is_undefined() const noexcept final;
-    virtual bool  not_compatible(const CRTP& obj1, const CRTP& obj2)
-                                 const noexcept ;
-protected:
-    int _state { 0 };
-    PropertyClass(int value) noexcept;
-};
 
 } // namespace xlib
 

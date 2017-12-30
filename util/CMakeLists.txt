@@ -505,9 +505,9 @@ add_custom_target(ptx
         COMMENT "PTX")
 
 add_custom_target(sass
-        COMMAND cp `ls TMP/*.cubin | grep -vE \"link|CubWrapper|GlobalSync\"` .
-        COMMAND nvdisasm -c -g -sf *.cubin > code.sass
+        COMMAND ${CMAKE_CURRENT_LIST_DIR}/nvdisasm_loop.sh TMP
         COMMENT "SASS")
-endif()
 
 endif()
+
+endif() #QUIET_SUBMODULE

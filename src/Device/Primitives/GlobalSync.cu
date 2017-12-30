@@ -3,7 +3,7 @@
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
  * @date November, 2017
- * @version v1.4
+ * @version v2
  *
  * @copyright Copyright © 2017 XLib. All rights reserved.
  *
@@ -32,68 +32,25 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
- *
- * @file
  */
-/**
- * @file
- * @version v1.3
- */
-#pragma once
-
-#include "Base/Host/Numeric.hpp"
+#include "Device/Primitives/GlobalSync.cuh" //xlib::globalSyncResetKernel
+#include "Device/Util/DeviceProperties.cuh" //xlib::MAX_BLOCK_SIZE
+#include "Device/Util/SafeCudaAPI.cuh"      //CHECK_CUDA_ERROR
 
 namespace xlib {
 
-template<unsigned SIZE, typename T>
-__device__ __forceinline__
-int binary_search_pow2(const T* shared_mem, T searched) {
-    static_assert(IsPower2<SIZE>::value, "SIZE must be a power of 2");
-    int low = 0;
-    #pragma unroll
-    for (int i = 1; i <= Log2<SIZE>::value; i++) {
-        int pos = low + ((SIZE) >> i);
-        if (searched >= shared_mem[pos])
-            low = pos;
+__device__ unsigned GlobalSyncArray[MAX_BLOCK_SIZE];
+
+namespace {
+    __global__ void globalSyncResetKernel() {
+        if (threadIdx.x < MAX_BLOCK_SIZE)
+            GlobalSyncArray[threadIdx.x] = 0;
     }
-    return low;
-}
+} // namespace
 
-template<typename T>
-__device__ __forceinline__
-int binary_search_warp(T reg_value, T searched) {
-    int low = 0;
-    #pragma unroll
-    for (int i = 1; i <= Log2<WARP_SIZE>::value; i++) {
-        int pos = low + ((WARP_SIZE) >> i);
-        if (searched >= __shfl(reg_value, pos))
-            low = pos;
-    }
-    return low;
-}
-
-
-#include <cassert>
-
-//@@@ deprecated
-// the searched value must be in the intervall
-template<typename T>
-__device__ __forceinline__
-void binarySearch(T* mem, const T searched,
-                  int& pos, int size) {
-    int start = 0, end = size - 1;
-    pos = end / 2u;
-
-    while (start < end) {
-        assert(pos + 1 < size);
-        if (searched >= mem[pos + 1])
-            start = pos + 1;
-        else if (searched < mem[pos])
-            end = pos - 1;
-        else
-            break;
-        pos = (start + end) / 2u;
-    }
+void globalSyncReset() {
+    globalSyncResetKernel<<<1, MAX_BLOCK_SIZE>>>();
+    CHECK_CUDA_ERROR
 }
 
 } // namespace xlib

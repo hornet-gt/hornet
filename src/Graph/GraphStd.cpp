@@ -237,7 +237,7 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
     if (_prop.is_print())
         std::cout << "COO to CSR...\t" << std::flush;
 
-    if (_structure.is_reverse() && _structure.is_directed()) {
+    if (_structure.is_directed() && _structure.is_reverse()) {
         for (eoff_t i = 0; i < _nE; i++) {
             _out_degrees[_coo_edges[i].first]++;
             _in_degrees[_coo_edges[i].second]++;
@@ -246,6 +246,27 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
     else {
         for (eoff_t i = 0; i < _nE; i++)
             _out_degrees[_coo_edges[i].first]++;
+    }
+
+    if (_prop.is_rm_singleton() && _structure.is_reverse()) {
+        if (_prop.is_print())
+            std::cout << "\nRelabeling...\t" << std::flush;
+        vid_t k = 0;
+        auto labels = new vid_t[_nV];
+        for (vid_t i = 0; i < _nV; i++) {
+            if (_out_degrees[i] != 0 && _in_degrees[i] != 0) {
+                labels[i] = k;
+                _out_degrees[k] = _out_degrees[i];
+                _in_degrees[k]  = _in_degrees[i];
+                k++;
+            }
+        }
+        for (eoff_t i = 0; i < _nE; i++) {
+            _coo_edges[i].first  = labels[_coo_edges[i].first];
+            _coo_edges[i].second = labels[_coo_edges[i].second];
+        }
+        delete[] labels;
+        _nV = k;
     }
 
     _out_offsets[0] = 0;

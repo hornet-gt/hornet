@@ -35,7 +35,7 @@
  */
 #include "Host/PrintExt.hpp"                 //xlib::printArray
 #include "Device/Util/SafeCudaAPISync.cuh"   //cuMemcpyFromSymbol
-#include "Device/Util/Definition.cuh"        //xlib::WARP_SIZE
+#include "Device/Util/DeviceProperties.cuh"  //xlib::WARP_SIZE
 #include "Device/Util/PTX.cuh"               //xlib::lane_id
 
 namespace xlib {

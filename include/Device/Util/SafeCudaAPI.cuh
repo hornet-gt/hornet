@@ -224,7 +224,7 @@ void cuMallocHostAux(const char* file, int line, const char* func_name,
 template<typename T>
 typename std::enable_if<std::is_pointer<T>::value>::type
 cuFreeAux(const char* file, int line, const char* func_name, T& ptr)  noexcept {
-    using R    = typename std::remove_cv<T>::type;
+    using R    = typename xlib::remove_const_ptr<T>::type;
     auto& ptr1 = const_cast<R&>(ptr);
     ptr1 = nullptr;
     cudaErrorHandler(cudaFree(ptr1), "cudaFree", file, line, func_name);
@@ -234,7 +234,7 @@ template<typename T, typename... TArgs>
 typename std::enable_if<std::is_pointer<T>::value>::type
 cuFreeAux(const char* file, int line, const char* func_name,
           T& ptr, TArgs*... ptrs) noexcept {
-    using R   = typename std::remove_cv<T>::type;
+    using R    = typename xlib::remove_const_ptr<T>::type;
     auto& ptr1 = const_cast<R&>(ptr);
     cudaErrorHandler(cudaFree(ptr1), "cudaFree", file, line, func_name);
     ptr1 = nullptr;

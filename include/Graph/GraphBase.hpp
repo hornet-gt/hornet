@@ -1,5 +1,4 @@
 /**
- * @internal
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
@@ -38,13 +37,14 @@
  */
 #pragma once
 
-#include "Host/Basic.hpp"   //xlib::PropertyClass
-#include <string>           //std::string
+#include "Host/Classes/PropertyClass.hpp"   //xlib::PropertyClass
+#include <string>                           //std::string
 
 namespace graph {
 
 namespace detail {
-    enum class ParsingEnum { RANDOMIZE = 1, SORT = 2, PRINT_INFO = 4 };
+    enum class ParsingEnum { NONE = 0, RANDOMIZE = 1, SORT = 2,
+                             PRINT_INFO = 4, RM_SINGLETON = 8 };
 } // namespace detail
 
 class ParsingProp : public xlib::PropertyClass<detail::ParsingEnum,
@@ -53,25 +53,37 @@ class ParsingProp : public xlib::PropertyClass<detail::ParsingEnum,
     template<typename, typename>           friend class GraphStd;
     template<typename, typename, typename> friend class GraphWeight;
 public:
-    explicit ParsingProp() noexcept = default;
     explicit ParsingProp(const detail::ParsingEnum& value) noexcept;
 private:
-    bool is_sort()              const noexcept;
-    bool is_randomize()         const noexcept;
-    bool is_print()             const noexcept;
+    bool is_sort()         const noexcept;
+    bool is_randomize()    const noexcept;
+    bool is_print()        const noexcept;
+    bool is_rm_singleton() const noexcept;
 };
 
 namespace parsing_prop {
 
-const ParsingProp RANDOMIZE  ( detail::ParsingEnum::RANDOMIZE );
-const ParsingProp SORT       ( detail::ParsingEnum::SORT );
-const ParsingProp PRINT_INFO ( detail::ParsingEnum::PRINT_INFO );
+///@brief No action (used for empty constructor)
+const ParsingProp NONE             ( detail::ParsingEnum::NONE );
+
+///@brief Randomize the label ids of graph vertices (random but reproducible)
+const ParsingProp RANDOMIZE        ( detail::ParsingEnum::RANDOMIZE );
+
+///@brief Sort adjacency list by label id
+const ParsingProp SORT             ( detail::ParsingEnum::SORT );
+
+///@brief Print basic information during graph parsing
+const ParsingProp PRINT_INFO       ( detail::ParsingEnum::PRINT_INFO );
+
+///@brief Remove vertices with zero out-degree and zero in-degree
+///       (vertex ids are relabeled)
+const ParsingProp RM_SINGLETON     ( detail::ParsingEnum::RM_SINGLETON );
 
 } // namespace parsing_prop
 
 //==============================================================================
 namespace detail {
-    enum class StructureEnum { DIRECTED = 1, UNDIRECTED = 2,
+    enum class StructureEnum { NONE = 0, DIRECTED = 1, UNDIRECTED = 2,
                                ENABLE_INGOING = 4, COO = 8 };
 } // namespace detail
 
@@ -81,21 +93,22 @@ class StructureProp :
     template<typename, typename>           friend class GraphStd;
     template<typename, typename, typename> friend class GraphWeight;
 public:
-    explicit StructureProp() noexcept = default;
     explicit StructureProp(const detail::StructureEnum& value) noexcept;
 private:
     //enum WType   { NONE, INTEGER, REAL };
     //WType _wtype { NONE };
-    bool is_directed()      const noexcept;
-    bool is_undirected()    const noexcept;
-    bool is_reverse()       const noexcept;
-    bool is_coo()           const noexcept;
-    bool is_direction_set() const noexcept;
-    bool is_weighted()      const noexcept;
+    bool is_directed()        const noexcept;
+    bool is_undirected()      const noexcept;
+    bool is_reverse()         const noexcept;
+    bool is_coo()             const noexcept;
+    bool is_direction_set()   const noexcept;
+    bool is_weighted()        const noexcept;
+    bool _is_non_compatible() const noexcept override;
 };
 
 namespace structure_prop {
 
+const StructureProp NONE           ( detail::StructureEnum::NONE );
 const StructureProp DIRECTED       ( detail::StructureEnum::DIRECTED );
 const StructureProp UNDIRECTED     ( detail::StructureEnum::UNDIRECTED );
 const StructureProp ENABLE_INGOING ( detail::StructureEnum::ENABLE_INGOING );
@@ -120,8 +133,8 @@ public:
     virtual const std::string& name() const noexcept final;
 
     virtual void read(const char* filename,
-                      const ParsingProp& prop =
-                        ParsingProp(parsing_prop::PRINT_INFO)) final;   //NOLINT
+                      const ParsingProp& prop = parsing_prop::PRINT_INFO)
+                      final;   //NOLINT
 
     virtual void print()     const noexcept = 0;
     virtual void print_raw() const noexcept = 0;
@@ -129,8 +142,8 @@ public:
     GraphBase(const GraphBase&)      = delete;
     void operator=(const GraphBase&) = delete;
 protected:
-    StructureProp _structure;
-    ParsingProp   _prop;
+    StructureProp _structure  { structure_prop::NONE };
+    ParsingProp   _prop       { parsing_prop::NONE };
     std::string   _graph_name { "" };
     vid_t         _nV         { 0 };
     eoff_t        _nE         { 0 };

@@ -39,7 +39,7 @@
 #pragma once
 
 #include "Device/Util/Basic.cuh"
-#include "Device/Util/Definition.cuh"
+#include "Device/Util/DeviceProperties.cuh"
 #include <type_traits>
 
 // N === 2
@@ -51,8 +51,6 @@ source = (lane_id() * N + col) % WARP_SIZE;
 if (lane_id() % N == 0)
     swap
 */
-
-
 namespace xlib {
 
 namespace detail {
@@ -61,8 +59,10 @@ template<int SIZE = 1, int OFFSET = 0, int LEFT_BOUND = 0>
 struct ThreadToWarpIndexing {
 
     template<typename T, unsigned ITEMS_PER_THREAD>
-    __device__ __forceinline__ static
-    void run(T (&reg)[ITEMS_PER_THREAD], void* smem_thread, void* smem_warp) {
+    __device__ __forceinline__
+     static void run(T   (&reg)[ITEMS_PER_THREAD],
+                     void* smem_thread,
+                     void* smem_warp) {
         #pragma unroll
         for (int i = 0; i < ITEMS_PER_THREAD; i++)
             static_cast<T*>(smem_thread)[i] = reg[i];
@@ -72,10 +72,11 @@ struct ThreadToWarpIndexing {
     }
 
     template<typename T, unsigned ITEMS_PER_THREAD>
-    __device__ __forceinline__ static
-    void run(const T (&reg_in)[ITEMS_PER_THREAD],
-             T (&reg_out)[ITEMS_PER_THREAD],
-             T* smem_thread, T* smem_warp) {
+    __device__ __forceinline__
+    static void run(const T (&reg_in)[ITEMS_PER_THREAD],
+                    T       (&reg_out)[ITEMS_PER_THREAD],
+                    T*      smem_thread,
+                    T*      smem_warp) {
 
         const int      TH_NUM = xlib::WARP_SIZE / (ITEMS_PER_THREAD / SIZE);
         const int RIGHT_BOUND = LEFT_BOUND + TH_NUM;
@@ -163,7 +164,7 @@ threadToWarpIndexing(T (&reg1)[ITEMS_PER_THREAD],
                      void* smem) {
 
     const int SMEM_ITEMS_TMP = SMEM_ITEMS_ ? SMEM_ITEMS_ :
-                               xlib::SMemPerThread<T>::value;
+                               xlib::smem_per_thread<T>();
     static_assert(ITEMS_PER_THREAD <= SMEM_ITEMS_TMP,
                  "n. register > shared memory : to do");
 
@@ -182,7 +183,7 @@ template<unsigned ITEMS_PER_THREAD, unsigned SMEM_ITEMS_ = 0, typename T>
 void threadToWarpIndexing(T (&reg)[ITEMS_PER_THREAD], T* smem) {
     using namespace detail;
     const unsigned SMEM_ITEMS = SMEM_ITEMS_ ? SMEM_ITEMS_ :
-                                xlib::SMemPerThread<T>::value;
+                                xlib::smem_per_thread<T>();
 
     smem        += xlib::warp_id() * xlib::WARP_SIZE * SMEM_ITEMS;
     T* smem_warp = smem + xlib::lane_id();

@@ -35,7 +35,7 @@
  */
 #include <Host/Algorithm.hpp>
 #include <Device/Primitives/BinarySearchLB.cuh>
-#include <Device/Util/Definition.cuh>
+#include <Device/Util/DeviceProperties.cuh>
 
 namespace hornets_nest {
 namespace gpu {
@@ -65,7 +65,7 @@ void mergeAdjListKernel(HornetDevice                 hornet,
     }
 }
 
-template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK, typename HornetDevice>
+template<unsigned BLOCK_SIZE, typename HornetDevice>
 __global__
 void bulkCopyAdjLists(HornetDevice                 hornet,
                       const degree_t* __restrict__ d_prefixsum,
@@ -73,6 +73,8 @@ void bulkCopyAdjLists(HornetDevice                 hornet,
                       const vid_t*    __restrict__ d_batch_dst,
                       const vid_t*    __restrict__ d_unique,
                       const degree_t* __restrict__ d_old_degrees) {
+
+    const int ITEMS_PER_BLOCK = xlib::smem_per_block<int, BLOCK_SIZE>();
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
     const auto& lambda = [&] (int pos, degree_t offset) {
                             auto        vertex = hornet.vertex(d_unique[pos]);

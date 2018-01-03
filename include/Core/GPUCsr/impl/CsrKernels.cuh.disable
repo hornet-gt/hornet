@@ -33,7 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Device/Definition.cuh"        //xlib::SMemPerBlock
+#include "Device/DeviceProperties.cuh"        //xlib::SMemPerBlock
 #include "Device/BinarySearchLB.cuh"    //xlib::BinarySearchLB
 #include "Device/PrintExt.cuh"          //cu::Cout
 

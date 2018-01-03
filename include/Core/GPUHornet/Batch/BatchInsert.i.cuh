@@ -66,12 +66,12 @@ void HORNET::insertEdgeBatch(BatchUpdate& batch_update) noexcept {
         CHECK_CUDA_ERROR
     }
     else {  // BULK COPY BATCH INTO HORNET
-        const int SMEM = xlib::SMemPerBlock<BLOCK_SIZE, int>::value;
-        int num_blocks = xlib::ceil_div<SMEM>(batch_size);
+        int smem = xlib::DeviceProperty::smem_per_block(BLOCK_SIZE);
+        int num_blocks = xlib::ceil_div(batch_size, smem);
 #if defined(DEBUG_INSERT)
         cu::printArray(_d_degree_tmp, num_uniques, "_d_degree_tmp:\n");
 #endif
-        bulkCopyAdjLists<BLOCK_SIZE, SMEM>  <<< num_blocks, BLOCK_SIZE >>>
+        bulkCopyAdjLists<BLOCK_SIZE>  <<< num_blocks, BLOCK_SIZE >>>
             (device_side(), _d_counts, num_uniques + 1,
              d_batch_dst, _d_unique, _d_degree_tmp);
         CHECK_CUDA_ERROR

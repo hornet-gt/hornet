@@ -38,7 +38,7 @@
  */
 #pragma once
 
-#include "BasicTypes.hpp"
+#include <Host/Classes/PropertyClass.hpp>   //xlib::PropertyClass
 
 namespace hornets_nest {
 namespace gpu {

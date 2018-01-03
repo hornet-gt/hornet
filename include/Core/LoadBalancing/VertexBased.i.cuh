@@ -63,12 +63,13 @@ void VertexBased<VW_SIZE>::apply(const HornetClass& hornet,
                                  Operator&&         op) const noexcept {
     static_assert(IsHornet<HornetClass>::value,
                   "VertexBased: paramenter is not an instance of Hornet Class");
-    const auto ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
-    const auto   DYN_SMEM_SIZE = ITEMS_PER_BLOCK * sizeof(vid_t);
+    int dyn_smem_size = xlib::DeviceProperty::smem_per_block(BLOCK_SIZE);
+
     kernel::vertexBasedKernel<VW_SIZE>
         <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices) * VW_SIZE, BLOCK_SIZE,
-            DYN_SMEM_SIZE >>>
+            dyn_smem_size >>>
         (hornet.device_side(), d_input, num_vertices, op);
+
     CHECK_CUDA_ERROR
 }
 
@@ -78,12 +79,11 @@ void VertexBased<VW_SIZE>::apply(const HornetClass& hornet, Operator&& op)
                                  const noexcept {
     static_assert(IsHornet<HornetClass>::value,
                  "VertexBased: paramenter is not an instance of Hornet Class");
-    const auto ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
-    const auto   DYN_SMEM_SIZE = ITEMS_PER_BLOCK * sizeof(vid_t);
+    int dyn_smem_size = xlib::DeviceProperty::smem_per_block(BLOCK_SIZE);
 
     kernel::vertexBasedKernel<VW_SIZE>
         <<< xlib::ceil_div<BLOCK_SIZE>(hornet.nV()) * VW_SIZE, BLOCK_SIZE,
-            DYN_SMEM_SIZE >>>
+            dyn_smem_size >>>
         (hornet.device_side(), op);
     CHECK_CUDA_ERROR
 }

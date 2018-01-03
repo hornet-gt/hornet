@@ -35,7 +35,7 @@
  */
 #include "BinarySearchKernel.cuh"
 #include <Device/Primitives/CubWrapper.cuh>  //xlib::CubExclusiveSum
-#include <Device/Util/Definition.cuh>        //xlib::SMemPerBlock
+#include <Device/Util/DeviceProperties.cuh>  //xlib::SMemPerBlock
 
 namespace hornets_nest {
 namespace load_balancing {
@@ -61,8 +61,9 @@ void BinarySearch::apply(const HornetClass& hornet,
                          const Operator&    op) const noexcept {
     static_assert(IsHornet<HornetClass>::value,
                  "BinarySearch: paramenter is not an instance of Hornet Class");
-    const auto ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
-    const auto   DYN_SMEM_SIZE = ITEMS_PER_BLOCK * sizeof(vid_t);
+    int ITEMS_PER_BLOCK = xlib::DeviceProperty
+                          ::smem_per_block<vid_t>(BLOCK_SIZE);
+    const auto DYN_SMEM_SIZE = ITEMS_PER_BLOCK * sizeof(vid_t);
     assert(num_vertices < _work_size && "BinarySearch (work queue) too small");
 
     kernel::computeWorkKernel
@@ -75,11 +76,11 @@ void BinarySearch::apply(const HornetClass& hornet,
 
     int total_work;
     cuMemcpyToHost(_d_work + num_vertices, total_work);
-    unsigned grid_size = xlib::ceil_div<ITEMS_PER_BLOCK>(total_work);
+    unsigned grid_size = xlib::ceil_div(total_work, ITEMS_PER_BLOCK);
 
     if (total_work == 0)
         return;
-    kernel::binarySearchKernel<BLOCK_SIZE, ITEMS_PER_BLOCK>
+    kernel::binarySearchKernel<BLOCK_SIZE>
         <<< grid_size, BLOCK_SIZE, DYN_SMEM_SIZE >>>
         (hornet.device_side(), d_input, _d_work, num_vertices + 1, op);
     CHECK_CUDA_ERROR
@@ -90,12 +91,13 @@ void BinarySearch::apply(const HornetClass& hornet, const Operator& op)
                          const noexcept {
     static_assert(IsHornet<HornetClass>::value,
                  "BinarySearch: paramenter is not an instance of Hornet Class");
-    const auto ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
-    const auto   DYN_SMEM_SIZE = ITEMS_PER_BLOCK * sizeof(vid_t);
+    int ITEMS_PER_BLOCK = xlib::DeviceProperty
+                          ::smem_per_block<vid_t>(BLOCK_SIZE);
+    auto  DYN_SMEM_SIZE = ITEMS_PER_BLOCK * sizeof(vid_t);
 
-    unsigned grid_size = xlib::ceil_div<ITEMS_PER_BLOCK>(hornet.nE());
+    unsigned grid_size = xlib::ceil_div(hornet.nE(), ITEMS_PER_BLOCK);
 
-    kernel::binarySearchKernel<BLOCK_SIZE, ITEMS_PER_BLOCK>
+    kernel::binarySearchKernel<BLOCK_SIZE>
         <<< grid_size, BLOCK_SIZE, DYN_SMEM_SIZE >>>
         (hornet.device_side(), hornet.device_csr_offsets(),
          hornet.nV() + 1, op);

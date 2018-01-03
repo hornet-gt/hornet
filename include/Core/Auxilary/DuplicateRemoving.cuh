@@ -38,6 +38,8 @@
  */
 #pragma once
 
+#include <Device/Util/DeviceProperties.cuh> //xlib::smem_per_block
+
 namespace hornets_nest {
 
 template<unsigned HASHTABLE_SIZE, int ITERS = 1>
@@ -74,7 +76,7 @@ bool duplicate_removing_aux(vid_t vertex, void* smem) {
 template<int ITERS = 1>
 __device__ __forceinline__
 bool is_duplicate(vid_t vertex) {
-    const unsigned      SMEM_SIZE = xlib::SMemPerBlock<128, vid2_t>::value;
+    const unsigned      SMEM_SIZE = xlib::smem_per_block<vid2_t, 128>();
     const unsigned HASHTABLE_SIZE = xlib::rounddown_pow2(SMEM_SIZE);
 
     return duplicate_removing_aux<HASHTABLE_SIZE, 1>(vertex, xlib::dyn_smem);

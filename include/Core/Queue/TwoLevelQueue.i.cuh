@@ -32,7 +32,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include <Device/Util/Definition.cuh>       //xlib::SMemPerBlock
+#include <Device/Util/DeviceProperties.cuh>       //xlib::SMemPerBlock
 #include <Device/Util/PrintExt.cuh>         //xlib::gpu::printArray
 #include <Device/Util/PTX.cuh>              //xlib::__msb
 #include <Device/Util/SafeCudaAPI.cuh>      //cuMemcpyToDeviceAsync

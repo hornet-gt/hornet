@@ -142,8 +142,6 @@ template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&         hornet,
                  const Operator&      op,
                  const LoadBalancing& load_balancing) {
-    const int PARTITION_SIZE = xlib::SMemPerBlock<BLOCK_SIZE_OP2, vid_t>::value;
-    int num_partitions = xlib::ceil_div<PARTITION_SIZE>(hornet.nE());
 
     load_balancing.apply(hornet, op);
 }

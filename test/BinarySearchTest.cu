@@ -10,7 +10,7 @@
 #include <Graph/GraphStd.hpp>
 #include <iostream>
 
-#define ENABLE_MGPU
+//#define ENABLE_MGPU
 
 #if defined(ENABLE_MGPU)
     #include <moderngpu/kernel_load_balance.hxx>

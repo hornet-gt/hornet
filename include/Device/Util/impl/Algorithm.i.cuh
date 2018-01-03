@@ -81,6 +81,32 @@ bool equal_sorted(HostIterator host_start, HostIterator host_end,
 //==============================================================================
 //==============================================================================
 
+template<typename itA_t, typename itB_t>
+__device__ __forceinline__
+int2 merge_path_search(const itA_t& A, int A_size,
+                       const itB_t& B, int B_size,
+                       int diagonal) {
+    int x_min = ::max(diagonal - B_size, 0);
+    int x_max = ::min(diagonal, A_size);
+
+    while (x_min < x_max) {
+        int pivot = (x_max + x_min) / 2u;
+        if (A[pivot] <= B[diagonal - pivot - 1])
+            x_min = pivot + 1;
+        else
+            x_max = pivot;
+    }
+    return make_int2(::min(x_min, A_size), diagonal - x_min);
+}
+
+class NaturalIterator {
+public:
+    HOST_DEVICE
+    int operator[](int index) const {
+        return index;
+    }
+};
+
 template<unsigned SIZE, typename T>
 __device__ __forceinline__
 int binary_search_pow2(const T* shared_mem, T searched) {

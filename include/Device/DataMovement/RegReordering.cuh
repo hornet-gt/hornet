@@ -45,10 +45,10 @@ namespace xlib {
  * SMEM_ITEMS == shared memory items        in the example: 2
  *
  *  before:
- *  thread0: reg1 = { 1,  2,  3,  4, 5 }
- *  thread1: reg1 = { 6,  7,  8, 9, 10 }
- *  thread2: reg1 = { 11, 12, 13, 14, 15}
- *  thread3: reg1 = { 16, 17, 18, 19, 20}
+ *  thread0: reg1 = {  1,  2,  3,  4,  5 }
+ *  thread1: reg1 = {  6,  7,  8,  9, 10 }
+ *  thread2: reg1 = { 11, 12, 13, 14, 15 }
+ *  thread3: reg1 = { 16, 17, 18, 19, 20 }
  *
  *  after:
  *  thread0: reg1 = { 1, 5,  9, 13, 17 }
@@ -76,6 +76,10 @@ void shuffle_reordering(T (&A)[SIZE]);
 template<typename T>
 __device__ __forceinline__
 void shuffle_reordering_v4(T (&A)[8]);
+
+template<typename T, int SIZE>
+__device__ __forceinline__
+void shuffle_reordering_inv(T (&A)[SIZE]);
 
 //------------------------------------------------------------------------------
 

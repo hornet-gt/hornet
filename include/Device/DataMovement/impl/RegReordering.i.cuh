@@ -44,6 +44,23 @@
 namespace xlib {
 namespace detail {
 
+template<int SIZE, int INDEX = 0>
+struct Unroll {
+    template<typename Lambda>
+    __device__ __forceinline__
+    static void apply(const Lambda& lambda) {
+        lambda(INDEX);
+        Unroll<SIZE, INDEX + 1>::apply(lambda);
+    }
+};
+
+template<int SIZE>
+struct Unroll<SIZE, SIZE> {
+    template<typename Lambda>
+    __device__ __forceinline__
+    static void apply(const Lambda&) {}
+};
+
 template<int SIZE = 1, int OFFSET = 0, int LEFT_BOUND = 0>
 struct SMemReordering {
 
@@ -212,6 +229,8 @@ void shuffle_reordering(T (&A)[SIZE]) {
                   xlib::is_power2(SIZE),
                   "Does not work if mcd(SIZE, WARP_SIZE) != 1 && SIZE is not "
                   "a power of 2");
+    using namespace xlib::detail;
+
     if (SIZE == 1)
         return;
 
@@ -229,11 +248,11 @@ void shuffle_reordering(T (&A)[SIZE]) {
                 B[j] = (j == index) ? A[i] : B[j];
         }
         */
-        xlib::Unroll<SIZE>::apply([&](int I) {
+        Unroll<SIZE>::apply([&](int I) {
                         int index = (I * xlib::WARP_SIZE + laneid) % SIZE;
-                        xlib::Unroll<SIZE>::apply([&](int J) {
-                                            B[J] = (J == index) ? A[I] : B[J];
-                                        });
+                        Unroll<SIZE>::apply([&](int J) {
+                                        B[J] = (J == index) ? A[I] : B[J];
+                                    });
                     });
 
         #pragma unroll
@@ -253,11 +272,11 @@ void shuffle_reordering(T (&A)[SIZE]) {
                 B[i] = (j == index) ? A[j] : B[i];
         }
         */
-        xlib::Unroll<SIZE>::apply([&](int I) {
+        Unroll<SIZE>::apply([&](int I) {
                         int index = (SIZE - I + laneid) % SIZE;
-                        xlib::Unroll<SIZE>::apply([&](int J) {
-                                            B[I] = (J == index) ? A[J] : B[I];
-                                        });
+                        Unroll<SIZE>::apply([&](int J) {
+                                        B[I] = (J == index) ? A[J] : B[I];
+                                    });
                     });
 
         #pragma unroll
@@ -277,11 +296,11 @@ void shuffle_reordering(T (&A)[SIZE]) {
                 A[j] = (j == index) ? B[i] : A[j];
         }
         */
-        xlib::Unroll<SIZE>::apply([&](int I) {
+        Unroll<SIZE>::apply([&](int I) {
                         int index = (I + laneid / NUM_GROUPS) % SIZE;
-                        xlib::Unroll<SIZE>::apply([&](int J) {
-                                            A[J] = (J == index) ? B[I] : A[J];
-                                        });
+                        Unroll<SIZE>::apply([&](int J) {
+                                        A[J] = (J == index) ? B[I] : A[J];
+                                    });
                     });
     }
 }
@@ -292,6 +311,7 @@ void shuffle_reordering(T (&A)[SIZE]) {
 template<typename T>
 __device__ __forceinline__
 void shuffle_reordering_v4(T (&A)[8]) {
+    using namespace detail;
     const unsigned SIZE       = 8;
     const unsigned VECT       = 4;
     const unsigned NUM_GROUPS = SIZE / VECT;
@@ -309,11 +329,11 @@ void shuffle_reordering_v4(T (&A)[8]) {
             B[i] = (j == index) ? A[j] : B[i];
     }
     */
-    xlib::Unroll<SIZE>::apply([&](int I) {
+    Unroll<SIZE>::apply([&](int I) {
                     int index = ((laneid % NUM_GROUPS) * VECT + I) % SIZE;
-                    xlib::Unroll<SIZE>::apply([&](int J) {
-                                        B[I] = (J == index) ? A[J] : B[I];
-                                    });
+                    Unroll<SIZE>::apply([&](int J) {
+                                    B[I] = (J == index) ? A[J] : B[I];
+                                });
                 });
 
     #pragma unroll
@@ -333,11 +353,71 @@ void shuffle_reordering_v4(T (&A)[8]) {
             A[i] = (j == index) ? B[j] : A[i];
     }
     */
-    xlib::Unroll<SIZE>::apply([&](int I) {
+    Unroll<SIZE>::apply([&](int I) {
                     int index = ((laneid / GROUP_SIZE) * VECT + I) % SIZE;
-                    xlib::Unroll<SIZE>::apply([&](int J) {
-                                        A[I] = (J == index) ? B[J] : A[I];
-                                    });
+                    Unroll<SIZE>::apply([&](int J) {
+                                    A[I] = (J == index) ? B[J] : A[I];
+                                });
+                });
+}
+
+//==============================================================================
+
+template<typename T, int SIZE>
+__device__ __forceinline__
+void shuffle_reordering_inv(T (&A)[SIZE]) {
+    static_assert(xlib::WARP_SIZE % SIZE == 0,
+                  "WARP_SIZE and SIZE must be divisible");
+    using namespace xlib::detail;
+    if (SIZE == 1)
+        return;
+
+    T B[SIZE];
+    int laneid = xlib::lane_id();
+
+    const unsigned NUM_GROUPS = xlib::WARP_SIZE / SIZE;
+
+    //                     !!!  Enable in CUDA Toolkit >= 9.2  !!!
+    /*
+    #pragma unroll            //index = (SIZE - i + laneid / NUM_GROUPS) % SIZE;
+    for (int i = 0; i < SIZE; i++) {
+        int index = (SIZE - i + laneid) % SIZE;
+        #pragma unroll
+        for (int j = 0; j < SIZE; j++)
+            B[i] = (j == index) ? A[j] : B[i];
+    }
+    */
+
+    Unroll<SIZE>::apply([&](int I) {
+                    int index = (SIZE - I + laneid / NUM_GROUPS) % SIZE;
+                    Unroll<SIZE>::apply([&](int J) {
+                                    B[I] = (J == index) ? A[J] : B[I];
+                                });
+                });
+
+    #pragma unroll
+    for (int i = 0; i < SIZE; i++) {
+        int base  = (laneid % SIZE) * NUM_GROUPS;
+        int index = (base + laneid / SIZE + i * NUM_GROUPS) % xlib::WARP_SIZE;
+        B[i] = xlib::shfl(B[i], index);
+    }
+
+    //                     !!!  Enable in CUDA Toolkit >= 9.2  !!!
+    /*
+    #pragma unroll
+    for (int i = 0; i < SIZE; i++) {
+        int index = (i + laneid) % SIZE; //<-- (i + laneid % SIZE) % SIZE
+        #pragma unroll
+        for (int j = 0; j < SIZE; j++)
+            A[j] = (j == index) ? B[i] : A[j];
+    }
+    */
+
+    Unroll<SIZE>::apply([&](int I) {
+                    int index = (I + laneid) % SIZE;
+                    Unroll<SIZE>::apply([&](int J) {
+                                    A[J] = (J == index) ? B[I] : A[J];
+                                });
                 });
 }
 

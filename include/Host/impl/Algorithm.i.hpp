@@ -44,23 +44,6 @@ namespace xlib {
 //template<typename T>
 //struct numeric_limits;
 
-template<int SIZE, int INDEX>
-struct Unroll {
-
-    template<typename Lambda>
-    HOST_DEVICE
-    static void apply(const Lambda& lambda) {
-        lambda(INDEX);
-        Unroll<SIZE, INDEX + 1>::apply(lambda);
-    }
-};
-
-template<int SIZE>
-struct Unroll<SIZE, SIZE> {
-    template<typename Lambda>
-    HOST_DEVICE
-    static void apply(const Lambda&) {}
-};
 
 //------------------------------------------------------------------------------
 

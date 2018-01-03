@@ -38,7 +38,7 @@
  */
 #pragma once
 
-#include "Device/Util/Definition.cuh"
+#include "Device/Util/DeviceProperties.cuh" //xlib::WARP_SZ
 
 namespace xlib {
 

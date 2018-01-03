@@ -43,9 +43,6 @@
 
 namespace xlib {
 
-template<int SIZE, int INDEX = 0>
-struct Unroll;
-
 
 //template<class FUN_T, typename... T>
 //inline void Funtion_TO_multiThreads(bool MultiCore, FUN_T FUN, T... Args);

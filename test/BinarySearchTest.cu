@@ -10,7 +10,7 @@
 #include <Graph/GraphStd.hpp>
 #include <iostream>
 
-//#define ENABLE_MGPU
+#define ENABLE_MGPU
 
 #if defined(ENABLE_MGPU)
     #include <moderngpu/kernel_load_balance.hxx>
@@ -44,14 +44,14 @@ void MergePathTest2(const int* __restrict__ d_partitions,
                     int* __restrict__       d_offset) {
     __shared__ int smem[ITEMS_PER_BLOCK];
 
-    const auto& lambda = [&](int pos, int offset, int index2) {
-                            // int index = d_prefixsum[pos] + offset;
-                             //printf("t: %d\t%d\t%d\n", threadIdx.x, index, index2);
-                             //assert(index == index2);
-                             d_pos[index2]    = pos;
+    const auto& lambda = [&](int pos, int, int index) {
+                             d_pos[index] = pos;
                              //d_offset[index] = offset;
                         };
-    xlib::binarySearchLB2<BLOCK_SIZE, ITEMS_PER_BLOCK / BLOCK_SIZE, true>
+    //xlib::binarySearchLB2<BLOCK_SIZE, ITEMS_PER_BLOCK / BLOCK_SIZE, true>
+    //    (d_partitions, num_partitions, d_prefixsum, prefixsum_size, smem, lambda);
+
+    xlib::mergePathLB<BLOCK_SIZE, ITEMS_PER_BLOCK / BLOCK_SIZE, true>
         (d_partitions, num_partitions, d_prefixsum, prefixsum_size, smem, lambda);
 }
 
@@ -89,8 +89,8 @@ const bool PRINT      = false;
 const int  BLOCK_SIZE = 128;
 
 int main(int argc, char* argv[]) {
-    /*NaturalIterator natural_iterator;
-    const int NUM_THREADS = 5;
+    xlib::NaturalIterator natural_iterator;
+    /*const int NUM_THREADS = 5;
     int  offsets[] = { 0, 2, 2, 4, 8, 16 };
     int*   offset2 = offsets + 1;
     const int SIZE = sizeof(offsets) / sizeof(int) - 1;
@@ -129,11 +129,11 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
     return 0;*/
 
-    const int THREAD_ITEMS    = 11;
+    const int THREAD_ITEMS    = 8;
     const int ITEMS_PER_BLOCK = BLOCK_SIZE * THREAD_ITEMS;
 
     Timer<DEVICE, micro> TM;
-    GraphStd<> graph(structure_prop::UNDIRECTED);
+    GraphStd<> graph;
     graph.read(argv[1], parsing_prop::PRINT_INFO | parsing_prop::RM_SINGLETON);
 
     int  size       = graph.nV();
@@ -152,6 +152,20 @@ int main(int argc, char* argv[]) {
     for (int i = prefixsum[size]; i < ceil_total; i++)
         h_pos[i] = -1;
     //--------------------------------------------------------------------------
+    int num_merge = graph.nE() + graph.nV();
+
+    /*for (int i = 0; i < 70; i++) {
+        auto range_start = ::merge_path_search(prefixsum, size + 1,
+                                             natural_iterator, prefixsum[size],
+                                             min(i * THREAD_ITEMS, num_merge));
+        auto   range_end = ::merge_path_search(prefixsum, size + 1,
+                                             natural_iterator, prefixsum[size],
+                                             min((i + 1) * THREAD_ITEMS, num_merge));
+        std::cout << i << "\t" << min(i * THREAD_ITEMS, num_merge)
+                  << "\t(" << range_start.x << ", " << range_start.y << ")\t\t("
+                  << range_end.x  << "\t" << range_end.y << ")" <<std::endl;
+    }*/
+
     if (PRINT) {
         graph.print_raw();
         std::cout << "Experted results:\n\n";
@@ -161,7 +175,6 @@ int main(int argc, char* argv[]) {
     }
 
     int* d_prefixsum, *d_pos, *d_offset, *d_partitions;
-    int num_merge            = graph.nE() + graph.nV();
     int merge_blocks         = xlib::ceil_div<ITEMS_PER_BLOCK>(num_merge);
     int merge_block_partitions = xlib::ceil_div<BLOCK_SIZE>(merge_blocks);
 
@@ -186,30 +199,30 @@ int main(int argc, char* argv[]) {
     //--------------------------------------------------------------------------
     TM.start();
 
-    //blockPartition<ITEMS_PER_BLOCK> <<< num_block_partitions, BLOCK_SIZE >>>
-    //    (d_prefixsum, size + 1, d_partitions, num_blocks);
+    /*binarySearchLBPartition <ITEMS_PER_BLOCK>
+        <<< num_block_partitions, BLOCK_SIZE >>>
+        (d_prefixsum, size + 1, d_partitions, num_blocks);*/
 
-    blockPartition2<ITEMS_PER_BLOCK> <<< merge_block_partitions, BLOCK_SIZE >>>
+    mergePathLBPartition <ITEMS_PER_BLOCK>
+        <<< merge_block_partitions, BLOCK_SIZE >>>
         (d_prefixsum, size, graph.nE(), num_merge, d_partitions, merge_blocks);
 
     TM.stop();
     TM.print("Partition:  ");
 
-    ::gpu::printArray(d_partitions, 100);
-    /*auto h_partition = new int[merge_blocks + 1];
-    cuMemcpyToHost(d_partitions, merge_blocks + 1, h_partition);
-    for (int i = 0; i < 10; i++)
-        std::cout << prefixsum[h_partition[i]] << " ";
-    std::cout << "\n\n";*/
-    goto L1;
+    //::gpu::printArray(d_partitions + merge_blocks - 5, 6);
+    //::gpu::printArray(d_partitions, 5);
 
     TM.start();
 
     //MergePathTest<ITEMS_PER_BLOCK, BLOCK_SIZE> <<< num_blocks, BLOCK_SIZE >>>
     //    (d_prefixsum, size + 1, d_pos, d_offset);
 
-    MergePathTest2<ITEMS_PER_BLOCK, BLOCK_SIZE> <<< num_blocks, BLOCK_SIZE >>>
-        (d_partitions, num_blocks, d_prefixsum, size + 1, d_pos, d_offset);
+    //MergePathTest2<ITEMS_PER_BLOCK, BLOCK_SIZE> <<< num_blocks, BLOCK_SIZE >>>
+    //    (d_partitions, num_blocks, d_prefixsum, size + 1, d_pos, d_offset);
+
+    MergePathTest2<ITEMS_PER_BLOCK, BLOCK_SIZE> <<< merge_blocks, BLOCK_SIZE >>>
+        (d_partitions, merge_blocks, d_prefixsum, size + 1, d_pos, d_offset);
 
     TM.stop();
     TM.print("BinarySearch:  ");
@@ -221,13 +234,16 @@ int main(int argc, char* argv[]) {
         ::gpu::printArray(d_pos,    graph.nE());
         ::gpu::printArray(d_offset, graph.nE());
     }
+    //xlib::printArray(h_pos, 100);
+    //::gpu::printArray(d_pos,  100);
+
     std::cout << "\n Check Positions: "
               << ::gpu::equal(h_pos, h_pos + graph.nE(), d_pos)
               //<< "\n   Check Offsets: "
               //<< ::gpu::equal(h_offset, h_offset + graph.nE(), d_offset)
               << "\n" << std::endl;
 
-    L1:
+    //L1:
 
 #if defined(ENABLE_MGPU)
     using namespace mgpu;

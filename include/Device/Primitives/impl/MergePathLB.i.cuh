@@ -33,55 +33,44 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
- *
- * @file
  */
-
 namespace xlib {
 
-template<unsigned PARTITION_SIZE, typename T>
+template<unsigned ITEMS_PER_BLOCK, typename T>
 __global__
-void blockPartition2(const T* __restrict__ d_prefixsum,
-                     int                   prefixsum_size,
-                     T                     max_value,
-                     int                   num_merge,
-                     int*     __restrict__ d_partitions,
-                     int                   num_partitions) {
+void mergePathLBPartition(const T* __restrict__ d_prefixsum,
+                          int                   prefixsum_size,
+                          T                     max_value,
+                          int                   num_merge,
+                          int*     __restrict__ d_partitions,
+                          int                   num_partitions) {
 
     int id     = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
-    NaturalIterator natural_iterator;
 
     for (int i = id; i <= num_partitions; i += stride) {
-    	T diagonal      = ::min(i * PARTITION_SIZE, num_merge);
+    	T diagonal      = ::min(i * ITEMS_PER_BLOCK, num_merge);
         auto value      = xlib::merge_path_search(d_prefixsum, prefixsum_size,
-                                                  natural_iterator, max_value,
+                                                  NaturalIterator(), max_value,
                                                   diagonal);
         d_partitions[i] = value.y;
-        if (i < 10)
-            printf("%d\t%d\t%d\t%d\n", value.x, value.y, value.x + value.y, d_prefixsum[value.x]);
+        //if (i < 10)
+        //    printf("%d\t%d\t\t%d\n", value.x, value.y, d_prefixsum[value.x]);
     }
-    //if (id == 0)
-    //    d_partitions[num_partitions] = max_value;
 }
 
+//==============================================================================
 
-template<unsigned BLOCK_SIZE, bool LAST_BLOCK,
+template<unsigned BLOCK_SIZE, bool INDICES,
          unsigned ITEMS_PER_THREAD, typename T>
 __device__ __forceinline__
-void threadPartition2(const T* __restrict__ d_prefixsum,
-                     int                   prefixsum_size,
-                     int2                  block_coord_start,
-                     int2                  block_coord_end,
-                     int                   block_search_low,
-                     T*       __restrict__ smem_prefix,
-                     int                 (&reg_pos)[ITEMS_PER_THREAD],
-                     T                   (&reg_offset)[ITEMS_PER_THREAD]) {
+void blockMergePathLB(const T* __restrict__ d_prefixsum,
+                      int2                  block_coord_start,
+                      int                   y_size,
+                      T*       __restrict__ smem_prefix,
+                      int                   smem_size,
+                      T*       __restrict__ smem_buffer) {
 
-    NaturalIterator natural_iterator;
-    T   diagonal  = block_search_low +
-                    static_cast<T>(threadIdx.x) * ITEMS_PER_THREAD;
-    int smem_size = block_coord_end.x - block_coord_start.x + 2;
 
     auto smem_tmp = smem_prefix + threadIdx.x;
     auto d_tmp    = d_prefixsum + block_coord_start.x + threadIdx.x;
@@ -94,36 +83,63 @@ void threadPartition2(const T* __restrict__ d_prefixsum,
 
     xlib::sync<BLOCK_SIZE>();
 
-    int max_value = block_coord_end.y - block_coord_start.y;
-
+    T diagonal = threadIdx.x * ITEMS_PER_THREAD;
+    NaturalIterator natural_iterator(block_coord_start.y);
     auto thread_coord = xlib::merge_path_search(smem_prefix, smem_size,
-                                                natural_iterator, max_value,
+                                                natural_iterator, y_size,
                                                 diagonal);
 
-    const int LOWEST = xlib::numeric_limits<int>::lowest;
-    int y_value = thread_coord.y;
+    const auto MAX = xlib::numeric_limits<int>::max;
+    int first      = (threadIdx.x == 0);
+    thread_coord.x = max(thread_coord.x - first, 0);
+    int next       = (thread_coord.x < smem_size) ? smem_prefix[thread_coord.x]
+                                                  : MAX;
+    int y_value    = block_coord_start.y + thread_coord.y;
 
-    #pragma unroll
+    /*#pragma unroll
     for (int i = 0; i < ITEMS_PER_THREAD; i++) {
-        if (y_value < smem_prefix[thread_coord.x]) {
-            reg_pos[i]    = thread_coord.x;
-            reg_offset[i] = smem_prefix[thread_coord.x] - y_value;
+        assert(y_value <= next);
+        //if (blockIdx.x == 2606 && threadIdx.x == 63)
+        //    printf("(%d, %d, %d)\n", thread_coord.x, y_value, next);
+        if (y_value < next) {
+            assert(thread_coord.y < y_size || blockIdx.x == gridDim.x - 1);
+            assert(thread_coord.x >= 0);
+            assert(thread_coord.x - 1 < smem_size);
+            smem_buffer[thread_coord.y] = thread_coord.x - 1;
+            thread_coord.y++;
             y_value++;
         }
         else {
-            reg_pos[i] = LOWEST;
             thread_coord.x++;
+            next = (thread_coord.x < smem_size) ?
+                    smem_prefix[thread_coord.x] : MAX;
         }
-    }
+    }*/
+    /*if (blockIdx.x == 0 && threadIdx.x == 0) {
+        //printf("%d\t%d\n", smem_size, y_size);
+        xlib::printfArray(smem_prefix, smem_size);
+        printf("\n");
+        xlib::printfArray(smem_buffer, y_size);
+    }*/
+
     #pragma unroll
     for (int i = 0; i < ITEMS_PER_THREAD; i++) {
-        reg_pos[i] += block_coord_start.x;
-        assert(reg_pos[i] < prefixsum_size);
+        bool pred = (y_value < next);
+        if (pred)
+            smem_buffer[thread_coord.y] = thread_coord.x - 1;
+
+        thread_coord.x = (pred) ? thread_coord.x     : thread_coord.x + 1;
+        y_value        = (pred) ? y_value + 1        : y_value;
+        thread_coord.y = (pred) ? thread_coord.y + 1 : thread_coord.y;
+        next           = (thread_coord.x < smem_size) ?
+                         smem_prefix[thread_coord.x] : MAX;
     }
     xlib::sync<BLOCK_SIZE>();
 }
 
-template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_THREAD, bool LAST_BLOCK = true,
+//==============================================================================
+
+template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_THREAD, bool INDICES = true,
          typename T, typename Lambda>
 __device__ __forceinline__
 void mergePathLB(const int* __restrict__ d_partitions,
@@ -133,37 +149,44 @@ void mergePathLB(const int* __restrict__ d_partitions,
                  void*      __restrict__ smem,
                  const Lambda&           lambda) {
 
-    const unsigned ITEMS_PER_WARP  = xlib::WARP_SIZE * ITEMS_PER_THREAD;
     const unsigned ITEMS_PER_BLOCK = BLOCK_SIZE * ITEMS_PER_THREAD;
 
-    int reg_pos   [ITEMS_PER_THREAD];
-    T   reg_offset[ITEMS_PER_THREAD];
+    int block_diag0 = blockIdx.x * ITEMS_PER_BLOCK;
+    int block_diag1 = block_diag0 + ITEMS_PER_BLOCK;
 
     int  block_start_pos  = d_partitions[ blockIdx.x ];
     int  block_end_pos    = d_partitions[ blockIdx.x + 1 ];
-    auto smem_prefix      = static_cast<T*>(smem);
+    int  min_value        = ::min(block_diag1 - block_end_pos,
+                                  prefixsum_size);
+    int2 block_coord_start { block_diag0 - block_start_pos, block_start_pos };
+    int2 block_coord_end   { min_value,                     block_end_pos   };
 
-    int a_count = 0, b_count = 0;
-    int diag0 = blockIdx.x * ITEMS_PER_BLOCK;
-    int diag1 = ::min(a_count + b_count, diag0 + ITEMS_PER_BLOCK);
+    int  smem_size   = block_coord_end.x - block_coord_start.x;
+    int  y_size      = block_coord_end.y - block_coord_start.y;
+    auto smem_prefix = static_cast<T*>(smem);
+    auto smem_buffer = static_cast<T*>(smem) + smem_size;
 
-    int2 block_coord_start { block_start_pos, diag0 - block_start_pos };
-    int2 block_coord_end   { block_end_pos,   diag1 - block_end_pos   };
+    assert(blockIdx.x == gridDim.x - 1 ||
+           (block_coord_end.x - block_coord_start.x) +
+           (block_coord_end.y - block_coord_start.y) == ITEMS_PER_BLOCK);
+    assert(block_coord_start.x + smem_size <= prefixsum_size);
 
-    /*threadPartition2<BLOCK_SIZE, LAST_BLOCK>
-        (d_prefixsum, prefixsum_size, block_start_pos, block_end_pos,
-         block_search_low, smem_prefix, reg_pos, reg_offset);*/
+    /*if (blockIdx.x < 10 && threadIdx.x == 0)
+        printf("%d\t%d\t%d\t%d\n", block_coord_start.x, block_coord_end.x,
+                                   block_coord_start.y, block_coord_end.y);*/
 
-    xlib::smem_reordering(reg_pos, smem_prefix);
-
-    int id    = blockIdx.x * BLOCK_SIZE + threadIdx.x;
-    int index = (id / xlib::WARP_SIZE) * ITEMS_PER_WARP + xlib::lane_id();
+    blockMergePathLB<BLOCK_SIZE, INDICES, ITEMS_PER_THREAD>
+        (d_prefixsum, block_coord_start, y_size,
+         smem_prefix, smem_size, smem_buffer);
 
     #pragma unroll
     for (int i = 0; i < ITEMS_PER_THREAD; i++) {
-        if (reg_pos[i] >= 0) {
-            assert(reg_pos[i] < prefixsum_size);
-            lambda(reg_pos[i], reg_offset[i], index + i * xlib::WARP_SIZE);
+        int index = threadIdx.x + i * BLOCK_SIZE;
+        if (index < y_size) {
+            int reg_pos    = smem_buffer[index];
+            int reg_index  = block_coord_start.y + index;
+            int reg_offset = reg_index - smem_prefix[reg_pos];
+            lambda(reg_pos + block_coord_start.x, reg_offset, reg_index);
         }
     }
 }

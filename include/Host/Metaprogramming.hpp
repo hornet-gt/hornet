@@ -142,30 +142,14 @@ template<typename Tuple>
 struct TupleToTypeSizeSeq;
 
 //==============================================================================
-//https://stackoverflow.com/a/27867127/6585879
 
-template <typename T>
-struct get_arity : get_arity<decltype(&T::operator())> {};
+template<typename T>
+HOST_DEVICE
+constexpr unsigned get_arity(T);
 
-template<typename R, typename... Args>
-struct get_arity<R(Args...)> {
-    static const unsigned value = sizeof...(Args);
-};
-
-template<typename R, typename... Args>
-struct get_arity<R(*)(Args...)> {
-    static const unsigned value = sizeof...(Args);
-};
-
-template<typename R, typename C, typename... Args>
-struct get_arity<R(C::*)(Args...)> {
-    static const unsigned value = sizeof...(Args);
-};
-
-template<typename R, typename C, typename... Args>
-struct get_arity<R(C::*)(Args...) const> {
-    static const unsigned value = sizeof...(Args);
-};
+template<typename T>
+HOST_DEVICE
+constexpr unsigned get_arity();
 
 //==============================================================================
 //https://stackoverflow.com/a/12982320/6585879
@@ -210,6 +194,8 @@ template<typename C, typename R, typename... Args>
 struct closure_type<R (C::*)(Args...) const> {
   using ReturnType = R;
 };
+
+//------------------------------------------------------------------------------
 
 template<typename T>
 struct remove_const_ptr {

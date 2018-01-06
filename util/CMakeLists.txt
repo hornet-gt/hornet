@@ -421,6 +421,12 @@ add_custom_target(rm
                   COMMAND rm -rf ${RM_LIST}
                   COMMENT "Clear build directory")
 
+add_custom_target(rm_all
+                  COMMAND rm -rf *
+                  COMMENT "Clear (all files) build directory")
+
+#add_custom_target(echo ${CMAKE_COMMAND} -E echo \${ECHO} | ls)
+
 if (DEFINED CUDAHC)
     set(CUDAHC_FLAG -DCUDAHC=${CUDAHC})
 else()

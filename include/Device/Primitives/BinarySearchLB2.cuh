@@ -1,9 +1,10 @@
 /**
+ * @internal
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date April, 2017
- * @version v1.3
+ * @date January, 2018
+ * @version v1.4
  *
  * @copyright Copyright © 2017 XLib. All rights reserved.
  *
@@ -37,46 +38,40 @@
  */
 #pragma once
 
-#include "Graph/GraphStd.hpp"
-#include "Host/Classes/Bitmask.hpp"
-#include "Host/Classes/Queue.hpp"
-#include <array>
-#include <vector>
+#include "Host/Algorithm.hpp"                    //xlib::upper_bound_left
+#include "Device/DataMovement/RegReordering.cuh" //xlib::shuffle_reordering
+#include "Device/Util/Basic.cuh"                 //xlib::sync
+#include "Device/Util/DeviceProperties.cuh"      //xlib::WARP_SIZE
 
-namespace graph {
+namespace xlib {
 
-template<typename vid_t, typename eoff_t>
-class BFS {
-public:
-    using dist_t = int;
-    enum { PARENT = 0, PEER = 1, VALID = 2, NOT_VALID = 3 };
+template<unsigned ITEMS_PER_BLOCK, typename T>
+__global__
+void binarySearchLBPartition(const T* __restrict__ d_prefixsum,
+                             int                   prefixsum_size,
+                             int*     __restrict__ d_partitions,
+                             int                   num_partitions);
 
-    explicit BFS(const GraphStd<vid_t, eoff_t>& graph) noexcept;
-    ~BFS() noexcept;
+template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_THREAD, bool LAST_BLOCK = true,
+         typename T, typename Lambda>
+__device__ __forceinline__
+void binarySearchLB2(const int* __restrict__ d_partitions,
+                     int                     num_partitions,
+                     const T*   __restrict__ d_prefixsum,
+                     int                     prefixsum_size,
+                     void*      __restrict__ smem,
+                     const Lambda&           lambda);
 
-    void run(vid_t source) noexcept;
-    void run(const vid_t* sources, int num_sources) noexcept;
-    void reset() noexcept;
+template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_THREAD, bool LAST_BLOCK = true,
+         typename T, typename Lambda>
+__device__ __forceinline__
+void binarySearchLB3(const int* __restrict__ d_partitions,
+                     int                     num_partitions,
+                     const T*   __restrict__ d_prefixsum,
+                     int                     prefixsum_size,
+                     void*      __restrict__ smem,
+                     const Lambda&           lambda);
 
-    const dist_t* result() const noexcept;
+} // namespace xlib
 
-    vid_t  visited_nodes() const noexcept;
-    eoff_t visited_edges() const noexcept;
-    dist_t eccentricity()  const noexcept;
-
-    std::vector<std::array<vid_t, 4>> statistics(vid_t source) noexcept;
-
-    vid_t radius() noexcept;
-    vid_t diameter() noexcept;
-private:
-    const dist_t INF = std::numeric_limits<dist_t>::max();
-
-    const GraphStd<vid_t, eoff_t>&  _graph;
-    xlib::Bitmask                   _bitmask;
-    xlib::Queue<vid_t>              _queue;
-    dist_t*                         _distances   { nullptr };
-    int                             _num_visited { 0 };
-    bool                            _reset       { false };
-};
-
-} // namespace graph
+#include "impl/BinarySearchLB2.i.cuh"

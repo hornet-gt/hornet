@@ -307,4 +307,41 @@ struct IsVectorizable {
                               sizeof...(TArgs) <= 4;
 };
 
+//==============================================================================
+//==============================================================================
+//https://stackoverflow.com/a/27867127/6585879
+
+template <typename T>
+struct GetArity : GetArity<decltype(&T::operator())> {};
+
+template<typename R, typename... Args>
+struct GetArity<R(*)(Args...)> {
+    static const unsigned value = sizeof...(Args);
+};
+
+template<typename R, typename C, typename... Args>
+struct GetArity<R(C::*)(Args...)> {
+    static const unsigned value = sizeof...(Args);
+};
+
+template<typename R, typename C, typename... Args>
+struct GetArity<R(C::*)(Args...) const> {
+    static const unsigned value = sizeof...(Args);
+};
+
+template<typename T>
+HOST_DEVICE
+constexpr unsigned get_arity(T) {
+    return GetArity<T>::value;
+}
+
+template<typename T>
+HOST_DEVICE
+constexpr unsigned get_arity() {
+    return GetArity<T>::value;
+}
+
+//==============================================================================
+//==============================================================================
+
 } // namespace xlib

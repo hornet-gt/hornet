@@ -47,12 +47,13 @@ namespace detail {
 template<typename T>
 class QueueBase {
 public:
-    QueueBase()                          = default;
-    QueueBase(const QueueBase&)      = delete;
-    void operator=(const QueueBase&) = delete;
+    explicit QueueBase()                 = default;
+    explicit QueueBase(const QueueBase&) = delete;
+    void operator=(const QueueBase&)     = delete;
 protected:
     size_t _left  { 0 };
     size_t _right { 0 };
+    size_t _items { 0 };
     size_t _size  { 0 };
     T*     _array { nullptr };
 
@@ -82,13 +83,13 @@ class Queue;
 template<typename T>
 class Queue<T, QueuePolicy::FIFO> final : public detail::QueueBase<T> {
 public:
-    Queue() = default;
-    explicit Queue(size_t size)       noexcept;
+    explicit Queue()            = default;
+    explicit Queue(size_t size) noexcept;
 
-    T&         tail()                 noexcept;
-    const T&   tail()                 const noexcept;
-    size_t     getTotalEnqueueItems() const noexcept;
-    virtual T& extract()              noexcept final;                   //NOLINT
+    T&        tail()                 noexcept;
+    const T&  tail()                 const noexcept;
+    size_t    getTotalEnqueueItems() const noexcept;
+    T&        extract()              noexcept override;
 
     using detail::QueueBase<T>::init;
     using detail::QueueBase<T>::free;
@@ -100,22 +101,23 @@ public:
     using detail::QueueBase<T>::at;
     using detail::QueueBase<T>::print;
 private:
-    using detail::QueueBase<T>::_array;
     using detail::QueueBase<T>::_left;
     using detail::QueueBase<T>::_right;
+    using detail::QueueBase<T>::_items;
     using detail::QueueBase<T>::_size;
+    using detail::QueueBase<T>::_array;
 };
 
 template<typename T>
 class Queue<T, QueuePolicy::LIFO> final : public detail::QueueBase<T> {
 public:
-    Queue() = default;
+    explicit Queue()            = default;
     explicit Queue(size_t size) noexcept;
 
-    T&         top() noexcept;
-    const T&   top() const noexcept;
-    T&         pop() noexcept;
-    virtual T& extract() noexcept final;
+    T&       top() noexcept;
+    const T& top() const noexcept;
+    T&       pop() noexcept;
+    T&       extract() noexcept override;
 
     using detail::QueueBase<T>::init;
     using detail::QueueBase<T>::free;
@@ -127,10 +129,11 @@ public:
     using detail::QueueBase<T>::at;
     using detail::QueueBase<T>::print;
 private:
-    using detail::QueueBase<T>::_array;
     using detail::QueueBase<T>::_left;
     using detail::QueueBase<T>::_right;
+    using detail::QueueBase<T>::_items;
     using detail::QueueBase<T>::_size;
+    using detail::QueueBase<T>::_array;
 };
 
 //==============================================================================

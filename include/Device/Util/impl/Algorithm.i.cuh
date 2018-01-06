@@ -53,8 +53,9 @@ bool equal(HostIterator host_start, HostIterator host_end,
     if (!flag) {
         for (int i = 0; i < size; i++) {
             if (host_start[i] != array[i]) {
-                std::cout << host_start[i] << "  " << array[i] << "  at "
-                          << i << std::endl;
+                std::cout << "\nhost:   " << host_start[i]
+                          << "\ndevice: " << array[i]
+                          << "\nat:     " << i << std::endl;
                 break;
             }
         }
@@ -99,13 +100,34 @@ int2 merge_path_search(const itA_t& A, int A_size,
     return make_int2(::min(x_min, A_size), diagonal - x_min);
 }
 
+//------------------------------------------------------------------------------
+
 class NaturalIterator {
 public:
-    HOST_DEVICE
-    int operator[](int index) const {
-        return index;
-    }
+    __host__ __device__ __forceinline__
+    NaturalIterator();
+
+    __host__ __device__ __forceinline__
+    NaturalIterator(int start);
+
+    __host__ __device__ __forceinline__
+    int operator[](int index) const;
+private:
+    const int _start { 0 };
 };
+
+__host__ __device__ __forceinline__
+NaturalIterator::NaturalIterator() : _start(0) {}
+
+__host__ __device__ __forceinline__
+NaturalIterator::NaturalIterator(int start) : _start(start) {}
+
+__host__ __device__ __forceinline__
+int NaturalIterator::operator[](int index) const {
+    return _start + index;
+}
+
+//------------------------------------------------------------------------------
 
 template<unsigned SIZE, typename T>
 __device__ __forceinline__

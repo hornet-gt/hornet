@@ -55,14 +55,15 @@ template<typename vid_t, typename eoff_t>
 void BFS<vid_t, eoff_t>::run(vid_t source) noexcept {
     if (!_reset)
         ERROR("BFS must be reset before the next run")
+    const auto& offsets = _graph._out_offsets;
     _queue.insert(source);
     _bitmask[source]   = true;
     _distances[source] = 0;
 
     while (!_queue.empty()) {
         auto current = _queue.extract();
-        for (eoff_t j = _graph._out_offsets[current];
-                j < _graph._out_offsets[current + 1]; j++) {
+        _num_visited++;
+        for (eoff_t j = offsets[current]; j < offsets[current + 1]; j++) {
             auto dest = _graph._out_edges[j];
             if (!_bitmask[dest]) {
                 _bitmask[dest]   = true;
@@ -79,24 +80,25 @@ void BFS<vid_t, eoff_t>::reset() noexcept {
     std::fill(_distances, _distances + _graph.nV(), INF);
     _queue.clear();
     _bitmask.clear();
-    _reset = true;
+    _reset       = true;
+    _num_visited = 0;
 }
 
 template<typename vid_t, typename eoff_t>
 vid_t BFS<vid_t, eoff_t>::visited_nodes() const noexcept {
     if (_reset)
         ERROR("BFS not ready")
-    return _queue.getTotalEnqueueItems();
+    return _num_visited;
 }
 
 template<typename vid_t, typename eoff_t>
 eoff_t BFS<vid_t, eoff_t>::visited_edges() const noexcept {
     if (_reset)
         ERROR("BFS not ready")
-    if (_queue.getTotalEnqueueItems() == _graph.nV())
+    if (_num_visited == _graph.nV())
         return _graph.nE();
     eoff_t sum = 0;
-    for (int i = 0; i < _queue.getTotalEnqueueItems(); i++)
+    for (int i = 0; i < _num_visited; i++)
         sum += _graph._out_degrees[ _queue.at(i) ];
     return sum;
 }

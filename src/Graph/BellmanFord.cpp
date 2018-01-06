@@ -41,7 +41,7 @@ namespace graph {
 
 template<typename vid_t, typename eoff_t, typename weight_t>
 BELLMANFORD::BellmanFord(const GraphWeight<vid_t, eoff_t, weight_t>& graph)
-                         noexcept : _graph(graph), _queue(graph.nV()) {
+                         noexcept : _graph(graph), _queue(graph.nE()) {
     _distances = new weight_t[_graph._nV];
     reset();
 }
@@ -66,13 +66,14 @@ template<typename vid_t, typename eoff_t, typename weight_t>
 void BELLMANFORD::run(vid_t source) noexcept {
     if (!_reset)
         ERROR("BellmanFord not ready")
+    const auto& offsets = _graph._out_offsets;
+
     _queue.insert(source);
     _distances[source] = weight_t(0);
 
     while (_queue.size() > 0) {
         vid_t next = _queue.extract();
-        for (int i = _graph._out_offsets[next];
-             i < _graph._out_offsets[next + 1]; i++) {
+        for (int i = offsets[next]; i < offsets[next + 1]; i++) {
             vid_t dest = _graph._out_edges[i];
             if (relax(next, dest, _graph._out_weights[i]))
                 _queue.insert(dest);

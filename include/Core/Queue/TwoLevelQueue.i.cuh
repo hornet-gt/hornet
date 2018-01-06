@@ -46,7 +46,6 @@ void ptr2_t<T>::swap() noexcept {
 }
 
 //------------------------------------------------------------------------------
-
 template<typename T>
 template<typename HornetClass>
 TwoLevelQueue<T>::TwoLevelQueue(const HornetClass& hornet,
@@ -64,6 +63,7 @@ TwoLevelQueue<T>::TwoLevelQueue(size_t max_allocated_items) noexcept :
 }
 
 template<typename T>
+HOST_DEVICE
 TwoLevelQueue<T>::TwoLevelQueue(const TwoLevelQueue<T>& obj) noexcept :
                             _max_allocated_items(obj._max_allocated_items),
                             _d_queue_ptrs(obj._d_queue_ptrs),
@@ -72,9 +72,12 @@ TwoLevelQueue<T>::TwoLevelQueue(const TwoLevelQueue<T>& obj) noexcept :
                             _kernel_copy(true) {}
 
 template<typename T>
+HOST_DEVICE
 TwoLevelQueue<T>::~TwoLevelQueue() noexcept {
+#if !defined(__CUDA_ARCH__)
     if (!_kernel_copy)
         cuFree(_d_queue_ptrs.first, _d_queue_ptrs.second, _d_counters);
+#endif
 }
 
 template<typename T>

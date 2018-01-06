@@ -13,11 +13,12 @@ int main(int argc, char* argv[]) {
     graph::GraphStd<vid_t, eoff_t> graph;
     CommandLineParam cmd(graph, argc, argv);
 
-    auto h_value = new weight_t[graph.nE()];
-    std::fill(h_value, h_value + graph.nE(), weight_t(1));
+    auto h_weights = new weight_t[graph.nE()];
+    host::generate_randoms(h_weights, graph.nE(), 0, 100);
+
     HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
                            graph.csr_out_edges());
-    hornet_init.insertEdgeData(h_value);
+    hornet_init.insertEdgeData(h_weights);
 
     HornetGraph hornet_graph(hornet_init);
     SSSP sssp(hornet_graph);

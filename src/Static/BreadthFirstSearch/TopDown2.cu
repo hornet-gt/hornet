@@ -67,7 +67,7 @@ struct BFSOperator2 {
     }
 };
 
-struct BFSOperatorAtomic {
+struct BFSOperatorAtomic {                  //deterministic
     dist_t               current_level;
     dist_t*              d_distances;
     TwoLevelQueue<vid_t> queue;

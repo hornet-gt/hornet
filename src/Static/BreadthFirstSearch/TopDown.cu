@@ -83,7 +83,7 @@ void BfsTopDown::reset() {
     queue.clear();
 
     auto distances = d_distances;
-    forAllnumV(hornet, [=] __device__ (int i){ distances[i] = INF; } );
+    forAllnumV(hornet, [distances] __device__ (int i){ distances[i] = INF; } );
 }
 
 void BfsTopDown::set_parameters(vid_t source) {

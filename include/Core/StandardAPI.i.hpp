@@ -170,6 +170,16 @@ void memsetOne(T* pointer, size_t num_items) {
 }
 
 template<typename T>
+void generate_randoms(T* pointer, size_t num_items, T min, T max) {
+    auto seed = std::chrono::high_resolution_clock::now().time_since_epoch()
+                .count();
+    std::mt19937 engine(seed);
+    std::uniform_int_distribution<T> distrib(min, max);
+    std::generate(pointer, pointer + num_items,
+                  [&](){ return distrib(engine); } );
+}
+
+template<typename T>
 T reduce(const T* input, size_t num_items) {
     T th_result[MAX_THREADS];
     #pragma omp parallel firstprivate(input, num_items)

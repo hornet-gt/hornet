@@ -1,8 +1,9 @@
 /**
+ * @internal
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date November, 2017
+ * @date January, 2018
  * @version v1.4
  *
  * @copyright Copyright © 2017 XLib. All rights reserved.
@@ -32,34 +33,28 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
- *
- * @file
  */
-#pragma once
-
-#include "Device/Util/DeviceProperties.cuh" //xlib::MAX_BLOCK_SIZE
-
 namespace xlib {
 
-extern __device__ unsigned GlobalSyncArray[MAX_BLOCK_SIZE];
+template<unsigned ITEMS_PER_BLOCK, typename T>
+__global__
+void mergePathLBPartition(const T* __restrict__ d_prefixsum,
+                          int                   prefixsum_size,
+                          T                     max_value,
+                          int                   num_merge,
+                          int*     __restrict__ d_partitions,
+                          int                   num_partitions);
 
-template<unsigned BLOCK_SIZE>
-__device__ __forceinline__ void globalSync();
-
-template<unsigned BLOCK_SIZE>
-__device__ __forceinline__ void globalSync_v2();
-
-void globalSyncReset();
-
-//==============================================================================
-
-const unsigned GPU_MAX_BLOCKS = (xlib::THREADS_PER_SM / xlib::WARP_SIZE) *
-                                 xlib::MAX_SM;
-
-extern __device__ unsigned global_sync_array[GPU_MAX_BLOCKS];
-
-void global_sync_reset();
+template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
+         typename T, typename Lambda>
+__device__ __forceinline__
+void mergePathLB(const int* __restrict__ d_partitions,
+                 int                     num_partitions,
+                 const T*   __restrict__ d_prefixsum,
+                 int                     prefixsum_size,
+                 void*      __restrict__ smem,
+                 const Lambda&           lambda);
 
 } // namespace xlib
 
-#include "impl/GlobalSync.i.cuh"
+#include "impl/MergePathLB.i.cuh"

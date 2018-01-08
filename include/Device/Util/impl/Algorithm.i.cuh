@@ -79,54 +79,6 @@ bool equal_sorted(HostIterator host_start, HostIterator host_end,
 
 } // namespace gpu
 
-//==============================================================================
-//==============================================================================
-
-template<typename itA_t, typename itB_t>
-__device__ __forceinline__
-int2 merge_path_search(const itA_t& A, int A_size,
-                       const itB_t& B, int B_size,
-                       int diagonal) {
-    int x_min = ::max(diagonal - B_size, 0);
-    int x_max = ::min(diagonal, A_size);
-
-    while (x_min < x_max) {
-        int pivot = (x_max + x_min) / 2u;
-        if (A[pivot] <= B[diagonal - pivot - 1])
-            x_min = pivot + 1;
-        else
-            x_max = pivot;
-    }
-    return make_int2(::min(x_min, A_size), diagonal - x_min);
-}
-
-//------------------------------------------------------------------------------
-
-class NaturalIterator {
-public:
-    __host__ __device__ __forceinline__
-    NaturalIterator();
-
-    __host__ __device__ __forceinline__
-    NaturalIterator(int start);
-
-    __host__ __device__ __forceinline__
-    int operator[](int index) const;
-private:
-    const int _start { 0 };
-};
-
-__host__ __device__ __forceinline__
-NaturalIterator::NaturalIterator() : _start(0) {}
-
-__host__ __device__ __forceinline__
-NaturalIterator::NaturalIterator(int start) : _start(start) {}
-
-__host__ __device__ __forceinline__
-int NaturalIterator::operator[](int index) const {
-    return _start + index;
-}
-
 //------------------------------------------------------------------------------
 
 template<unsigned SIZE, typename T>

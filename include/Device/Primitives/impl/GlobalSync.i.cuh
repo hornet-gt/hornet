@@ -45,12 +45,12 @@ __device__ __forceinline__ void globalSync() {
     //static_assert(RESIDENT_BLOCKS<BLOCK_SIZE>::value <= BLOCK_SIZE,
     //              PRINT_ERR("globalSync : RESIDENT_BLOCKS > BLOCK_SIZE"));
 
-    volatile unsigned* VolatilePtr = GlobalSyncArray;
+    volatile unsigned* volatile_ptr = GlobalSyncArray;
     __syncthreads(); //-> all warps conclude their work
 
     if (blockIdx.x == 0) {
         if (threadIdx.x == 0)
-            VolatilePtr[blockIdx.x] = 1;
+            volatile_ptr[blockIdx.x] = 1;
 
         if (threadIdx.x < gridDim.x)
             while ( Load<CG>(GlobalSyncArray + threadIdx.x) == 0 );
@@ -62,7 +62,7 @@ __device__ __forceinline__ void globalSync() {
     }
     else {
         if (threadIdx.x == 0) {
-            VolatilePtr[blockIdx.x] = 1;
+            volatile_ptr[blockIdx.x] = 1;
             while (Load<CG>(GlobalSyncArray + blockIdx.x) == 1);
         }
         __syncthreads();
@@ -71,25 +71,48 @@ __device__ __forceinline__ void globalSync() {
 
 template<unsigned BLOCK_SIZE>
 __device__ __forceinline__ void globalSync_v2() {
-    volatile unsigned* VolatilePtr = GlobalSyncArray;
+    volatile auto volatile_ptr = GlobalSyncArray;
     __syncthreads(); //-> all warps conclude their work
 
     if (blockIdx.x == 0) {
         if (threadIdx.x == 0)
-            VolatilePtr[blockIdx.x] = 1;
+            volatile_ptr[blockIdx.x] = 1;
 
-        for (unsigned id = threadIdx.x; id < gridDim.x; id += BLOCK_SIZE)
+        for (int id = threadIdx.x; id < gridDim.x; id += BLOCK_SIZE)
             while ( Load<CG>(GlobalSyncArray + id) == 0 );
 
         __syncthreads();
 
-        for (unsigned id = threadIdx.x; id < gridDim.x; id += BLOCK_SIZE)
+        for (int id = threadIdx.x; id < gridDim.x; id += BLOCK_SIZE)
             Store<CG>(GlobalSyncArray + id, 0u);
     }
     else {
         if (threadIdx.x == 0) {
-            VolatilePtr[blockIdx.x] = 1;
-            while (Load<CG>(GlobalSyncArray + blockIdx.x) == 1);
+            volatile_ptr[blockIdx.x] = 1;
+            while ( Load<CG>(GlobalSyncArray + blockIdx.x) == 1 );
+        }
+        __syncthreads();
+    }
+}
+
+__device__ __forceinline__
+void global_sync() {
+    if (blockIdx.x == 0) {
+        for (int id = threadIdx.x; id < gridDim.x - 1; id += blockIdx.x)
+            while ( Load<CG>(global_sync_array + id) == 0 );
+
+        __syncthreads();
+
+        for (int id = threadIdx.x; id < gridDim.x - 1; id += blockIdx.x)
+            Store<CG>(global_sync_array + id, 0u);
+
+        //__syncthreads(); //-> all warps conclude their work
+    }
+    else {
+        if (threadIdx.x == 0) {
+            volatile auto volatile_ptr = global_sync_array;
+            volatile_ptr[blockIdx.x - 1] = 1;
+            while ( Load<CG>(global_sync_array + blockIdx.x - 1) == 1 );
         }
         __syncthreads();
     }

@@ -38,6 +38,7 @@
 #include <algorithm>                //std::transform, std::sort, std::equal
 #include <cassert>                  //assert
 #include <thread>                   //std::thread
+#include <cmath>                   //std::thread
 
 namespace xlib {
 
@@ -311,6 +312,58 @@ R binary_search(const T* mem, R size, T searched) {
             return mid;
     }
     return size; // indicate not found
+}
+
+//==============================================================================
+//==============================================================================
+//==============================================================================
+
+#if defined(__NVCC__)
+    #define RET_TYPE int2
+#else
+    #define RET_TYPE std::pair<int,int>
+#endif
+
+template<typename itA_t, typename itB_t>
+HOST_DEVICE
+RET_TYPE merge_path_search(const itA_t& A, int A_size,
+                           const itB_t& B, int B_size,
+                           int diagonal) {
+#if defined(__CUDA_ARCH__)
+    int x_min = ::max(diagonal - B_size, 0);
+    int x_max = ::min(diagonal, A_size);
+#else
+    int x_min = std::max(diagonal - B_size, 0);
+    int x_max = std::min(diagonal, A_size);
+#endif
+
+    while (x_min < x_max) {
+        int pivot = (x_max + x_min) / 2u;
+        if (A[pivot] <= B[diagonal - pivot - 1])
+            x_min = pivot + 1;
+        else
+            x_max = pivot;
+    }
+#if defined(__CUDA_ARCH__)
+    return { ::min(x_min, A_size), diagonal - x_min };
+#else
+    return { std::min(x_min, A_size), diagonal - x_min };
+#endif
+}
+
+#undef RET_TYPE
+
+//------------------------------------------------------------------------------
+
+HOST_DEVICE
+NaturalIterator::NaturalIterator() : _start(0) {}
+
+HOST_DEVICE
+NaturalIterator::NaturalIterator(int start) : _start(start) {}
+
+HOST_DEVICE
+int NaturalIterator::operator[](int index) const {
+    return _start + index;
 }
 
 } // namespace xlib

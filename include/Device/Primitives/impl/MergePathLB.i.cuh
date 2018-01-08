@@ -34,6 +34,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
+#include "Host/Algorithm.hpp"   //xlib::merge_path_search
+
 namespace xlib {
 
 template<unsigned ITEMS_PER_BLOCK, typename T>
@@ -61,8 +63,7 @@ void mergePathLBPartition(const T* __restrict__ d_prefixsum,
 
 //==============================================================================
 
-template<unsigned BLOCK_SIZE, bool INDICES,
-         unsigned ITEMS_PER_THREAD, typename T>
+template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_THREAD, typename T>
 __device__ __forceinline__
 void blockMergePathLB(const T* __restrict__ d_prefixsum,
                       int2                  block_coord_start,
@@ -70,7 +71,6 @@ void blockMergePathLB(const T* __restrict__ d_prefixsum,
                       T*       __restrict__ smem_prefix,
                       int                   smem_size,
                       T*       __restrict__ smem_buffer) {
-
 
     auto smem_tmp = smem_prefix + threadIdx.x;
     auto d_tmp    = d_prefixsum + block_coord_start.x + threadIdx.x;
@@ -128,9 +128,9 @@ void blockMergePathLB(const T* __restrict__ d_prefixsum,
         if (pred)
             smem_buffer[thread_coord.y] = thread_coord.x - 1;
 
-        thread_coord.x = (pred) ? thread_coord.x     : thread_coord.x + 1;
         y_value        = (pred) ? y_value + 1        : y_value;
         thread_coord.y = (pred) ? thread_coord.y + 1 : thread_coord.y;
+        thread_coord.x = (pred) ? thread_coord.x     : thread_coord.x + 1;
         next           = (thread_coord.x < smem_size) ?
                          smem_prefix[thread_coord.x] : MAX;
     }
@@ -139,7 +139,7 @@ void blockMergePathLB(const T* __restrict__ d_prefixsum,
 
 //==============================================================================
 
-template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_THREAD, bool INDICES = true,
+template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
          typename T, typename Lambda>
 __device__ __forceinline__
 void mergePathLB(const int* __restrict__ d_partitions,
@@ -149,7 +149,7 @@ void mergePathLB(const int* __restrict__ d_partitions,
                  void*      __restrict__ smem,
                  const Lambda&           lambda) {
 
-    const unsigned ITEMS_PER_BLOCK = BLOCK_SIZE * ITEMS_PER_THREAD;
+    const unsigned ITEMS_PER_THREAD = ITEMS_PER_BLOCK / BLOCK_SIZE;
 
     int block_diag0 = blockIdx.x * ITEMS_PER_BLOCK;
     int block_diag1 = block_diag0 + ITEMS_PER_BLOCK;
@@ -175,7 +175,7 @@ void mergePathLB(const int* __restrict__ d_partitions,
         printf("%d\t%d\t%d\t%d\n", block_coord_start.x, block_coord_end.x,
                                    block_coord_start.y, block_coord_end.y);*/
 
-    blockMergePathLB<BLOCK_SIZE, INDICES, ITEMS_PER_THREAD>
+    blockMergePathLB<BLOCK_SIZE, ITEMS_PER_THREAD>
         (d_prefixsum, block_coord_start, y_size,
          smem_prefix, smem_size, smem_buffer);
 

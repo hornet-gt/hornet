@@ -103,6 +103,34 @@ template<typename T, typename S>
 HOST_DEVICE
 void inplace_merge(T* left, S size_left, const T* right, S size_right);
 
+//------------------------------------------------------------------------------
+#if defined(__NVCC__)
+    #define RET_TYPE int2
+#else
+    #define RET_TYPE std::pair<int,int>
+#endif
+
+template<typename itA_t, typename itB_t>
+HOST_DEVICE
+RET_TYPE merge_path_search(const itA_t& A, int A_size,
+                           const itB_t& B, int B_size,
+                           int diagonal);
+#undef RET_TYPE
+
+class NaturalIterator {
+public:
+    HOST_DEVICE
+    NaturalIterator();
+
+    HOST_DEVICE
+    NaturalIterator(int start);
+
+    HOST_DEVICE
+    int operator[](int index) const;
+private:
+    const int _start { 0 };
+};
+
 } // namespace xlib
 
 #include "impl/Algorithm.i.hpp"

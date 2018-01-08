@@ -286,10 +286,11 @@ __device__ __forceinline__  void StoreSupport(T* pointer, T value);
 template<>                                                                     \
 struct ThreadStore<CACHE_MOD> {                                                \
     template<typename T, typename R>                                           \
-    static __device__ __forceinline__ void op(T* pointer, R value) {           \
+    __device__ __forceinline__                                                 \
+    static void op(T* pointer, R value) {                                      \
         return StoreSupport<CACHE_MOD>(                                        \
             const_cast<typename std::remove_cv<T>::type*>(pointer),            \
-            const_cast<typename std::remove_cv<R>::type>(value));              \
+            value);                                                            \
     }                                                                          \
 };
 

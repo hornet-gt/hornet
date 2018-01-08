@@ -42,24 +42,15 @@
 
 namespace graph {
 
-template<typename vid_t, typename eoff_t>
-class BFS;
-
-template<typename vid_t, typename eoff_t>
-class WCC;
-
-template<typename vid_t, typename eoff_t, typename weight_t>
-class BellmanFord;
-
-template<typename vid_t, typename eoff_t, typename weight_t>
-class Dijkstra;
-
-template<typename vid_t, typename eoff_t, typename weight_t>
-class Brim;
+template<typename, typename> class BFS;
+template<typename, typename> class WCC;
+template<typename, typename, typename> class BellmanFord;
+template<typename, typename, typename> class Dijkstra;
+template<typename, typename, typename> class Brim;
 
 template<typename vid_t = int, typename eoff_t = int, typename weight_t = int>
 class GraphWeight : public GraphStd<vid_t, eoff_t> {
-    using    coo_t = typename std::tuple<vid_t, vid_t, weight_t>;
+    using coo_t    = typename std::tuple<vid_t, vid_t, weight_t>;
     using degree_t = int;
     friend class BFS<vid_t, eoff_t>;
     friend class WCC<vid_t, eoff_t>;

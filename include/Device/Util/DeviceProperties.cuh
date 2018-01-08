@@ -59,6 +59,9 @@ const unsigned MEMORY_BANKS   = 32;
 ///@brief Number of threads in a warp
 const unsigned WARP_SIZE      = 32;
 
+///@brief Maximum number of Streaming Multiprocessors (TitanV, CC 7.0)
+const unsigned MAX_SM         = 80;
+
 //==============================================================================
 #if defined(__NVCC__)
 

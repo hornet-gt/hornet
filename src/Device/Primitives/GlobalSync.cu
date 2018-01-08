@@ -34,8 +34,9 @@
  * </blockquote>}
  */
 #include "Device/Primitives/GlobalSync.cuh" //xlib::globalSyncResetKernel
-#include "Device/Util/DeviceProperties.cuh" //xlib::MAX_BLOCK_SIZE
+#include "Device/Util/DeviceProperties.cuh" //xlib::MAX_RESIDENT_BLOCKS
 #include "Device/Util/SafeCudaAPI.cuh"      //CHECK_CUDA_ERROR
+#include "Device/Util/SafeCudaAPIAsync.cuh" //cuMemset0x00Async
 
 namespace xlib {
 
@@ -50,7 +51,17 @@ namespace {
 
 void globalSyncReset() {
     globalSyncResetKernel<<<1, MAX_BLOCK_SIZE>>>();
-    CHECK_CUDA_ERROR
+    //CHECK_CUDA_ERROR
+}
+
+//==============================================================================
+
+__device__ unsigned global_sync_array[GPU_MAX_BLOCKS];
+
+void global_sync_reset() {
+    unsigned* ptr;
+    //cuGetSymbolAddress(global_sync_array, ptr);
+    //cuMemset0x00Async(ptr, GPU_MAX_BLOCKS);
 }
 
 } // namespace xlib

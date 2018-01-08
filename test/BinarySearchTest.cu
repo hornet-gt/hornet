@@ -12,7 +12,7 @@
 #include <iostream>
 #include "Device/Util/SafeCudaAPIAsync.cuh" //cuMemset0x00Async
 
-#define ENABLE_MGPU
+//#define ENABLE_MGPU
 
 #if defined(ENABLE_MGPU)
     #include <moderngpu/kernel_load_balance.hxx>

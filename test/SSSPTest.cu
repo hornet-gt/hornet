@@ -4,6 +4,7 @@
  */
 #include "Static/ShortestPath/SSSP.cuh"
 #include <Graph/GraphStd.hpp>
+#include <Graph/GraphWeight.hpp>
 #include <Util/CommandLineParam.hpp>
 
 int main(int argc, char* argv[]) {
@@ -19,6 +20,12 @@ int main(int argc, char* argv[]) {
     HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
                            graph.csr_out_edges());
     hornet_init.insertEdgeData(h_weights);
+
+    /*graph::GraphWeight<vid_t, eoff_t, int> graph;
+    graph.read(argv[1]);
+    HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
+                           graph.csr_out_edges());
+    hornet_init.insertEdgeData(graph.out_weights_array());*/
 
     HornetGraph hornet_graph(hornet_init);
     SSSP sssp(hornet_graph);

@@ -69,6 +69,12 @@ struct DeviceProp<320> {
 };
 
 template<>
+struct DeviceProp<350> {
+    static const unsigned SMEM_PER_SM    = 49152;
+    static const unsigned RBLOCKS_PER_SM = 16;
+};
+
+template<>
 struct DeviceProp<370> {
     static const unsigned SMEM_PER_SM    = 114688;
     static const unsigned RBLOCKS_PER_SM = 16;

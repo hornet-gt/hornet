@@ -4,35 +4,19 @@
 #include "Device/Util/Algorithm.cuh"
 #include "Device/Primitives/BinarySearchLB.cuh"
 #include "Device/Primitives/impl/BinarySearchLB2.i.cuh"
-#include "Device/Primitives/impl/MergePathLB.i.cuh"
+#include "Device/Primitives/MergePathLB.cuh"
 #include "Device/Util/Timer.cuh"
+//#include "Device/Primitives/GlobalSync.cuh"
 #include <Graph/GraphBase.hpp>
 #include <Graph/GraphStd.hpp>
 #include <iostream>
+#include "Device/Util/SafeCudaAPIAsync.cuh" //cuMemset0x00Async
 
 #define ENABLE_MGPU
 
 #if defined(ENABLE_MGPU)
     #include <moderngpu/kernel_load_balance.hxx>
 #endif
-
-template<int ITEMS_PER_BLOCK, int BLOCK_SIZE>
-__global__
-void MergePathTest(const int* __restrict__ d_prefixsum,
-                   int                     prefixsum_size,
-                   int* __restrict__       d_pos,
-                   int* __restrict__       d_offset) {
-    __shared__ int smem[ITEMS_PER_BLOCK];
-
-    const auto& lambda = [&](int pos, int offset) {
-                             int index      = d_prefixsum[pos] + offset;
-                             d_pos[index]   = pos;
-                            // d_offset[index] = offset;
-                        };
-    xlib::binarySearchLB<BLOCK_SIZE, ITEMS_PER_BLOCK / BLOCK_SIZE>
-    //xlib::binarySearchLBAllPosNoDup<BLOCK_SIZE, ITEMS_PER_BLOCK / BLOCK_SIZE>
-        (d_prefixsum, prefixsum_size, smem, lambda);
-}
 
 template<int ITEMS_PER_BLOCK, int BLOCK_SIZE>
 __global__
@@ -51,35 +35,9 @@ void MergePathTest2(const int* __restrict__ d_partitions,
     //xlib::binarySearchLB2<BLOCK_SIZE, ITEMS_PER_BLOCK / BLOCK_SIZE, true>
     //    (d_partitions, num_partitions, d_prefixsum, prefixsum_size, smem, lambda);
 
-    xlib::mergePathLB<BLOCK_SIZE, ITEMS_PER_BLOCK / BLOCK_SIZE, true>
+    xlib::mergePathLB<BLOCK_SIZE, ITEMS_PER_BLOCK>
         (d_partitions, num_partitions, d_prefixsum, prefixsum_size, smem, lambda);
 }
-
-template<typename itA_t, typename itB_t>
-int2 merge_path_search(const itA_t& A, int a_len,
-                       const itB_t& B, int b_len,
-                       int diagonal) {
-    int x_min = max(diagonal - b_len, 0);
-    int x_max = min(diagonal, a_len);
-
-    while (x_min < x_max) {
-        int pivot = (x_max + x_min) / 2u;
-        if (A[pivot] <= B[diagonal - pivot - 1])
-            x_min = pivot + 1;
-        else
-            x_max = pivot;
-    }
-    return make_int2(min(x_min, a_len), diagonal - x_min);
-}
-
-
-
-class NaturalIterator {
-public:
-    int operator[](int index) const {
-        return index;
-    }
-};
 
 using namespace xlib;
 using namespace graph;
@@ -87,6 +45,7 @@ using namespace timer;
 
 const bool PRINT      = false;
 const int  BLOCK_SIZE = 128;
+
 
 int main(int argc, char* argv[]) {
     xlib::NaturalIterator natural_iterator;
@@ -129,10 +88,21 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
     return 0;*/
 
-    const int THREAD_ITEMS    = 8;
+    const int THREAD_ITEMS    = 11;
     const int ITEMS_PER_BLOCK = BLOCK_SIZE * THREAD_ITEMS;
 
     Timer<DEVICE, micro> TM;
+    TM.start();
+
+    //xlib::global_sync_reset();
+
+    TM.stop();
+    TM.print("global");
+
+    //globalSyncTest <<< 100, 1024 >>> ();
+
+    CHECK_CUDA_ERROR
+
     GraphStd<> graph;
     graph.read(argv[1], parsing_prop::PRINT_INFO | parsing_prop::RM_SINGLETON);
 

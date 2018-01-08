@@ -12,7 +12,9 @@ project(${PROJECT} CXX)
 cmake_minimum_required(VERSION 3.5)
 FIND_PACKAGE(CUDA REQUIRED)
 
+list(APPEND CUDA_NVCC_FLAGS "-rdc=true")
 set(CUDA_SEPARABLE_COMPILATION ON)
+
 include_directories(include)
 include_directories(externals/cub-1.7.4)
 include_directories(externals/moderngpu/src)
@@ -23,6 +25,8 @@ include_directories(${CUDA_INCLUDE_DIRS})
 #set(WARNING_FLAGS ON)
 set(CUB_LIBRARY ON)
 include(externals/xlib/util/CMakeLists.txt)
+
+
 #-------------------------------------------------------------------------------
 file(GLOB_RECURSE CPP_SRCS ${PROJECT_SOURCE_DIR}/src/*.cpp)
 file(GLOB_RECURSE CU_SRCS  ${PROJECT_SOURCE_DIR}/src/*.cu)

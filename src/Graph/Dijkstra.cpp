@@ -64,7 +64,7 @@ const weight_t* DIJKSTRA::result() const noexcept {
 
 template<typename vid_t, typename eoff_t, typename weight_t>
 void DIJKSTRA::run(vid_t source) noexcept {
-    if (_reset)
+    if (!_reset)
         ERROR("Dijkstra not ready")
     _queue.insert(SetNode(0, source));
     _distances[source] = 0;

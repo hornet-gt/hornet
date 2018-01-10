@@ -52,10 +52,10 @@ namespace xlib {
  */
 template<typename T, typename R = T>
 class UniqueMap : public std::unordered_map<T, R> {
-static_assert(std::is_integral<R>::value,
-              "UniqueMap accept only Integral types");
+    static_assert(std::is_integral<R>::value,
+                  "UniqueMap accept only Integral types");
 public:
-    R insert(T key);
+    R insert(const T& key) noexcept;
 };
 
 template<class Iterator1, class Iterator2>

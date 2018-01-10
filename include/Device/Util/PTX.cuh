@@ -38,6 +38,7 @@
 #pragma once
 
 #include <type_traits>
+#include "Device/Util/DeviceProperties.cuh"  //xlib::WARP_SIZE
 
 /** \namespace PTX
  *  provide simple interfaces for low-level PTX instructions

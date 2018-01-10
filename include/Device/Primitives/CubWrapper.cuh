@@ -43,8 +43,6 @@
 
 namespace xlib {
 
-//==============================================================================
-
 class CubWrapper {
 protected:
     explicit CubWrapper() = default;
@@ -160,6 +158,31 @@ private:
 
 //==============================================================================
 
+namespace cub_sort_by_key {
+
+template<typename T, typename R>
+extern void run(const T* d_key,
+                const R* d_data_in,
+                int      num_items,
+                T*       d_key_sorted,
+                R*       d_data_out,
+                T        d_key_max = std::numeric_limits<T>::max());
+
+/*
+template<typename T, typename R>
+void run(const T* d_key,
+         const R* d_data_in,
+         int      num_items,
+         T*       d_key_sorted,
+         R*       d_data_out,
+         T*       d_key_tmp,
+         R*       d_data_tmp,
+         T        d_key_max = std::numeric_limits<T>::max()) noexcept;*/
+
+} // namespace cub_sort_by_key
+
+//------------------------------------------------------------------------------
+
 template<typename T, typename R>
 class CubSortByKey : public CubWrapper {
 public:
@@ -181,6 +204,23 @@ private:
 };
 
 //==============================================================================
+
+namespace cub_sort_pair {
+
+template<typename T, typename R>
+static void run(T* d_in1, R* d_in2, int num_items,
+                T  d_in1_max = std::numeric_limits<T>::max(),
+                R  d_in2_max = std::numeric_limits<R>::max()) noexcept;
+
+template<typename T, typename R>
+static void run(T* d_in1,     R* d_in2, int num_items,
+                T* d_in1_tmp, R* d_in2_tmp,
+                T d_in1_max = std::numeric_limits<T>::max(),
+                R d_in2_max = std::numeric_limits<R>::max()) noexcept;
+
+} // namespace cub_sort_pair
+
+//------------------------------------------------------------------------------
 
 template<typename T, typename R>
 class CubSortPairs2 {
@@ -220,6 +260,16 @@ private:
 
 //==============================================================================
 
+namespace cub_runlenght {
+
+template<typename T>
+extern int run(const T* d_in, int num_items, T* d_unique_out,
+               int* d_counts_out);
+
+} // namespace cub_runlenght
+
+//------------------------------------------------------------------------------
+
 template<typename T>
 class CubRunLengthEncode {
 public:
@@ -242,6 +292,18 @@ private:
 };
 
 //==============================================================================
+
+namespace cub_exclusive_sum {
+
+template<typename T>
+extern void run(const T* d_in, int num_items, T* d_out);
+
+template<typename T>
+extern void run(T* d_in_out, int num_items);
+
+} // namespace cub_exclusive_sum
+
+//------------------------------------------------------------------------------
 
 template<typename T>
 class CubExclusiveSum {

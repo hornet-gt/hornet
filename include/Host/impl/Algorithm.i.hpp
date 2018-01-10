@@ -49,7 +49,7 @@ namespace xlib {
 //------------------------------------------------------------------------------
 
 template<typename T, typename R>
-R UniqueMap<T, R>::insert(T key) {
+R UniqueMap<T, R>::insert(const T& key) noexcept {
     const auto& it = this->find(key);
     if (it == this->end()) {
         auto id = static_cast<R>(this->size());

@@ -73,6 +73,9 @@ if (WARNING_FLAGS)
     endif()
 endif()
 
+message("\n==> C++ Host Compiler:  ${CMAKE_CXX_COMPILER_ID} "
+        "${CMAKE_CXX_COMPILER_VERSION}")
+
 #===============================================================================
 #===============================================================================
 #########################
@@ -105,17 +108,22 @@ find_library(
     HINTS  ${CUDA_TOOLKIT_ROOT_DIR}/lib64
 )
 
+message("==> CUDA Toolkit:       ${CUDA_VERSION_MAJOR}.${CUDA_VERSION_MINOR}")
+
 #-------------------------------------------------------------------------------
 if (DEFINED CUDAHC)
+    if (CUDAHC STREQUAL "")
+        message(FATAL_ERROR "\n==> Error: CUDAHC is an empty string")
+    endif()
     if (NOT QUIET_SUBMODULE)
-        message("\n==> Cuda Host compiler: " ${CUDAHC})
+        message("==> Cuda Host compiler: " ${CUDAHC})
     endif()
     set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-ccbin=${CUDAHC}" )
 else()
     execute_process(COMMAND bash "-c" "gcc --version | head -n 1"
                     OUTPUT_VARIABLE GCC_INFO)
     if (NOT QUIET_SUBMODULE)
-        message("\n==> Cuda Host compiler: ${GCC_INFO}"
+        message("==> Cuda Host compiler: ${GCC_INFO}"
                 "    (-DCUDAHC=<path_to_host_compiler>)")
     endif()
 endif()
@@ -123,7 +131,7 @@ endif()
 
 if (CUB_LIBRARY)
     set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCUB_WRAPPER" )
-    include_directories(${CUB_LIBRARY})
+    #include_directories(${CUB_LIBRARY})
 endif()
 
 if (NVTX)
@@ -507,12 +515,17 @@ endif()
 if (CUDA_FOUND AND (CMAKE_BUILD_TYPE EQUAL "Info"))
 
 add_custom_target(ptx
+        COMMAND ls -1 TMP/*.ptx
         COMMAND cp `ls TMP/*.ptx | grep -vE \"CubWrapper|GlobalSync\"` .
         COMMENT "PTX")
 
 add_custom_target(sass
         COMMAND ${CMAKE_CURRENT_LIST_DIR}/nvdisasm_loop.sh TMP
         COMMENT "SASS")
+
+add_custom_target(sass_dot
+        COMMAND ${CMAKE_CURRENT_LIST_DIR}/nvdisasm_loop.sh TMP -cfg
+        COMMENT "SASS DOT")
 
 endif()
 

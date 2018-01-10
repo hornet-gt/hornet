@@ -262,14 +262,15 @@ protected:
 
     virtual void allocateAux(const GInfo& ginfo) noexcept;
 
-    void readMarket  (std::ifstream& fin, bool print)   override;
-    void readDimacs9 (std::ifstream& fin, bool print)   override;
-    void readDimacs10(std::ifstream& fin, bool print)   override;
-    void readSnap    (std::ifstream& fin, bool print)   override;
-    void readKonect  (std::ifstream& fin, bool print)   override;
-    void readNetRepo (std::ifstream& fin)               override;
-    void readMPG     (std::ifstream&, bool)             override;
-    void readBinary  (const char* filename, bool print) override;
+    void readMarket     (std::ifstream& fin, bool print)   override;
+    void readMarketLabel(std::ifstream& fin, bool print)   override;
+    void readDimacs9    (std::ifstream& fin, bool print)   override;
+    void readDimacs10   (std::ifstream& fin, bool print)   override;
+    void readSnap       (std::ifstream& fin, bool print)   override;
+    void readKonect     (std::ifstream& fin, bool print)   override;
+    void readNetRepo    (std::ifstream& fin)               override;
+    void readMPG        (std::ifstream&, bool)             override;
+    void readBinary     (const char* filename, bool print) override;
 
     void COOtoCSR() noexcept override;
 

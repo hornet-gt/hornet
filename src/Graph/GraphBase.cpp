@@ -166,6 +166,11 @@ void GraphBase<vid_t, eoff_t>::read(const char* filename,               //NOLINT
             std::cout << "(Market)\n";
         readMarket(fin, prop.is_print());
     }
+    else if (file_ext == ".mm") {
+        if (prop.is_print())
+            std::cout << "(Market Label)\n";
+        readMarketLabel(fin, prop.is_print());
+    }
     else if (file_ext == ".graph") {
         if (prop.is_print())
             std::cout << "(Dimacs10th)\n";
@@ -226,6 +231,16 @@ GInfo GraphBase<vid_t, eoff_t>::getMarketHeader(std::ifstream& fin) {
                                                                : num_lines;
     _stored_undirected = direction == structure_prop::UNDIRECTED;
     return { std::max(rows, columns), num_edges, num_lines, direction };
+}
+
+//------------------------------------------------------------------------------
+
+template<typename vid_t, typename eoff_t>
+GInfo GraphBase<vid_t, eoff_t>::getMarketLabelHeader(std::ifstream& fin) {
+    size_t rows, num_lines;
+    fin >> rows >> rows >> num_lines;
+    xlib::skip_lines(fin);
+    return { rows, num_lines, num_lines, structure_prop::DIRECTED };
 }
 
 //------------------------------------------------------------------------------

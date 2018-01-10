@@ -37,29 +37,21 @@
  */
 #pragma once
 
-#include "Device/Util/DeviceProperties.cuh" //xlib::MAX_BLOCK_SIZE
+#include "Device/Util/DeviceProperties.cuh" //xlib::THREADS_PER_SM
 
 namespace xlib {
 
-extern __device__ unsigned GlobalSyncArray[MAX_BLOCK_SIZE];
+#if !defined(GLOBAL_SYNC)
+    extern __device__ unsigned global_sync_array[GPU_MAX_BLOCKS];
+#endif
 
-template<unsigned BLOCK_SIZE>
-__device__ __forceinline__ void globalSync();
-
-template<unsigned BLOCK_SIZE>
-__device__ __forceinline__ void globalSync_v2();
-
-void globalSyncReset();
-
-//==============================================================================
-
-const unsigned GPU_MAX_BLOCKS = (xlib::THREADS_PER_SM / xlib::WARP_SIZE) *
-                                 xlib::MAX_SM;
-
-extern __device__ unsigned global_sync_array[GPU_MAX_BLOCKS];
+__device__ __forceinline__
+void global_sync();
 
 void global_sync_reset();
 
 } // namespace xlib
 
 #include "impl/GlobalSync.i.cuh"
+
+#undef GLOBAL_SYNC

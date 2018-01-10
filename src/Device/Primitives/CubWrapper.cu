@@ -265,6 +265,41 @@ void CubSortByKey<T, R>::srun(const T* d_key, const R* d_data_in,
     cub_instance.run(d_key, d_data_in, num_items, d_key_sorted, d_data_out);
 }
 
+//------------------------------------------------------------------------------
+
+namespace cub_sort_by_key {
+
+template<typename T, typename R>
+void run(const T* d_key,
+         const R* d_data_in,
+         int      num_items,
+         T*       d_key_sorted,
+         R*       d_data_out,
+         T        d_key_max) {
+
+    CubSortByKey<T, R> cub_instance(num_items);
+    cub_instance.run(d_key, d_data_in, num_items, d_key_sorted, d_data_out);
+}
+
+/*
+template<typename T, typename R>
+void run(const T* d_key,
+         const R* d_data_in,
+         int      num_items,
+         T*       d_key_sorted,
+         R*       d_data_out,
+         T*       d_key_tmp,
+         R*       d_data_tmp,
+         T        d_key_max) noexcept {
+}*/
+
+template void run<int, int>(const int*, const int*, int, int*, int*, int);
+template void run<int, float>(const int*, const float*, int, int*, float*, int);
+template void run<int, double>(const int*, const double*, int, int*,
+                               double*, int);
+
+} // namespace cub_sort_by_key
+
 //==============================================================================
 //==============================================================================
 ////////////////
@@ -362,6 +397,22 @@ void CubSortPairs2<T, R>::srun(T* d_in1, R* d_in2, int num_items,
 // RunLengthEncode //
 /////////////////////
 
+namespace cub_runlenght {
+
+template<typename T>
+int run(const T* d_in, int num_items, T* d_unique_out,
+        int* d_counts_out) {
+
+    CubRunLengthEncode<T> cub_instance(num_items);
+    return cub_instance.run(d_in, num_items, d_unique_out, d_counts_out);
+}
+
+template int run<int>(const int*, int, int*, int*);
+
+} // namespace cub_runlenght
+
+//------------------------------------------------------------------------------
+
 template<typename T>
 CubRunLengthEncode<T>::CubRunLengthEncode(int max_items) noexcept {
     initialize(max_items);
@@ -415,6 +466,26 @@ int CubRunLengthEncode<T>::srun(const T* d_in, int num_items, T* d_unique_out,
 //////////////////
 // ExclusiveSum //
 //////////////////
+
+namespace cub_exclusive_sum {
+
+template<typename T>
+void run(const T* d_in, int num_items, T* d_out) {
+    CubExclusiveSum<T> cub_instance(num_items);
+    cub_instance.run(d_in, num_items, d_out);
+}
+
+template<typename T>
+void run(T* d_in_out, int num_items) {
+    run(d_in_out, num_items, d_in_out);
+}
+
+template void run<int>(const int*, int, int*);
+template void run<int>(int*, int);
+
+} // namespace cub_exclusive_sum
+
+//------------------------------------------------------------------------------
 
 template<typename T>
 CubExclusiveSum<T>::CubExclusiveSum(int max_items) noexcept {
@@ -541,6 +612,6 @@ template class CubSelectFlagged<int>;
 
 //template class CubSelectFlagged<hornets_nest::AoSData<int>>;
 
-} //namespace xlib
+} // namespace xlib
 
 #endif

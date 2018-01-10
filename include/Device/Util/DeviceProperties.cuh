@@ -62,6 +62,10 @@ const unsigned WARP_SIZE      = 32;
 ///@brief Maximum number of Streaming Multiprocessors (TitanV, CC 7.0)
 const unsigned MAX_SM         = 80;
 
+///@brief Maximum number of Resident Thread Blocks
+const unsigned GPU_MAX_BLOCKS = (xlib::THREADS_PER_SM / xlib::WARP_SIZE) *
+                                 xlib::MAX_SM;
+
 //==============================================================================
 #if defined(__NVCC__)
 

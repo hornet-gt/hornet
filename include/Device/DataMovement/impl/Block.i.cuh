@@ -4,6 +4,48 @@
 
 namespace xlib {
 namespace block {
+
+template<unsigned START, unsigned END, unsigned BLOCK_SIZE, typename = void>
+struct StrideOp;
+
+template<unsigned START, unsigned END, unsigned BLOCK_SIZE>
+struct StrideOp<START, END, BLOCK_SIZE,
+                typename std::enable_if<(END - START > BLOCK_SIZE)>::type> {
+
+    template<typename T>
+    __device__ __forceinline__
+    static void copy(const T* __restrict__ d_in,
+                     int                   num_items,
+                     T*       __restrict__ smem_out) {
+        const auto MID = (START + END) / 2u;
+        if (num_items < MID)
+            StrideOp<START, MID, BLOCK_SIZE>::copy(d_in, num_items, smem_out);
+        else
+            StrideOp<MID, END, BLOCK_SIZE>::copy(d_in, num_items, smem_out);
+    }
+};
+
+template<unsigned START, unsigned END, unsigned BLOCK_SIZE>
+struct StrideOp<START, END, BLOCK_SIZE,
+                typename std::enable_if<(END - START <= BLOCK_SIZE)>::type> {
+
+    template<typename T>
+    __device__ __forceinline__
+    static void copy(const T* d_in,
+                     int      num_items,
+                     T*       smem_out) {
+        const int LOOPS = END / BLOCK_SIZE;
+
+        d_in     += threadIdx.x;
+        smem_out += threadIdx.x;
+        #pragma unroll
+        for (int i = 0; i < LOOPS; i++)
+            smem_out[i * BLOCK_SIZE] = d_in[i * BLOCK_SIZE];
+        if (LOOPS * BLOCK_SIZE + threadIdx.x < num_items)
+            smem_out[LOOPS * BLOCK_SIZE] = d_in[LOOPS * BLOCK_SIZE];
+    }
+};
+
 namespace detail {
 
 template<unsigned BLOCK_SIZE, typename T, typename = void>
@@ -11,11 +53,11 @@ __device__ __forceinline__
 void stride_load_smem_aux(const T* __restrict__ d_in,
                           int                   num_items,
                           T*       __restrict__ smem_out) {
-    #pragma unroll
-    for (int i = 0; i < num_items; i += BLOCK_SIZE) {
-        auto index = threadIdx.x + i;
-        if (index < num_items)
-            smem_out[index] = d_in[index];
+
+    for (int i = threadIdx.x; i < num_items; i += BLOCK_SIZE) {
+        smem_out = *d_in;
+        smem_out += BLOCK_SIZE;
+        d_in     += BLOCK_SIZE;
     }
 }
 

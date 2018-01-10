@@ -159,22 +159,24 @@ protected:
 
     virtual void   set_structure(const StructureProp& structure) noexcept final;
 
-    virtual void   readMarket   (std::ifstream& fin, bool print)   = 0;
-    virtual void   readDimacs9  (std::ifstream& fin, bool print)   = 0;
-    virtual void   readDimacs10 (std::ifstream& fin, bool print)   = 0;
-    virtual void   readSnap     (std::ifstream& fin, bool print)   = 0;
-    virtual void   readKonect   (std::ifstream& fin, bool print)   = 0;
-    virtual void   readNetRepo  (std::ifstream& fin)               = 0;
-    virtual void   readMPG      (std::ifstream& fin, bool print)   = 0;
-    virtual void   readBinary   (const char* filename, bool print) = 0;
+    virtual void   readMarket     (std::ifstream& fin, bool print)   = 0;
+    virtual void   readMarketLabel(std::ifstream& fin, bool print)   = 0;
+    virtual void   readDimacs9    (std::ifstream& fin, bool print)   = 0;
+    virtual void   readDimacs10   (std::ifstream& fin, bool print)   = 0;
+    virtual void   readSnap       (std::ifstream& fin, bool print)   = 0;
+    virtual void   readKonect     (std::ifstream& fin, bool print)   = 0;
+    virtual void   readNetRepo    (std::ifstream& fin)               = 0;
+    virtual void   readMPG        (std::ifstream& fin, bool print)   = 0;
+    virtual void   readBinary     (const char* filename, bool print) = 0;
 
-    virtual GInfo  getMarketHeader   (std::ifstream& fin) final;
-    virtual GInfo  getDimacs9Header  (std::ifstream& fin) final;
-    virtual GInfo  getDimacs10Header (std::ifstream& fin) final;
-    virtual GInfo  getKonectHeader   (std::ifstream& fin) final;
-    virtual void   getNetRepoHeader  (std::ifstream& fin) final;
-    virtual GInfo  getSnapHeader     (std::ifstream& fin) final;
-    virtual GInfo  getMPGHeader      (std::ifstream& fin) final;
+    virtual GInfo  getMarketLabelHeader(std::ifstream& fin) final;
+    virtual GInfo  getMarketHeader     (std::ifstream& fin) final;
+    virtual GInfo  getDimacs9Header    (std::ifstream& fin) final;
+    virtual GInfo  getDimacs10Header   (std::ifstream& fin) final;
+    virtual GInfo  getKonectHeader     (std::ifstream& fin) final;
+    virtual void   getNetRepoHeader    (std::ifstream& fin) final;
+    virtual GInfo  getSnapHeader       (std::ifstream& fin) final;
+    virtual GInfo  getMPGHeader        (std::ifstream& fin) final;
 
     virtual void COOtoCSR() noexcept = 0;
     //virtual void CSRtoCOO() noexcept = 0;

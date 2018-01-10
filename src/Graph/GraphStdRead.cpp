@@ -34,8 +34,8 @@
  * </blockquote>}
  */
 #include "Graph/GraphStd.hpp"
-#include "Host/Algorithm.hpp" //xlib::UniqueMap
-#include "Host/FileUtil.hpp"  //xlib::skip_lines, xlib::Progress
+#include "Host/Algorithm.hpp"         //xlib::UniqueMap
+#include "Host/FileUtil.hpp"          //xlib::skip_lines, xlib::Progress
 #include <cstring>                    //std::strtok
 #include <sstream>                    //std::istringstream
 #include <vector>                     //std::vector
@@ -58,6 +58,29 @@ void GraphStd<vid_t, eoff_t>::readMarket(std::ifstream& fin, bool print) {
             progress.next(lines);
         xlib::skip_lines(fin);
     }
+}
+
+//------------------------------------------------------------------------------
+
+template<typename vid_t, typename eoff_t>
+void GraphStd<vid_t, eoff_t>::readMarketLabel(std::ifstream& fin, bool print) {
+    auto ginfo = GraphBase<vid_t, eoff_t>::getMarketLabelHeader(fin);
+    allocate(ginfo);
+    xlib::Progress progress(ginfo.num_lines);
+    std::string label1, label2;
+    xlib::UniqueMap<std::string, vid_t> unique_map;
+
+    for (size_t lines = 0; lines < ginfo.num_lines; lines++) {
+        fin >> label1 >> label2;
+        vid_t index1 = unique_map.insert(label1);
+        vid_t index2 = unique_map.insert(label2);
+        _coo_edges[lines] = { index1, index2 };
+
+        if (print)
+            progress.next(lines);
+        xlib::skip_lines(fin);
+    }
+    assert(unique_map.size() == ginfo.num_vertices);
 }
 
 //------------------------------------------------------------------------------

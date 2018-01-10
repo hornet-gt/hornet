@@ -6,13 +6,21 @@
 #include "Device/Primitives/impl/BinarySearchLB2.i.cuh"
 #include "Device/Primitives/MergePathLB.cuh"
 #include "Device/Util/Timer.cuh"
-//#include "Device/Primitives/GlobalSync.cuh"
-#include <Graph/GraphBase.hpp>
+//#include <Graph/GraphBase.hpp>
 #include <Graph/GraphStd.hpp>
+#include <Graph/GraphWeight.hpp>
+#include <Graph/BellmanFord.hpp>
+#include <Graph/Dijkstra.hpp>
+
 #include <iostream>
 #include "Device/Util/SafeCudaAPIAsync.cuh" //cuMemset0x00Async
 
+#include "Device/Util/Timer.cuh"
+#include "Device/DataMovement/impl/Block.i.cuh"
+#include <cooperative_groups.h>
 //#define ENABLE_MGPU
+#include <random>
+#include <chrono>
 
 #if defined(ENABLE_MGPU)
     #include <moderngpu/kernel_load_balance.hxx>
@@ -47,8 +55,104 @@ const bool PRINT      = false;
 const int  BLOCK_SIZE = 128;
 
 
+__device__ int d_value;
+
+template<int ITEMS_PER_BLOCK, int BLOCK_SIZE>
+__global__
+void copyKernel(const int* __restrict__ input, int num_blocks, int smem_size) {
+    int id     = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
+    __shared__ int smem[ITEMS_PER_BLOCK];
+
+    for (int i = blockIdx.x; i < num_blocks; i += gridDim.x) {
+        block::StrideOp<0, ITEMS_PER_BLOCK, BLOCK_SIZE>
+            ::copy(input + i * ITEMS_PER_BLOCK, smem_size, smem);
+        /*auto smem_tmp = smem + threadIdx.x;
+        auto d_tmp    = input + i * ITEMS_PER_BLOCK + threadIdx.x;
+
+        #pragma unroll
+        for (int i = 0; i < ITEMS_PER_BLOCK; i += BLOCK_SIZE)
+            smem_tmp[i] = (i + threadIdx.x < smem_size) ? d_tmp[i] : 0;*/
+
+        if (threadIdx.x > 1023)
+            d_value = smem[threadIdx.x];
+    }
+}
+
+
+template<int ITEMS_PER_BLOCK, int BLOCK_SIZE>
+__global__
+void copyKernel2(const int* __restrict__ input, int num_blocks, int smem_size) {
+    int id     = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
+    //__shared__ int smem[ITEMS_PER_BLOCK];
+
+    for (int i = blockIdx.x; i < num_blocks; i += gridDim.x) {
+        auto smem_tmp = xlib::dyn_smem + threadIdx.x;
+        auto d_tmp    = input + i * ITEMS_PER_BLOCK + threadIdx.x;
+
+        for (int i = threadIdx.x; i < smem_size; i += BLOCK_SIZE) {
+            *smem_tmp = *d_tmp;
+            smem_tmp += BLOCK_SIZE;
+            d_tmp    += BLOCK_SIZE;
+        }
+
+        if (threadIdx.x > 1023)
+            d_value = xlib::dyn_smem[threadIdx.x];
+    }
+}
+
+
+__global__
+void noLambdaKernel(const int* __restrict__ ptr2, int* __restrict__ ptr1, int size) {
+    int id     = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
+
+    for (int i = id; i < size; i += stride) {
+        ptr1[i] = ptr2[i];
+        ptr1[i + 10] = ptr2[i + 10];
+        ptr1[i + 20] = ptr2[i + 20];
+    }
+}
+
+template<typename Lambda>
+__global__
+void lambdaKernel(Lambda lambda, int size) {
+    int id     = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
+
+    for (int i = id; i < size; i += stride)
+        lambda(i);
+}
+
+
+template<typename Lambda, typename... TArgs>
+__global__
+void lambdaKernel2(Lambda lambda, int size, TArgs* __restrict__ ... args) {
+    int id     = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
+
+    for (int i = id; i < size; i += stride)
+        lambda(i, args...);
+}
+
+struct LL {
+    int*       __restrict__ ptr1;
+    const int* __restrict__ ptr2;
+
+    __device__ __forceinline__
+    void operator()(int i) {
+        const int* __restrict__ vv2 = ptr2;
+        int*       __restrict__ vv1 = ptr1;
+
+        vv1[i] = vv2[i];
+        vv1[i + 10] = vv2[i + 10];
+        vv1[i + 20] = vv2[i + 20];
+    }
+};
+
 int main(int argc, char* argv[]) {
-    xlib::NaturalIterator natural_iterator;
+    //xlib::NaturalIterator natural_iterator;
     /*const int NUM_THREADS = 5;
     int  offsets[] = { 0, 2, 2, 4, 8, 16 };
     int*   offset2 = offsets + 1;
@@ -87,21 +191,109 @@ int main(int argc, char* argv[]) {
     }
     std::cout << std::endl;
     return 0;*/
+    using namespace graph;
+    GraphStd<int, int> graph1;
+    graph1.read(argv[1]);
+
+    graph1.print_degree_distrib();
+    graph1.print_analysis();
+
+    auto weights = new int[graph1.nV()];
+    auto seed = std::chrono::high_resolution_clock::now().time_since_epoch()
+                .count();
+    std::mt19937 engine(seed);
+    std::uniform_int_distribution<int> distrib(0, 100);
+    std::generate(weights, weights + graph1.nV(),
+                  [&](){ return distrib(engine); } );
+
+    GraphWeight<int, int, int> graph_weight(graph1.csr_out_edges(), graph1.nV(),
+                                            graph1.csr_out_edges(), graph1.nE(),
+                                            weights);
+
+
+    Timer<HOST> TM1;
+    /*BellmanFord<int, int, int> bellman_ford(graph_weight);
+
+    TM1.start();
+
+    for (int i = 0; i < graph1.nV(); i++) {
+        bellman_ford.run(i);
+        bellman_ford.reset();
+    }
+    TM1.stop();
+    TM1.print("BellmanFord");*/
+
+    Dijkstra<int, int, int> dijkstra(graph_weight);
+
+    TM1.start();
+
+    for (int i = 0; i < graph1.nV(); i++) {
+        dijkstra.run(i);
+        dijkstra.reset();
+    }
+    TM1.stop();
+    TM1.print("Dijkstra");
+    return 1;
+
+
 
     const int THREAD_ITEMS    = 11;
     const int ITEMS_PER_BLOCK = BLOCK_SIZE * THREAD_ITEMS;
 
+    int num_blocks_copy = 100000;
+
+    int* d_input;
+    cuMalloc(d_input, ITEMS_PER_BLOCK * num_blocks_copy);
+
     Timer<DEVICE, micro> TM;
     TM.start();
 
-    //xlib::global_sync_reset();
+    copyKernel<ITEMS_PER_BLOCK, BLOCK_SIZE>
+        <<< num_blocks_copy, BLOCK_SIZE >>> (d_input, num_blocks_copy, 9 * BLOCK_SIZE);
 
     TM.stop();
-    TM.print("global");
+    TM.print("copy1");
+    TM.start();
 
-    //globalSyncTest <<< 100, 1024 >>> ();
+    copyKernel2<ITEMS_PER_BLOCK, BLOCK_SIZE>
+        <<< num_blocks_copy, BLOCK_SIZE >>> (d_input, num_blocks_copy, 9 * BLOCK_SIZE);
 
-    CHECK_CUDA_ERROR
+    TM.stop();
+    TM.print("copy2");
+
+    return 1;
+    /*int* __restrict__ ptr1, * __restrict__ ptr2;
+    lambdaKernel<<<1,1>>>( [=]__device__(int i){
+                            ptr1[i] = ptr2[i];
+                            ptr1[i + 10] = ptr2[i + 10];
+                            ptr1[i + 20] = ptr2[i + 20];
+                          }, 10);
+
+    lambdaKernel<<<1,1>>>( LL{ptr1, ptr2}, 10);
+
+    lambdaKernel2<<<1,1>>>([]__device__(int i, const int* ptr2, int* ptr1){
+                            ptr1[i] = ptr2[i];
+                            ptr1[i + 10] = ptr2[i + 10];
+                            ptr1[i + 20] = ptr2[i + 20];
+                          }, 10, ptr2, ptr1);
+
+    noLambdaKernel<<<1,1>>>( ptr2, ptr1, 10);*/
+
+
+
+    /*TM.start();
+
+    xlib::global_sync_reset();
+
+    TM.stop();
+    TM.print("global_reset");
+    TM.start();
+
+    globalSyncTest2<64> <<< 56 * 2048 / 256, 256 >>> ();
+
+    TM.stop();
+    TM.print("global_sync");
+    CHECK_CUDA_ERROR*/
 
     GraphStd<> graph;
     graph.read(argv[1], parsing_prop::PRINT_INFO | parsing_prop::RM_SINGLETON);
@@ -145,7 +337,7 @@ int main(int argc, char* argv[]) {
     }
 
     int* d_prefixsum, *d_pos, *d_offset, *d_partitions;
-    int merge_blocks         = xlib::ceil_div<ITEMS_PER_BLOCK>(num_merge);
+    int merge_blocks           = xlib::ceil_div<ITEMS_PER_BLOCK>(num_merge);
     int merge_block_partitions = xlib::ceil_div<BLOCK_SIZE>(merge_blocks);
 
     int num_blocks           = xlib::ceil_div<ITEMS_PER_BLOCK>(graph.nE());

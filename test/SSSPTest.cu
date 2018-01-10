@@ -28,6 +28,8 @@ int main(int argc, char* argv[]) {
     hornet_init.insertEdgeData(graph.out_weights_array());*/
 
     HornetGraph hornet_graph(hornet_init);
+    // hornet_graph.print();                // <--- GRAPH PRINT
+
     SSSP sssp(hornet_graph);
     sssp.set_parameters(0);
 

@@ -33,11 +33,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-
 #include "Static/BreadthFirstSearch/TopDown.cuh"
-#include "Core/Auxilary/DuplicateRemoving.cuh"
-#include <Graph/GraphStd.hpp>
 #include <Graph/BFS.hpp>
+#include <Graph/GraphStd.hpp>
 
 namespace hornets_nest {
 
@@ -49,18 +47,19 @@ const dist_t INF = std::numeric_limits<dist_t>::max();
 ///////////////
 
 struct BFSOperator {
-    dist_t*              d_distances;
+    dist_t* __restrict__ d_distances;
     dist_t               current_level;
     TwoLevelQueue<vid_t> queue;
 
     OPERATOR(Vertex& vertex, Edge& edge) {
         auto dst = edge.dst_id();
-        if (d_distances[dst] == INF) {//!is_duplicate<2>(dst) &&
+        if (d_distances[dst] == INF) {
             d_distances[dst] = current_level;
             queue.insert(dst);
         }
     }
 };
+
 //------------------------------------------------------------------------------
 /////////////////
 // BfsTopDown //
@@ -83,13 +82,13 @@ void BfsTopDown::reset() {
     queue.clear();
 
     auto distances = d_distances;
-    forAllnumV(hornet, [distances] __device__ (int i){ distances[i] = INF; } );
+    forAllnumV(hornet, [=] __device__ (int i){ distances[i] = INF; } );
 }
 
 void BfsTopDown::set_parameters(vid_t source) {
     bfs_source = source;
-    queue.insert(bfs_source);               // insert bfs source in the frontier
-    gpu::memsetZero(d_distances + bfs_source);  //reset source distance
+    queue.insert(bfs_source);                   // insert source in the frontier
+    gpu::memsetZero(d_distances + bfs_source);  // reset source distance
 }
 
 void BfsTopDown::run() {
@@ -100,29 +99,8 @@ void BfsTopDown::run() {
         forAllEdges(hornet, queue,
                     BFSOperator { d_distances, current_level, queue },
                     load_balancing);
+        //todo: gpu::forAllEdges
         current_level++;
-        queue.swap();
-    }
-}
-
-//same procedure of run() but it uses lambda expression instead explict
-//struct operator
-void BfsTopDown::run2() {
-    auto distances = d_distances;
-    auto     level = 1;
-
-    while (queue.size() > 0) {
-        auto queue1 = queue;
-        const auto& BFSLambda = [=] __device__(auto vertex, auto edge) mutable {
-                                    auto dst = edge.dst_id();
-                                    if (distances[dst] == INF) {
-                                        distances[dst] = level;
-                                        queue1.insert(dst);
-                                    }
-                                };
-
-        forAllEdges(hornet, queue, BFSLambda, load_balancing);
-        level++;
         queue.swap();
     }
 }

@@ -22,6 +22,19 @@ __global__ void forAllKernel(T* __restrict__ array, int size, Operator op) {
 }
 
 template<typename HornetDevice, typename T, typename Operator>
+__global__ void forAllVertexPairsKernel(HornetDevice hornet, T* __restrict__ array, int size, Operator op) {
+    int     id = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
+    for (auto i = id; i < size; i += stride) {
+        auto v1_id = array[i].x;
+        auto v2_id = array[i].y;
+        auto v1 = hornet.vertex(v1_id);
+        auto v2 = hornet.vertex(v2_id);
+        op(v1, v2);
+    }
+}
+
+template<typename HornetDevice, typename T, typename Operator>
 __global__ void forAllEdgesAdjUnionSequentialKernel(HornetDevice hornet, T* __restrict__ array, unsigned long long size, Operator op, int flag) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
@@ -313,10 +326,10 @@ namespace adj_unions {
         bool countOnly;
         int total_work, bin_index;
 
-        OPERATOR(Vertex& src, Vertex& dst, Edge& edge) {
+        OPERATOR(Vertex& src, Vertex& dst) {
             // Choose the bin to place this edge into
             if (src.id() >= dst.id()) return; // imposes ordering
-            degree_t src_len = dst.degree();
+            degree_t src_len = src.degree();
             degree_t dst_len = dst.degree();
             int i = MAX_ADJ_UNIONS_BINS-1;
             /*
@@ -368,6 +381,14 @@ template<typename HornetClass, typename Operator>
 void forAllAdjUnions(HornetClass&         hornet,
                      const Operator&      op)
 {
+    forAllAdjUnions(hornet, TwoLevelQueue<vid2_t>(hornet, 0), op); // TODO: why can't just pass in 0?
+}
+
+template<typename HornetClass, typename Operator>
+void forAllAdjUnions(HornetClass&          hornet,
+                     TwoLevelQueue<vid2_t> vertex_pairs,
+                     const Operator&       op)
+{
     using namespace adj_unions;
     HostDeviceVar<queue_info> hd_queue_info;
 
@@ -376,7 +397,11 @@ void forAllAdjUnions(HornetClass&         hornet,
     timer::Timer<timer::DEVICE> TM(5);
     TM.start();
     //TM.start();
-    forAllEdgesSrcDst(hornet, bin_edges {hd_queue_info, true}, load_balancing);
+    if (vertex_pairs.size())
+        forAllVertexPairs(hornet, vertex_pairs, bin_edges {hd_queue_info, true});
+    else
+        forAllEdgeVertexPairs(hornet, bin_edges {hd_queue_info, true}, load_balancing);
+
     //TM.stop();
     //TM.print("counting queues:");
     //TM.reset();
@@ -393,7 +418,11 @@ void forAllAdjUnions(HornetClass&         hornet,
     //TM.start();
     //TM.reset();
 
-    forAllEdgesSrcDst(hornet, bin_edges {hd_queue_info, false}, load_balancing);
+    if (vertex_pairs.size())
+        forAllVertexPairs(hornet, vertex_pairs, bin_edges {hd_queue_info, false});
+    else
+        forAllEdgeVertexPairs(hornet, bin_edges {hd_queue_info, false}, load_balancing);
+
     //TM.stop();
     //TM.print("adding to queues:");
     //TM.reset();
@@ -492,6 +521,19 @@ void forAll(const TwoLevelQueue<T>& queue, const Operator& op) {
     CHECK_CUDA_ERROR
 }
 
+template<typename HornetClass, typename T, typename Operator>
+void forAllVertexPairs(HornetClass&            hornet,
+                       const TwoLevelQueue<T>& queue,
+                       const Operator&         op) {
+    auto size = queue.size();
+    if (size == 0)
+        return;
+    detail::forAllVertexPairsKernel
+        <<< xlib::ceil_div<BLOCK_SIZE_OP2>(size), BLOCK_SIZE_OP2 >>>
+        (hornet.device_side(), queue.device_input_ptr(), size, op);
+    CHECK_CUDA_ERROR
+}
+
 //------------------------------------------------------------------------------
 
 template<typename HornetClass, typename Operator>
@@ -535,13 +577,13 @@ void forAllEdges(HornetClass&         hornet,
 }
 
 template<typename HornetClass, typename Operator, typename LoadBalancing>
-void forAllEdgesSrcDst(HornetClass&         hornet,
-                       const Operator&      op,
-                       const LoadBalancing& load_balancing) {
+void forAllEdgeVertexPairs(HornetClass&         hornet,
+                           const Operator&      op,
+                           const LoadBalancing& load_balancing) {
     const int PARTITION_SIZE = xlib::SMemPerBlock<BLOCK_SIZE_OP2, vid_t>::value;
     int num_partitions = xlib::ceil_div<PARTITION_SIZE>(hornet.nE());
 
-    load_balancing.applySrcDst(hornet, op);
+    load_balancing.applyVertexPairs(hornet, op);
 }
 
 //==============================================================================

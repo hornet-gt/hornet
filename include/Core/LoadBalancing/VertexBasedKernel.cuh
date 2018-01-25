@@ -44,10 +44,10 @@ namespace kernel {
  */
 template<unsigned VW_SIZE, typename HornetDevice, typename Operator>
 __global__
-void vertexBasedSrcDstKernel(HornetDevice              hornet,
-                             const vid_t* __restrict__ d_input,
-                             int                       num_vertices,
-                             Operator                  op) {
+void vertexBasedVertexPairsKernel(HornetDevice              hornet,
+                                  const vid_t* __restrict__ d_input,
+                                  int                       num_vertices,
+                                  Operator                  op) {
     int   group_id = (blockIdx.x * blockDim.x + threadIdx.x) / VW_SIZE;
     int     stride = (gridDim.x * blockDim.x) / VW_SIZE;
     int group_lane = threadIdx.x % VW_SIZE;
@@ -58,7 +58,7 @@ void vertexBasedSrcDstKernel(HornetDevice              hornet,
         for (auto j = group_lane; j < src.degree(); j += VW_SIZE) {
             const auto& edge = src.edge(j);
             const auto& dst = hornet.vertex(edge.dst_id());
-            op(src, dst, edge);
+            op(src, dst);
         }
         __syncthreads();
     }
@@ -112,7 +112,7 @@ void vertexBasedKernel(HornetDevice hornet, Operator op) {
  */
 template<unsigned VW_SIZE, typename HornetDevice, typename Operator>
 __global__
-void vertexBasedSrcDstKernel(HornetDevice hornet, Operator op) {
+void vertexBasedVertexPairsKernel(HornetDevice hornet, Operator op) {
     int   group_id = (blockIdx.x * blockDim.x + threadIdx.x) / VW_SIZE;
     int     stride = (gridDim.x * blockDim.x) / VW_SIZE;
     int group_lane = threadIdx.x % VW_SIZE;
@@ -123,7 +123,7 @@ void vertexBasedSrcDstKernel(HornetDevice hornet, Operator op) {
         for (auto j = group_lane; j < src.degree();  j += VW_SIZE) {
             const auto& edge = src.edge(j);
             const auto& dst = hornet.vertex(edge.dst_id());
-            op(src, dst, edge);
+            op(src, dst);
         }
     }
 }

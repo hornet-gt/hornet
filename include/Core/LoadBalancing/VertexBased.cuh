@@ -65,7 +65,7 @@ public:
     void apply(const HornetClass& hornet, Operator&& op) const noexcept;
 
     template<typename HornetClass, typename Operator>
-    void applySrcDst(const HornetClass& hornet, Operator&& op) const noexcept;
+    void applyVertexPairs(const HornetClass& hornet, Operator&& op) const noexcept;
 
 private:
     static const unsigned BLOCK_SIZE = 128;

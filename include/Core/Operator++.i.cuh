@@ -312,13 +312,13 @@ void forAllEdgesKernel(const eoff_t* __restrict__ csr_offsets,
 //==============================================================================
 //==============================================================================
 // stub
-#define MAX_ADJ_UNIONS_BINS 6
+#define MAX_ADJ_UNIONS_BINS 4
 namespace adj_unions {
     struct queue_info {
         unsigned long long queue_sizes[MAX_ADJ_UNIONS_BINS] = {0,};
         vid_t *d_queues[MAX_ADJ_UNIONS_BINS] = {NULL,};
         unsigned long long queue_pos[MAX_ADJ_UNIONS_BINS] = {0,};
-        int queue_threads_per[MAX_ADJ_UNIONS_BINS] = {32, 64, 128, 256, 512, 1024};
+        int queue_threads_per[MAX_ADJ_UNIONS_BINS] = {32, 64, 128, 256};
     };
 
     struct bin_edges {
@@ -336,16 +336,16 @@ namespace adj_unions {
             if (i > 3)
                 i = 3;
             */
-            /*
+            
             total_work = src_len + dst_len - 1;
             int W;
             while (i > 0) {
                 W = d_queue_info.ptr()->queue_threads_per[i];
-                if ((total_work+W-1)/W >= 4)
+                if ((total_work+W-1)/W >= 31)
                     break;
                 i-=1;
-            }*/
-            
+            }
+            /*
             degree_t u_len = (src_len <= dst_len) ? src_len : dst_len;
             //degree_t v_len = (src_len > dst_len) ? dst_len : src_len;
             //unsigned int log_u = 32-__clz(u_len-1);
@@ -353,10 +353,10 @@ namespace adj_unions {
             int W;
             while (i > 0) {
                 W = d_queue_info.ptr()->queue_threads_per[i];
-                if ((u_len+W-1)/W >= 4)
+                if ((u_len+W-1)/W >= 3)
                     break;
                 i-=1;
-            }
+            }*/
 
             //int imbalanced_work_est = ((u_len+W-1)/W)*log_v;
             //int balanced_work_est = ((total_work+W-1)/W) + log_u;
@@ -445,8 +445,8 @@ void forAllAdjUnions(HornetClass&          hornet,
         }*/
         
         //threads_per = 256;
-        //forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, 0);
-        forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, 1);
+        forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, 0);
+        //forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, 1);
         TM.stop();
         TM.print("queue processing:");
         TM.reset();

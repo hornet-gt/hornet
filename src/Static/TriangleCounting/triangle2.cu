@@ -39,21 +39,17 @@ struct OPERATOR_AdjIntersectionCount {
         vid_t* vi_begin = v2.neighbor_ptr();
         vid_t* ui_end = ui_begin+deg1-1;
         vid_t* vi_end = vi_begin+deg2-1;
-        int ui_bound, vi_bound, comp_equals, comp1, comp2;
+        int comp_equals, comp1, comp2;
         while (vi_begin <= vi_end && ui_begin <= ui_end) {
             comp_equals = (*ui_begin == *vi_begin);
             count += comp_equals;
             comp1 = (*ui_begin >= *vi_begin);
             comp2 = (*ui_begin <= *vi_begin);
-            ui_bound = (ui_begin == ui_end);
-            vi_bound = (vi_begin == vi_end);
+            vi_begin += comp1;
+            ui_begin += comp2;
             // early termination
-            if ((ui_bound && comp2) || (vi_bound && comp1))
+            if ((vi_begin > vi_end) || (ui_begin > ui_end))
                 break;
-            if ((comp1 && !vi_bound) || ui_bound)
-                vi_begin += 1;
-            if ((comp2 && !ui_bound) || vi_bound)
-                ui_begin += 1;
         }
         atomicAdd(d_triPerVertex+v1.id(), count);
         atomicAdd(d_triPerVertex+v2.id(), count);

@@ -4,9 +4,9 @@
 #include <cstdlib>
 
 #include "Static/TriangleCounting/triangle.cuh"
-#include "Device/Timer.cuh"
+#include <Device/Util/Timer.cuh>
 
-#include <GraphIO/GraphStd.hpp>
+#include <Graph/GraphStd.hpp>
 
 using namespace std;
 using namespace timer;

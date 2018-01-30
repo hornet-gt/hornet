@@ -1,4 +1,4 @@
-#include "Device/Timer.cuh"
+#include <Device/Util/Timer.cuh>
 
 namespace hornets_nest {
 namespace detail {
@@ -345,7 +345,7 @@ namespace adj_unions {
             int W;
             while (i > 0) {
                 W = d_queue_info.ptr()->queue_threads_per[i];
-                if ((total_work+W-1)/W >= 31)
+                if ((total_work+W-1)/W >= cutoff)
                     break;
                 i-=1;
             }
@@ -561,9 +561,6 @@ template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdgeVertexPairs(HornetClass&         hornet,
                            const Operator&      op,
                            const LoadBalancing& load_balancing) {
-    const int PARTITION_SIZE = xlib::SMemPerBlock<BLOCK_SIZE_OP2, vid_t>::value;
-    int num_partitions = xlib::ceil_div<PARTITION_SIZE>(hornet.nE());
-
     load_balancing.applyVertexPairs(hornet, op);
 }
 

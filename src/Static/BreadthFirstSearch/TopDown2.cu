@@ -35,8 +35,8 @@
  */
 #include "Static/BreadthFirstSearch/TopDown2.cuh"
 #include "Core/Auxilary/DuplicateRemoving.cuh"
-#include <GraphIO/GraphStd.hpp>
-#include <GraphIO/BFS.hpp>
+#include <Graph/GraphStd.hpp>
+#include <Graph/BFS.hpp>
 
 namespace hornets_nest {
 
@@ -67,7 +67,7 @@ struct BFSOperator2 {
     }
 };
 
-struct BFSOperatorAtomic {
+struct BFSOperatorAtomic {                  //deterministic
     dist_t               current_level;
     dist_t*              d_distances;
     TwoLevelQueue<vid_t> queue;

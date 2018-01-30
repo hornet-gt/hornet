@@ -50,6 +50,8 @@ namespace hornets_nest {
 
 using HornetGraph = gpu::Csr<EMPTY, EMPTY>;
 //using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
+//using HornetGraph = gpu::CsrPlain;
+//using HornetGraph = gpu::HornetPlain;
 
 using dist_t = int;
 
@@ -64,12 +66,12 @@ public:
     bool validate() override;
 
     void set_parameters(vid_t source);
-    void run2();
 private:
-    TwoLevelQueue<vid_t>        queue;
-    load_balancing::BinarySearch load_balancing;
+    TwoLevelQueue<vid_t>           queue;
+    load_balancing::BinarySearch   load_balancing;
     //load_balancing::VertexBased1 load_balancing;
-    //load_balancing::ScanBased load_balancing;
+    //load_balancing::ScanBased    load_balancing;
+
     dist_t* d_distances   { nullptr };
     vid_t   bfs_source    { 0 };
     dist_t  current_level { 0 };

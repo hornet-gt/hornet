@@ -33,7 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include <Device/SafeCudaAPI.cuh>
+#include <Device/Util/SafeCudaAPI.cuh>
 
 namespace hornets_nest {
 

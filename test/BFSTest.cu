@@ -3,7 +3,7 @@
  * @file
  */
 #include "Static/BreadthFirstSearch/TopDown.cuh"
-#include <GraphIO/GraphStd.hpp>
+#include <Graph/GraphStd.hpp>
 #include <Util/CommandLineParam.hpp>
 #include <cuda_profiler_api.h> //--profile-from-start off
 

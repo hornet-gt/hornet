@@ -62,7 +62,7 @@ struct ptr2_t {
 template<typename T>
 class TwoLevelQueue {
 public:
-    explicit TwoLevelQueue() = default;
+    TwoLevelQueue() = default;
 
     /**
      * @brief Default costructor
@@ -84,13 +84,12 @@ public:
 
     void initialize(size_t max_allocated_items) noexcept;
 
+    HOST_DEVICE
     TwoLevelQueue(const TwoLevelQueue<T>& obj) noexcept;
 
     //TwoLevelQueue(TwoLevelQueue<T>&& obj) noexcept;
 
-    /**
-     * @brief Default Decostructor
-     */
+    HOST_DEVICE
     ~TwoLevelQueue() noexcept;
 
     /**

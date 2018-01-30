@@ -36,9 +36,9 @@
  */
 #pragma once
 
-#include <Device/Algorithm.cuh>
-#include "Device/SafeCudaAPI.cuh"
-#include "Device/CubWrapper.cuh"
+#include <Device/Util/Algorithm.cuh>
+#include <Device/Util/SafeCudaAPI.cuh>
+#include <Device/Primitives/CubWrapper.cuh>
 #include <omp.h>
 #include <cstring>
 
@@ -167,6 +167,16 @@ void memsetZero(T* pointer, size_t num_items) {
 template<typename T>
 void memsetOne(T* pointer, size_t num_items) {
     std::memset(pointer, 0xFF, num_items * sizeof(T));
+}
+
+template<typename T>
+void generate_randoms(T* pointer, size_t num_items, T min, T max) {
+    auto seed = std::chrono::high_resolution_clock::now().time_since_epoch()
+                .count();
+    std::mt19937 engine(seed);
+    std::uniform_int_distribution<T> distrib(min, max);
+    std::generate(pointer, pointer + num_items,
+                  [&](){ return distrib(engine); } );
 }
 
 template<typename T>

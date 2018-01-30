@@ -113,6 +113,10 @@ template<typename T>
 void memsetOne(T* pointer, size_t num_items = 1);
 
 template<typename T>
+void generate_randoms(T* pointer, size_t num_items = 1,
+                     T min = T(0), T max = std::numeric_limits<T>::max());
+
+template<typename T>
 T reduce(const T* input, size_t num_items);
 
 template<typename T>

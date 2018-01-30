@@ -39,7 +39,7 @@
 namespace hornets_nest {
 namespace gpu {
 
-template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK, int NUM_ETYPES,
+template<unsigned BLOCK_SIZE, int NUM_ETYPES,
          typename... EdgeTypes>
 __global__
 void copySparseToContinuosKernel(const degree_t* __restrict__  d_prefixsum,
@@ -47,6 +47,7 @@ void copySparseToContinuosKernel(const degree_t* __restrict__  d_prefixsum,
                                  void*           __restrict__ *d_ptrs_array,
                                  void*           __restrict__  d_tmp) {
 
+    const int ITEMS_PER_BLOCK = xlib::smem_per_block<int, BLOCK_SIZE>();
     using DataLayout = BestLayoutDevPitchAux<PITCH<EdgeTypes...>,
                                              TypeList< vid_t, EdgeTypes...> >;
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
@@ -60,7 +61,7 @@ void copySparseToContinuosKernel(const degree_t* __restrict__  d_prefixsum,
     xlib::binarySearchLB<BLOCK_SIZE>(d_prefixsum, num_items, smem, lambda);
 }
 
-template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK, typename... EdgeTypes>
+template<unsigned BLOCK_SIZE, typename... EdgeTypes>
 __global__
 void copySparseToContinuosKernel(const degree_t* __restrict__ d_prefixsum,
                                  int                          num_items,
@@ -68,6 +69,7 @@ void copySparseToContinuosKernel(const degree_t* __restrict__ d_prefixsum,
                                  const int*      __restrict__ d_offsets,
                                  void*           __restrict__ d_tmp) {
 
+    const int ITEMS_PER_BLOCK = xlib::smem_per_block<int, BLOCK_SIZE>();
     using DataLayout = BestLayoutDevPitchAux<PITCH<EdgeTypes...>,
                                              TypeList<vid_t, EdgeTypes...>>;
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
@@ -81,7 +83,7 @@ void copySparseToContinuosKernel(const degree_t* __restrict__ d_prefixsum,
     xlib::binarySearchLB<BLOCK_SIZE>(d_prefixsum, num_items, smem, lambda);
 }
 
-template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK, typename... EdgeTypes>
+template<unsigned BLOCK_SIZE, typename... EdgeTypes>
 __global__
 void copyContinuosToSparseKernel(
                               const degree_t* __restrict__  d_degree_new_prefix,
@@ -89,6 +91,7 @@ void copyContinuosToSparseKernel(
                               void*           __restrict__  d_tmp,
                               void*           __restrict__ *d_ptrs_array) {
 
+    const int ITEMS_PER_BLOCK = xlib::smem_per_block<int, BLOCK_SIZE>();
     using DataLayout = BestLayoutDevPitchAux<PITCH<EdgeTypes...>,
                                              TypeList<vid_t, EdgeTypes...> >;
     __shared__ degree_t smem[ITEMS_PER_BLOCK];
@@ -103,12 +106,13 @@ void copyContinuosToSparseKernel(
                                      lambda);
 }
 
-template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK, typename... EdgeTypes>
+template<unsigned BLOCK_SIZE, typename... EdgeTypes>
 __global__
 void copySparseToSparseKernel(const degree_t* __restrict__  d_prefixsum,
                               int                           work_size,
                               void*                        *d_old_ptrs,
                               void*                        *d_new_ptrs) {
+    const int ITEMS_PER_BLOCK = xlib::smem_per_block<int, BLOCK_SIZE>();
     using DataLayout = BestLayoutDevPitchAux<PITCH<EdgeTypes...>,
                                              TypeList< vid_t, EdgeTypes... >>;
 

@@ -139,10 +139,10 @@ void HORNET::copySparseToContinuos(const degree_t* prefixsum,
                                    void**          sparse_ptrs,
                                    void*           continuous_array) noexcept {
     const unsigned BLOCK_SIZE = 256;
-    const int SMEM = xlib::SMemPerBlock<BLOCK_SIZE, int>::value;
-    int num_blocks = xlib::ceil_div<SMEM>(total_sum);
+    int smem       = xlib::DeviceProperty::smem_per_block<int>(BLOCK_SIZE);
+    int num_blocks = xlib::ceil_div(total_sum, smem);
 
-    copySparseToContinuosKernel<BLOCK_SIZE, SMEM, NUM_ETYPES, EdgeTypes...>
+    copySparseToContinuosKernel<BLOCK_SIZE, NUM_ETYPES, EdgeTypes...>
         <<< num_blocks, BLOCK_SIZE >>>
         (prefixsum, prefixsum_size, sparse_ptrs, continuous_array);
     CHECK_CUDA_ERROR
@@ -156,10 +156,10 @@ void HORNET::copySparseToContinuos(const degree_t* prefixsum,
                                    const int*      continuos_offsets,
                                    void*           continuous_array) noexcept {
     const unsigned BLOCK_SIZE = 256;
-    const int SMEM = xlib::SMemPerBlock<BLOCK_SIZE, int>::value;
-    int num_blocks = xlib::ceil_div<SMEM>(total_sum);
+    int smem       = xlib::DeviceProperty::smem_per_block<int>(BLOCK_SIZE);
+    int num_blocks = xlib::ceil_div(total_sum, smem);
 
-    copySparseToContinuosKernel<BLOCK_SIZE, SMEM, EdgeTypes...>
+    copySparseToContinuosKernel<BLOCK_SIZE, EdgeTypes...>
         <<< num_blocks, BLOCK_SIZE >>>
         (prefixsum, prefixsum_size, sparse_ptrs,
          continuos_offsets, continuous_array);
@@ -173,10 +173,10 @@ void HORNET::copyContinuosToSparse(const degree_t* prefixsum,
                                    void*           continuous_array,
                                    void**          sparse_ptrs) noexcept {
     const unsigned BLOCK_SIZE = 256;
-    const int SMEM = xlib::SMemPerBlock<BLOCK_SIZE, degree_t>::value;
-    int num_blocks = xlib::ceil_div<SMEM>(total_sum);
+    int smem       = xlib::DeviceProperty::smem_per_block<int>(BLOCK_SIZE);
+    int num_blocks = xlib::ceil_div(total_sum, smem);
 
-    copyContinuosToSparseKernel<BLOCK_SIZE, SMEM, EdgeTypes...>
+    copyContinuosToSparseKernel<BLOCK_SIZE, EdgeTypes...>
         <<< num_blocks, BLOCK_SIZE >>>
         (prefixsum, prefixsum_size, continuous_array, sparse_ptrs);
     CHECK_CUDA_ERROR
@@ -190,10 +190,10 @@ void HORNET::copySparseToSparse(const degree_t* d_prefixsum,
                                 void**          d_new_ptrs)
                                 noexcept {
     const unsigned BLOCK_SIZE = 256;
-    const int SMEM = xlib::SMemPerBlock<BLOCK_SIZE, degree_t>::value;
-    int num_blocks = xlib::ceil_div<SMEM>(prefixsum_total);
+    int smem       = xlib::DeviceProperty::smem_per_block<int>(BLOCK_SIZE);
+    int num_blocks = xlib::ceil_div(prefixsum_total, smem);
 
-    copySparseToSparseKernel<BLOCK_SIZE, SMEM, EdgeTypes...>
+    copySparseToSparseKernel<BLOCK_SIZE, EdgeTypes...>
         <<< num_blocks, BLOCK_SIZE >>>
         (d_prefixsum, prefixsum_size, d_old_ptrs, d_new_ptrs);
     CHECK_CUDA_ERROR

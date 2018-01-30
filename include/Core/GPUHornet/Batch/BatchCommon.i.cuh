@@ -137,10 +137,10 @@ int HORNET::batch_preprocessing(BatchUpdate& batch_update, bool is_insert)
     #if defined(BATCH_DEBUG)
             cu::printArray(_d_degree_tmp, batch_size + 1, "Degree Prefix:\n");
     #endif
-            const int SMEM = xlib::SMemPerBlock<BLOCK_SIZE, int>::value;
-            int num_blocks = xlib::ceil_div<SMEM>(batch_size);
+            int smem = xlib::DeviceProperty::smem_per_block(BLOCK_SIZE);
+            int num_blocks = xlib::ceil_div(batch_size, smem);
 
-            bulkMarkDuplicate<BLOCK_SIZE, SMEM>
+            bulkMarkDuplicate<BLOCK_SIZE>
                 <<< num_blocks, BLOCK_SIZE >>>
                 (device_side(), _d_degree_tmp, _d_batch_src, _d_batch_dst,
                  batch_size + 1, _d_flags);

@@ -36,6 +36,7 @@
 #include <Device/Util/Timer.cuh>   //timer::Timer
 #include <Device/Primitives/CubWrapper.cuh>
 //#include "Core/GPUHornet/impl/HornetKernels.cuh"
+#include "Core/GPUCsr/impl/CsrKernels.cuh"
 
 namespace hornets_nest {
 namespace gpu {
@@ -176,7 +177,7 @@ CSR::CsrDeviceT CSR::device_side() const noexcept {
 
 template<typename... VertexTypes, typename... EdgeTypes>
 void CSR::print() noexcept {
-    printKernel<<<1, 1>>>(device_side());
+    printCsrKernel<<<1, 1>>>(device_side());
     CHECK_CUDA_ERROR
 }
 

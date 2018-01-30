@@ -33,17 +33,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include "Device/Definition.cuh"        //xlib::SMemPerBlock
-#include "Device/BinarySearchLB.cuh"    //xlib::BinarySearchLB
-#include "Device/PrintExt.cuh"          //cu::Cout
+//#include "Device/DeviceProperties.cuh"        //xlib::SMemPerBlock
+//#include "Device/BinarySearchLB.cuh"    //xlib::BinarySearchLB
+#include "Device/Util/PrintExt.cuh"          //cu::Cout
 
 namespace hornets_nest {
 namespace gpu {
 
 template<typename HornetDevice>
 __global__
-void printKernel(HornetDevice hornet) {
-    cu::Cout cout;
+void printCsrKernel(HornetDevice hornet) {
+    xlib::gpu::Cout cout;
     for (vid_t i = 0; i < hornet.nV(); i++) {
         auto vertex = hornet.vertex(i);
         cout << i << " [" << vertex.degree() << "]: ";
@@ -52,12 +52,12 @@ void printKernel(HornetDevice hornet) {
             auto edge = vertex.edge(j);
             //auto weight = edge.weight();
             //cout << vertex.neighbor_id(j) << " ";
-            cout << edge.dst_id() << " ";
+            cout << edge.dst_id() << " (" << edge.weight() << ")\t";
         }
         cout << "\n";
     }
 }
-
+/*
 template<unsigned BLOCK_SIZE>
 __global__
 void CSRtoCOOKernel(const eoff_t* __restrict__ csr_offsets,
@@ -102,7 +102,7 @@ void buildDegreeKernel(HornetDevice           hornet,
     int stride = blockDim.x * gridDim.x;
     for (int i = idx; i < hornet.nV(); i += stride)
         d_degrees[i] = hornet.vertex(i).degree();
-}
+}*/
 
 } // namespace gpu
 } // namespace hornets_nest

@@ -101,7 +101,7 @@ void vertexDegreeKernel(HornetDevice              hornet,
 }
 
 
-template<int BLOCK_SIZE, int ITEMS_PER_BLOCK, typename HornetDevice>
+template<int BLOCK_SIZE, typename HornetDevice>
 __global__
 void bulkMarkDuplicate(HornetDevice              hornet,
                        const int*   __restrict__ d_prefixsum,
@@ -109,6 +109,8 @@ void bulkMarkDuplicate(HornetDevice              hornet,
                        const vid_t* __restrict__ d_batch_dst,
                        int                       batch_size,
                        bool*        __restrict__ d_flags) {
+
+    const int ITEMS_PER_BLOCK = xlib::smem_per_block<int, BLOCK_SIZE>();
     __shared__ int smem[ITEMS_PER_BLOCK];
 
     const auto& lambda = [&] (int pos, degree_t offset) {

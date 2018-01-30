@@ -33,7 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include <Device/Util/Definition.cuh>            //xlib::SMemPerBlock
+#include <Device/Util/DeviceProperties.cuh>      //xlib::smem_per_thread
 #include <Device/Primitives/BinarySearchLB.cuh>  //xlib::BinarySearchLB
 #include <Device/Util/PrintExt.cuh>              //xlib::gpu::Cout
 
@@ -71,7 +71,7 @@ __global__
 void CSRtoCOOKernel(const eoff_t* __restrict__ csr_offsets,
                     vid_t                      nV,
                     vid_t*        __restrict__ coo_src) {
-    __shared__ int smem[xlib::SMemPerBlock<BLOCK_SIZE, int>::value];
+    __shared__ int smem[xlib::smem_per_block<int ,BLOCK_SIZE>()];
 
     const auto& lambda = [&](int pos, eoff_t offset) {
                             eoff_t   index = csr_offsets[pos] + offset;

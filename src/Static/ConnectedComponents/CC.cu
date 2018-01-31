@@ -199,8 +199,8 @@ bool CC::validate() {
 
     bool ret = true;
     for (vid_t i = 0; i < graph.nV(); i++) {
-        std::cout << i << "\t"
-                  << h_results[i] << "\t" << d_results[i] << std::endl;
+//        std::cout << i << "\t"
+//                  << h_results[i] << "\t" << d_results[i] << std::endl;
         if (color_match1[ h_results[i] ] == NO_COLOR &&
                 color_match2[ d_results[i] ] == NO_COLOR) {
             color_match2[ d_results[i] ] = h_results[i];

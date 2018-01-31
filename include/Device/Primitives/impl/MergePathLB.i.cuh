@@ -377,7 +377,7 @@ void MergePathLB<T>::init(int max_prefixsum_size,
 
     T num_merges      = max_prefixsum_size + max_last_value;
     _num_merge_blocks = xlib::ceil_div<ITEMS_PER_BLOCK>(num_merges);
-    cuMalloc(_d_partitions, std::max(_num_merge_blocks + 1, GPU_MAX_BLOCKS));
+    cuMalloc(_d_partitions, std::max(static_cast<unsigned>(_num_merge_blocks + 1), GPU_MAX_BLOCKS));
 }
 
 template<typename T>

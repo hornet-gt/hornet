@@ -1,18 +1,22 @@
 #pragma once
 
-#include "cuStingerAlg.hpp"
+#include "HornetAlg.hpp"
+#include "Core/HostDeviceVar.cuh"
+#include "Core/LoadBalancing/VertexBased.cuh"
+#include "Core/LoadBalancing/ScanBased.cuh"
+#include "Core/LoadBalancing/BinarySearch.cuh"
+#include <Core/GPUCsr/Csr.cuh>
+#include <Core/GPUHornet/Hornet.cuh>
 
-
-using namespace custinger;
-
-namespace custinger_alg {
+namespace hornets_nest {
 
 using triangle_t = unsigned int;
+using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
 
 struct TriangleData {
-    TriangleData(const custinger::Hornet& custinger){
-        nv = custinger.nV();
-        ne = custinger.nE();
+    TriangleData(const HornetGraph& hornet){
+        nv = hornet.nV();
+        ne = hornet.nE();
         triPerVertex=NULL;
     }
 
@@ -37,9 +41,9 @@ struct TriangleData {
 //==============================================================================
 
 // Label propogation is based on the values from the previous iteration.
-class TriangleCounting : public StaticAlgorithm {
+class TriangleCounting : public StaticAlgorithm<HornetGraph> {
 public:
-    TriangleCounting(Hornet& custinger);
+    TriangleCounting(HornetGraph& hornet);
     ~TriangleCounting();
 
     void reset()    override;
@@ -47,25 +51,17 @@ public:
     void release()  override;
     bool validate() override { return true; }
 
+    void run(int cutoff);
+
     void init();
     void setInitParameters(int threadBlocks, int blockSize, int threadsPerIntersection);
     triangle_t countTriangles();
 
 private:
     bool memReleased;
-    TriangleData   hostTriangleData;
-    TriangleData*  deviceTriangleData;
+    HostDeviceVar<TriangleData> hd_triangleData;
 };
 
 //==============================================================================
 
-
-namespace triangle_operators {
-    __device__ __forceinline__
-    void init(vid_t src, void* optional_field) {
-        auto tri = reinterpret_cast<TriangleData*>(optional_field);
-        tri->triPerVertex[src] = 0;
-    }
-
-} // namespace triangle_operators
-} // namespace custinger_alg
+} // namespace hornets_nest

@@ -88,8 +88,7 @@ struct ColoringOperator {
         bool continue_var;
         auto src_color = d_colors[vertex_pair.x];
         auto dst_color = d_colors[vertex_pair.y];
-        //printf("%d\t->\t%d:\t%d\t%d\n",
-        //        vertex_pair.x, vertex_pair.y, src_color, dst_color);
+
         if (src_color > dst_color) {
             d_colors[vertex_pair.y] = d_colors[vertex_pair.x];
             continue_var = true;
@@ -103,24 +102,9 @@ struct ColoringOperator {
 
         if (continue_var)
             d_continue = true;
-        //gpu::reduce_or(d_continue.ptr(), continue_var);
+
     }
 };
-
-/*
-struct ColorigAtomic {
-    EnqueueOperator(color_t* d_colors_, TwoLevelQueue<int2> queue_) :
-                                Common(d_colors_, queue_) {}
-
-    __device__ __forceinline__
-    bool operator()(const int2& item) {
-        auto src_color = d_colors[item.x];
-        auto old_color = atomicMax(d_colors + item.y, src_color);
-        if (src_color < old_color)
-            atomicMax(d_colors + item.x, old_color);
-        //d_colors[item.x] = old_color;
-    }
-};*/
 
 //------------------------------------------------------------------------------
 ////////
@@ -199,8 +183,7 @@ bool CC::validate() {
 
     bool ret = true;
     for (vid_t i = 0; i < graph.nV(); i++) {
-//        std::cout << i << "\t"
-//                  << h_results[i] << "\t" << d_results[i] << std::endl;
+
         if (color_match1[ h_results[i] ] == NO_COLOR &&
                 color_match2[ d_results[i] ] == NO_COLOR) {
             color_match2[ d_results[i] ] = h_results[i];

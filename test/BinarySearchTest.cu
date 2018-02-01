@@ -60,8 +60,6 @@ __device__ int d_value;
 template<int ITEMS_PER_BLOCK, int BLOCK_SIZE>
 __global__
 void copyKernel(const int* __restrict__ input, int num_blocks, int smem_size) {
-    int id     = blockIdx.x * blockDim.x + threadIdx.x;
-    int stride = blockDim.x * gridDim.x;
     __shared__ int smem[ITEMS_PER_BLOCK];
 
     for (int i = blockIdx.x; i < num_blocks; i += gridDim.x) {
@@ -83,8 +81,6 @@ void copyKernel(const int* __restrict__ input, int num_blocks, int smem_size) {
 template<int ITEMS_PER_BLOCK, int BLOCK_SIZE>
 __global__
 void copyKernel2(const int* __restrict__ input, int num_blocks, int smem_size) {
-    int id     = blockIdx.x * blockDim.x + threadIdx.x;
-    int stride = blockDim.x * gridDim.x;
     //__shared__ int smem[ITEMS_PER_BLOCK];
 
     for (int i = blockIdx.x; i < num_blocks; i += gridDim.x) {

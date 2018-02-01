@@ -1,3 +1,3 @@
-[submodule "externals/xlib"]
+[submodule "xlib"]
 	path = externals/xlib
-	url = https://github.com/FedericoUnivr/XLib
+	url = https://github.com/hornet-gt/XLib

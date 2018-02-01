@@ -23,9 +23,9 @@ int main(int argc, char* argv[]) {
 
     HornetGraph hornet_graph(hornet_init);
 
-	vid_t root = 0;
-	if(argc==3) 
-	  root = atoi(argv[2]);
+    vid_t root = 0;
+    if(argc==3) 
+        root = atoi(argv[2]);
 
     SSSP sssp(hornet_graph);
     sssp.set_parameters(root);

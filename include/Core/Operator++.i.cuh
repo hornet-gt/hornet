@@ -92,7 +92,7 @@ namespace adj_union {
 }
 
 template<typename HornetDevice, typename T, typename Operator>
-__global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __restrict__ array, unsigned long long size, unsigned long long threads_per_union, int flag, Operator op) {
+__global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __restrict__ array, unsigned long long start, unsigned long long end, unsigned long long threads_per_union, int flag, Operator op) {
 
     using namespace adj_union;
     int       id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -104,7 +104,7 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
 
     // TODO: dynamic vs. static shared memory allocation?
     __shared__ vid_t pathPoints[256*2]; // i*2+0 = vi, i+2+1 = u_i
-    for (auto i = queue_id; i < size; i += queue_stride) {
+    for (auto i = start+queue_id; i < end; i += queue_stride) {
         auto src_vtx = hornet.vertex(array[2*i]);
         auto dst_vtx = hornet.vertex(array[2*i+1]);
         int srcLen = src_vtx.degree();
@@ -312,13 +312,16 @@ void forAllEdgesKernel(const eoff_t* __restrict__ csr_offsets,
 //==============================================================================
 //==============================================================================
 // stub
-#define MAX_ADJ_UNIONS_BINS 8
+#define MAX_ADJ_UNIONS_BINS 400
+#define WORK_BINS 8
 namespace adj_unions {
     struct queue_info {
         unsigned long long queue_sizes[MAX_ADJ_UNIONS_BINS] = {0,};
-        vid_t *d_queues[MAX_ADJ_UNIONS_BINS] = {NULL,};
-        unsigned long long queue_pos[MAX_ADJ_UNIONS_BINS] = {0,};
-        int queue_threads_per[MAX_ADJ_UNIONS_BINS] = {32, 64, 128, 256};
+        vid_t *edge_queue; // both balanced and imbalanced cases
+        unsigned long long *queue_pos; // prefix scan of counts
+        unsigned long long *d_queue_pos;
+        //int queue_threads_per[WORK_BINS] = {1, 4, 8, 16, 32, 64, 128, 256};
+        //int bin_cutoffs[WORK_BINS+1] = {0, 1, 2, 3, 4, 5, 6, 7, 32};
     };
 
     struct bin_edges {
@@ -334,30 +337,26 @@ namespace adj_unions {
 
             degree_t u_len = (src_len <= dst_len) ? src_len : dst_len;
             degree_t v_len = (src_len > dst_len) ? dst_len : src_len;
+            unsigned int log_u = 32-__clz(u_len-1);
             unsigned int log_v = 32-__clz(v_len-1);
-            int intersect_work = u_len + v_len - 1;
-            int binary_work = u_len * log_v;
-            int METHOD = (5*intersect_work >= binary_work);
-            total_work = METHOD ? u_len : u_len+v_len-1;
-            int cutoff = METHOD ? 3 : 31;
-            int i = MAX_ADJ_UNIONS_BINS/2;
+            //int binary_work = u_len * log_v;
+            //int intersect_work = u_len + v_len;
+            //int intersect_work = src.id();
+            //int log_work = 32-__clz(intersect_work-1);
+            //int METHOD = (5*intersect_work >= binary_work);
             
-            int W;
-            while (i > 0) {
-                W = d_queue_info.ptr()->queue_threads_per[i];
-                if ((total_work+W-1)/W >= cutoff)
-                    break;
-                i-=1;
-            }
-            bin_index = METHOD*(MAX_ADJ_UNIONS_BINS/2)+i;
+            //bin_index = log_work; 
+            //bin_index = log_u*20 + log_v;
+            bin_index = (src.id() + dst.id())%MAX_ADJ_UNIONS_BINS;
+            //bin_index = 2;
             // Either count or add the item to the appropriate queue
             if (countOnly)
                 atomicAdd(&(d_queue_info.ptr()->queue_sizes[bin_index]), 1ULL);
             else {
-                // How do I get the value returned by atomicAdd?
-                int id = atomicAdd(&(d_queue_info.ptr()->queue_pos[bin_index]), 1ULL);
-                d_queue_info.ptr()->d_queues[bin_index][id*2] = src.id();
-                d_queue_info.ptr()->d_queues[bin_index][id*2+1] = dst.id();
+                // TODO: long id?
+                int id = atomicAdd(&(d_queue_info.ptr()->d_queue_pos[bin_index]), 1ULL);
+                d_queue_info.ptr()->edge_queue[id*2] = src.id();
+                d_queue_info.ptr()->edge_queue[id*2+1] = dst.id();
             }
         }
     };
@@ -383,57 +382,72 @@ void forAllAdjUnions(HornetClass&          hornet,
 
     timer::Timer<timer::DEVICE> TM(5);
     TM.start();
-    //TM.start();
+    //cudaMalloc(&(hd_queue_info().queue_sizes), (MAX_ADJ_UNIONS_BINS)*sizeof(unsigned long long));
+    //cudaMemset(hd_queue_info().queue_sizes, 0, MAX_ADJ_UNIONS_BINS*sizeof(unsigned long long));
+
+    cudaMalloc(&(hd_queue_info().edge_queue), 2*hornet.nE()*sizeof(vid_t));
+    cudaMalloc(&(hd_queue_info().d_queue_pos), (MAX_ADJ_UNIONS_BINS+1)*sizeof(unsigned long long));
+    hd_queue_info().queue_pos = new unsigned long long[MAX_ADJ_UNIONS_BINS+1]();
+    // figure out cutoffs/counts per bin
     if (vertex_pairs.size())
         forAllVertexPairs(hornet, vertex_pairs, bin_edges {hd_queue_info, true});
     else
         forAllEdgeVertexPairs(hornet, bin_edges {hd_queue_info, true}, load_balancing);
 
-    //TM.stop();
-    //TM.print("counting queues:");
-    //TM.reset();
     hd_queue_info.sync();
-
+    /*
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++)
         printf("queue=%d number of edges: %llu\n", i, hd_queue_info().queue_sizes[i]);
-    // Next, add each edge into the correct corresponding queue
-    //TM.start();
-    for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++)
-        cudaMalloc(&(hd_queue_info().d_queues[i]), 2*hd_queue_info().queue_sizes[i]*sizeof(vid_t));
-    //TM.stop();
-    //TM.print("queue allocation:");
-    //TM.start();
-    //TM.reset();
-
+    */
+    // TODO: compute prefix sum over bin counts
+    hd_queue_info().queue_pos[0] = 0;
+    for (int i=1; i<MAX_ADJ_UNIONS_BINS+1; i++) {
+        hd_queue_info().queue_pos[i] = hd_queue_info().queue_pos[i-1] + hd_queue_info().queue_sizes[i-1];
+    }
+    
+    // TODO: transfer prefx results to device
+    cudaMemcpy(hd_queue_info().d_queue_pos, hd_queue_info().queue_pos, (MAX_ADJ_UNIONS_BINS+1)*sizeof(unsigned long long), cudaMemcpyHostToDevice);
+    
+    for (auto i = 0; i < MAX_ADJ_UNIONS_BINS+1; i++)
+        printf("queue=%d prefix sum: %llu\n", i, hd_queue_info().queue_pos[i]);
+    
+    // bin edges
     if (vertex_pairs.size())
         forAllVertexPairs(hornet, vertex_pairs, bin_edges {hd_queue_info, false});
     else
         forAllEdgeVertexPairs(hornet, bin_edges {hd_queue_info, false}, load_balancing);
 
-    //TM.stop();
-    //TM.print("adding to queues:");
-    //TM.reset();
+    hd_queue_info.sync();
     TM.stop();
     TM.print("queueing and binning:");
     TM.reset();
 
-    hd_queue_info.sync();
-
-    // Phase 2: run the operator on each queued edge as appropriate
-    for (auto bin = 0; bin < MAX_ADJ_UNIONS_BINS; bin++) {
-        if (hd_queue_info().queue_sizes[bin] == 0) continue;
-        int threads_per = hd_queue_info().queue_threads_per[bin % (MAX_ADJ_UNIONS_BINS/2)]; 
+    /*
+    cudaMemcpy(hd_queue_info().queue_pos, hd_queue_info().d_queue_pos, (MAX_ADJ_UNIONS_BINS+1)*sizeof(unsigned long long), cudaMemcpyDeviceToHost);
+    for (auto i = 0; i < MAX_ADJ_UNIONS_BINS+1; i++)
+        printf("queue=%d prefix sum after: %llu\n", i, hd_queue_info().queue_pos[i]);
+    */
+    forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().edge_queue, 0, hd_queue_info().queue_pos[MAX_ADJ_UNIONS_BINS], op, 32, 0);
+    // run the operator on each queued edge as appropriate
+    // TODO: adjust kernel calls to specify cutoffs for each threads_per range
+    /*
+    for (auto bin = 0; bin < WORK_BINS; bin++) {
+        int threads_per = hd_queue_info().queue_threads_per[bin]; 
+        unsigned long long start_index = hd_queue_info().queue_pos[hd_queue_info().bin_cutoffs[bin]];
+        unsigned long long end_index = hd_queue_info().queue_pos[hd_queue_info().bin_cutoffs[bin+1]];
         TM.start();
-        if (bin < MAX_ADJ_UNIONS_BINS/2) { 
-            forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, 0);
+        forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().edge_queue, start_index, end_index, op, threads_per, 0);
+        /*if (bin < MAX_ADJ_UNIONS_BINS/2) { 
+            forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_queues[0], hd_queue_info().queue_pos[bin], op, threads_per, 0);
+        
         } else if (bin >= MAX_ADJ_UNIONS_BINS/2) {
-            forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_queues[bin], hd_queue_info().queue_pos[bin], op, threads_per, 1);
+            forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_queues[1], hd_queue_info().queue_pos[bin], op, threads_per, 1);
         }
         
         TM.stop();
         TM.print("queue processing:");
         TM.reset();
-    }
+    }*/
 }
 
 
@@ -448,8 +462,9 @@ void forAllEdgesAdjUnionSequential(HornetClass &hornet, vid_t* queue, const unsi
 }
 
 template<typename HornetClass, typename Operator>
-void forAllEdgesAdjUnionBalanced(HornetClass &hornet, vid_t* queue, const unsigned long long size, const Operator &op, unsigned long long threads_per_union, int flag) {
+void forAllEdgesAdjUnionBalanced(HornetClass &hornet, vid_t* queue, const unsigned long long start, const unsigned long long end, const Operator &op, unsigned long long threads_per_union, int flag) {
     //printf("queue size: %llu\n", size);
+    unsigned long long size = end - start; // end is exclusive
     auto grid_size = size*threads_per_union;
     auto _size = size;
     while (grid_size > (1ULL<<31)) {
@@ -461,7 +476,7 @@ void forAllEdgesAdjUnionBalanced(HornetClass &hornet, vid_t* queue, const unsign
         return;
     detail::forAllEdgesAdjUnionBalancedKernel
         <<< xlib::ceil_div<BLOCK_SIZE_OP2>(grid_size), BLOCK_SIZE_OP2 >>>
-        (hornet.device_side(), queue, size, threads_per_union, flag, op);
+        (hornet.device_side(), queue, start, end, threads_per_union, flag, op);
     CHECK_CUDA_ERROR
 }
 

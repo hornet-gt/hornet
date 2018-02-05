@@ -39,6 +39,8 @@
 #pragma once
 
 #include "Core/Queue/TwoLevelQueue.cuh"
+#include "Core/HostDeviceVar.cuh"
+#include "Core/LoadBalancing/VertexBased.cuh"
 #include <BasicTypes.hpp>
 #include <Core/GPUHornet/BatchUpdate.cuh>
 
@@ -67,6 +69,11 @@ void forAll(int num_items, const Operator& op);
 template<typename T, typename Operator>
 void forAll(const TwoLevelQueue<T>& queue,
             const Operator&         op);
+
+template<typename HornetClass, typename T, typename Operator>
+void forAllVertexPairs(HornetClass&            hornet,
+                       const TwoLevelQueue<T>& queue,
+                       const Operator&         op);
 
 /**
  * @brief apply the `Operator` a number of times equal to the actual number of
@@ -125,6 +132,11 @@ void forAllEdges(HornetClass&         hornet,
                  const Operator&      op,
                  const LoadBalancing& load_balancing);
 
+template<typename HornetClass, typename Operator, typename LoadBalancing>
+void forAllEdgeVertexPairs(HornetClass&         hornet,
+                           const Operator&      op,
+                           const LoadBalancing& load_balancing);
+
 //==============================================================================
 //==============================================================================
 
@@ -153,6 +165,23 @@ void forAllEdges(HornetClass&         hornet,
                  int                  size,
                  const Operator&      op,
                  const LoadBalancing& load_balancing);
+
+template<typename HornetClass, typename Operator>
+void forAllAdjUnions(HornetClass&         hornet,
+                     const Operator&      op);
+
+template<typename HornetClass, typename Operator>
+void forAllAdjUnions(HornetClass&         hornet,
+                     TwoLevelQueue<vid2_t> vertex_pairs,
+                     const Operator&      op);
+
+template<typename HornetClass, typename Operator>
+void forAllEdgesAdjUnionSequential(HornetClass &hornet, vid_t* queue, const unsigned long long size, const Operator &op, int flag);
+template<typename HornetClass, typename Operator>
+void forAllEdgesAdjUnionBalanced(HornetClass &hornet, vid_t* queue, const unsigned long long size, const Operator &op, unsigned long long threads_per_union, int flag);
+
+template<typename HornetClass, typename Operator>
+void forAllEdgesAdjUnionImbalanced(HornetClass &hornet, vid_t* queue, const unsigned long long size, const Operator &op, unsigned long long threads_per_union, int flag);
 
 /**
  * @brief apply the `Operator` to all vertices in the graph

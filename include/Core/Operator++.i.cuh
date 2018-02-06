@@ -315,9 +315,8 @@ void forAllEdgesKernel(const eoff_t* __restrict__ csr_offsets,
 #define MAX_ADJ_UNIONS_BINS 64
 namespace adj_unions {
     struct queue_info {
-        unsigned long long queue_sizes[MAX_ADJ_UNIONS_BINS] = {0,};
+        unsigned long long *d_queue_sizes;
         vid_t *d_edge_queue; // both balanced and imbalanced cases
-        unsigned long long queue_pos[MAX_ADJ_UNIONS_BINS+1] = {0,}; // prefix scan of counts
         unsigned long long *d_queue_pos;
     };
 
@@ -339,7 +338,7 @@ namespace adj_unions {
             int binary_work = u_len;
             int binary_work_est = u_len*log_v;
             int intersect_work = u_len + v_len;
-            int METHOD = (5*intersect_work >= binary_work_est);
+            int METHOD = (10*intersect_work >= binary_work_est);
             int log_work = METHOD ? 32-__clz(binary_work): 32-__clz(intersect_work);
 
             bin_index = (METHOD*MAX_ADJ_UNIONS_BINS/2)+log_work; 
@@ -348,7 +347,7 @@ namespace adj_unions {
 
             // Either count or add the item to the appropriate queue
             if (countOnly)
-                atomicAdd(&(d_queue_info.ptr()->queue_sizes[bin_index]), 1ULL);
+                atomicAdd(&(d_queue_info.ptr()->d_queue_sizes[bin_index]), 1ULL);
             else {
                 // TODO: long id?
                 int id = atomicAdd(&(d_queue_info.ptr()->d_queue_pos[bin_index]), 1ULL);
@@ -379,11 +378,15 @@ void forAllAdjUnions(HornetClass&          hornet,
 
     timer::Timer<timer::DEVICE> TM(5);
     TM.start();
-    //cudaMalloc(&(hd_queue_info().queue_sizes), (MAX_ADJ_UNIONS_BINS)*sizeof(unsigned long long));
-    //cudaMemset(hd_queue_info().queue_sizes, 0, MAX_ADJ_UNIONS_BINS*sizeof(unsigned long long));
+
     cudaMalloc(&(hd_queue_info().d_edge_queue), 2*hornet.nE()*sizeof(vid_t));
+    cudaMalloc(&(hd_queue_info().d_queue_sizes), (MAX_ADJ_UNIONS_BINS)*sizeof(unsigned long long));
+    cudaMemset(hd_queue_info().d_queue_sizes, 0, MAX_ADJ_UNIONS_BINS*sizeof(unsigned long long));
+    unsigned long long *queue_sizes = (unsigned long long *)calloc(MAX_ADJ_UNIONS_BINS, sizeof(unsigned long long));
     cudaMalloc(&(hd_queue_info().d_queue_pos), (MAX_ADJ_UNIONS_BINS+1)*sizeof(unsigned long long));
-    //hd_queue_info().queue_pos = new unsigned long long[MAX_ADJ_UNIONS_BINS+1]();
+    cudaMemset(hd_queue_info().d_queue_pos, 0, (MAX_ADJ_UNIONS_BINS+1)*sizeof(unsigned long long));
+    unsigned long long *queue_pos = (unsigned long long *)calloc(MAX_ADJ_UNIONS_BINS+1, sizeof(unsigned long long));
+
     // figure out cutoffs/counts per bin
     if (vertex_pairs.size())
         forAllVertexPairs(hornet, vertex_pairs, bin_edges {hd_queue_info, true});
@@ -391,21 +394,23 @@ void forAllAdjUnions(HornetClass&          hornet,
         forAllEdgeVertexPairs(hornet, bin_edges {hd_queue_info, true}, load_balancing);
 
     hd_queue_info.sync();
+    // copy queue size info to from device to host
+    cudaMemcpy(queue_sizes, hd_queue_info().d_queue_sizes, (MAX_ADJ_UNIONS_BINS)*sizeof(unsigned long long), cudaMemcpyDeviceToHost);
     /*
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS; i++)
         printf("queue=%d number of edges: %llu\n", i, hd_queue_info().queue_sizes[i]);
     */
     // compute prefix sum over bin counts
-    hd_queue_info().queue_pos[0] = 0;
+    //hd_queue_info().queue_pos[0] = 0;
     for (int i=1; i<MAX_ADJ_UNIONS_BINS+1; i++) {
-        hd_queue_info().queue_pos[i] = hd_queue_info().queue_pos[i-1] + hd_queue_info().queue_sizes[i-1];
+        queue_pos[i] = queue_pos[i-1] + queue_sizes[i-1];
     }
     
     // transfer prefx results to device
-    cudaMemcpy(hd_queue_info().d_queue_pos, hd_queue_info().queue_pos, (MAX_ADJ_UNIONS_BINS+1)*sizeof(unsigned long long), cudaMemcpyHostToDevice);
+    cudaMemcpy(hd_queue_info().d_queue_pos, queue_pos, (MAX_ADJ_UNIONS_BINS+1)*sizeof(unsigned long long), cudaMemcpyHostToDevice);
     /*
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS+1; i++)
-        printf("queue=%d prefix sum: %llu\n", i, hd_queue_info().queue_pos[i]);
+        printf("queue=%d prefix sum: %llu\n", i, queue_pos[i]);
     */
     // bin edges
     if (vertex_pairs.size())
@@ -439,7 +444,7 @@ void forAllAdjUnions(HornetClass&          hornet,
     for (auto log_factor=0; log_factor <= LOG_MAX; log_factor += 1) {
         threads_per = 1 << log_factor; 
         bin_index = ((log_factor == LOG_MAX) || (bin_index > bin_max)) ? bin_max : bin_offset + (log_factor+2)+1;
-        end_index = hd_queue_info().queue_pos[bin_index];
+        end_index = queue_pos[bin_index];
         size = end_index - start_index;
         printf("threads_per: %d, size: %llu\n", threads_per, size); 
         if (size) {
@@ -453,12 +458,12 @@ void forAllAdjUnions(HornetClass&          hornet,
     }
     // imbalanced phase
     bin_offset = bin_max;
-    start_index = hd_queue_info().queue_pos[bin_max];
+    start_index = queue_pos[bin_max];
     bin_max *= 2; 
     for (auto log_factor=0; log_factor <= LOG_MAX; log_factor += 1) {
         threads_per = 1 << log_factor; 
         bin_index = ((log_factor == LOG_MAX) || (bin_index > bin_max)) ? bin_max : bin_offset + (log_factor+2)+1;
-        end_index = hd_queue_info().queue_pos[bin_index];
+        end_index = queue_pos[bin_index];
         size = end_index - start_index;
         printf("threads_per: %d, size: %llu\n", threads_per, size); 
         if (size) {
@@ -470,6 +475,9 @@ void forAllAdjUnions(HornetClass&          hornet,
         }
         start_index = end_index;
     }
+    
+    free(queue_sizes);
+    free(queue_pos);
 }
 
 

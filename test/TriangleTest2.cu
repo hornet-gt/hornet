@@ -74,6 +74,12 @@ void hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
 
 int main(int argc, char* argv[]) {
 
+    int device = 0;
+    struct cudaDeviceProp properties;
+    cudaGetDeviceProperties(&properties, device);
+    std::cout<<"using "<<properties.multiProcessorCount<<" multiprocessors"<<std::endl;
+    std::cout<<"max threads per processor: "<<properties.maxThreadsPerMultiProcessor<<std::endl;
+
     using namespace graph::structure_prop;
     using namespace graph::parsing_prop;
 
@@ -97,7 +103,7 @@ int main(int argc, char* argv[]) {
     TM.print("Computation time:");
 
     triangle_t deviceTriangleCount = tc.countTriangles();
-    printf("Device triangles: %lu\n", deviceTriangleCount);
+    printf("Device triangles: %llu\n", deviceTriangleCount);
   
     /*
     int64_t hostTriCount = 0;

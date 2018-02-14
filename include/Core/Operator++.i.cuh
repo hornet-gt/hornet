@@ -311,7 +311,8 @@ void forAllEdgesKernel(const eoff_t* __restrict__ csr_offsets,
 
 //==============================================================================
 //==============================================================================
-#define MAX_ADJ_UNIONS_BINS 64
+#define MAX_ADJ_UNIONS_BINS 2048
+#define BINS_1D_DIM 32
 namespace adj_unions {
     struct queue_info {
         unsigned long long *d_queue_sizes;
@@ -341,7 +342,7 @@ namespace adj_unions {
             int METHOD = (WORK_FACTOR*intersect_work >= binary_work_est);
             int log_work = METHOD ? 32-__clz(binary_work): 32-__clz(intersect_work);
 
-            bin_index = (METHOD*MAX_ADJ_UNIONS_BINS/2)+log_work; 
+            bin_index = (METHOD*MAX_ADJ_UNIONS_BINS/2)+(log_work*BINS_1D_DIM+log_v); 
             //bin_index = MAX_ADJ_UNIONS_BINS/2+((src.id() + dst.id())%(MAX_ADJ_UNIONS_BINS/2));
             //bin_index = MAX_ADJ_UNIONS_BINS/2;
 
@@ -437,9 +438,9 @@ void forAllAdjUnions(HornetClass&          hornet,
     const int LOG_OFFSET = 3; // seems optimal from testing a few inputs; tunable
     int log_factor = LOG_OFFSET; 
     // balanced kernel
-    while (bin_offset+log_factor <= MAX_ADJ_UNIONS_BINS/2) {
+    while ((bin_offset+log_factor)*BINS_1D_DIM <= MAX_ADJ_UNIONS_BINS/2) {
         threads_per = 1 << (log_factor - LOG_OFFSET); 
-        bin_index = bin_offset+log_factor;
+        bin_index = (bin_offset+log_factor)*BINS_1D_DIM;
         //std::cout << "bin_index " << bin_index << std::endl;
         end_index = queue_pos[bin_index];
         size = end_index - start_index;
@@ -453,13 +454,12 @@ void forAllAdjUnions(HornetClass&          hornet,
         start_index = end_index;
         log_factor += 1;
     }
-
     // imbalanced kernel 
     bin_offset = MAX_ADJ_UNIONS_BINS/2;
     log_factor = LOG_OFFSET;
-    while (bin_offset+log_factor <= MAX_ADJ_UNIONS_BINS) {
+    while (bin_offset+(log_factor*BINS_1D_DIM) <= MAX_ADJ_UNIONS_BINS) {
         threads_per = 1 << (log_factor - LOG_OFFSET); 
-        bin_index = bin_offset+log_factor;
+        bin_index = bin_offset+(log_factor*BINS_1D_DIM);
         //std::cout << "bin_index " << bin_index << std::endl;
         end_index = queue_pos[bin_index];
         size = end_index - start_index;

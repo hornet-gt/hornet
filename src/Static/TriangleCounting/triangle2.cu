@@ -104,7 +104,7 @@ struct OPERATOR_AdjIntersectionCountBalanced {
         }
 
         atomicAdd(d_triPerVertex+u.id(), count);
-        atomicAdd(d_triPerVertex+v.id(), count);
+        //atomicAdd(d_triPerVertex+v.id(), count);
     }
 };
 

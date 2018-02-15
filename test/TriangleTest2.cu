@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
     using namespace graph::parsing_prop;
 
     graph::GraphStd<vid_t, eoff_t> graph(UNDIRECTED);
-    graph.read(argv[1], SORT | PRINT_INFO);
+    graph.read(argv[1], SORT_BY_DEGREE | PRINT_INFO);
     HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
                            graph.csr_out_edges());
 

@@ -217,7 +217,7 @@ __global__ void forAllEdgesAdjUnionImbalancedKernel(HornetDevice hornet, T* __re
         vid_t src = src_vtx.id();
         vid_t dest = dst_vtx.id();
 
-        bool avoidCalc = (src == dest) || (destLen < 2) || (srcLen < 2);
+        bool avoidCalc = (src == dest) || (srcLen < 2);
         if (avoidCalc)
             continue;
 
@@ -327,7 +327,7 @@ namespace adj_unions {
 
         OPERATOR(Vertex& src, Vertex& dst) {
             // Choose the bin to place this edge into
-            if (src.id() >= dst.id()) return; // imposes ordering
+            //if (src.id() >= dst.id()) return; // imposes ordering
             degree_t src_len = src.degree();
             degree_t dst_len = dst.degree();
 

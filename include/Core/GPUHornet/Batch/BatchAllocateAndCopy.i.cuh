@@ -45,16 +45,16 @@ template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::allocateEdgeDeletion(size_t max_batch_size,
                                   BatchProperty batch_prop) noexcept {
     _batch_prop = batch_prop;
-    if (_batch_prop == batch_property::GEN_INVERSE)
+    if (_batch_prop & batch_property::GEN_INVERSE)
         max_batch_size *= 2u;
     auto csr_size = std::min(max_batch_size, static_cast<size_t>(_nV));
 
     allocatePrepocessing(max_batch_size, csr_size);
 
-    if (_batch_prop != batch_property::IN_PLACE)
-        allocateOOPEdgeDeletion(csr_size);
-    else {
+    if (_batch_prop & batch_property::IN_PLACE) {
         allocateInPlaceUpdate(csr_size);
+    } else {
+        allocateOOPEdgeDeletion(csr_size);
     }
 }
 
@@ -62,18 +62,18 @@ template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::allocateEdgeInsertion(size_t max_batch_size,
                                    BatchProperty batch_prop) noexcept {
     _batch_prop = batch_prop;
-    if (_batch_prop == batch_property::GEN_INVERSE)
+    if (_batch_prop & batch_property::GEN_INVERSE)
         max_batch_size *= 2u;
     auto csr_size = std::min(max_batch_size, static_cast<size_t>(_nV));
 
     allocatePrepocessing(max_batch_size, csr_size);
 
-    if (_batch_prop == batch_property::IN_PLACE)
+    if (_batch_prop & batch_property::IN_PLACE)
         allocateInPlaceUpdate(csr_size);
     else
         ERROR("Edge Batch insertion OUT-OF-PLACE not implemented")
 
-    if (_batch_prop == batch_property::REMOVE_BATCH_DUPLICATE || _is_sorted)
+    if (_batch_prop & batch_property::REMOVE_BATCH_DUPLICATE || _is_sorted)
         cub_sort_pair.initialize(max_batch_size, false);
 }
 
@@ -94,18 +94,18 @@ void HORNET::allocatePrepocessing(size_t max_batch_size, size_t csr_size)
     cuMalloc(_d_counts,       csr_size + 1);
     cuMalloc(_d_unique,       csr_size);
 
-    if (_batch_prop == batch_property::REMOVE_CROSS_DUPLICATE) {
-        auto used_size = _batch_prop == batch_property::REMOVE_BATCH_DUPLICATE ?
-                            csr_size : max_batch_size;
-        cuMalloc(_d_degree_tmp, used_size + 1);
+    auto used_size = _batch_prop & batch_property::REMOVE_BATCH_DUPLICATE ?
+                        csr_size : max_batch_size;
+    cuMalloc(_d_degree_tmp, used_size + 1);
+    //if (_batch_prop & batch_property::REMOVE_CROSS_DUPLICATE) {
         cuMalloc(_d_flags,      used_size);
         cuMemset(_d_flags,      used_size, 0x01);    //all true
-    }
+    //}
 }
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::allocateOOPEdgeDeletion(size_t csr_size) noexcept {
-    ERROR("cuMalloc with multiple arguments should be tested")
+    //ERROR("cuMalloc with multiple arguments should be tested")
     /*cuMalloc(_d_degree_tmp,  csr_size + 1,
              _d_degree_new,  csr_size + 1,
              _d_tmp,         _nE,
@@ -115,6 +115,10 @@ void HORNET::allocateOOPEdgeDeletion(size_t csr_size) noexcept {
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::allocateInPlaceUpdate(size_t csr_size) noexcept {
+    cuMalloc(_d_locations, csr_size);
+    cuMalloc(_d_batch_offset, csr_size + 1);
+    cuMalloc(_d_counter,      csr_size + 1);
+
     cuMalloc(_d_queue_new_degree, csr_size);
     cuMalloc(_d_queue_new_ptr,    csr_size);
     cuMalloc(_d_queue_old_ptr,    csr_size);

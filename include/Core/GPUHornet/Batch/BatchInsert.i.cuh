@@ -56,6 +56,9 @@ void HORNET::insertEdgeBatch(BatchUpdate& batch_update) noexcept {
     // OPERATE ON BATCH //
     //////////////////////
     cub_prefixsum.run(_d_counts, num_uniques + 1);
+#if defined(DEBUG_INSERT)
+        xlib::gpu::printArray(_d_counts, num_uniques + 1, "_d_counts:\n");
+#endif
 
     if (_is_sorted) { // IN_PLACE SORTING !! (may be slow)
         //Merge sort
@@ -69,7 +72,7 @@ void HORNET::insertEdgeBatch(BatchUpdate& batch_update) noexcept {
         int smem = xlib::DeviceProperty::smem_per_block(BLOCK_SIZE);
         int num_blocks = xlib::ceil_div(batch_size, smem);
 #if defined(DEBUG_INSERT)
-        cu::printArray(_d_degree_tmp, num_uniques, "_d_degree_tmp:\n");
+        xlib::gpu::printArray(_d_degree_tmp, num_uniques, "_d_degree_tmp:\n");
 #endif
         bulkCopyAdjLists<BLOCK_SIZE>  <<< num_blocks, BLOCK_SIZE >>>
             (device_side(), _d_counts, num_uniques + 1,

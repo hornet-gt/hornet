@@ -69,6 +69,7 @@ HORNET::~Hornet() noexcept {
            _d_counts, _d_unique, _d_degree_tmp, _d_flags);
     cuFree(_d_queue_new_degree, _d_queue_new_ptr, _d_queue_old_ptr,
            _d_queue_old_degree, _d_queue_id, _d_queue_size);
+    cuFree(_d_locations, _d_batch_offset, _d_counter);
     cuFreeHost(_h_queue_new_ptr, _h_queue_new_degree, _h_queue_old_ptr,
                _h_queue_old_degree);
     delete[] _h_queue_id;

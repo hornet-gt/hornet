@@ -48,30 +48,71 @@ void genererateDegreeTmpKernel() {
 
 }
 
-template<typename HornetDevice>
+template<int BLOCK_SIZE, typename HornetDevice>
 __global__
-void deleteUnsortedKernel(HornetDevice              hornet,
-                          const vid_t* __restrict__ d_batch_src,
-                          const vid_t* __restrict__ d_batch_dst,
-                          int                       batch_size) {
+void locateEdges(HornetDevice              hornet,
+                 const int*   __restrict__ d_prefixsum,
+                 const int*   __restrict__ d_batch_offsets,//offset in batch
+                 const vid_t* __restrict__ d_batch_unique_src,
+                 const vid_t* __restrict__ d_batch_dst,
+                 int                       batch_size,
+                 bool*                     d_flags,
+                 int*         __restrict__ d_locations) {
 
-    int     id = blockIdx.x * blockDim.x + threadIdx.x;
-    int stride = gridDim.x * blockDim.x;
+    const int ITEMS_PER_BLOCK = xlib::smem_per_block<int, BLOCK_SIZE>();
+    __shared__ int smem[ITEMS_PER_BLOCK];
 
-    for (auto i = id; i < batch_size; i += stride) {
-        auto vertex = hornet.vertex(d_batch_src[i]);
-        auto    dst = d_batch_dst[i];
+    const auto& lambda = [&] (int pos, degree_t offset) {
+                    auto     vertex = hornet.vertex(d_batch_unique_src[pos]);
+                    assert(offset < vertex.degree());
+                    auto        dst = vertex.edge(offset).dst_id();
+                    int start = d_batch_offsets[pos];
+                    int end   = d_batch_offsets[pos + 1];
+                    int found = xlib::lower_bound_left(
+                            d_batch_dst + start,
+                            end - start,
+                            dst);
+                    if (found >= 0 && (dst == d_batch_dst[start + found])) {
+                        d_locations[start + found] = offset;
+                        d_flags[start + found] = true;
+                    }
 
-        for (int j = 0; j < vertex.degree(); j++) {
-            if (vertex.neighbor_id(j) == dst) {
-                //auto last = get_last();
-                /*if (last < 0)
-                    break;
-                vertex.store(j, Edge(hornet, vertex.neighbor_ptr() + last));
-                break;*/
-            }
-        }
-    }
+                };
+    xlib::binarySearchLB<BLOCK_SIZE>(d_prefixsum, batch_size, smem, lambda);
+}
+
+template<int BLOCK_SIZE, typename HornetDevice>
+__global__
+void swapVertices(HornetDevice              hornet,
+                  const int*   __restrict__ d_batch_offsets,
+                  const int*   __restrict__ d_locations,//offset in batch
+                  const int*   __restrict__ d_counts,//number of deletions
+                  const vid_t* __restrict__ d_batch_unique_src,
+                  const vid_t* __restrict__ d_batch_dst,
+                  int                       batch_size,
+                  int*         __restrict__ d_counter) {
+
+    const int ITEMS_PER_BLOCK = xlib::smem_per_block<int, BLOCK_SIZE>();
+    __shared__ int smem[ITEMS_PER_BLOCK];
+    const auto& lambda = [&] (int pos, degree_t offset) {
+                    auto     vertex = hornet.vertex(d_batch_unique_src[pos]);
+                    offset += vertex.degree() - d_counts[pos];
+                    //assert(offset < vertex.degree());
+                    auto        dst = vertex.edge(offset).dst_id();
+                    int start = d_batch_offsets[pos];
+                    int end   = d_batch_offsets[pos + 1];
+                    int found = xlib::lower_bound_left(
+                            d_batch_dst + start,
+                            end - start,
+                            dst);
+                    if (found < 0 || (dst != d_batch_dst[start + found])) {
+                        int loc = atomicAdd(d_counter + pos, 1);
+                        auto deleted_dst_offset = d_locations[start + loc];
+                        vertex.neighbor_ptr()[deleted_dst_offset] = vertex.neighbor_ptr()[offset];
+                    }
+
+                };
+    xlib::binarySearchLB<BLOCK_SIZE>(d_batch_offsets, batch_size, smem, lambda);
 }
 
 } // namespace gpu

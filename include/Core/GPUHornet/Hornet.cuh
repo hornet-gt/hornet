@@ -292,10 +292,14 @@ private:
     //vid_t*    _d_dst_array    { nullptr };
     vid_t*    _d_unique       { nullptr };
     int*      _d_counts       { nullptr };
+    int*      _d_counter      { nullptr };
     vid_t*    _d_tmp_sort_src { nullptr };
     vid_t*    _d_tmp_sort_dst { nullptr };
     degree_t* _d_degree_tmp   { nullptr };
     bool*     _d_flags        { nullptr };
+
+    degree_t* _d_locations    { nullptr };
+    degree_t* _d_batch_offset { nullptr };
     xlib::CubExclusiveSum<int>       cub_prefixsum;
     xlib::CubRunLengthEncode<vid_t>  cub_runlength;
     xlib::CubSelectFlagged<vid_t>    cub_select_flag;

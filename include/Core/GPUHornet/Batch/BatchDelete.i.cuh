@@ -47,30 +47,51 @@ void HORNET::deleteEdgeBatch(BatchUpdate& batch_update) noexcept {
     vid_t* d_batch_src = batch_update.src_ptr();
     vid_t* d_batch_dst = batch_update.dst_ptr();
     //--------------------------------------------------------------------------
+
+    cuMemcpyDevToDev(_d_counts, num_uniques + 1, _d_batch_offset);
+    cub_prefixsum.run(_d_batch_offset, num_uniques + 1);
+    //set all d_locations to -1
+    cuMemset0x00(_d_counter, num_uniques + 1);
+
     ///////////////////
     // DELETE KERNEL //
     ///////////////////
-    if (_is_sorted) {
-        cub_prefixsum.run(_d_counts, num_uniques + 1);
+    //if (_is_sorted) {
+    //    //cub_prefixsum.run(_d_counts, num_uniques + 1);
 
-        /*deleteSortedKernel
-            <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
-            (device_side(), _d_unique, _d_counts, num_uniques, d_batch_dst);
-        CHECK_CUDA_ERROR*/
-    }
-    else {
+    //}
+    //else {
         vertexDegreeKernel
             <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
             (device_side(), _d_unique, num_uniques, _d_degree_tmp);
+        cub_prefixsum.run(_d_degree_tmp, batch_size + 1);
+        cuMemset(_d_flags,      batch_size, 0x00);    //all true
 
-        /*deleteUnsortedKernel
-            <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
-            (device_side(), d_batch_src, d_batch_dst, batch_size,
-             _d_degree_tmp);*/
+        int smem = xlib::DeviceProperty::smem_per_block(BLOCK_SIZE);
+        int num_blocks = xlib::ceil_div(batch_size, smem);
+
+        //location of batch edges in graph
+        locateEdges<BLOCK_SIZE>
+            <<< num_blocks, BLOCK_SIZE >>>
+            (device_side(),
+             _d_degree_tmp, _d_batch_offset,
+             _d_unique, _d_batch_dst,
+             num_uniques + 1, _d_flags, _d_locations);
+
+        //cub_select_flag.run(_d_batch_src, batch_size, _d_flags);
+        //batch_size = cub_select_flag.run(_d_batch_dst, batch_size, _d_flags);
+        //num_uniques = cub_runlength.run(d_batch_src, batch_size,
+        //                                    _d_unique, _d_counts);
+
+        swapVertices<BLOCK_SIZE>
+            <<< num_blocks, BLOCK_SIZE >>>
+            (device_side(),
+             _d_batch_offset, _d_locations, _d_counts,
+             _d_unique, _d_batch_dst,
+             num_uniques + 1, _d_counter);
         CHECK_CUDA_ERROR
-    }
-    //--------------------------------------------------------------------------
-                                        //is_insert, get_old_degree
+    //}
+
     fixInternalRepresentation(num_uniques, false, false);
 
     if (_batch_prop == batch_property::CSR)

@@ -51,8 +51,8 @@ bool ParsingProp::is_sort() const noexcept {
     return *this & parsing_prop::SORT;
 }
 
-bool ParsingProp::is_sort_by_degree() const noexcept {
-    return *this & parsing_prop::SORT_BY_DEGREE;
+bool ParsingProp::is_directed_by_degree() const noexcept {
+    return *this & parsing_prop::DIRECTED_BY_DEGREE;
 }
 
 bool ParsingProp::is_randomize() const noexcept {

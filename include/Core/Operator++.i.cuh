@@ -113,7 +113,7 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
         vid_t src = src_vtx.id();
         vid_t dest = dst_vtx.id();
 
-        bool avoidCalc = (src == dest) || (destLen < 2) || (srcLen < 2);
+        bool avoidCalc = (src == dest) || (srcLen < 2);
         if (avoidCalc)
             continue;
 
@@ -327,10 +327,8 @@ namespace adj_unions {
 
         OPERATOR(Vertex& src, Vertex& dst) {
             // Choose the bin to place this edge into
-            //if (src.id() >= dst.id()) return; // imposes ordering
             degree_t src_len = src.degree();
             degree_t dst_len = dst.degree();
-
             degree_t u_len = (src_len <= dst_len) ? src_len : dst_len;
             degree_t v_len = (src_len > dst_len) ? dst_len : src_len;
             unsigned int log_u = 32-__clz(u_len-1);
@@ -394,16 +392,13 @@ void forAllAdjUnions(HornetClass&          hornet,
     else
         forAllEdgeVertexPairs(hornet, bin_edges {hd_queue_info, true}, load_balancing);
 
-    //hd_queue_info.sync();
     // copy queue size info to from device to host
     cudaMemcpy(queue_sizes, hd_queue_info().d_queue_sizes, (MAX_ADJ_UNIONS_BINS)*sizeof(unsigned long long), cudaMemcpyDeviceToHost);
-    // compute prefix sum over bin counts
-    for (int i=1; i<MAX_ADJ_UNIONS_BINS+1; i++) {
-        queue_pos[i] = queue_pos[i-1] + queue_sizes[i-1];
-    }
-    
+    // prefix sum over bin sizes
+    std::partial_sum(queue_sizes, queue_sizes+MAX_ADJ_UNIONS_BINS, queue_pos+1);
     // transfer prefx results to device
     cudaMemcpy(hd_queue_info().d_queue_pos, queue_pos, (MAX_ADJ_UNIONS_BINS+1)*sizeof(unsigned long long), cudaMemcpyHostToDevice);
+
     /*
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS+1; i++)
         printf("queue=%d prefix sum: %llu\n", i, queue_pos[i]);
@@ -414,7 +409,6 @@ void forAllAdjUnions(HornetClass&          hornet,
     else
         forAllEdgeVertexPairs(hornet, bin_edges {hd_queue_info, false}, load_balancing);
 
-    //hd_queue_info.sync();
     TM.stop();
     TM.print("queueing and binning:");
     TM.reset();
@@ -454,8 +448,10 @@ void forAllAdjUnions(HornetClass&          hornet,
         start_index = end_index;
         log_factor += 1;
     }
+
     // imbalanced kernel 
     bin_offset = MAX_ADJ_UNIONS_BINS/2;
+    start_index = queue_pos[bin_offset];
     log_factor = LOG_OFFSET;
     while (bin_offset+(log_factor*BINS_1D_DIM) <= MAX_ADJ_UNIONS_BINS) {
         threads_per = 1 << (log_factor - LOG_OFFSET); 

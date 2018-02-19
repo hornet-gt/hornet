@@ -44,7 +44,8 @@ namespace graph {
 
 namespace detail {
     enum class ParsingEnum { NONE = 0, RANDOMIZE = 1, SORT = 2,
-                             PRINT_INFO = 4, RM_SINGLETON = 8 };
+                             PRINT_INFO = 4, RM_SINGLETON = 8,
+                             DIRECTED_BY_DEGREE = 16 };
 } // namespace detail
 
 class ParsingProp : public xlib::PropertyClass<detail::ParsingEnum,
@@ -56,6 +57,7 @@ public:
     explicit ParsingProp(const detail::ParsingEnum& value) noexcept;
 private:
     bool is_sort()         const noexcept;
+    bool is_directed_by_degree()    const noexcept;
     bool is_randomize()    const noexcept;
     bool is_print()        const noexcept;
     bool is_rm_singleton() const noexcept;
@@ -71,6 +73,10 @@ const ParsingProp RANDOMIZE        ( detail::ParsingEnum::RANDOMIZE );
 
 ///@brief Sort adjacency list by label id
 const ParsingProp SORT             ( detail::ParsingEnum::SORT );
+
+///@brief Turn into degree-directed graph (high to low direction) 
+const ParsingProp DIRECTED_BY_DEGREE             ( detail::ParsingEnum::DIRECTED_BY_DEGREE );
+
 
 ///@brief Print basic information during graph parsing
 const ParsingProp PRINT_INFO       ( detail::ParsingEnum::PRINT_INFO );

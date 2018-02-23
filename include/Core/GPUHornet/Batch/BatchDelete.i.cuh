@@ -78,10 +78,11 @@ void HORNET::deleteEdgeBatch(BatchUpdate& batch_update) noexcept {
              _d_unique, _d_batch_dst,
              num_uniques + 1, _d_flags, _d_locations);
 
-        //cub_select_flag.run(_d_batch_src, batch_size, _d_flags);
-        //batch_size = cub_select_flag.run(_d_batch_dst, batch_size, _d_flags);
-        //num_uniques = cub_runlength.run(d_batch_src, batch_size,
-        //                                    _d_unique, _d_counts);
+        cub_select_flag.run(_d_batch_src, batch_size, _d_flags);
+        cub_select_flag.run(_d_batch_dst, batch_size, _d_flags);
+        batch_size = cub_select_flag.run(_d_locations, batch_size, _d_flags);
+        num_uniques = cub_runlength.run(d_batch_src, batch_size,
+                                            _d_unique, _d_counts);
 
         swapVertices<BLOCK_SIZE>
             <<< num_blocks, BLOCK_SIZE >>>
@@ -96,6 +97,8 @@ void HORNET::deleteEdgeBatch(BatchUpdate& batch_update) noexcept {
 
     if (_batch_prop == batch_property::CSR)
         build_batch_csr(batch_update, num_uniques, !_is_sorted);
+
+    _nE -= batch_size;
 }
 
 } // namespace gpu

@@ -56,6 +56,7 @@ void HORNET::allocateEdgeDeletion(size_t max_batch_size,
     } else {
         allocateOOPEdgeDeletion(csr_size);
     }
+    cub_sort_pair.initialize(max_batch_size, false);
 }
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
@@ -94,8 +95,10 @@ void HORNET::allocatePrepocessing(size_t max_batch_size, size_t csr_size)
     cuMalloc(_d_counts,       csr_size + 1);
     cuMalloc(_d_unique,       csr_size);
 
-    auto used_size = _batch_prop & batch_property::REMOVE_BATCH_DUPLICATE ?
-                        csr_size : max_batch_size;
+    //auto used_size = _batch_prop & batch_property::REMOVE_BATCH_DUPLICATE ?
+    //                    csr_size : max_batch_size;
+    auto used_size = max_batch_size;
+    std::cerr<<"Used size : "<<used_size<<"\n";
     cuMalloc(_d_degree_tmp, used_size + 1);
     //if (_batch_prop & batch_property::REMOVE_CROSS_DUPLICATE) {
         cuMalloc(_d_flags,      used_size);

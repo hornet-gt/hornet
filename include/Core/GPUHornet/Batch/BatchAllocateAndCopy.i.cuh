@@ -98,7 +98,6 @@ void HORNET::allocatePrepocessing(size_t max_batch_size, size_t csr_size)
     //auto used_size = _batch_prop & batch_property::REMOVE_BATCH_DUPLICATE ?
     //                    csr_size : max_batch_size;
     auto used_size = max_batch_size;
-    std::cerr<<"Used size : "<<used_size<<"\n";
     cuMalloc(_d_degree_tmp, used_size + 1);
     //if (_batch_prop & batch_property::REMOVE_CROSS_DUPLICATE) {
         cuMalloc(_d_flags,      used_size);
@@ -122,7 +121,7 @@ void HORNET::allocateInPlaceUpdate(size_t csr_size) noexcept {
     cuMalloc(_d_batch_offset, csr_size + 1);
     cuMalloc(_d_counter,      csr_size + 1);
 
-    cuMalloc(_d_queue_new_degree, csr_size);
+    cuMalloc(_d_queue_new_degree, csr_size + 1);
     cuMalloc(_d_queue_new_ptr,    csr_size);
     cuMalloc(_d_queue_old_ptr,    csr_size);
     cuMalloc(_d_queue_old_degree, csr_size + 1);

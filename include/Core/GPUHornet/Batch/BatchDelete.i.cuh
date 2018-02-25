@@ -38,6 +38,8 @@
 namespace hornets_nest {
 namespace gpu {
 
+//#define BATCH_DELETE_DEBUG
+
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::deleteEdgeBatch(BatchUpdate& batch_update) noexcept {
     const unsigned BLOCK_SIZE = 128;
@@ -78,11 +80,28 @@ void HORNET::deleteEdgeBatch(BatchUpdate& batch_update) noexcept {
              _d_unique, _d_batch_dst,
              num_uniques + 1, _d_flags, _d_locations);
 
+#ifdef BATCH_DELETE_DEBUG
+        xlib::gpu::printArray(_d_batch_src, batch_size, "Batch Locations:\n");
+        xlib::gpu::printArray(_d_batch_dst, batch_size);
+        xlib::gpu::printArray(_d_locations, batch_size);
+        auto pre_select_batch_size = batch_size;
+#endif
+
         cub_select_flag.run(_d_batch_src, batch_size, _d_flags);
         cub_select_flag.run(_d_batch_dst, batch_size, _d_flags);
         batch_size = cub_select_flag.run(_d_locations, batch_size, _d_flags);
         num_uniques = cub_runlength.run(d_batch_src, batch_size,
                                             _d_unique, _d_counts);
+
+#ifdef BATCH_DELETE_DEBUG
+        if (pre_select_batch_size == batch_size) {
+            xlib::gpu::printArray(_d_batch_src, batch_size, "Valid Batch Locations:\n");
+            xlib::gpu::printArray(_d_batch_dst, batch_size);
+            xlib::gpu::printArray(_d_locations, batch_size);
+        }
+#endif
+        cub_sort_pair.run(_d_batch_src, _d_locations, batch_size,
+                          _d_tmp_sort_src, _d_tmp_sort_dst, _nV, _nV);
 
         swapVertices<BLOCK_SIZE>
             <<< num_blocks, BLOCK_SIZE >>>
@@ -101,5 +120,6 @@ void HORNET::deleteEdgeBatch(BatchUpdate& batch_update) noexcept {
     _nE -= batch_size;
 }
 
+#undef BATCH_DELETE_DEBUG
 } // namespace gpu
 } // namespace hornets_nest

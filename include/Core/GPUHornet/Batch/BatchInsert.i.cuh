@@ -81,7 +81,7 @@ void HORNET::insertEdgeBatch(BatchUpdate& batch_update) noexcept {
     }
 
     if (_batch_prop == batch_property::CSR)
-        build_batch_csr(batch_update, num_uniques, false);
+        build_batch_csr(batch_update, _batch_prop, num_uniques, false);
 }
 
 } // namespace gpu

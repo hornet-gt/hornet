@@ -41,9 +41,10 @@ namespace gpu {
 //#define BATCH_DELETE_DEBUG
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
-void HORNET::deleteEdgeBatch(BatchUpdate& batch_update) noexcept {
+void HORNET::deleteEdgeBatch(BatchUpdate& batch_update, const BatchProperty batch_prop) noexcept {
+    reserveBatchOpResource(batch_update.original_size(), batch_prop);
     const unsigned BLOCK_SIZE = 128;
-    int num_uniques = batch_preprocessing(batch_update, false);
+    int num_uniques = batch_preprocessing(batch_update, batch_prop, false);
     //==========================================================================
     size_t  batch_size = batch_update.size();
     vid_t* d_batch_src = batch_update.src_ptr();
@@ -52,33 +53,33 @@ void HORNET::deleteEdgeBatch(BatchUpdate& batch_update) noexcept {
 
     cuMemcpyDevToDev(_d_counts, num_uniques + 1, _d_batch_offset);
     cub_prefixsum.run(_d_batch_offset, num_uniques + 1);
-    //set all d_locations to -1
     cuMemset0x00(_d_counter, num_uniques + 1);
+    cuMemset0x00(_d_flags,        batch_size);
 
     ///////////////////
     // DELETE KERNEL //
     ///////////////////
-    //if (_is_sorted) {
-    //    //cub_prefixsum.run(_d_counts, num_uniques + 1);
+    vertexDegreeKernel
+        <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
+        (device_side(), _d_unique, num_uniques, _d_degree_tmp);
+    cub_prefixsum.run(_d_degree_tmp, batch_size + 1);
 
-    //}
-    //else {
-        vertexDegreeKernel
-            <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
-            (device_side(), _d_unique, num_uniques, _d_degree_tmp);
-        cub_prefixsum.run(_d_degree_tmp, batch_size + 1);
-        cuMemset(_d_flags,      batch_size, 0x00);    //all true
+    int smem = xlib::DeviceProperty::smem_per_block(BLOCK_SIZE);
+    int num_blocks = xlib::ceil_div(batch_size, smem);
 
-        int smem = xlib::DeviceProperty::smem_per_block(BLOCK_SIZE);
-        int num_blocks = xlib::ceil_div(batch_size, smem);
+    //location of batch edges in graph
+    locateEdges<BLOCK_SIZE>
+        <<< num_blocks, BLOCK_SIZE >>>
+        (device_side(),
+         _d_degree_tmp, _d_batch_offset,
+         _d_unique, _d_batch_dst,
+         num_uniques + 1, _d_flags, _d_locations);
 
-        //location of batch edges in graph
-        locateEdges<BLOCK_SIZE>
-            <<< num_blocks, BLOCK_SIZE >>>
-            (device_side(),
-             _d_degree_tmp, _d_batch_offset,
-             _d_unique, _d_batch_dst,
-             num_uniques + 1, _d_flags, _d_locations);
+    cub_select_flag.run(_d_batch_src, batch_size, _d_flags);
+    cub_select_flag.run(_d_batch_dst, batch_size, _d_flags);
+    batch_size = cub_select_flag.run(_d_locations, batch_size, _d_flags);
+    num_uniques = cub_runlength.run(d_batch_src, batch_size,
+                                        _d_unique, _d_counts);
 
 #ifdef BATCH_DELETE_DEBUG
         xlib::gpu::printArray(_d_batch_src, batch_size, "Batch Locations:\n");
@@ -103,7 +104,7 @@ void HORNET::deleteEdgeBatch(BatchUpdate& batch_update) noexcept {
         cub_sort_pair.run(_d_batch_src, _d_locations, batch_size,
                           _d_tmp_sort_src, _d_tmp_sort_dst, _nV, _nV);
 
-        swapVertices<BLOCK_SIZE>
+        overwriteDeletedEdges<BLOCK_SIZE>
             <<< num_blocks, BLOCK_SIZE >>>
             (device_side(),
              _d_batch_offset, _d_locations, _d_counts,
@@ -114,8 +115,8 @@ void HORNET::deleteEdgeBatch(BatchUpdate& batch_update) noexcept {
 
     fixInternalRepresentation(num_uniques, false, false);
 
-    if (_batch_prop == batch_property::CSR)
-        build_batch_csr(batch_update, num_uniques, !_is_sorted);
+    if (batch_prop == batch_property::CSR)
+        build_batch_csr(batch_update, batch_prop, num_uniques, !_is_sorted);
 
     _nE -= batch_size;
 }

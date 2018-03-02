@@ -63,8 +63,8 @@ void exec(int argc, char* argv[]) {
 
     generateBatch(graph,
             batch_size, batch_src, batch_dst,
-            BatchGenType::INSERT,
-            batch_gen_property::UNIQUE);
+            BatchGenType::INSERT);
+            //batch_gen_property::UNIQUE);
 #else
     batch_size = karate_batch_size;
 
@@ -80,15 +80,21 @@ void exec(int argc, char* argv[]) {
     //batch_update.print();
 
     hornet_gpu.allocateEdgeInsertion(batch_size,
-                                     IN_PLACE | REMOVE_CROSS_DUPLICATE);
+                                     IN_PLACE | REMOVE_CROSS_DUPLICATE | REMOVE_BATCH_DUPLICATE);
 
     //hornet_gpu.print();
 
+    printf("ne: %d\n", hornet_gpu.nE());
+    std::cout<<"=======\n";
     Timer<DEVICE> TM(3);
     TM.start();
     hornet_gpu.insertEdgeBatch(batch_update);
 
     TM.stop();
+
+    //batch_update.print();
+    printf("ne: %d\n", hornet_gpu.nE());
+    std::cout<<"=======\n";
     TM.print("Insertion " + std::to_string(batch_size) + ":  ");
     //hornet_gpu.print();
 

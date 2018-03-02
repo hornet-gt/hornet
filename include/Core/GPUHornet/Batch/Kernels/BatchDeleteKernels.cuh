@@ -81,37 +81,55 @@ void locateEdges(HornetDevice              hornet,
     xlib::binarySearchLB<BLOCK_SIZE>(d_prefixsum, batch_size, smem, lambda);
 }
 
+// === overwriteDeletedEdges logic ===
+// Adjacency list of a vertex :
+// d0, d1, d2, d3, d4, d5, d6
+// Locations to be deleted 1, 5, 6
+//
+// New degree = 4
+// Work on d4, d5, d6
+// Is destination still valid? If yes, scatter to invalidated position
+// (d4, d5, d6) -> (1, 5, 6)
+// In this case, only d4 is valid in the working set
+// so, adj[1] = d4
+//
+// Updated Adjacency list :
+// d0, d4, d2, d3, d4, d5, d6
+//
+// Subsequent function (fixInternalRepresentation) will reduce the degree
+// so that the new adjacency list is
+// d0, d4, d2, d3
 template<int BLOCK_SIZE, typename HornetDevice>
 __global__
-void swapVertices(HornetDevice              hornet,
-                  const int*   __restrict__ d_batch_offsets,
-                  const int*   __restrict__ d_locations,//offset in batch
-                  const int*   __restrict__ d_counts,//number of deletions
-                  const vid_t* __restrict__ d_batch_unique_src,
-                  const vid_t* __restrict__ d_batch_dst,
-                  int                       batch_size,
-                  int*         __restrict__ d_counter) {
+void overwriteDeletedEdges(
+        HornetDevice              hornet,
+        const int*   __restrict__ d_batch_offsets,
+        const int*   __restrict__ d_locations,//offset in batch
+        const int*   __restrict__ d_counts,//number of deletions
+        const vid_t* __restrict__ d_batch_unique_src,
+        const vid_t* __restrict__ d_batch_dst,
+        int                       batch_size,
+        int*         __restrict__ d_counter) {
 
     const int ITEMS_PER_BLOCK = xlib::smem_per_block<int, BLOCK_SIZE>();
     __shared__ int smem[ITEMS_PER_BLOCK];
     const auto& lambda = [&] (int pos, degree_t offset) {
-                    auto     vertex = hornet.vertex(d_batch_unique_src[pos]);
-                    offset += vertex.degree() - d_counts[pos];
-                    //assert(offset < vertex.degree());
-                    auto        dst = vertex.edge(offset).dst_id();
-                    int start = d_batch_offsets[pos];
-                    int end   = d_batch_offsets[pos + 1];
-                    int found = xlib::lower_bound_left(
-                            d_batch_dst + start,
-                            end - start,
-                            dst);
-                    if (found < 0 || (dst != d_batch_dst[start + found])) {
-                        int loc = atomicAdd(d_counter + pos, 1);
-                        auto deleted_dst_offset = d_locations[start + loc];
-                        vertex.neighbor_ptr()[deleted_dst_offset] = vertex.neighbor_ptr()[offset];
-                    }
+        auto     vertex = hornet.vertex(d_batch_unique_src[pos]);
+        offset += vertex.degree() - d_counts[pos];
+        auto        dst = vertex.edge(offset).dst_id();
+        int start = d_batch_offsets[pos];
+        int end   = d_batch_offsets[pos + 1];
+        int found = xlib::lower_bound_left(
+                d_batch_dst + start,
+                end - start,
+                dst);
+        if (found < 0 || (dst != d_batch_dst[start + found])) {//revisit, can we avoid if?
+            int loc = atomicAdd(d_counter + pos, 1);
+            auto deleted_dst_offset = d_locations[start + loc];
+            vertex.neighbor_ptr()[deleted_dst_offset] = vertex.neighbor_ptr()[offset];
+        }
 
-                };
+    };
     xlib::binarySearchLB<BLOCK_SIZE>(d_batch_offsets, batch_size, smem, lambda);
 }
 

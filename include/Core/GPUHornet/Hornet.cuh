@@ -162,7 +162,7 @@ public:
     /**
      * @brief
      */
-    void allocateEdgeDeletion(size_t max_batch_size,
+    void reserveBatchOpResource(const size_t max_batch_size,
                               BatchProperty batch_prop = BatchProperty())
                               noexcept;
 
@@ -181,7 +181,8 @@ public:
     /**
      * @brief
      */
-    void deleteEdgeBatch(BatchUpdate& batch_update) noexcept;
+    void deleteEdgeBatch(BatchUpdate& batch_update,
+                         const BatchProperty batch_prop = batch_property::IN_PLACE | batch_property::REMOVE_BATCH_DUPLICATE) noexcept;
 
     void deleteOOPEdgeBatch(BatchUpdate& batch_update) noexcept;
     //--------------------------------------------------------------------------
@@ -282,6 +283,9 @@ private:
     // BATCH //
     ///////////
 
+    size_t _max_batch_size {0};
+    size_t _csr_size {0};
+
     //BatchProperty _batch_prop;
     vid_t* _d_batch_src { nullptr };
     vid_t* _d_batch_dst { nullptr };
@@ -322,7 +326,6 @@ private:
     degree_t* _d_queue_new_degree { nullptr };
     int*      _d_queue_size       { nullptr };
     //----------------------------------------
-    vid_t*    _h_queue_id         { nullptr };
     void**    _h_queue_old_ptr    { nullptr };
     void**    _h_queue_new_ptr    { nullptr };
     degree_t* _h_queue_old_degree { nullptr };
@@ -331,17 +334,49 @@ private:
     /**
      * @brief
      */
-    void allocatePrepocessing(size_t max_batch_size, size_t csr_size) noexcept;
-    void allocateOOPEdgeDeletion(size_t csr_size) noexcept;
-    void allocateInPlaceUpdate(size_t csr_size) noexcept;
+    void allocatePrepocessing(const size_t max_batch_size) noexcept;
+    void allocateInPlaceUpdate(const size_t csr_size) noexcept;
     void fixInternalRepresentation(int num_uniques, bool is_insert,
                                    bool get_old_degree) noexcept;
 
-    void build_batch_csr(BatchUpdate& batch_update, int num_uniques,
-                         bool require_prefix_sum = true) noexcept;
+    void build_batch_csr(
+            BatchUpdate& batch_update,
+            const BatchProperty batch_prop,
+            int num_uniques,
+            bool require_prefix_sum = true) noexcept;
+
+    void copyBatchUpdateData(
+            const BatchUpdate& batch_update,
+            const BatchProperty batch_prop,
+            vid_t * const d_batch_src,
+            vid_t * const d_batch_dst,
+            size_t * const batch_size) noexcept;
+
+    void sort_batch(
+            BatchUpdate& batch_update,
+            const BatchProperty batch_prop,
+            const bool is_insert,
+            vid_t ** d_batch_src_ptr,
+            vid_t ** d_batch_dst_ptr,
+            const size_t batch_size) noexcept;
+
+    void remove_batch_duplicates(
+            vid_t * d_batch_src,
+            vid_t * d_batch_dst,
+            size_t * const batch_size) noexcept;
+
+    void remove_cross_duplicates(
+            BatchUpdate& batch_update,
+            vid_t * const d_batch_src,
+            vid_t * const d_batch_dst,
+            size_t * const batch_size) noexcept;
 
     int batch_preprocessing(BatchUpdate& batch_update, bool is_insert)
                             noexcept;
+    int batch_preprocessing(
+            BatchUpdate& batch_update,
+            const BatchProperty batch_prop,
+            bool is_insert) noexcept;
 
     void copySparseToContinuos(const degree_t* prefixsum,
                                int             prefixsum_size,

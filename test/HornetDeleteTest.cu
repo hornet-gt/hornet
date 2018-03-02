@@ -8,6 +8,7 @@
 using namespace timer;
 using namespace hornets_nest;
 using HornetGPU = hornets_nest::gpu::Hornet<EMPTY, EMPTY>;
+#define RANDOM
 
 void exec(int argc, char* argv[]);
 void deleteBatch(HornetGPU &hornet,
@@ -45,6 +46,7 @@ void deleteBatch(HornetGPU &hornet,
     Timer<DEVICE> TM(3);
     gpu::BatchUpdate batch_update(src, dst, batch_size);
 
+
     if (print_debug) {
         batch_update.print();
         std::cout<<"ne: "<<hornet.nE()<<"\n=======\n";
@@ -67,16 +69,27 @@ void deleteBatchTest(HornetGPU &hornet,
         graph::GraphStd<vid_t, eoff_t> &graph,
         int batch_size,
         const bool print_debug) {
+    #ifndef RANDOM
+    vid_t batch_src[] = {0, 2, 23, 32, 32, 33, 33, 33};
+    vid_t batch_dst[] = {31, 27, 27, 23, 31, 23, 27, 31};
+    batch_size = 8;
+
+    #else
     vid_t* batch_src, *batch_dst;
     cuMallocHost(batch_src, batch_size);
     cuMallocHost(batch_dst, batch_size);
     generateBatch(graph,
             batch_size, batch_src, batch_dst,
             BatchGenType::INSERT);
-    hornet.allocateEdgeDeletion(batch_size,
+    #endif
+
+    hornet.reserveBatchOpResource(batch_size,
                                      gpu::batch_property::IN_PLACE | gpu::batch_property::REMOVE_BATCH_DUPLICATE);
     deleteBatch(hornet, batch_src, batch_dst, batch_size, print_debug);
 
+    #ifndef RANDOM
+    #else
     cuFreeHost(batch_src);
     cuFreeHost(batch_dst);
+    #endif
 }

@@ -107,7 +107,7 @@ void HORNET::deleteOOPEdgeBatch(BatchUpdate& batch_update) noexcept {
                               _d_tmp, _d_ptrs_array);
     }
     //==========================================================================
-    build_batch_csr(batch_update, num_uniques);
+    build_batch_csr(batch_update, _batch_prop, num_uniques);
 }
 
 } // namespace gpu

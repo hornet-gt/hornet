@@ -38,7 +38,6 @@
 #include "Device/Util/SafeCudaAPISync.cuh"
 #include "Device/Util/VectorUtil.cuh"
 #include "Host/Numeric.hpp"
-//#include "Core/DataLayout/DataLayout.cuh" //<-- !!!!
 
 #if defined(CUB_WRAPPER)
 
@@ -52,8 +51,13 @@ void CubWrapper::initialize(int num_items) noexcept {
     _num_items = num_items;
 }
 
-CubWrapper::~CubWrapper() noexcept {
+void CubWrapper::release(void) noexcept {
     cuFree(_d_temp_storage);
+    _num_items = 0;
+}
+
+CubWrapper::~CubWrapper() noexcept {
+    release();
 }
 
 //==============================================================================
@@ -180,6 +184,7 @@ CubSortByValue<T>::CubSortByValue(int max_items) noexcept {
 
 template<typename T>
 void CubSortByValue<T>::initialize(int max_items) noexcept {
+    CubWrapper::initialize(max_items);
     size_t temp_storage_bytes;
     T* d_in = nullptr, *d_sorted = nullptr;
     cub::DeviceRadixSort::SortKeys(nullptr, temp_storage_bytes,
@@ -219,28 +224,52 @@ void CubSortByValue<T>::srun(const T* d_in, int num_items, T* d_sorted,
 ///////////////
 
 template<typename T, typename R>
-CubSortByKey<T, R>::CubSortByKey(int max_items) noexcept  {
+CubSortByKey<T, R>::CubSortByKey(const int max_items) noexcept  {
     initialize(max_items);
 }
 
 template<typename T, typename R>
-void CubSortByKey<T, R>::initialize(int max_items) noexcept {
+void CubSortByKey<T, R>::initialize(const int max_items) noexcept {
+    CubWrapper::initialize(max_items);
     size_t temp_storage_bytes;
     T* d_key = nullptr, *d_key_sorted = nullptr;
     R* d_data_in = nullptr, *d_data_out = nullptr;
     cub::DeviceRadixSort::SortPairs(nullptr, temp_storage_bytes,
                                     d_key, d_key_sorted,
                                     d_data_in, d_data_out,
-                                    max_items, 0, sizeof(T) * 8);
+                                    _num_items, 0, sizeof(T) * 8);
     SAFE_CALL( cudaMalloc(&_d_temp_storage, temp_storage_bytes) )
 }
 
 //------------------------------------------------------------------------------
 
 template<typename T, typename R>
-void CubSortByKey<T, R>::run(const T* d_key, const R* d_data_in, int num_items,
-                             T* d_key_sorted, R* d_data_out, T d_key_max)
-                             noexcept {
+void CubSortByKey<T, R>::resize(const int max_items) noexcept {
+    if (_num_items < max_items) {
+        release();
+        initialize(max_items);
+    }
+}
+
+template<typename T, typename R>
+void CubSortByKey<T, R>::shrink_to_fit(const int max_items) noexcept {
+    if (_num_items > max_items) {
+        release();
+        initialize(max_items);
+    }
+}
+
+//------------------------------------------------------------------------------
+
+template<typename T, typename R>
+void CubSortByKey<T, R>::run(
+        const T* d_key,
+        const R* d_data_in,
+        const int num_items,
+        T* d_key_sorted,
+        R* d_data_out,
+        T d_key_max) noexcept {
+    int temp_num_items = num_items;
     using U = typename std::conditional<std::is_floating_point<T>::value,
                                         int, T>::type;
     int num_bits = std::is_floating_point<T>::value ? sizeof(T) * 8 :
@@ -248,19 +277,20 @@ void CubSortByKey<T, R>::run(const T* d_key, const R* d_data_in, int num_items,
     cub::DeviceRadixSort::SortPairs(nullptr, _temp_storage_bytes,
                                     d_key, d_key_sorted,
                                     d_data_in, d_data_out,
-                                    num_items, 0, num_bits);
+                                    temp_num_items, 0, num_bits);
     cub::DeviceRadixSort::SortPairs(_d_temp_storage, _temp_storage_bytes,
                                     d_key, d_key_sorted,
                                     d_data_in, d_data_out,
-                                    num_items, 0, num_bits);
+                                    temp_num_items, 0, num_bits);
 }
 
 //------------------------------------------------------------------------------
 
 template<typename T, typename R>
-void CubSortByKey<T, R>::srun(const T* d_key, const R* d_data_in,
-                              int num_items, T* d_key_sorted,
-                              R* d_data_out, T d_key_max) noexcept {
+void CubSortByKey<T, R>::srun(
+        const T* d_key, const R* d_data_in,
+        const int num_items, T* d_key_sorted,
+        R* d_data_out, T d_key_max) noexcept {
     CubSortByKey<T, R> cub_instance(num_items);
     cub_instance.run(d_key, d_data_in, num_items, d_key_sorted, d_data_out);
 }
@@ -272,7 +302,7 @@ namespace cub_sort_by_key {
 template<typename T, typename R>
 void run(const T* d_key,
          const R* d_data_in,
-         int      num_items,
+         const int      num_items,
          T*       d_key_sorted,
          R*       d_data_out,
          T        d_key_max) {
@@ -293,10 +323,9 @@ void run(const T* d_key,
          T        d_key_max) noexcept {
 }*/
 
-template void run<int, int>(const int*, const int*, int, int*, int*, int);
-template void run<int, float>(const int*, const float*, int, int*, float*, int);
-template void run<int, double>(const int*, const double*, int, int*,
-                               double*, int);
+template void run<int, int>(const int*, const int*, const int, int*, int*, int);
+template void run<int, float>(const int*, const float*, const int, int*, float*, int);
+template void run<int, double>(const int*, const double*, const int, int*, double*, int);
 
 } // namespace cub_sort_by_key
 
@@ -307,17 +336,25 @@ template void run<int, double>(const int*, const double*, int, int*,
 ////////////////
 
 template<typename T, typename R>
-CubSortPairs2<T, R>::CubSortPairs2(int max_items, bool internal_allocation)
+CubSortPairs2<T, R>::CubSortPairs2(const int max_items, const bool internal_allocation)
                                    noexcept {
     initialize(max_items, internal_allocation);
 }
 
 template<typename T, typename R>
-void CubSortPairs2<T, R>::initialize(int max_items, bool internal_allocation)
-                                     noexcept {
-    if (internal_allocation) {
-        cuMalloc(_d_in1_tmp, max_items);
-        cuMalloc(_d_in2_tmp, max_items);
+CubSortPairs2<T, R>::~CubSortPairs2() noexcept {
+    release();
+}
+
+template<typename T, typename R>
+void CubSortPairs2<T, R>::initialize(
+        const int max_items,
+        const bool internal_allocation) noexcept {
+    CubWrapper::initialize(max_items);
+    _internal_alloc = internal_allocation;
+    if (_internal_alloc) {
+        cuMalloc(_d_in1_tmp, _num_items);
+        cuMalloc(_d_in2_tmp, _num_items);
     }
     size_t temp_storage_bytes;
     T* d_in1 = nullptr;
@@ -325,28 +362,47 @@ void CubSortPairs2<T, R>::initialize(int max_items, bool internal_allocation)
     if (sizeof(T) > sizeof(R)) {
         cub::DeviceRadixSort::SortPairs(nullptr, temp_storage_bytes,
                                         d_in1, _d_in1_tmp, d_in2, _d_in2_tmp,
-                                        max_items, 0, sizeof(T) * 8);
+                                        _num_items, 0, sizeof(T) * 8);
     }
     else {
         cub::DeviceRadixSort::SortPairs(nullptr, temp_storage_bytes,
                                         d_in2, _d_in2_tmp, d_in1, _d_in1_tmp,
-                                        max_items, 0, sizeof(R) * 8);
+                                        _num_items, 0, sizeof(R) * 8);
     }
     SAFE_CALL( cudaMalloc(&_d_temp_storage, temp_storage_bytes) )
 }
 
 template<typename T, typename R>
-CubSortPairs2<T, R>::~CubSortPairs2() noexcept {
-    cuFree(_d_in1_tmp, _d_in2_tmp);
+void CubSortPairs2<T, R>::resize(const int max_items) noexcept {
+    if (_num_items < max_items) {
+        release();
+        initialize(max_items, _internal_alloc);
+    }
+}
+
+template<typename T, typename R>
+void CubSortPairs2<T, R>::release(void) noexcept {
+    if (_internal_alloc) {
+        cuFree(_d_in1_tmp, _d_in2_tmp);
+    }
+}
+
+template<typename T, typename R>
+void CubSortPairs2<T, R>::shrink_to_fit(const int max_items) noexcept {
+    if (_num_items > max_items) {
+        release();
+        initialize(max_items);
+    }
 }
 
 //------------------------------------------------------------------------------
 
 template<typename T, typename R>
-void CubSortPairs2<T, R>::run(T* d_in1, R* d_in2, int num_items,
+void CubSortPairs2<T, R>::run(T* d_in1, R* d_in2, const int num_items,
                               T* d_in1_tmp, R* d_in2_tmp,
                               T d_in1_max, R d_in2_max) noexcept {
 
+    int temp_num_items = num_items;
     int num_bits1 = std::is_floating_point<T>::value ? sizeof(T) * 8 :
                                                    xlib::ceil_log2(d_in1_max);
     int num_bits2 = std::is_floating_point<R>::value ? sizeof(T) * 8 :
@@ -354,21 +410,21 @@ void CubSortPairs2<T, R>::run(T* d_in1, R* d_in2, int num_items,
     size_t temp_storage_bytes;
     cub::DeviceRadixSort::SortPairs(nullptr, temp_storage_bytes,
                                     d_in2, d_in2_tmp, d_in1, d_in1_tmp,
-                                    num_items, 0, num_bits2);
+                                    temp_num_items, 0, num_bits2);
     cub::DeviceRadixSort::SortPairs(_d_temp_storage, temp_storage_bytes,
                                     d_in2, d_in2_tmp, d_in1, d_in1_tmp,
-                                    num_items, 0, num_bits2);
+                                    temp_num_items, 0, num_bits2);
 
     cub::DeviceRadixSort::SortPairs(nullptr, temp_storage_bytes,
                                     d_in1_tmp, d_in1, d_in2_tmp, d_in2,
-                                    num_items, 0, num_bits1);
+                                    temp_num_items, 0, num_bits1);
     cub::DeviceRadixSort::SortPairs(_d_temp_storage, temp_storage_bytes,
                                     d_in1_tmp, d_in1, d_in2_tmp, d_in2,
-                                    num_items, 0, num_bits1);
+                                    temp_num_items, 0, num_bits1);
 }
 
 template<typename T, typename R>
-void CubSortPairs2<T, R>::run(T* d_in1, R* d_in2, int num_items,
+void CubSortPairs2<T, R>::run(T* d_in1, R* d_in2, const int num_items,
                               T d_in1_max, R d_in2_max) noexcept {
     run(d_in1, d_in2, num_items, _d_in1_tmp, _d_in2_tmp, d_in1_max, d_in2_max);
 }
@@ -376,14 +432,14 @@ void CubSortPairs2<T, R>::run(T* d_in1, R* d_in2, int num_items,
 //------------------------------------------------------------------------------
 
 template<typename T, typename R>
-void CubSortPairs2<T, R>::srun(T* d_in1, R* d_in2, int num_items,
+void CubSortPairs2<T, R>::srun(T* d_in1, R* d_in2, const int num_items,
                                T d_in1_max, R d_in2_max) noexcept {
     CubSortPairs2<T, R> cub_instance(num_items, true);
     cub_instance.run(d_in1, d_in2, num_items, d_in1_max, d_in2_max);
 }
 
 template<typename T, typename R>
-void CubSortPairs2<T, R>::srun(T* d_in1, R* d_in2, int num_items,
+void CubSortPairs2<T, R>::srun(T* d_in1, R* d_in2, const int num_items,
                                T* d_in1_tmp, R* d_in2_tmp,
                                T d_in1_max, R d_in2_max) noexcept {
     CubSortPairs2<T, R> cub_instance(num_items, false);
@@ -397,56 +453,81 @@ void CubSortPairs2<T, R>::srun(T* d_in1, R* d_in2, int num_items,
 // RunLengthEncode //
 /////////////////////
 
-namespace cub_runlenght {
+namespace cub_runlength {
 
 template<typename T>
-int run(const T* d_in, int num_items, T* d_unique_out,
+int run(const T* d_in, const int num_items, T* d_unique_out,
         int* d_counts_out) {
 
     CubRunLengthEncode<T> cub_instance(num_items);
     return cub_instance.run(d_in, num_items, d_unique_out, d_counts_out);
 }
 
-template int run<int>(const int*, int, int*, int*);
+template int run<int>(const int*, const int, int*, int*);
 
-} // namespace cub_runlenght
+} // namespace cub_runlength
 
 //------------------------------------------------------------------------------
 
 template<typename T>
-CubRunLengthEncode<T>::CubRunLengthEncode(int max_items) noexcept {
+CubRunLengthEncode<T>::CubRunLengthEncode(const int max_items) noexcept {
     initialize(max_items);
 }
 
 template<typename T>
 CubRunLengthEncode<T>::~CubRunLengthEncode() noexcept {
-    cuFree(_d_num_runs_out);
+    release();
 }
 
 template<typename T>
-void CubRunLengthEncode<T>::initialize(int max_items) noexcept {
+void CubRunLengthEncode<T>::initialize(const int max_items) noexcept {
+    CubWrapper::initialize(max_items);
     cuMalloc(_d_num_runs_out, 1);
     T* d_in = nullptr, *d_unique_out = nullptr;
     int* d_counts_out = nullptr;
     size_t temp_storage_bytes;
     cub::DeviceRunLengthEncode::Encode(nullptr, temp_storage_bytes,
                                        d_in, d_unique_out, d_counts_out,
-                                       _d_num_runs_out, max_items);
+                                       _d_num_runs_out, _num_items);
     SAFE_CALL( cudaMalloc(&_d_temp_storage, temp_storage_bytes) )
 }
 
 //------------------------------------------------------------------------------
 
 template<typename T>
-int CubRunLengthEncode<T>::run(const T* d_in, int num_items,
+void CubRunLengthEncode<T>::resize(const int max_items) noexcept {
+    if (_num_items < max_items) {
+        release();
+        initialize(max_items);
+    }
+}
+
+template<typename T>
+void CubRunLengthEncode<T>::release(void) noexcept {
+    cuFree(_d_num_runs_out);
+}
+
+template<typename T>
+void CubRunLengthEncode<T>::shrink_to_fit(const int max_items) noexcept {
+    if (_num_items > max_items) {
+        release();
+        initialize(max_items);
+    }
+}
+
+//------------------------------------------------------------------------------
+
+template<typename T>
+int CubRunLengthEncode<T>::run(const T* d_in, const int num_items,
                                T* d_unique_out, int* d_counts_out) noexcept {
+    int temp_num_items = num_items;
     size_t temp_storage_bytes;
     cub::DeviceRunLengthEncode::Encode(nullptr, temp_storage_bytes,
                                        d_in, d_unique_out, d_counts_out,
-                                       _d_num_runs_out, num_items);
+                                       _d_num_runs_out, temp_num_items);
     cub::DeviceRunLengthEncode::Encode(_d_temp_storage, temp_storage_bytes,
                                        d_in, d_unique_out, d_counts_out,
-                                       _d_num_runs_out, num_items);
+                                       _d_num_runs_out, temp_num_items);
     int h_num_runs_out;
     cuMemcpyToHost(_d_num_runs_out, h_num_runs_out);
     return h_num_runs_out;
@@ -455,7 +536,7 @@ int CubRunLengthEncode<T>::run(const T* d_in, int num_items,
 //------------------------------------------------------------------------------
 
 template<typename T>
-int CubRunLengthEncode<T>::srun(const T* d_in, int num_items, T* d_unique_out,
+int CubRunLengthEncode<T>::srun(const T* d_in, const int num_items, T* d_unique_out,
                                 int* d_counts_out) noexcept {
     CubRunLengthEncode<T> cub_instance(num_items);
     return cub_instance.run(d_in, num_items, d_unique_out, d_counts_out);
@@ -470,64 +551,86 @@ int CubRunLengthEncode<T>::srun(const T* d_in, int num_items, T* d_unique_out,
 namespace cub_exclusive_sum {
 
 template<typename T>
-void run(const T* d_in, int num_items, T* d_out) {
+void run(const T* d_in, const int num_items, T* d_out) {
     CubExclusiveSum<T> cub_instance(num_items);
     cub_instance.run(d_in, num_items, d_out);
 }
 
 template<typename T>
-void run(T* d_in_out, int num_items) {
+void run(T* d_in_out, const int num_items) {
     run(d_in_out, num_items, d_in_out);
 }
 
-template void run<int>(const int*, int, int*);
-template void run<int>(int*, int);
+template void run<int>(const int*, const int, int*);
+template void run<int>(int*, const int);
 
 } // namespace cub_exclusive_sum
 
 //------------------------------------------------------------------------------
 
 template<typename T>
-CubExclusiveSum<T>::CubExclusiveSum(int max_items) noexcept {
+CubExclusiveSum<T>::CubExclusiveSum(const int max_items) noexcept {
     initialize(max_items);
 }
 
 template<typename T>
-void CubExclusiveSum<T>::initialize(int max_items) noexcept {
+void CubExclusiveSum<T>::initialize(const int max_items) noexcept {
+    CubWrapper::initialize(max_items);
     size_t temp_storage_bytes;
     T* d_in = nullptr, *d_out = nullptr;
     cub::DeviceScan::ExclusiveSum(nullptr, temp_storage_bytes,
-                                  d_in, d_out, max_items);
+                                  d_in, d_out, _num_items);
     SAFE_CALL( cudaMalloc(&_d_temp_storage, temp_storage_bytes) )
 }
 
 //------------------------------------------------------------------------------
 
 template<typename T>
-void CubExclusiveSum<T>::run(const T* d_in, int num_items, T* d_out)
-                             const noexcept {
-    size_t temp_storage_bytes;
-    cub::DeviceScan::ExclusiveSum(nullptr, temp_storage_bytes,
-                                  d_in, d_out, num_items);
-    cub::DeviceScan::ExclusiveSum(_d_temp_storage, temp_storage_bytes,
-                                  d_in, d_out, num_items);
+void CubExclusiveSum<T>::resize(const int max_items) noexcept {
+    if (_num_items < max_items) {
+        release();
+        initialize(max_items);
+    }
 }
 
 template<typename T>
-void CubExclusiveSum<T>::run(T* d_in_out, int num_items) const noexcept {
+void CubExclusiveSum<T>::shrink_to_fit(const int max_items) noexcept {
+    if (_num_items > max_items) {
+        release();
+        initialize(max_items);
+    }
+}
+
+//------------------------------------------------------------------------------
+
+template<typename T>
+void CubExclusiveSum<T>::run(
+        const T* d_in,
+        const int num_items,
+        T* d_out) const noexcept {
+    int temp_num_items = num_items;
+    size_t temp_storage_bytes;
+    cub::DeviceScan::ExclusiveSum(nullptr, temp_storage_bytes,
+                                  d_in, d_out, temp_num_items);
+    cub::DeviceScan::ExclusiveSum(_d_temp_storage, temp_storage_bytes,
+                                  d_in, d_out, temp_num_items);
+}
+
+template<typename T>
+void CubExclusiveSum<T>::run(T* d_in_out, const int num_items) const noexcept {
     run(d_in_out, num_items, d_in_out);
 }
 
 //------------------------------------------------------------------------------
 
 template<typename T>
-void CubExclusiveSum<T>::srun(const T* d_in, int num_items, T* d_out) noexcept {
+void CubExclusiveSum<T>::srun(const T* d_in, const int num_items, T* d_out) noexcept {
     CubExclusiveSum<T> cub_instance(num_items);
     cub_instance.run(d_in, num_items, d_out);
 }
 
 template<typename T>
-void CubExclusiveSum<T>::srun(T* d_in_out, int num_items) noexcept {
+void CubExclusiveSum<T>::srun(T* d_in_out, const int num_items) noexcept {
     CubExclusiveSum::srun(d_in_out, num_items, d_in_out);
 }
 
@@ -538,17 +641,23 @@ void CubExclusiveSum<T>::srun(T* d_in_out, int num_items) noexcept {
 ///////////////////
 
 template<typename T>
-CubSelectFlagged<T>::CubSelectFlagged(int max_items) noexcept {
+CubSelectFlagged<T>::CubSelectFlagged(const int max_items) noexcept {
     initialize(max_items);
 }
 
 template<typename T>
 CubSelectFlagged<T>::~CubSelectFlagged() noexcept {
+    release();
+}
+
+template<typename T>
+void CubSelectFlagged<T>::release(void) noexcept {
     cuFree(_d_num_selected_out);
 }
 
 template<typename T>
-void CubSelectFlagged<T>::initialize(int max_items) noexcept {
+void CubSelectFlagged<T>::initialize(const int max_items) noexcept {
+    CubWrapper::initialize(max_items);
     cuMalloc(_d_num_selected_out, 1);
     size_t temp_storage_bytes;
     T* d_in = nullptr, *d_out = nullptr;
@@ -556,29 +665,48 @@ void CubSelectFlagged<T>::initialize(int max_items) noexcept {
 
     cub::DeviceSelect::Flagged(nullptr, temp_storage_bytes, d_in,
                                d_flags, d_out, _d_num_selected_out,
-                               max_items);
+                               _num_items);
     SAFE_CALL( cudaMalloc(&_d_temp_storage, temp_storage_bytes) )
 }
 
 //------------------------------------------------------------------------------
 
 template<typename T>
-int CubSelectFlagged<T>::run(const T* d_in, int num_items,
+void CubSelectFlagged<T>::resize(const int max_items) noexcept {
+    if (_num_items < max_items) {
+        release();
+        initialize(max_items);
+    }
+}
+
+template<typename T>
+void CubSelectFlagged<T>::shrink_to_fit(const int max_items) noexcept {
+    if (_num_items > max_items) {
+        release();
+        initialize(max_items);
+    }
+}
+
+//------------------------------------------------------------------------------
+
+template<typename T>
+int CubSelectFlagged<T>::run(const T* d_in, const int num_items,
                              const bool* d_flags, T* d_out) noexcept {
+    int temp_num_items = num_items;
     size_t temp_storage_bytes;
     cub::DeviceSelect::Flagged(nullptr, temp_storage_bytes, d_in,
                                d_flags, d_out, _d_num_selected_out,
-                               num_items);
+                               temp_num_items);
     cub::DeviceSelect::Flagged(_d_temp_storage, temp_storage_bytes, d_in,
                                d_flags, d_out, _d_num_selected_out,
-                               num_items);
+                               temp_num_items);
     int h_num_selected_out;
     cuMemcpyToHost(_d_num_selected_out, h_num_selected_out);
     return h_num_selected_out;
 }
 
 template<typename T>
-int CubSelectFlagged<T>::run(T* d_in_out, int num_items, const bool* d_flags)
+int CubSelectFlagged<T>::run(T* d_in_out, const int num_items, const bool* d_flags)
                              noexcept {
     return run(d_in_out, num_items, d_flags, d_in_out);
 }
@@ -586,14 +714,14 @@ int CubSelectFlagged<T>::run(T* d_in_out, int num_items, const bool* d_flags)
 //------------------------------------------------------------------------------
 
 template<typename T>
-int CubSelectFlagged<T>::srun(const T* d_in, int num_items, const bool* d_flags,
+int CubSelectFlagged<T>::srun(const T* d_in, const int num_items, const bool* d_flags,
                               T* d_out) noexcept {
     CubSelectFlagged cub_instance(num_items);
     return cub_instance.run(d_in, num_items, d_flags, d_out);
 }
 
 template<typename T>
-int CubSelectFlagged<T>::srun(T* d_in_out, int num_items, const bool* d_flags)
+int CubSelectFlagged<T>::srun(T* d_in_out, const int num_items, const bool* d_flags)
                               noexcept {
     return CubSelectFlagged::srun(d_in_out, num_items, d_flags, d_in_out);
 };

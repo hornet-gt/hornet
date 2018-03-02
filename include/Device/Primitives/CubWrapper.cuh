@@ -51,6 +51,8 @@ protected:
 
     void initialize(int num_items) noexcept;
 
+    void release(void) noexcept;
+
     void*  _d_temp_storage     { nullptr };
     size_t _temp_storage_bytes { 0 };
     int    _num_items          { 0 };
@@ -139,13 +141,15 @@ private:
 //==============================================================================
 
 template<typename T>
-class CubSortByValue {
+class CubSortByValue : public CubWrapper {
 public:
     explicit CubSortByValue() = default;
 
     explicit CubSortByValue(int max_items) noexcept;
 
     void initialize(int max_items) noexcept;
+
+    void resize(const int num_items) noexcept;
 
     void run(const T* d_in, int num_items, T* d_sorted,
              T d_in_max = std::numeric_limits<T>::max()) noexcept;
@@ -188,19 +192,21 @@ class CubSortByKey : public CubWrapper {
 public:
     explicit CubSortByKey() = default;
 
-    explicit CubSortByKey(int max_items) noexcept;
+    explicit CubSortByKey(const int max_items) noexcept;
 
-    void initialize(int max_items) noexcept;
+    void initialize(const int max_items) noexcept;
 
-    void run(const T* d_key, const R* d_data_in, int num_items,
+    void resize(const int max_items) noexcept;
+
+    void shrink_to_fit(const int max_items) noexcept;
+
+    void run(const T* d_key, const R* d_data_in, const int num_items,
              T* d_key_sorted, R* d_data_out,
              T d_key_max = std::numeric_limits<T>::max()) noexcept;
 
-    static void srun(const T* d_key, const R* d_data_in, int num_items,
+    static void srun(const T* d_key, const R* d_data_in, const int num_items,
                      T* d_key_sorted, R* d_data_out,
                      T d_key_max = std::numeric_limits<T>::max()) noexcept;
-private:
-    void* _d_temp_storage { nullptr };
 };
 
 //==============================================================================
@@ -208,12 +214,12 @@ private:
 namespace cub_sort_pair {
 
 template<typename T, typename R>
-static void run(T* d_in1, R* d_in2, int num_items,
+static void run(T* d_in1, R* d_in2, const int num_items,
                 T  d_in1_max = std::numeric_limits<T>::max(),
                 R  d_in2_max = std::numeric_limits<R>::max()) noexcept;
 
 template<typename T, typename R>
-static void run(T* d_in1,     R* d_in2, int num_items,
+static void run(T* d_in1,     R* d_in2, const int num_items,
                 T* d_in1_tmp, R* d_in2_tmp,
                 T d_in1_max = std::numeric_limits<T>::max(),
                 R d_in2_max = std::numeric_limits<R>::max()) noexcept;
@@ -223,31 +229,37 @@ static void run(T* d_in1,     R* d_in2, int num_items,
 //------------------------------------------------------------------------------
 
 template<typename T, typename R>
-class CubSortPairs2 {
+class CubSortPairs2 : public CubWrapper {
 public:
     explicit CubSortPairs2() = default;
 
-    explicit CubSortPairs2(int max_items, bool internal_allocation = true)
+    explicit CubSortPairs2(const int max_items, const bool internal_allocation = true)
                            noexcept;
 
     ~CubSortPairs2() noexcept;
 
-    void initialize(int max_items, bool internal_allocation = true) noexcept;
+    void initialize(const int max_items, const bool internal_allocation = true) noexcept;
 
-    void run(T* d_in1, R* d_in2, int num_items,
+    void resize(const int max_items) noexcept;
+
+    void release(void) noexcept;
+
+    void shrink_to_fit(const int max_items) noexcept;
+
+    void run(T* d_in1, R* d_in2, const int num_items,
              T d_in1_max = std::numeric_limits<T>::max(),
              R d_in2_max = std::numeric_limits<R>::max()) noexcept;
 
-    void run(T* d_in1, R* d_in2, int num_items,
+    void run(T* d_in1, R* d_in2, const int num_items,
              T* d_in1_tmp, R* d_in2_tmp,
              T d_in1_max = std::numeric_limits<T>::max(),
              R d_in2_max = std::numeric_limits<R>::max()) noexcept;
 
-    static void srun(T* d_in1, R* d_in2, int num_items,
+    static void srun(T* d_in1, R* d_in2, const int num_items,
                      T d_in1_max = std::numeric_limits<T>::max(),
                      R d_in2_max = std::numeric_limits<R>::max()) noexcept;
 
-    static void srun(T* d_in1, R* d_in2, int num_items,
+    static void srun(T* d_in1, R* d_in2, const int num_items,
                      T* d_in1_tmp, R* d_in2_tmp,
                      T d_in1_max = std::numeric_limits<T>::max(),
                      R d_in2_max = std::numeric_limits<R>::max()) noexcept;
@@ -255,40 +267,44 @@ private:
     T*    _d_in1_tmp      { nullptr };
     R*    _d_in2_tmp      { nullptr };
     bool  _internal_alloc { true };
-    void* _d_temp_storage { nullptr };
 };
 
 //==============================================================================
 
-namespace cub_runlenght {
+namespace cub_runlength {
 
 template<typename T>
 extern int run(const T* d_in, int num_items, T* d_unique_out,
                int* d_counts_out);
 
-} // namespace cub_runlenght
+} // namespace cub_runlength
 
 //------------------------------------------------------------------------------
 
 template<typename T>
-class CubRunLengthEncode {
+class CubRunLengthEncode : public CubWrapper {
 public:
     explicit CubRunLengthEncode() = default;
 
-    explicit CubRunLengthEncode(int max_items) noexcept;
+    explicit CubRunLengthEncode(const int max_items) noexcept;
 
     ~CubRunLengthEncode() noexcept;
 
-    void initialize(int max_items) noexcept;
+    void initialize(const int max_items) noexcept;
 
-    int run(const T* d_in, int num_items, T* d_unique_out, int* d_counts_out)
+    void resize(const int max_items) noexcept;
+
+    void release(void) noexcept;
+
+    void shrink_to_fit(const int max_items) noexcept;
+
+    int run(const T* d_in, const int num_items, T* d_unique_out, int* d_counts_out)
             noexcept;
 
-    static int srun(const T* d_in, int num_items, T* d_unique_out,
+    static int srun(const T* d_in, const int num_items, T* d_unique_out,
                     int* d_counts_out) noexcept;
 private:
     int*  _d_num_runs_out { nullptr };
-    void* _d_temp_storage { nullptr };
 };
 
 //==============================================================================
@@ -306,50 +322,57 @@ extern void run(T* d_in_out, int num_items);
 //------------------------------------------------------------------------------
 
 template<typename T>
-class CubExclusiveSum {
+class CubExclusiveSum : public CubWrapper {
 public:
     explicit CubExclusiveSum() noexcept = default;
 
-    explicit CubExclusiveSum(int max_items) noexcept;
+    explicit CubExclusiveSum(const int max_items) noexcept;
 
-    void initialize(int max_items) noexcept;
+    void initialize(const int max_items) noexcept;
 
-    void run(const T* d_in, int num_items, T* d_out) const noexcept;
+    void resize(const int max_items) noexcept;
 
-    void run(T* d_in_out, int num_items) const noexcept;
+    void shrink_to_fit(const int max_items) noexcept;
 
-    static void srun(const T* d_in, int num_items, T* d_out) noexcept;
+    void run(const T* d_in, const int num_items, T* d_out) const noexcept;
 
-    static void srun(T* d_in_out, int num_items) noexcept;
-private:
-    void* _d_temp_storage { nullptr };
+    void run(T* d_in_out, const int num_items) const noexcept;
+
+    static void srun(const T* d_in, const int num_items, T* d_out) noexcept;
+
+    static void srun(T* d_in_out, const int num_items) noexcept;
 };
 
 //==============================================================================
 
 template<typename T>
-class CubSelectFlagged {
+class CubSelectFlagged : public CubWrapper {
 public:
     explicit CubSelectFlagged() noexcept = default;
 
-    explicit CubSelectFlagged(int max_items) noexcept;
+    explicit CubSelectFlagged(const int max_items) noexcept;
 
     ~CubSelectFlagged() noexcept;
 
-    void initialize(int max_items) noexcept;
+    void initialize(const int max_items) noexcept;
 
-    int run(const T* d_in, int num_items, const bool* d_flags, T* d_out)
+    void resize(const int max_items) noexcept;
+
+    void release(void) noexcept;
+
+    void shrink_to_fit(const int max_items) noexcept;
+
+    int run(const T* d_in, const int num_items, const bool* d_flags, T* d_out)
             noexcept;
 
-    int run(T* d_in_out, int num_items, const bool* d_flags) noexcept;
+    int run(T* d_in_out, const int num_items, const bool* d_flags) noexcept;
 
-    static int srun(const T* d_in, int num_items, const bool* d_flags, T* d_out)
+    static int srun(const T* d_in, const int num_items, const bool* d_flags, T* d_out)
                     noexcept;
 
-    static int srun(T* d_in_out, int num_items, const bool* d_flags) noexcept;
+    static int srun(T* d_in_out, const int num_items, const bool* d_flags) noexcept;
 private:
     int*  _d_num_selected_out { nullptr };
-    void* _d_temp_storage     { nullptr };
 };
 
 //==============================================================================

@@ -45,9 +45,9 @@
 
 namespace xlib {
 
-CubWrapper::CubWrapper(int num_items) noexcept : _num_items(num_items) {}
+CubWrapper::CubWrapper(const int num_items) noexcept : _num_items(num_items) {}
 
-void CubWrapper::initialize(int num_items) noexcept {
+void CubWrapper::initialize(const int num_items) noexcept {
     _num_items = num_items;
 }
 
@@ -178,17 +178,17 @@ CubArgMax<T>::run() noexcept {
 /////////////////
 
 template<typename T>
-CubSortByValue<T>::CubSortByValue(int max_items) noexcept {
+CubSortByValue<T>::CubSortByValue(const int max_items) noexcept {
     initialize(max_items);
 }
 
 template<typename T>
-void CubSortByValue<T>::initialize(int max_items) noexcept {
+void CubSortByValue<T>::initialize(const int max_items) noexcept {
     CubWrapper::initialize(max_items);
     size_t temp_storage_bytes;
     T* d_in = nullptr, *d_sorted = nullptr;
     cub::DeviceRadixSort::SortKeys(nullptr, temp_storage_bytes,
-                                   d_in, d_sorted, max_items,
+                                   d_in, d_sorted, _num_items,
                                    0, sizeof(T) * 8);
     SAFE_CALL( cudaMalloc(&_d_temp_storage, temp_storage_bytes) )
 }
@@ -246,7 +246,7 @@ void CubSortByKey<T, R>::initialize(const int max_items) noexcept {
 template<typename T, typename R>
 void CubSortByKey<T, R>::resize(const int max_items) noexcept {
     if (_num_items < max_items) {
-        release();
+        CubWrapper::release();
         initialize(max_items);
     }
 }
@@ -254,7 +254,7 @@ void CubSortByKey<T, R>::resize(const int max_items) noexcept {
 template<typename T, typename R>
 void CubSortByKey<T, R>::shrink_to_fit(const int max_items) noexcept {
     if (_num_items > max_items) {
-        release();
+        CubWrapper::release();
         initialize(max_items);
     }
 }
@@ -385,6 +385,7 @@ void CubSortPairs2<T, R>::release(void) noexcept {
     if (_internal_alloc) {
         cuFree(_d_in1_tmp, _d_in2_tmp);
     }
+    CubWrapper::release();
 }
 
 template<typename T, typename R>
@@ -505,6 +506,7 @@ void CubRunLengthEncode<T>::resize(const int max_items) noexcept {
 template<typename T>
 void CubRunLengthEncode<T>::release(void) noexcept {
     cuFree(_d_num_runs_out);
+    CubWrapper::release();
 }
 
 template<typename T>
@@ -653,6 +655,7 @@ CubSelectFlagged<T>::~CubSelectFlagged() noexcept {
 template<typename T>
 void CubSelectFlagged<T>::release(void) noexcept {
     cuFree(_d_num_selected_out);
+    CubWrapper::release();
 }
 
 template<typename T>

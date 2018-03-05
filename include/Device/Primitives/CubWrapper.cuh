@@ -46,10 +46,10 @@ namespace xlib {
 class CubWrapper {
 protected:
     explicit CubWrapper() = default;
-    explicit CubWrapper(int num_items) noexcept;
+    explicit CubWrapper(const int num_items) noexcept;
     ~CubWrapper() noexcept;
 
-    void initialize(int num_items) noexcept;
+    void initialize(const int num_items) noexcept;
 
     void release(void) noexcept;
 
@@ -145,9 +145,9 @@ class CubSortByValue : public CubWrapper {
 public:
     explicit CubSortByValue() = default;
 
-    explicit CubSortByValue(int max_items) noexcept;
+    explicit CubSortByValue(const int max_items) noexcept;
 
-    void initialize(int max_items) noexcept;
+    void initialize(const int max_items) noexcept;
 
     void resize(const int num_items) noexcept;
 

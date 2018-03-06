@@ -176,13 +176,17 @@ public:
     /**
      * @brief
      */
-    void insertEdgeBatch(BatchUpdate& batch_update) noexcept;
+    void insertEdgeBatch(BatchUpdate& batch_update,
+                         const BatchProperty batch_prop = batch_property::IN_PLACE |
+                         batch_property::REMOVE_CROSS_DUPLICATE |
+                         batch_property::REMOVE_BATCH_DUPLICATE) noexcept;
 
     /**
      * @brief
      */
     void deleteEdgeBatch(BatchUpdate& batch_update,
-                         const BatchProperty batch_prop = batch_property::IN_PLACE | batch_property::REMOVE_BATCH_DUPLICATE) noexcept;
+                         const BatchProperty batch_prop = batch_property::IN_PLACE |
+                         batch_property::REMOVE_BATCH_DUPLICATE) noexcept;
 
     void deleteOOPEdgeBatch(BatchUpdate& batch_update) noexcept;
     //--------------------------------------------------------------------------

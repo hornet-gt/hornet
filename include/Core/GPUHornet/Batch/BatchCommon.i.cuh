@@ -126,9 +126,16 @@ void HORNET::remove_cross_duplicates(
         size_t * const batch_size) noexcept {
     const unsigned BLOCK_SIZE = 128;
     size_t b_size = *batch_size;
+    cuMemset(_d_flags, b_size, 0x01);
+
+    int num_uniques = cub_runlength.run(d_batch_src, b_size,
+                                        _d_unique, _d_counts);
+    cuMemcpyDevToDev(_d_counts, num_uniques + 1, _d_batch_offset);
+    cub_prefixsum.run(_d_batch_offset, num_uniques + 1);
+
     vertexDegreeKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(b_size), BLOCK_SIZE >>>
-        (device_side(), d_batch_src, b_size, _d_degree_tmp);
+        (device_side(), _d_unique, num_uniques, _d_degree_tmp);
     CHECK_CUDA_ERROR
 
     cub_prefixsum.run(_d_degree_tmp, b_size + 1);
@@ -142,8 +149,10 @@ void HORNET::remove_cross_duplicates(
 
     bulkMarkDuplicate<BLOCK_SIZE>
         <<< num_blocks, BLOCK_SIZE >>>
-        (device_side(), _d_degree_tmp, _d_batch_src, _d_batch_dst,
-         b_size + 1, _d_flags);
+        (device_side(),
+         _d_degree_tmp, _d_batch_offset,
+         _d_unique, _d_batch_dst,
+         num_uniques + 1, _d_flags);
     CHECK_CUDA_ERROR
 
 #if defined(BATCH_DEBUG)
@@ -187,7 +196,7 @@ int HORNET::batch_preprocessing(
     int num_uniques = cub_runlength.run(d_batch_src, batch_size,
                                         _d_unique, _d_counts);
 #if defined(BATCH_DEBUG)
-    xlib::gpu::printArray(d_batch_src, batch_size, "After Preprocessing:\n");
+    xlib::gpu::printArray(d_batch_src, batch_size, "Preprocessing Gives:\n");
     xlib::gpu::printArray(d_batch_dst, batch_size);
     xlib::gpu::printArray(_d_unique, num_uniques, "Unique:\n");
     xlib::gpu::printArray(_d_counts, num_uniques, "Counts:\n");

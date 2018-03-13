@@ -65,6 +65,14 @@ void binarySearchLB(const T* __restrict__ d_prefixsum,
                     void*    __restrict__ smem,
                     const Lambda&         lambda);
 
+template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_THREAD = 0,
+         typename T, typename Lambda>
+__device__ __forceinline__
+void simpleBinarySearchLB(const T* __restrict__ d_prefixsum,
+                    int                   prefixsum_size,
+                    void*    __restrict__ smem,
+                    const Lambda&         lambda);
+
 /**
  * @brief
  */

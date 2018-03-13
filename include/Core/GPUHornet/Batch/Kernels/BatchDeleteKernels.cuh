@@ -59,8 +59,8 @@ void locateEdges(HornetDevice              hornet,
                  bool*                     d_flags,
                  int*         __restrict__ d_locations) {
 
-    const int ITEMS_PER_BLOCK = xlib::smem_per_block<int, BLOCK_SIZE>();
-    __shared__ int smem[ITEMS_PER_BLOCK];
+    //const int ITEMS_PER_BLOCK = xlib::smem_per_block<int, BLOCK_SIZE>();
+    //__shared__ int smem[ITEMS_PER_BLOCK];
 
     const auto& lambda = [&] (int pos, degree_t offset) {
                     auto     vertex = hornet.vertex(d_batch_unique_src[pos]);
@@ -72,13 +72,14 @@ void locateEdges(HornetDevice              hornet,
                             d_batch_dst + start,
                             end - start,
                             dst);
-                    if (found >= 0 && (dst == d_batch_dst[start + found])) {
+                    if ((found >= 0) && (dst == d_batch_dst[start + found])) {
                         d_locations[start + found] = offset;
                         d_flags[start + found] = true;
                     }
 
+
                 };
-    xlib::binarySearchLB<BLOCK_SIZE>(d_prefixsum, batch_size, smem, lambda);
+    xlib::simpleBinarySearchLB<BLOCK_SIZE>(d_prefixsum, batch_size, nullptr, lambda);
 }
 
 // === overwriteDeletedEdges logic ===
@@ -111,8 +112,6 @@ void overwriteDeletedEdges(
         int                       batch_size,
         int*         __restrict__ d_counter) {
 
-    const int ITEMS_PER_BLOCK = xlib::smem_per_block<int, BLOCK_SIZE>();
-    __shared__ int smem[ITEMS_PER_BLOCK];
     const auto& lambda = [&] (int pos, degree_t offset) {
         auto     vertex = hornet.vertex(d_batch_unique_src[pos]);
         offset += vertex.degree() - d_counts[pos];
@@ -130,7 +129,7 @@ void overwriteDeletedEdges(
         }
 
     };
-    xlib::binarySearchLB<BLOCK_SIZE>(d_batch_offsets, batch_size, smem, lambda);
+    xlib::simpleBinarySearchLB<BLOCK_SIZE>(d_batch_offsets, batch_size, nullptr, lambda);
 }
 
 } // namespace gpu

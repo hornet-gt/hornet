@@ -221,6 +221,9 @@ void threadPartitionNoDup(const T* __restrict__ d_prefixsum,
 //==============================================================================
 //==============================================================================
 
+//==============================================================================
+//==============================================================================
+
 template<bool BLOCK_PARTITION_FROM_GLOBAL, bool NO_DUPLICATE,
          bool LAST_BLOCK_CHECK, unsigned BLOCK_SIZE,
          unsigned ITEMS_PER_THREAD = 0, typename T, typename Lambda>
@@ -295,11 +298,27 @@ void binarySearchLBGen(const T* __restrict__ d_prefixsum,
     }*/
 }
 
+
+template<unsigned BLOCK_SIZE, typename T, typename Lambda>
+__device__ __forceinline__
+void simpleBinarySearchLBGen(const T* __restrict__ d_prefixsum,
+                       int                   prefixsum_size,
+                       void*    __restrict__ smem,
+                       const Lambda&         lambda) {
+    const unsigned ITEMS_PER_BLOCK = blockDim.x;
+    T work_index = blockIdx.x * ITEMS_PER_BLOCK + threadIdx.x;
+    int pos = xlib::upper_bound_left(d_prefixsum, prefixsum_size,
+                                            work_index);
+    if ((pos >= 0) && (pos < prefixsum_size)) {
+        T offset = work_index - d_prefixsum[pos];
+        lambda(pos, offset);
+    }
+}
+
 } // namespace detail
 
 //==============================================================================
 //==============================================================================
-
 template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_THREAD,
          typename T, typename Lambda>
 __device__ __forceinline__
@@ -310,6 +329,18 @@ void binarySearchLB(const T* __restrict__ d_prefixsum,
 
     detail::binarySearchLBGen<false, false, true, BLOCK_SIZE, ITEMS_PER_THREAD>
         (d_prefixsum, prefixsum_size, nullptr, smem, lambda);
+}
+
+template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_THREAD,
+         typename T, typename Lambda>
+__device__ __forceinline__
+void simpleBinarySearchLB(const T* __restrict__ d_prefixsum,
+                    int                   prefixsum_size,
+                    void*    __restrict__ smem,
+                    const Lambda&         lambda) {
+
+    detail::simpleBinarySearchLBGen<BLOCK_SIZE>
+        (d_prefixsum, prefixsum_size, smem, lambda);
 }
 
 template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_THREAD,

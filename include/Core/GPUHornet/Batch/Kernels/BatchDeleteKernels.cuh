@@ -115,6 +115,7 @@ void overwriteDeletedEdges(
     const auto& lambda = [&] (int pos, degree_t offset) {
         auto     vertex = hornet.vertex(d_batch_unique_src[pos]);
         offset += vertex.degree() - d_counts[pos];
+        assert(offset < vertex.degree());
         auto        dst = vertex.edge(offset).dst_id();
         int start = d_batch_offsets[pos];
         int end   = d_batch_offsets[pos + 1];

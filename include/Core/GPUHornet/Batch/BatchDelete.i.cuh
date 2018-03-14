@@ -38,7 +38,7 @@
 namespace hornets_nest {
 namespace gpu {
 
-#define BATCH_DELETE_DEBUG
+//#define BATCH_DELETE_DEBUG
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
     void HORNET::deleteEdgeBatch(BatchUpdate& batch_update, const BatchProperty batch_prop) noexcept {
@@ -67,6 +67,9 @@ template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
         degree_t degree_tmp_sum;
         cuMemcpyToHost(_d_degree_tmp + num_uniques, degree_tmp_sum);
 
+        if (degree_tmp_sum == 0) {
+            return;
+        }
         //location of batch edges in graph
         locateEdges<BLOCK_SIZE>
             <<< xlib::ceil_div(degree_tmp_sum, BLOCK_SIZE), BLOCK_SIZE >>>
@@ -78,6 +81,10 @@ template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
         cub_select_flag.run(_d_batch_src, batch_size, _d_flags);
         cub_select_flag.run(_d_batch_dst, batch_size, _d_flags);
         batch_size = cub_select_flag.run(_d_locations, batch_size, _d_flags);
+        if (batch_size == 0) {
+            return;
+        }
+
         num_uniques = cub_runlength.run(d_batch_src, batch_size,
                 _d_unique, _d_counts);
         cuMemcpyDevToDev(_d_counts, num_uniques + 1, _d_batch_offset);
@@ -91,7 +98,7 @@ template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
             (device_side(),
              _d_batch_offset, _d_locations, _d_counts,
              _d_unique, _d_batch_dst,
-             num_uniques + 1, _d_counter);
+             num_uniques, _d_counter);
         CHECK_CUDA_ERROR
 
         fixInternalRepresentation(num_uniques, false, false);

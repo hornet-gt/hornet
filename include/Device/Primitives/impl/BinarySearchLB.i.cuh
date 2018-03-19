@@ -309,7 +309,7 @@ void simpleBinarySearchLBGen(const T* __restrict__ d_prefixsum,
     T work_index = blockIdx.x * ITEMS_PER_BLOCK + threadIdx.x;
     int pos = xlib::upper_bound_left(d_prefixsum, prefixsum_size,
                                             work_index);
-    if ((pos >= 0) && (pos < prefixsum_size)) {
+    if ((pos >= 0) && (pos < prefixsum_size - 1) && (work_index < d_prefixsum[prefixsum_size - 1])) {
         T offset = work_index - d_prefixsum[pos];
         lambda(pos, offset);
     }

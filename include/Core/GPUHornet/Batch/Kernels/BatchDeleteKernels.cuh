@@ -59,9 +59,6 @@ void locateEdges(HornetDevice              hornet,
                  bool*                     d_flags,
                  int*         __restrict__ d_locations) {
 
-    //const int ITEMS_PER_BLOCK = xlib::smem_per_block<int, BLOCK_SIZE>();
-    //__shared__ int smem[ITEMS_PER_BLOCK];
-
     const auto& lambda = [&] (int pos, degree_t offset) {
                     auto     vertex = hornet.vertex(d_batch_unique_src[pos]);
                     assert(offset < vertex.degree());

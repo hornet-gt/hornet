@@ -79,7 +79,7 @@ void exec(int argc, char* argv[]) {
 
     //batch_update.print();
 
-    hornet_gpu.allocateEdgeInsertion(batch_size,
+    hornet_gpu.reserveBatchOpResource(batch_size,
                                      IN_PLACE | REMOVE_CROSS_DUPLICATE | REMOVE_BATCH_DUPLICATE);
 
     //hornet_gpu.print();

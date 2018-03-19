@@ -77,18 +77,25 @@ template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
              _d_degree_tmp, _d_batch_offset,
              _d_unique, _d_batch_dst,
              num_uniques + 1, _d_flags, _d_locations);
-
         cub_select_flag.run(_d_batch_src, batch_size, _d_flags);
         cub_select_flag.run(_d_batch_dst, batch_size, _d_flags);
         batch_size = cub_select_flag.run(_d_locations, batch_size, _d_flags);
         if (batch_size == 0) {
             return;
         }
-
         num_uniques = cub_runlength.run(d_batch_src, batch_size,
                 _d_unique, _d_counts);
         cuMemcpyDevToDev(_d_counts, num_uniques + 1, _d_batch_offset);
         cub_prefixsum.run(_d_batch_offset, num_uniques + 1);
+#ifdef BATCH_DELETE_DEBUG
+    xlib::gpu::printArray(_d_batch_src, batch_size, "_d_batch_src:\n");
+    xlib::gpu::printArray(_d_batch_dst, batch_size, "_d_batch_dst:\n");
+    xlib::gpu::printArray(_d_unique, num_uniques, "_d_unique_src:\n");
+    xlib::gpu::printArray(_d_counts, num_uniques, "_d_counts:\n");
+    xlib::gpu::printArray(_d_locations, batch_size, "_d_locations:\n");
+    std::cout<<"num_uniques "<<num_uniques<<"\n";
+    std::cout<<xlib::ceil_div(batch_size, BLOCK_SIZE)<<"\n";
+#endif
 
         cub_sort_pair.run(_d_batch_src, _d_locations, batch_size,
                 _d_tmp_sort_src, _d_tmp_sort_dst, _nV, _nV);
@@ -98,7 +105,7 @@ template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
             (device_side(),
              _d_batch_offset, _d_locations, _d_counts,
              _d_unique, _d_batch_dst,
-             num_uniques, _d_counter);
+             num_uniques + 1, _d_counter);
         CHECK_CUDA_ERROR
 
         fixInternalRepresentation(num_uniques, false, false);

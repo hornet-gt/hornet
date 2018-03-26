@@ -56,6 +56,9 @@ void HORNET::insertEdgeBatch(BatchUpdate& batch_update, const BatchProperty batc
     //////////////////////
     // OPERATE ON BATCH //
     //////////////////////
+    if ((batch_size == 0) || (num_uniques == 0)) {
+        return;
+    }
     cub_prefixsum.run(_d_counts, num_uniques + 1);
 #if defined(DEBUG_INSERT)
         xlib::gpu::printArray(_d_counts, num_uniques + 1, "_d_counts:\n");
@@ -69,13 +72,14 @@ void HORNET::insertEdgeBatch(BatchUpdate& batch_update, const BatchProperty batc
              _d_counts, num_uniques, d_batch_dst);
         CHECK_CUDA_ERROR
     } else {  // BULK COPY BATCH INTO HORNET
-        int smem = xlib::DeviceProperty::smem_per_block(BLOCK_SIZE);
-        int num_blocks = xlib::ceil_div(batch_size, smem);
 #if defined(DEBUG_INSERT)
+        std::cout<<"Num Uniques "<<num_uniques<<"\n";
         xlib::gpu::printArray(_d_degree_tmp, num_uniques, "_d_degree_tmp:\n");
         xlib::gpu::printArray(_d_unique, num_uniques, "_d_unique:\n");
+    xlib::gpu::printArray(_d_batch_src, batch_size, "_d_batch_src:\n");
+    xlib::gpu::printArray(_d_batch_dst, batch_size, "_d_batch_dst:\n");
 #endif
-        bulkCopyAdjLists<BLOCK_SIZE>  <<< num_blocks, BLOCK_SIZE >>>
+        bulkCopyAdjLists<BLOCK_SIZE>  <<< xlib::ceil_div(batch_size, BLOCK_SIZE), BLOCK_SIZE >>>
             (device_side(), _d_counts, num_uniques + 1,
              d_batch_dst, _d_unique, _d_degree_tmp);
         CHECK_CUDA_ERROR

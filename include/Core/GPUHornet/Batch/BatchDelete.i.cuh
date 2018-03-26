@@ -64,6 +64,8 @@ template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
             (device_side(), _d_unique, num_uniques, _d_degree_tmp);
         cub_prefixsum.run(_d_degree_tmp, num_uniques + 1);
 
+        //It is possible that a user tries to delete (s,d) from hornet
+        //even if degree(s) = 0
         degree_t degree_tmp_sum;
         cuMemcpyToHost(_d_degree_tmp + num_uniques, degree_tmp_sum);
 

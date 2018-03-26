@@ -74,8 +74,6 @@ void bulkCopyAdjLists(HornetDevice                 hornet,
                       const vid_t*    __restrict__ d_unique,
                       const degree_t* __restrict__ d_old_degrees) {
 
-    const int ITEMS_PER_BLOCK = xlib::smem_per_block<int, BLOCK_SIZE>();
-    __shared__ degree_t smem[ITEMS_PER_BLOCK];
     const auto& lambda = [&] (int pos, degree_t offset) {
                             auto        vertex = hornet.vertex(d_unique[pos]);
                             auto    vertex_ptr = vertex.neighbor_ptr() +
@@ -83,7 +81,7 @@ void bulkCopyAdjLists(HornetDevice                 hornet,
                             auto  batch_offset = d_prefixsum[pos] + offset;
                             vertex_ptr[offset] = d_batch_dst[batch_offset];
                         };
-    xlib::binarySearchLB<BLOCK_SIZE>(d_prefixsum, prefixsum_size, smem, lambda);
+    xlib::simpleBinarySearchLB<BLOCK_SIZE>(d_prefixsum, prefixsum_size, nullptr, lambda);
 }
 
 } // namespace gpu

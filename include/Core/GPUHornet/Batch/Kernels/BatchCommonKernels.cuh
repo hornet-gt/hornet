@@ -111,9 +111,6 @@ void bulkMarkDuplicate(HornetDevice              hornet,
                        int                       batch_size,
                        bool*        __restrict__ d_flags) {
 
-    const int ITEMS_PER_BLOCK = xlib::smem_per_block<int, BLOCK_SIZE>();
-    __shared__ int smem[ITEMS_PER_BLOCK];
-
     const auto& lambda = [&] (int pos, degree_t offset) {
                     auto     vertex = hornet.vertex(d_batch_unique_src[pos]);
                     assert(offset < vertex.degree());
@@ -129,7 +126,7 @@ void bulkMarkDuplicate(HornetDevice              hornet,
                     }
 
                 };
-    xlib::binarySearchLB<BLOCK_SIZE>(d_prefixsum, batch_size, smem, lambda);
+    xlib::simpleBinarySearchLB<BLOCK_SIZE>(d_prefixsum, batch_size, nullptr, lambda);
 }
 
 //==============================================================================

@@ -134,21 +134,25 @@ void HORNET::remove_cross_duplicates(
     cub_prefixsum.run(_d_batch_offset, num_uniques + 1);
 
     vertexDegreeKernel
-        <<< xlib::ceil_div<BLOCK_SIZE>(b_size), BLOCK_SIZE >>>
+        <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
         (device_side(), _d_unique, num_uniques, _d_degree_tmp);
     CHECK_CUDA_ERROR
 
-    cub_prefixsum.run(_d_degree_tmp, b_size + 1);
+    cub_prefixsum.run(_d_degree_tmp, num_uniques + 1);
 
 #if defined(BATCH_DEBUG)
-    xlib::gpu::printArray(_d_degree_tmp, b_size + 1, "Degree Prefix:\n");
+    xlib::gpu::printArray(_d_degree_tmp, num_uniques + 1, "Degree Prefix:\n");
 #endif
 
-    int smem = xlib::DeviceProperty::smem_per_block(BLOCK_SIZE);
-    int num_blocks = xlib::ceil_div(b_size, smem);
+    degree_t degree_tmp_sum;
+    cuMemcpyToHost(_d_degree_tmp + num_uniques, degree_tmp_sum);
+
+    if (degree_tmp_sum == 0) {
+        return;
+    }
 
     bulkMarkDuplicate<BLOCK_SIZE>
-        <<< num_blocks, BLOCK_SIZE >>>
+        <<< xlib::ceil_div(degree_tmp_sum, BLOCK_SIZE), BLOCK_SIZE >>>
         (device_side(),
          _d_degree_tmp, _d_batch_offset,
          _d_unique, _d_batch_dst,

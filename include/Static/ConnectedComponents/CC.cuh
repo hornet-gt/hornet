@@ -44,18 +44,18 @@
 #include "Core/LoadBalancing/ScanBased.cuh"
 #include "Core/LoadBalancing/BinarySearch.cuh"
 #include <Core/GPUCsr/Csr.cuh>
-#include <Core/GPU/Hornet.cuh>
+#include <Core/GPUHornet/Hornet.cuh>
 
-namespace hornet_alg {
+namespace hornets_nest {
 
-using HornetGPU = csr::Hornet<EMPTY, EMPTY>;
-//using HornetGPU = gpu::Hornet<EMPTY, EMPTY>;
+using HornetGraph = gpu::Csr<EMPTY, EMPTY>;
+//using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
 
 using color_t = int;
 
-class CC : public StaticAlgorithm<HornetGPU> {
+class CC : public StaticAlgorithm<HornetGraph> {
 public:
-    explicit CC(HornetGPU& horne);
+    explicit CC(HornetGraph& horne);
     ~CC();
 
     void reset()    override;
@@ -68,9 +68,9 @@ private:
     color_t*              d_colors    { nullptr };
     HostDeviceVar<bool>   hd_continue { true };
 
-    //load_balacing::BinarySearch load_balacing;
-    load_balacing::VertexBased1 load_balacing;
-    //load_balacing::ScanBased load_balacing;
+    //load_balancing::BinarySearch load_balancing;
+    load_balancing::VertexBased1 load_balancing;
+    //load_balancing::ScanBased load_balancing;
 };
 
-} // namespace hornet_alg
+} // namespace hornets_nest

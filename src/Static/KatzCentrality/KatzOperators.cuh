@@ -36,7 +36,7 @@
  *
  * @file
  */
-namespace hornet_alg {
+namespace hornets_nest {
 
 struct Init {
     HostDeviceVar<KatzData> kd;
@@ -108,4 +108,4 @@ struct CountActive {
     }
 };
 
-} // namespace hornet_alg
+} // namespace hornets_nest

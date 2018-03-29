@@ -35,27 +35,28 @@
  *
  * @file
  */
-#include <Device/BinarySearchLB.cuh>
+#include <Device/Primitives/BinarySearchLB.cuh>
 
+namespace hornets_nest {
 /**
  * @brief
  */
-namespace load_balacing {
+namespace load_balancing {
 namespace kernel {
 
 template<bool = true>
 __global__
-void computeWorkKernel(const hornet::vid_t*    __restrict__ d_input,
-                       const hornet::degree_t* __restrict__ d_degrees,
-                       int                                  num_vertices,
-                       int*                    __restrict__ d_work) {
+void computeWorkKernel(const vid_t*    __restrict__ d_input,
+                       const degree_t* __restrict__ d_degrees,
+                       int                          num_vertices,
+                       int*            __restrict__ d_work) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
     for (auto i = id; i < num_vertices; i += stride)
         d_work[i] = d_degrees[ d_input[i] ];
 }
 
-template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
+template<unsigned BLOCK_SIZE,
          typename HornetDevice, typename Operator>
 __global__
 void binarySearchKernel(HornetDevice              hornet,
@@ -64,6 +65,7 @@ void binarySearchKernel(HornetDevice              hornet,
                         int                       work_size,
                         Operator                  op) {
 
+    const int ITEMS_PER_BLOCK = xlib::smem_per_block<vid_t, BLOCK_SIZE>();
     const auto& lambda = [&](int pos, degree_t offset) {
                             const auto& vertex = hornet.vertex(d_input[pos]);
                             const auto&   edge = vertex.edge(offset);
@@ -73,7 +75,7 @@ void binarySearchKernel(HornetDevice              hornet,
         (d_work, work_size, xlib::dyn_smem, lambda);
 }
 
-template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
+template<unsigned BLOCK_SIZE,
          typename HornetDevice, typename Operator>
 __global__
 void binarySearchKernel(HornetDevice              hornet,
@@ -90,4 +92,5 @@ void binarySearchKernel(HornetDevice              hornet,
 }
 
 } // namespace kernel
-} // namespace load_balacing
+} // namespace load_balancing
+} // namespace hornets_nest

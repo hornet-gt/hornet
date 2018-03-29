@@ -37,14 +37,14 @@
  * @file
  */
 #include "Static/KatzCentrality/Katz.cuh"
-#include <Device/Timer.cuh>
-#include <GraphIO/GraphStd.hpp>
+#include <Device/Util/Timer.cuh>
+#include <Graph/GraphStd.hpp>
 
 int main(int argc, char* argv[]) {
     using namespace graph::structure_prop;
     using namespace graph::parsing_prop;
     using namespace graph;
-    using namespace hornet_alg;
+    using namespace hornets_nest;
     using namespace timer;
 
     int max_iterations = 1000;
@@ -54,10 +54,10 @@ int main(int argc, char* argv[]) {
     graph.read(argv[1], SORT | PRINT_INFO);
 
     HornetInit hornet_init(graph.nV(), graph.nE(),
-                           graph.out_offsets_ptr(),
-                           graph.out_edges_ptr());
+                           graph.csr_out_offsets(),
+                           graph.csr_out_edges());
 
-    HornetGPU hornet_graph(hornet_init);
+    HornetGraph hornet_graph(hornet_init);
 
     // Finding largest vertex
     degree_t max_degree_vertex = hornet_graph.max_degree_id();

@@ -39,20 +39,20 @@
 #include "Dynamic/KatzCentrality/Katz.cuh"
 #include "KatzOperators.cuh"
 
-namespace hornet_alg {
+namespace hornets_nest {
 
-KatzCentralityDynamic::KatzCentralityDynamic(HornetGPU& hornet,
-                                             HornetGPU& inverted_graph,
+KatzCentralityDynamic::KatzCentralityDynamic(HornetGraph& hornet,
+                                             HornetGraph& inverted_graph,
                                              int max_iteration, int K,
                                              degree_t max_degree) :
                                    StaticAlgorithm(hornet),
-                                   load_balacing(hornet),
+                                   load_balancing(hornet),
                                    inverted_graph(inverted_graph),
                                    is_directed(false),
                                    kc_static(hornet, max_iteration, K,
                                              max_degree, false) {
 
-    hd_katzdata().active_queue.initilize(hornet);
+    hd_katzdata().active_queue.initialize(hornet);
 
     gpu::allocate(hd_katzdata().new_paths_curr, hornet.nV());
     gpu::allocate(hd_katzdata().new_paths_prev, hornet.nV());
@@ -68,17 +68,17 @@ KatzCentralityDynamic::KatzCentralityDynamic(HornetGPU& hornet,
               << std::endl;
 }
 
-KatzCentralityDynamic::KatzCentralityDynamic(HornetGPU& hornet,
+KatzCentralityDynamic::KatzCentralityDynamic(HornetGraph& hornet,
                                              int max_iteration, int K,
                                              degree_t max_degree) :
                                    StaticAlgorithm(hornet),
-                                   load_balacing(hornet),
+                                   load_balancing(hornet),
                                    inverted_graph(inverted_graph),
                                    is_directed(true),
                                    kc_static(inverted_graph, max_iteration, K,
                                              max_degree, true) {
 
-    hd_katzdata().active_queue.initilize(hornet);
+    hd_katzdata().active_queue.initialize(hornet);
 
     gpu::allocate(hd_katzdata().new_paths_curr, hornet.nV());
     gpu::allocate(hd_katzdata().new_paths_prev, hornet.nV());
@@ -143,19 +143,19 @@ void KatzCentralityDynamic::processUpdate(BatchUpdate& batch_update,
         // Undirected graphs and directed graphs need to be dealt with differently.
         if (!is_directed) {
             forAllEdges(hornet, hd_katzdata().active_queue,
-                        FindNextActive { hd_katzdata }, load_balacing);
+                        FindNextActive { hd_katzdata }, load_balancing);
             hd_katzdata.sync(); // Syncing queue info
 
             forAllEdges(hornet, hd_katzdata().active_queue,
                         UpdateActiveNewPaths { hd_katzdata },
-                        load_balacing );
+                        load_balancing );
         }
         else {
             forAllEdges(inverted_graph, hd_katzdata().active_queue,
-                        FindNextActive { hd_katzdata }, load_balacing);
+                        FindNextActive { hd_katzdata }, load_balancing);
             hd_katzdata.sync();
             forAllEdges(inverted_graph, hd_katzdata().active_queue,
-                        UpdateActiveNewPaths { hd_katzdata }, load_balacing);
+                        UpdateActiveNewPaths { hd_katzdata }, load_balancing);
         }
         hd_katzdata.sync(); // Syncing queue info
 

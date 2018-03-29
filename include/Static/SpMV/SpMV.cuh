@@ -44,16 +44,16 @@
 #include "Core/LoadBalancing/ScanBased.cuh"
 #include "Core/LoadBalancing/BinarySearch.cuh"
 #include <Core/GPUCsr/Csr.cuh>
-#include <Core/GPU/Hornet.cuh>
+#include <Core/GPUHornet/Hornet.cuh>
 
-namespace hornet_alg {
+namespace hornets_nest {
 
-using HornetGPU = csr::Hornet<EMPTY, TypeList<int>>;
-//using HornetGPU = gpu::Hornet<EMPTY, TypeList<int>>;
+using HornetGraph = gpu::Csr<EMPTY, TypeList<int>>;
+//using HornetGraph = gpu::Hornet<EMPTY, TypeList<int>>;
 
-class SpMV : public StaticAlgorithm<HornetGPU> {
+class SpMV : public StaticAlgorithm<HornetGraph> {
 public:
-    SpMV(HornetGPU& hornet, int* h_vector);
+    SpMV(HornetGraph& hornet, int* h_vector);
     ~SpMV();
 
     void reset()    override;
@@ -62,12 +62,12 @@ public:
     bool validate() override;
 
 private:
-    load_balacing::BinarySearch load_balacing;
-    //load_balacing::VertexBased1 load_balacing;
-    //load_balacing::ScanBased load_balacing;
+    load_balancing::BinarySearch load_balancing;
+    //load_balancing::VertexBased1 load_balancing;
+    //load_balancing::ScanBased load_balancing;
     int* h_vector { nullptr };
     int* d_vector { nullptr };
     int* d_result { nullptr };
 };
 
-} // namespace hornet_alg
+} // namespace hornets_nest

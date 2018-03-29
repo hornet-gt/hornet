@@ -44,12 +44,12 @@
 #include "Core/LoadBalancing/BinarySearch.cuh"
 #include "Core/HostDeviceVar.cuh"
 #include <Core/GPUCsr/Csr.cuh>
-#include <Core/GPU/Hornet.cuh>
+#include <Core/GPUHornet/Hornet.cuh>
 
-namespace hornet_alg {
+namespace hornets_nest {
 
-using HornetGPU = gpu::Hornet<EMPTY, EMPTY>;
-//using HornetGPU = csr::Hornet<EMPTY, EMPTY>;
+using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
+//using HornetGraph = gpu::Csr<EMPTY, EMPTY>;
 
 using ulong_t = long long unsigned;
 
@@ -89,9 +89,9 @@ struct KatzData {
 };
 
 // Label propogation is based on the values from the previous iteration.
-class KatzCentrality : public StaticAlgorithm<HornetGPU> {
+class KatzCentrality : public StaticAlgorithm<HornetGraph> {
 public:
-    KatzCentrality(HornetGPU& hornet, int max_iteration,
+    KatzCentrality(HornetGraph& hornet, int max_iteration,
                    int K, int max_degree, bool is_static = true);
     ~KatzCentrality();
 
@@ -108,7 +108,7 @@ public:
     KatzData katz_data();
 
 private:
-    load_balacing::BinarySearch load_balacing;
+    load_balancing::BinarySearch load_balancing;
     HostDeviceVar<KatzData>     hd_katzdata;
     ulong_t**                   h_paths_ptr;
     bool                        is_static;

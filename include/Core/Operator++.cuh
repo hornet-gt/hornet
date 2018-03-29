@@ -39,12 +39,14 @@
 #pragma once
 
 #include "Core/Queue/TwoLevelQueue.cuh"
+#include "Core/HostDeviceVar.cuh"
+#include "Core/LoadBalancing/VertexBased.cuh"
 #include <BasicTypes.hpp>
-#include <Core/GPU/BatchUpdate.cuh>
+#include <Core/GPUHornet/BatchUpdate.cuh>
 
-namespace hornet_alg {
-using hornet::vid_t;
-using hornet::eoff_t;
+namespace hornets_nest {
+//using hornets_nest::vid_t;
+//using hornets_nest::eoff_t;
 
 ///////////////
 // C++11 API //
@@ -67,6 +69,11 @@ void forAll(int num_items, const Operator& op);
 template<typename T, typename Operator>
 void forAll(const TwoLevelQueue<T>& queue,
             const Operator&         op);
+
+template<typename HornetClass, typename T, typename Operator>
+void forAllVertexPairs(HornetClass&            hornet,
+                       const TwoLevelQueue<T>& queue,
+                       const Operator&         op);
 
 /**
  * @brief apply the `Operator` a number of times equal to the actual number of
@@ -123,7 +130,12 @@ void forAllEdges(HornetClass& hornet, const Operator& op);
 template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&         hornet,
                  const Operator&      op,
-                 const LoadBalancing& load_balacing);
+                 const LoadBalancing& load_balancing);
+
+template<typename HornetClass, typename Operator, typename LoadBalancing>
+void forAllEdgeVertexPairs(HornetClass&         hornet,
+                           const Operator&      op,
+                           const LoadBalancing& load_balancing);
 
 //==============================================================================
 //==============================================================================
@@ -152,7 +164,24 @@ void forAllEdges(HornetClass&         hornet,
                  const vid_t*         vertex_array,
                  int                  size,
                  const Operator&      op,
-                 const LoadBalancing& load_balacing);
+                 const LoadBalancing& load_balancing);
+
+template<typename HornetClass, typename Operator>
+void forAllAdjUnions(HornetClass&         hornet,
+                     const Operator&      op);
+
+template<typename HornetClass, typename Operator>
+void forAllAdjUnions(HornetClass&         hornet,
+                     TwoLevelQueue<vid2_t> vertex_pairs,
+                     const Operator&      op);
+
+template<typename HornetClass, typename Operator>
+void forAllEdgesAdjUnionSequential(HornetClass &hornet, vid_t* queue, const unsigned long long size, const Operator &op, int flag);
+template<typename HornetClass, typename Operator>
+void forAllEdgesAdjUnionBalanced(HornetClass &hornet, vid_t* queue, const unsigned long long size, const Operator &op, unsigned long long threads_per_union, int flag);
+
+template<typename HornetClass, typename Operator>
+void forAllEdgesAdjUnionImbalanced(HornetClass &hornet, vid_t* queue, const unsigned long long size, const Operator &op, unsigned long long threads_per_union, int flag);
 
 /**
  * @brief apply the `Operator` to all vertices in the graph
@@ -173,17 +202,17 @@ template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&                hornet,
                  const TwoLevelQueue<vid_t>& queue,
                  const Operator&             op,
-                 const LoadBalancing&        load_balacing);
+                 const LoadBalancing&        load_balancing);
 */
 template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&                hornet,
                  const TwoLevelQueue<vid_t>& queue,
                  const Operator&             op,
-                 const LoadBalancing&        load_balacing);
+                 const LoadBalancing&        load_balancing);
 
 //==============================================================================
 
-using BatchUpdate = hornet::gpu::BatchUpdate;
+using BatchUpdate = gpu::BatchUpdate;
 
 template<typename HornetClass, typename Operator>
 void forAllEdges(HornetClass& hornet,
@@ -195,6 +224,6 @@ void forAllVertices(HornetClass& hornet,
                     const BatchUpdate& batch_update,
                     const Operator& op);
 
-} // namespace hornet_alg
+} // namespace hornets_nest
 
 #include "Operator++.i.cuh"

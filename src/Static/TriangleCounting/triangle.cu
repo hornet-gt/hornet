@@ -2,12 +2,11 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-
 #include "Static/TriangleCounting/triangle.cuh"
 
-using namespace custinger_alg;
+using namespace hornets_nest;
 
-namespace custinger_alg {
+namespace hornets_nest {
 
 __device__ __forceinline__
 void initialize(degree_t diag_id,
@@ -147,8 +146,9 @@ void indexBinarySearch(vid_t* data, vid_t arrLen, vid_t key, int& pos) {
     }
 }
 
+template<typename HornetDevice>
 __device__ __forceinline__
-void intersectCount(const custinger::cuStingerDevice& custinger,
+void intersectCount(const HornetDevice& hornet,
         degree_t uLength, degree_t vLength,
         const vid_t*  __restrict__ uNodes,
         const vid_t*  __restrict__ vNodes,
@@ -184,8 +184,9 @@ void intersectCount(const custinger::cuStingerDevice& custinger,
 }
 
 // u_len < v_len
+template<typename HornetDevice>
 __device__ __forceinline__
-triangle_t count_triangles(const custinger::cuStingerDevice& custinger,
+triangle_t count_triangles(const HornetDevice& hornet,
                            vid_t u,
                            const vid_t* __restrict__ u_nodes,
                            degree_t u_len,
@@ -232,7 +233,7 @@ triangle_t count_triangles(const custinger::cuStingerDevice& custinger,
            firstFound[tId - 1] = sum;
         triangles += sum;
         intersectCount
-            (custinger, u_len, v_len, u_nodes, v_nodes, &u_curr, &v_curr,
+            (hornet, u_len, v_len, u_nodes, v_nodes, &u_curr, &v_curr,
             &work_index, &work_per_thread, &triangles, firstFound[tId],
             outPutTriangles, src, dest, u, v);
 
@@ -258,14 +259,17 @@ void workPerBlock(vid_t numVertices,
     *outMpEnd     = mpStart + verticesPerMp + (blockIdx.x < remainderBlocks);
 }
 
+template<typename HornetDevice>
 __global__
-void devicecuStaticTriangleCounting(custinger::cuStingerDevice custinger,
+void devicecuStaticTriangleCounting(HornetDevice hornet,
                            triangle_t* __restrict__ outPutTriangles,
                            int threads_per_block,
                            int number_blocks,
                            int shifter,
-                           TriangleData* __restrict__ devData) {
-    vid_t nv = custinger.nV();
+                           int cutoff,
+                           HostDeviceVar<TriangleData> hd_data) {
+    TriangleData* __restrict__ devData = hd_data.ptr();
+    vid_t nv = hornet.nV();
     // Partitioning the work to the multiple thread of a single GPU processor.
     //The threads should get a near equal number of the elements
     //to intersect - this number will be off by no more than one.
@@ -275,23 +279,17 @@ void devicecuStaticTriangleCounting(custinger::cuStingerDevice custinger,
     const int blockSize = blockDim.x;
     workPerBlock(nv, &this_mp_start, &this_mp_stop, blockSize);
 
-    //__shared__ triangle_t s_triangles[1024];
     __shared__ vid_t      firstFound[1024];
 
     vid_t     adj_offset = tx >> shifter;
     vid_t* firstFoundPos = firstFound + (adj_offset << shifter);
     for (vid_t src = this_mp_start; src < this_mp_stop; src++) {
-        //vid_t      srcLen = custinger->dVD->getUsed()[src];
-        Vertex vertex = custinger.vertex(src);
+        auto vertex = hornet.vertex(src);
         vid_t srcLen = vertex.degree();
 
-        // triangle_t tCount = 0;
         for(int k = adj_offset; k < srcLen; k += number_blocks) {
-            //vid_t  dest = custinger->dVD->getAdj()[src]->dst[k];
-            // vid_t dest = vertex.edge(k).dst();
             vid_t dest = vertex.edge(k).dst_id();
-            //int destLen = custinger->dVD->getUsed()[dest];
-            degree_t destLen = custinger.vertex(dest).degree();
+            degree_t destLen = hornet.vertex(dest).degree();
             if (dest < src) //opt
                 continue;   //opt
 
@@ -305,41 +303,41 @@ void devicecuStaticTriangleCounting(custinger::cuStingerDevice custinger,
             degree_t    small_len = sourceSmaller ? srcLen : destLen;
             degree_t    large_len = sourceSmaller ? destLen : srcLen;
 
-            // const vid_t* small_ptr = Vertex(custinger, small).neighbor_ptr();
-            // const vid_t* large_ptr = Vertex(custinger, large).neighbor_ptr();
+            /*
+            if(large_len + small_len > cutoff)
+                continue;
+            */
 
-            const vid_t* small_ptr = custinger.vertex(small).neighbor_ptr();
-            const vid_t* large_ptr = custinger.vertex(large).neighbor_ptr();
+            const vid_t* small_ptr = hornet.vertex(small).neighbor_ptr();
+            const vid_t* large_ptr = hornet.vertex(large).neighbor_ptr();
 
             triangle_t triFound = count_triangles
-                (custinger, small, small_ptr, small_len, large, large_ptr,
+                (hornet, small, small_ptr, small_len, large, large_ptr,
                  large_len, threads_per_block, (triangle_t*)firstFoundPos,
                  tx % threads_per_block, outPutTriangles,
                  nullptr, nullptr, 1, src, dest);
-            // tCount += triFound;
-                        
+
             atomicAdd(outPutTriangles+src,triFound);
             atomicAdd(outPutTriangles+dest,triFound);
-                        // printf("Need to add an atomic add here");
 
         }
-    //    s_triangles[tx] = tCount;
-    //    blockReduce(&outPutTriangles[src],s_triangles,blockSize);
     }
 }
 
-void staticTriangleCounting(cuStinger& custinger,
+void staticTriangleCounting(HornetGraph& hornet,
                         triangle_t* __restrict__ outPutTriangles,
                         int threads_per_block,
                         int number_blocks,
                         int shifter,
                         int thread_blocks,
                         int blockdim,
-                        TriangleData* __restrict__ devData) {
+                        int cutoff,
+                        HostDeviceVar<TriangleData> hd_data) {
 
     devicecuStaticTriangleCounting <<< thread_blocks, blockdim >>>
-        (custinger.device_side(), outPutTriangles, threads_per_block,
-         number_blocks, shifter, devData);
+        (hornet.device_side(), outPutTriangles, threads_per_block,
+         number_blocks, shifter, cutoff, hd_data);
+    hd_data.sync();
 }
 
 // -----------------------
@@ -353,87 +351,98 @@ void staticTriangleCounting(cuStinger& custinger,
 // -----------------------
 // -----------------------
 
-TriangleCounting::TriangleCounting(custinger::cuStinger& custinger) :
-                                       StaticAlgorithm(custinger),
-                                                                             hostTriangleData(custinger){
-    deviceTriangleData = register_data(hostTriangleData);
-    memReleased = true;
+TriangleCounting::TriangleCounting(HornetGraph& hornet) :
+                                       StaticAlgorithm(hornet),
+                                       hd_triangleData(hornet){
 }
 
 TriangleCounting::~TriangleCounting(){
     release();
 }
 
+struct OPERATOR_InitTriangleCounts {
+    HostDeviceVar<TriangleData> d_triangleData;
+
+    OPERATOR (Vertex &vertex) {
+        d_triangleData().triPerVertex[vertex.id()] = 0;
+    }
+};
+
 void TriangleCounting::reset(){
-    forAllnumV<triangle_operators::init>(custinger,deviceTriangleData);
+    forAllVertices(hornet, OPERATOR_InitTriangleCounts { hd_triangleData });
 }
 
 void TriangleCounting::run(){
+    run(0);
+}
 
-    staticTriangleCounting(custinger,
-                        hostTriangleData.triPerVertex,
-                        hostTriangleData.threadsPerIntersection,
-                        hostTriangleData.numberInterPerBlock,
-                        hostTriangleData.logThreadsPerInter,
-                        hostTriangleData.threadBlocks,
-                        hostTriangleData.blockSize,
-                        deviceTriangleData);
+void TriangleCounting::run(int cutoff){
+
+    staticTriangleCounting(hornet,
+                        hd_triangleData().triPerVertex,
+                        hd_triangleData().threadsPerIntersection,
+                        hd_triangleData().numberInterPerBlock,
+                        hd_triangleData().logThreadsPerInter,
+                        hd_triangleData().threadBlocks,
+                        hd_triangleData().blockSize,
+                        cutoff,
+                        hd_triangleData);
 }
 
 void TriangleCounting::release(){
     if(memReleased)
         return;
     memReleased=true;
-    gpu::free(hostTriangleData.triPerVertex);
+    gpu::free(hd_triangleData().triPerVertex);
 
 }
 
 
 void TriangleCounting::setInitParameters(int threadBlocks, int blockSize, int threadsPerIntersection){
-    hostTriangleData.threadBlocks                    = threadBlocks;
-    hostTriangleData.blockSize                        = blockSize;
+    hd_triangleData().threadBlocks                    = threadBlocks;
+    hd_triangleData().blockSize                        = blockSize;
 
-    if(hostTriangleData.blockSize%32 != 0){
+    if(hd_triangleData().blockSize%32 != 0){
         printf("The block size has to be a multiple of 32\n");
         printf("The block size has to be a reduced to the closet multiple of 32\n");
-        hostTriangleData.blockSize = (hostTriangleData.blockSize/32)*32;
+        hd_triangleData().blockSize = (hd_triangleData().blockSize/32)*32;
     }
-    if(hostTriangleData.blockSize < 0){
+    if(hd_triangleData().blockSize < 0){
         printf("The block size has to be a positive numbe\n");
         exit(0);
     }
     
-    hostTriangleData.threadsPerIntersection = threadsPerIntersection;
-    if(hostTriangleData.threadsPerIntersection <= 0 || hostTriangleData.threadsPerIntersection >32 ){
+    hd_triangleData().threadsPerIntersection = threadsPerIntersection;
+    if(hd_triangleData().threadsPerIntersection <= 0 || hd_triangleData().threadsPerIntersection >32 ){
         printf("Threads per intersection have to be a power of two between 1 and 32\n");
         exit(0);
     }
-    int temp = hostTriangleData.threadsPerIntersection,logtemp=0;
+    int temp = hd_triangleData().threadsPerIntersection,logtemp=0;
     while (temp>>=1) ++logtemp;
-    hostTriangleData.logThreadsPerInter            = logtemp;
-    hostTriangleData.numberInterPerBlock=hostTriangleData.blockSize/hostTriangleData.threadsPerIntersection;
+    hd_triangleData().logThreadsPerInter            = logtemp;
+    hd_triangleData().numberInterPerBlock=hd_triangleData().blockSize/hd_triangleData().threadsPerIntersection;
 }
 
 
 void TriangleCounting::init(){
     memReleased=false;
-    gpu::allocate(hostTriangleData.triPerVertex, hostTriangleData.nv+10);
-    syncDeviceWithHost();
+    gpu::allocate(hd_triangleData().triPerVertex, hd_triangleData().nv+10);
     reset();
 }
 
 triangle_t TriangleCounting::countTriangles(){
- //    triangle_t* outputArray = (triangle_t*)malloc((hostTriangleData.nv+2)*sizeof(triangle_t));
- //    cudaMemcpy(outputArray,hostTriangleData.triPerVertex,(hostTriangleData.nv+2)*sizeof(triangle_t),cudaMemcpyDeviceToHost);
- //    triangle_t sum=0;
- //    for(int i=0; i<(hostTriangleData.nv); i++){
- //        // printf("%d %ld\n", i,outputArray[i]);
- //        sum+=outputArray[i];
- //    }
-    // // // free(outputArray);
-    triangle_t sum=gpu::reduce(hostTriangleData.triPerVertex, hostTriangleData.nv+1);
+    hd_triangleData.sync();
+    triangle_t* outputArray = (triangle_t*)malloc((hd_triangleData().nv+2)*sizeof(triangle_t));
+    cudaMemcpy(outputArray,hd_triangleData().triPerVertex,(hd_triangleData().nv+2)*sizeof(triangle_t),cudaMemcpyDeviceToHost);
+    triangle_t sum=0;
+    for(int i=0; i<(hd_triangleData().nv); i++){
+        // printf("%d %ld\n", i,outputArray[i]);
+        sum+=outputArray[i];
+    }
+    free(outputArray);
+    //triangle_t sum=gpu::reduce(hd_triangleData().triPerVertex, hd_triangleData().nv+1);
 
     return sum;
 }
-} // namespace custinger_alg
+} // namespace hornets_nest
 

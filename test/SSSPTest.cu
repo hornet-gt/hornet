@@ -3,25 +3,32 @@
  * @file
  */
 #include "Static/ShortestPath/SSSP.cuh"
-#include <GraphIO/GraphStd.hpp>
+#include <Graph/GraphStd.hpp>
+#include <Graph/GraphWeight.hpp>
 #include <Util/CommandLineParam.hpp>
 
 int main(int argc, char* argv[]) {
     using namespace timer;
-    using namespace hornet_alg;
+    using namespace hornets_nest;
 
     graph::GraphStd<vid_t, eoff_t> graph;
-    CommandLineParam cmd(graph, argc, argv);
+    CommandLineParam cmd(graph, argc, argv,false);
 
-    auto h_value = new weight_t[graph.nE()];
-    std::fill(h_value, h_value + graph.nE(), weight_t(1));
-    HornetInit hornet_init(graph.nV(), graph.nE(), graph.out_offsets_ptr(),
-                           graph.out_edges_ptr());
-    hornet_init.insertEdgeData(h_value);
+    auto h_weights = new weight_t[graph.nE()];
+    host::generate_randoms(h_weights, graph.nE(), 0, 100);
 
-    HornetGPU hornet_graph(hornet_init);
+    HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
+                           graph.csr_out_edges());
+    hornet_init.insertEdgeData(h_weights);
+
+    HornetGraph hornet_graph(hornet_init);
+
+    vid_t root = 0;
+    if(argc==3) 
+        root = atoi(argv[2]);
+
     SSSP sssp(hornet_graph);
-    sssp.set_parameters(0);
+    sssp.set_parameters(root);
 
     Timer<DEVICE> TM;
     TM.start();

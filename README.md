@@ -3,7 +3,8 @@
 The repository provides the graph algorithms implemented on top Hornet
 data structure.
 
-For additional information concerning the data structure and its APIs please refer to [**Hornet repository**](https://github.com/hornet-gt/hornet).
+For additional information concerning the data structure and its APIs please
+refer to [**Hornet repository**](https://github.com/hornet-gt/hornet).
 
 ## Getting Started ##
 
@@ -23,40 +24,44 @@ The document is organized as follows:
 
 ### Requirements ###
 
-* [Nvidia Modern GPU](https://developer.nvidia.com/cuda-gpus) (compute capability &ge; 3.0): Kerpler, Maxwell, Pascal, Volta architectures.
+* [Nvidia Modern GPU](https://developer.nvidia.com/cuda-gpus)
+  (compute capability &ge; 3.0): Kerpler, Maxwell, Pascal, Volta architectures.
 * [CUDA toolkit](https://developer.nvidia.com/cuda-toolkit) 9 or greater.
 * GCC or [Clang](https://clang.llvm.org) host compiler with support for C++14.
   Note: the compiler must be compatible with the related CUDA toolkit version.
-  For more information see [CUDA Installation Guide](http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html).
+  For more information see
+  [CUDA Installation Guide](http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html).
 * [CMake](https://cmake.org) v3.6 or greater.
 * 64-bit Operating System (Ubuntu 16.04 or above suggested).
 
 ### Quick Start ###
 
-The following basic steps are required to build and execute the Hornet algorithms:
+The following basic steps are required to build and execute the Hornet
+algorithms:
 ```bash
 git clone --recursive https://github.com/hornet-gt/hornetsnest
 cd hornetsnest/build
 cmake ..
-make -j
+make p
 ```
 
-By default the cuda compiler `nvcc` uses `gcc/g++` found in the current
-execution search path (`cc --version` to get the default compiler).
-To force a different host compiler to compile plain C++ files (`*.cpp`) set the
-following environment variables:
+By default, the CUDA compiler `nvcc` uses `gcc/g++` found in the current
+execution search path as host compiler
+(`cc --version` to get the default compiler on the actual system).
+To force a different host compiler for compiling C++ files (`*.cpp`)
+you need to set the following environment variables:
  ```bash
 CC=<path_to_host_C_compiler>
 CXX=<path_to_host_C++_compiler>
 ```
 
-To force a different host compiler to compile host side `nvcc` code (`*.cu`)
+To force a different host compiler for compiling host side code (`*.cu`)
 substitute `cmake ..` with
  ```bash
-cmake -DCUDAHC=<path_to_host_C++_compiler>
+cmake -DCUDAHC=<path_to_host_C++_compiler> ..
 ```
-Note: host compiler and host side `nvcc` compiler may be different.
-The host side `nvcc` compiler must be compatible with the current CUDA toolkit
+Note: host `.cpp` compiler and host side `.cu` compiler may be different.
+The host side compiler must be compatible with the current CUDA Toolkit
 version installed on the system
 (see [CUDA Installation Guide](http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html)).
 

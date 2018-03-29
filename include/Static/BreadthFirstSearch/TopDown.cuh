@@ -44,18 +44,20 @@
 #include "Core/LoadBalancing/ScanBased.cuh"
 #include "Core/LoadBalancing/BinarySearch.cuh"
 #include <Core/GPUCsr/Csr.cuh>
-#include <Core/GPU/Hornet.cuh>
+#include <Core/GPUHornet/Hornet.cuh>
 
-namespace hornet_alg {
+namespace hornets_nest {
 
-using HornetGPU = csr::Hornet<EMPTY, EMPTY>;
-//using HornetGPU = gpu::Hornet<EMPTY, EMPTY>;
+using HornetGraph = gpu::Csr<EMPTY, EMPTY>;
+//using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
+//using HornetGraph = gpu::CsrPlain;
+//using HornetGraph = gpu::HornetPlain;
 
 using dist_t = int;
 
-class BfsTopDown : public StaticAlgorithm<HornetGPU> {
+class BfsTopDown : public StaticAlgorithm<HornetGraph> {
 public:
-    BfsTopDown(HornetGPU& hornet);
+    BfsTopDown(HornetGraph& hornet);
     ~BfsTopDown();
 
     void reset()    override;
@@ -64,15 +66,15 @@ public:
     bool validate() override;
 
     void set_parameters(vid_t source);
-    void run2();
 private:
-    TwoLevelQueue<vid_t>        queue;
-    load_balacing::BinarySearch load_balacing;
-    //load_balacing::VertexBased1 load_balacing;
-    //load_balacing::ScanBased load_balacing;
+    TwoLevelQueue<vid_t>           queue;
+    load_balancing::BinarySearch   load_balancing;
+    //load_balancing::VertexBased1 load_balancing;
+    //load_balancing::ScanBased    load_balancing;
+
     dist_t* d_distances   { nullptr };
     vid_t   bfs_source    { 0 };
     dist_t  current_level { 0 };
 };
 
-} // namespace hornet_alg
+} // namespace hornets_nest

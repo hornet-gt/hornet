@@ -1,6 +1,6 @@
 #include "Static/KTruss/KTruss.cuh"
 
-namespace custinger_alg {
+namespace hornets_nest {
 
 __device__ __forceinline__
 void initialize(vid_t diag_id,
@@ -135,9 +135,9 @@ vid_t* binSearch(vid_t *a, vertexId_t x, vid_t n) {
 
 /*
 __device__ __forceinline__
-int findIndexOfVertex(cuStinger* custinger, vid_t src, vid_t dst__) {
-    vid_t   srcLen = custinger->dVD->used[src];
-    vid_t* adj_src = custinger->dVD->adj[src]->dst;
+int findIndexOfVertex(HornetGraph* hornet, vid_t src, vid_t dst__) {
+    vid_t   srcLen = hornet->dVD->used[src];
+    vid_t* adj_src = hornet->dVD->adj[src]->dst;
 
     for (vid_t adj = 0; adj < srcLen; adj++) {
         vid_t dst = adj_src[adj];
@@ -167,12 +167,13 @@ void indexBinarySearch(vid_t* data, vid_t arrLen, vid_t key, int& pos) {
     }
 }
 
+template<typename Vertex>
 __device__ __forceinline__
 void findIndexOfTwoVerticesBinary(const Vertex& vertex,
                                   vid_t v1, vid_t v2,
                                   int &pos_v1, int &pos_v2) {
-    //vid_t* adj_src = custinger->dVD->adj[src]->dst;
-    //vid_t   srcLen = custinger->dVD->used[src];
+    //vid_t* adj_src = hornet->dVD->adj[src]->dst;
+    //vid_t   srcLen = hornet->dVD->used[src];
     vid_t   srcLen = vertex.degree();
     vid_t* adj_src = vertex.neighbor_ptr();
 
@@ -183,11 +184,12 @@ void findIndexOfTwoVerticesBinary(const Vertex& vertex,
     indexBinarySearch(adj_src, srcLen, v2, pos_v2);
 }
 
+template<typename Vertex>
 __device__ __forceinline__
 void findIndexOfTwoVertices(const Vertex& vertex, vid_t v1, vid_t v2,
                             int &pos_v1, int &pos_v2) {
-    //vid_t   srcLen = custinger->dVD->used[src];
-    //vid_t* adj_src = custinger->dVD->adj[src]->dst;
+    //vid_t   srcLen = hornet->dVD->used[src];
+    //vid_t* adj_src = hornet->dVD->adj[src]->dst;
     vid_t   srcLen = vertex.degree();
     vid_t* adj_src = vertex.neighbor_ptr();
 
@@ -207,19 +209,20 @@ void findIndexOfTwoVertices(const Vertex& vertex, vid_t v1, vid_t v2,
 #endif
 }
 
-template<bool uMasked, bool vMasked, bool subtract, bool upd3rdV>
+template<bool uMasked, bool vMasked, bool subtract, bool upd3rdV,
+         typename HornetDevice>
 __device__ __forceinline__
-void intersectCount(const custinger::cuStingerDevice& custinger,
+void intersectCount(HornetDevice& hornet,
                     vid_t uLength, vid_t vLength,
-                    const vid_t*  __restrict__ uNodes,
-                    const vid_t*  __restrict__ vNodes,
-                    vid_t*  __restrict__ uCurr,
-                    vid_t*  __restrict__ vCurr,
-                    int*    __restrict__ workIndex,
-                    const int*    __restrict__ workPerThread,
-                    int*    __restrict__ triangles,
+                    const vid_t* __restrict__ uNodes,
+                    const vid_t* __restrict__ vNodes,
+                    vid_t*       __restrict__ uCurr,
+                    vid_t*       __restrict__ vCurr,
+                    int*         __restrict__ workIndex,
+                    const int*   __restrict__ workPerThread,
+                    int*         __restrict__ triangles,
                     int found,
-                    const triangle_t*  __restrict__ outPutTriangles,
+                    const triangle_t*  __restrict__ output_triangles,
                     const vid_t*  __restrict__ uMask,
                     const vid_t*  __restrict__ vMask,
                     triangle_t multiplier,
@@ -233,7 +236,7 @@ void intersectCount(const custinger::cuStingerDevice& custinger,
         while (*workIndex < *workPerThread) {
             // vmask = vMasked ? vMask[*vCurr] : 0;
             // umask = uMasked ? uMask[*uCurr] : 0;
-          vmask=umask=0;
+            vmask=umask=0;
             comp  = uNodes[*uCurr] - vNodes[*vCurr];
 
             // *triangles += (comp == 0 && !umask && !vmask);
@@ -242,38 +245,38 @@ void intersectCount(const custinger::cuStingerDevice& custinger,
             // if (upd3rdV && comp == 0 && !umask && !vmask) {
             if (upd3rdV && comp == 0) {
                 if (subtract) {
-                    // atomicSub(outPutTriangles + uNodes[*uCurr], multiplier);
+                    // atomicSub(output_triangles + uNodes[*uCurr], multiplier);
 
                     // Ktruss
                     vid_t common = uNodes[*uCurr];
                     //vid_t pos_id;
 
-                    Vertex vertex_common(custinger, common);
+                    auto vertex_common = hornet.vertex(common);
                     auto edge_weight_ptr = vertex_common.edge_weight_ptr();
                     vid_t posu, posv;
-                    //findIndexOfTwoVerticesBinary(custinger, common, u, v,
+                    //findIndexOfTwoVerticesBinary(hornet, common, u, v,
                     //                             posu, posv);
                     findIndexOfTwoVerticesBinary(vertex_common, u, v,
                                                  posu, posv);
 
                     if (posu != -1)
                         atomicSub(edge_weight_ptr + posu, 1);
-                        //atomicSub(custinger->dVD->adj[common]->ew + posu, 1);
+                        //atomicSub(hornet->dVD->adj[common]->ew + posu, 1);
 #if !defined(NDEBUG)
                     else
                         printf("1");
 #endif
                     if (posv != -1)
                         atomicSub(edge_weight_ptr + posv, 1);
-                        //atomicSub(custinger->dVD->adj[common]->ew + posv, 1);
+                        //atomicSub(hornet->dVD->adj[common]->ew + posv, 1);
 #if !defined(NDEBUG)
                     else
                         printf("2");
 #endif
-                    Vertex vertex_u(custinger, u);
-                    Vertex vertex_v(custinger, v);
-                    //atomicSub(custinger->dVD->adj[u]->ew + *uCurr, 1);
-                    //atomicSub(custinger->dVD->adj[v]->ew + *vCurr, 1);
+                    auto vertex_u = hornet.vertex(u);
+                    auto vertex_v = hornet.vertex(v);
+                    //atomicSub(hornet->dVD->adj[u]->ew + *uCurr, 1);
+                    //atomicSub(hornet->dVD->adj[v]->ew + *vCurr, 1);
                     atomicSub(vertex_u.edge_weight_ptr() + *uCurr, 1);
                     atomicSub(vertex_v.edge_weight_ptr() + *vCurr, 1);
                 }
@@ -291,9 +294,10 @@ void intersectCount(const custinger::cuStingerDevice& custinger,
 }
 
 // u_len < v_len
-template <bool uMasked, bool vMasked, bool subtract, bool upd3rdV>
+template <bool uMasked, bool vMasked, bool subtract, bool upd3rdV,
+          typename HornetDevice>
 __device__ __forceinline__
-triangle_t count_triangles(const custinger::cuStingerDevice& custinger,
+triangle_t count_triangles(HornetDevice& hornet,
                            vid_t u,
                            const vid_t* __restrict__ u_nodes,
                            vid_t u_len,
@@ -303,7 +307,7 @@ triangle_t count_triangles(const custinger::cuStingerDevice& custinger,
                            int   threads_per_block,
                            volatile vid_t* __restrict__ firstFound,
                            int    tId,
-                           const triangle_t* __restrict__ outPutTriangles,
+                           const triangle_t* __restrict__ output_triangles,
                            const vid_t*      __restrict__ uMask,
                            const vid_t*      __restrict__ vMask,
                            triangle_t multiplier,
@@ -340,9 +344,9 @@ triangle_t count_triangles(const custinger::cuStingerDevice& custinger,
            firstFound[tId - 1] = sum;
         triangles += sum;
         intersectCount<uMasked, vMasked, subtract, upd3rdV>
-            (custinger, u_len, v_len, u_nodes, v_nodes, &u_curr, &v_curr,
+            (hornet, u_len, v_len, u_nodes, v_nodes, &u_curr, &v_curr,
             &work_index, &work_per_thread, &triangles, firstFound[tId],
-            outPutTriangles, uMask, vMask, multiplier, src, dest, u, v);
+            output_triangles, uMask, vMask, multiplier, src, dest, u, v);
     }
     return triangles;
 }
@@ -366,15 +370,17 @@ void workPerBlock(vid_t numVertices,
 }
 
 //==============================================================================
+//==============================================================================
 
+template<typename HornetDevice>
 __global__
-void devicecuStingerKTruss(custinger::cuStingerDevice custinger,
-                           const triangle_t* __restrict__ outPutTriangles,
+void devicecuStingerKTruss(HornetDevice hornet,
+                           const triangle_t* __restrict__ output_triangles,
                            int threads_per_block,
                            int number_blocks,
                            int shifter,
-                           KTrussData* __restrict__ devData) {
-    vid_t nv = custinger.nV;
+                           HostDeviceVar<KTrussData> hd_data) {
+    vid_t nv = hornet.nV();
     // Partitioning the work to the multiple thread of a single GPU processor.
     //The threads should get a near equal number of the elements
     //to intersect - this number will be off by no more than one.
@@ -390,16 +396,16 @@ void devicecuStingerKTruss(custinger::cuStingerDevice custinger,
     vid_t     adj_offset = tx >> shifter;
     vid_t* firstFoundPos = firstFound + (adj_offset << shifter);
     for (vid_t src = this_mp_start; src < this_mp_stop; src++) {
-        //vid_t      srcLen = custinger->dVD->getUsed()[src];
-        Vertex vertex(custinger, src);
-        vid_t srcLen = vertex.degree();
+        //vid_t      srcLen = hornet->dVD->getUsed()[src];
+        auto vertex = hornet.vertex(src);
+        vid_t  srcLen = vertex.degree();
 
         triangle_t tCount = 0;
         for(int k = adj_offset; k < srcLen; k += number_blocks) {
-            //vid_t  dest = custinger->dVD->getAdj()[src]->dst[k];
-            vid_t dest = vertex.edge(k).dst();
-            //int destLen = custinger->dVD->getUsed()[dest];
-            int destLen = Vertex(custinger, dest).degree();
+            //vid_t  dest = hornet->dVD->getAdj()[src]->dst[k];
+            vid_t dest = vertex.edge(k).dst_id();
+            //int destLen = hornet->dVD->getUsed()[dest];
+            int destLen = hornet.vertex(dest).degree();
 
             if (dest < src) //opt
                 continue;   //opt
@@ -414,55 +420,60 @@ void devicecuStingerKTruss(custinger::cuStingerDevice custinger,
             vid_t    small_len = sourceSmaller ? srcLen : destLen;
             vid_t    large_len = sourceSmaller ? destLen : srcLen;
 
-            //const vid_t* small_ptr = custinger->dVD->getAdj()[small]->dst;
-            //const vid_t* large_ptr = custinger->dVD->getAdj()[large]->dst;
-            const vid_t* small_ptr = Vertex(custinger, small).neighbor_ptr();
-            const vid_t* large_ptr = Vertex(custinger, large).neighbor_ptr();
+            //const vid_t* small_ptr = hornet->dVD->getAdj()[small]->dst;
+            //const vid_t* large_ptr = hornet->dVD->getAdj()[large]->dst;
+            const vid_t* small_ptr = hornet.vertex(small).neighbor_ptr();
+            const vid_t* large_ptr = hornet.vertex(large).neighbor_ptr();
 
             // triangle_t triFound = count_triangles<false,false,false,true>
             triangle_t triFound = count_triangles<false, false, false, false>
-                (custinger, small, small_ptr, small_len, large, large_ptr,
+                (hornet, small, small_ptr, small_len, large, large_ptr,
                  large_len, threads_per_block, firstFoundPos,
-                 tx % threads_per_block, outPutTriangles,
+                 tx % threads_per_block, output_triangles,
                  nullptr, nullptr, 1, src, dest);
             tCount += triFound;
-            int pos = devData->offsetArray[src] + k;
-            atomicAdd(devData->trianglePerEdge + pos, triFound);
+            int pos = hd_data().offset_array[src] + k;
+            atomicAdd(hd_data().triangles_per_edge + pos, triFound);
             pos = -1; //opt
-            //indexBinarySearch(custinger->dVD->getAdj()[dest]->dst
+            //indexBinarySearch(hornet->dVD->getAdj()[dest]->dst
             //                  destLen, src,pos);
-            auto dest_ptr = Vertex(custinger, dest).neighbor_ptr();
+            auto dest_ptr = hornet.vertex(dest).neighbor_ptr();
             indexBinarySearch(dest_ptr, destLen, src, pos);
 
-            pos = devData->offsetArray[dest] + pos;
-            atomicAdd(devData->trianglePerEdge + pos, triFound);
+            pos = hd_data().offset_array[dest] + pos;
+            atomicAdd(hd_data().triangles_per_edge + pos, triFound);
         }
     //    s_triangles[tx] = tCount;
-    //    blockReduce(&outPutTriangles[src],s_triangles,blockSize);
+    //    blockReduce(&output_triangles[src],s_triangles,blockSize);
     }
 }
 
-void kTrussOneIteration(cuStinger& custinger,
-                        const triangle_t* __restrict__ outPutTriangles,
+//==============================================================================
+
+void kTrussOneIteration(HornetGraph& hornet,
+                        const triangle_t* __restrict__ output_triangles,
                         int threads_per_block,
                         int number_blocks,
                         int shifter,
                         int thread_blocks,
                         int blockdim,
-                        KTrussData* __restrict__ devData) {
+                        HostDeviceVar<KTrussData>& hd_data) {
 
     //devicecuStingerKTruss <<< thread_blocks, blockdim >>>
-    //    (custinger.devicePtr(), outPutTriangles, threads_per_block,
+    //    (hornet.devicePtr(), output_triangles, threads_per_block,
     //     number_blocks, shifter, devData);
     devicecuStingerKTruss <<< thread_blocks, blockdim >>>
-        (custinger.device_side(), outPutTriangles, threads_per_block,
-         number_blocks, shifter, devData);
+        (hornet.device_side(), output_triangles, threads_per_block,
+         number_blocks, shifter, hd_data);
 }
 
+//==============================================================================
+//==============================================================================
+template<typename HornetDevice>
 __global__
-void devicecuStingerNewTriangles(custinger::cuStingerDevice custinger,
-                                 custinger::BatchUpdate batch_update,
-                                 const triangle_t* __restrict__ outPutTriangles,
+void devicecuStingerNewTriangles(HornetDevice hornet,
+                                 gpu::BatchUpdate batch_update,
+                                 const triangle_t* __restrict__ output_triangles,
                                  int threads_per_block,
                                  int number_blocks,
                                  int shifter,
@@ -497,10 +508,10 @@ void devicecuStingerNewTriangles(custinger::cuStingerDevice custinger,
         if (src < dest)
             continue;
 
-        vid_t srcLen  = Vertex(custinger, src).degree();
-        vid_t destLen = Vertex(custinger, dest).degree();
-        //vid_t srcLen  = custinger->dVD->getUsed()[src];
-        //vid_t destLen = custinger->dVD->getUsed()[dest];
+        vid_t srcLen  = hornet.vertex(src).degree();
+        vid_t destLen = hornet.vertex(dest).degree();
+        //vid_t srcLen  = hornet->dVD->getUsed()[src];
+        //vid_t destLen = hornet->dVD->getUsed()[dest];
 
         bool avoidCalc = (src == dest) || (destLen == 0) || (srcLen == 0);
         if (avoidCalc)
@@ -512,16 +523,16 @@ void devicecuStingerNewTriangles(custinger::cuStingerDevice custinger,
         vid_t    small_len = sourceSmaller ? srcLen : destLen;
         vid_t    large_len = sourceSmaller ? destLen : srcLen;
 
-        //const vid_t* small_ptr = custinger->dVD->getAdj()[small]->dst;
-        //const vid_t* large_ptr = custinger->dVD->getAdj()[large]->dst;
-        const vid_t* small_ptr = Vertex(custinger, small).neighbor_ptr();
-        const vid_t* large_ptr = Vertex(custinger, large).neighbor_ptr();
+        //const vid_t* small_ptr = hornet->dVD->getAdj()[small]->dst;
+        //const vid_t* large_ptr = hornet->dVD->getAdj()[large]->dst;
+        const vid_t* small_ptr = hornet.vertex(small).neighbor_ptr();
+        const vid_t* large_ptr = hornet.vertex(large).neighbor_ptr();
 
         triangle_t tCount = count_triangles<false, false, true, true>(
-                                custinger, small, small_ptr, small_len,
+                                hornet, small, small_ptr, small_len,
                                 large, large_ptr, large_len,
                                 threads_per_block, firstFoundPos,
-                                tx % threads_per_block, outPutTriangles,
+                                tx % threads_per_block, output_triangles,
                                 nullptr, nullptr, 2, src, dest);
         __syncthreads();
     }
@@ -529,9 +540,10 @@ void devicecuStingerNewTriangles(custinger::cuStingerDevice custinger,
 
 //==============================================================================
 
-template <bool uMasked, bool vMasked, bool subtract, bool upd3rdV>
+template <bool uMasked, bool vMasked, bool subtract, bool upd3rdV,
+          typename HornetDevice>
 __device__ __forceinline__
-void intersectCountAsymmetric(const custinger::cuStingerDevice& custinger,
+void intersectCountAsymmetric(HornetDevice& hornet,
                               vid_t uLength, vid_t vLength,
                               const vid_t* __restrict__ uNodes,
                               const vid_t* __restrict__ vNodes,
@@ -541,7 +553,7 @@ void intersectCountAsymmetric(const custinger::cuStingerDevice& custinger,
                               const int*   __restrict__ workPerThread,
                               int*   __restrict__ triangles,
                               int found,
-                              triangle_t* __restrict__ outPutTriangles,
+                              triangle_t* __restrict__ output_triangles,
                               const vid_t*      __restrict__ uMask,
                               const vid_t*      __restrict__ vMask,
                               triangle_t multiplier,
@@ -569,7 +581,7 @@ void intersectCountAsymmetric(const custinger::cuStingerDevice& custinger,
             // if (upd3rdV && comp == 0 && !umask && !vmask) {
             if (upd3rdV && comp == 0) {
                 if (subtract) {
-                    // atomicSub(outPutTriangles + uNodes[*uCurr], multiplier);
+                    // atomicSub(output_triangles + uNodes[*uCurr], multiplier);
                     // if(blockIdx.x<=10)
                     //   printf("!!! %d %d", u,v);
 
@@ -577,14 +589,14 @@ void intersectCountAsymmetric(const custinger::cuStingerDevice& custinger,
                     //vid_t common = uNodes[*uCurr];
 
                     if (dest == u) {
-                        auto w_ptr = Vertex(custinger, dest).edge_weight_ptr();
+                        auto w_ptr = hornet.vertex(dest).edge_weight_ptr();
                         atomicSub(w_ptr + *uCurr, 1);
-                        //atomicSub(custinger->dVD->adj[dest]->ew + *uCurr, 1);
+                        //atomicSub(hornet->dVD->adj[dest]->ew + *uCurr, 1);
                     }
                     else {
-                        auto w_ptr = Vertex(custinger, dest).edge_weight_ptr();
+                        auto w_ptr = hornet.vertex(dest).edge_weight_ptr();
                         atomicSub(w_ptr + *vCurr, 1);
-                        //atomicSub(custinger->dVD->adj[dest]->ew + *vCurr, 1);
+                        //atomicSub(hornet->dVD->adj[dest]->ew + *vCurr, 1);
                     }
                 }
             }
@@ -599,11 +611,15 @@ void intersectCountAsymmetric(const custinger::cuStingerDevice& custinger,
     }
 }
 
+//==============================================================================
+//==============================================================================
+
 // u_len < v_len
-template <bool uMasked, bool vMasked, bool subtract, bool upd3rdV>
+template <bool uMasked, bool vMasked, bool subtract, bool upd3rdV,
+          typename HornetDevice>
 __device__ __forceinline__
 triangle_t count_trianglesAsymmetric(
-                                 const custinger::cuStingerDevice& custinger,
+                                 HornetDevice& hornet,
                                  vid_t u,
                                  const vid_t* __restrict__ u_nodes,
                                  vid_t u_len,
@@ -613,7 +629,7 @@ triangle_t count_trianglesAsymmetric(
                                  int threads_per_block,
                                  volatile vid_t* __restrict__ firstFound,
                                  int tId,
-                                 triangle_t* __restrict__ outPutTriangles,
+                                 triangle_t* __restrict__ output_triangles,
                                  const vid_t* __restrict__ uMask,
                                  const vid_t* __restrict__ vMask,
                                  triangle_t multiplier,
@@ -648,25 +664,27 @@ triangle_t count_trianglesAsymmetric(
             firstFound[tId - 1] = sum;
         triangles += sum;
         intersectCountAsymmetric<uMasked, vMasked, subtract, upd3rdV>
-            (custinger, u_len, v_len, u_nodes, v_nodes, &u_curr, &v_curr,
+            (hornet, u_len, v_len, u_nodes, v_nodes, &u_curr, &v_curr,
              &work_index, &work_per_thread, &triangles, firstFound[tId],
-             outPutTriangles, uMask, vMask, multiplier, src, dest, u, v);
+             output_triangles, uMask, vMask, multiplier, src, dest, u, v);
     }
     return triangles;
 }
 
 //==============================================================================
+//==============================================================================
 
 __device__ int d_value[32];
 
+template<typename HornetDevice>
 __global__
-void deviceBUTwoCUOneTriangles(custinger::cuStingerDevice custinger,
-                                custinger::BatchUpdate batch_update,
-                                triangle_t* __restrict__ outPutTriangles,
-                                int  threads_per_block,
-                                int  number_blocks,
-                                int  shifter,
-                                bool deletion) {
+void deviceBUTwoCUOneTriangles(HornetDevice hornet,
+                               gpu::BatchUpdate batch_update,
+                               triangle_t* __restrict__ output_triangles,
+                               int  threads_per_block,
+                               int  number_blocks,
+                               int  shifter,
+                               bool deletion) {
     //vid_t batchsize = *(batch_update->getBatchSize());
     vid_t batchsize = batch_update.size();
 
@@ -677,7 +695,7 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevice custinger,
     vid_t this_mp_start, this_mp_stop;
 
     //vid_t* d_off = batch_update->getOffsets();
-    vid_t* d_off = batch_update.offsets_ptr();
+    const vid_t* d_off = batch_update.csr_wide_offsets_ptr();
 
     //vid_t* d_ind = batch_update->getDst();
     //vid_t* d_seg = batch_update->getSrc();
@@ -696,17 +714,13 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevice custinger,
         //if (batch_update->getIndDuplicate()[edge]) // this means it's a duplicate edge
         //    continue;
 
-        //vid_t src = batch_update->getSrc()[edge];
-        //vid_t dest= batch_update->getDst()[edge];
         assert(edge < batch_update.size());
 
         vid_t src  = batch_update.src(edge);
         vid_t dest = batch_update.dst(edge);
 
-        //vid_t  srcLen = d_off[src + 1] - d_off[src];
-        //vid_t destLen = custinger->dVD->getUsed()[dest];
         vid_t  srcLen = d_off[src + 1] - d_off[src];
-        vid_t destLen = Vertex(custinger, dest).degree();///???
+        vid_t destLen = hornet.vertex(dest).degree();
 
         bool avoidCalc = src == dest || srcLen == 0;
         if (avoidCalc)
@@ -715,8 +729,8 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevice custinger,
         const vid_t*      src_ptr = d_ind + d_off[src];
         //const vid_t* src_mask_ptr = batch_update->getIndDuplicate() + d_off[src];//???
         const vid_t* src_mask_ptr = nullptr;
-        //const vid_t*      dst_ptr = custinger->dVD->getAdj()[dest]->dst;
-        const vid_t*      dst_ptr = Vertex(custinger, dest).neighbor_ptr();
+        //const vid_t*      dst_ptr = hornet->dVD->getAdj()[dest]->dst;
+        const vid_t*      dst_ptr = hornet.vertex(dest).neighbor_ptr();
 
         assert(d_off[src] < batch_update.size());
 
@@ -734,28 +748,28 @@ void deviceBUTwoCUOneTriangles(custinger::cuStingerDevice custinger,
         // triangle_t tCount=0;
         triangle_t tCount = sourceSmaller ?
                             count_trianglesAsymmetric<false, false, true, true>
-                                (custinger, small, small_ptr, small_len,
+                                (hornet, small, small_ptr, small_len,
                                   large, large_ptr, large_len,
                                  threads_per_block, firstFoundPos,
-                                 tx % threads_per_block, outPutTriangles,
+                                 tx % threads_per_block, output_triangles,
                                    small_mask_ptr, large_mask_ptr, 1,src,dest) :
                             count_trianglesAsymmetric<false, false, true, true>
-                                (custinger, small, small_ptr, small_len,
+                                (hornet, small, small_ptr, small_len,
                                  large, large_ptr, large_len,
                                    threads_per_block, firstFoundPos,
-                                 tx % threads_per_block, outPutTriangles,
+                                 tx % threads_per_block, output_triangles,
                                  small_mask_ptr, large_mask_ptr, 1, src, dest);
 
-        // atomicSub(outPutTriangles + src, tCount * 1);
-        // atomicSub(outPutTriangles + dest, tCount * 1);
+        // atomicSub(output_triangles + src, tCount * 1);
+        // atomicSub(output_triangles + dest, tCount * 1);
         __syncthreads();
     }
 }
 
 void callDeviceDifferenceTriangles(
-                                const custinger::cuStinger& custinger,
-                                const custinger::BatchUpdate& batch_update,
-                                triangle_t* __restrict__ outPutTriangles,
+                                const HornetGraph& hornet,
+                                const gpu::BatchUpdate& batch_update,
+                                triangle_t* __restrict__ output_triangles,
                                 int  threads_per_intersection,
                                 int  num_intersec_perblock,
                                 int  shifter,
@@ -768,7 +782,7 @@ void callDeviceDifferenceTriangles(
     vid_t batchsize = batch_update.size();
 
     //vid_t        nv = *(batch_update.getHostBUD()->getNumVertices());
-    vid_t        nv = custinger.nV();
+    vid_t        nv = hornet.nV();
 
     numBlocks.x = ceil( (float) nv / (float) blockdim );
     //vid_t* redCU;
@@ -781,20 +795,20 @@ void callDeviceDifferenceTriangles(
     //<< numBlocks.x << endl;
     // Calculate all new traingles regardless of repetition
     devicecuStingerNewTriangles <<< numBlocks, blockdim >>>
-        (custinger.device_side(), batch_update,
-         outPutTriangles, threads_per_intersection, num_intersec_perblock,
+        (hornet.device_side(), batch_update,
+         output_triangles, threads_per_intersection, num_intersec_perblock,
          shifter, deletion);
 
     // Calculate triangles formed by ALL new edges
-        // deviceBUThreeTriangles<<<numBlocks,blockdim>>>(custinger.devicePtr(),
-    //    batch_update.getDeviceBUD()->devicePtr(), outPutTriangles,
+        // deviceBUThreeTriangles<<<numBlocks,blockdim>>>(hornet.devicePtr(),
+    //    batch_update.getDeviceBUD()->devicePtr(), output_triangles,
     //threads_per_intersection,num_intersec_perblock,shifter,deletion,redBU);
 
     // Calculate triangles formed by two new edges
     deviceBUTwoCUOneTriangles <<< numBlocks, blockdim >>>
-        (custinger.device_side(), batch_update,
-        outPutTriangles, threads_per_intersection, num_intersec_perblock,
+        (hornet.device_side(), batch_update,
+        output_triangles, threads_per_intersection, num_intersec_perblock,
         shifter, deletion);
 }
 
-} // namespace custinger_alg
+} // namespace hornets_nest

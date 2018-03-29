@@ -37,7 +37,8 @@
  */
 #include "ScanBasedKernel.cuh"
 
-namespace load_balacing {
+namespace hornets_nest {
+namespace load_balancing {
 
 template<typename HornetClass, typename Operator>
 void ScanBased::apply(const HornetClass& hornet,
@@ -69,4 +70,5 @@ void ScanBased::apply(const HornetClass& hornet, const Operator& op)
     CHECK_CUDA_ERROR
 }
 
-} // namespace load_balacing
+} // namespace load_balancing
+} // namespace hornets_nest

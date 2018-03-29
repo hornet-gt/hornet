@@ -39,10 +39,11 @@
 
 #include "BasicTypes.hpp"
 
+namespace hornets_nest {
 /**
  * @brief
  */
-namespace load_balacing {
+namespace load_balancing {
 
 template<unsigned VW_SIZE>
 class VertexBased {
@@ -63,6 +64,9 @@ public:
     template<typename HornetClass, typename Operator>
     void apply(const HornetClass& hornet, Operator&& op) const noexcept;
 
+    template<typename HornetClass, typename Operator>
+    void applyVertexPairs(const HornetClass& hornet, Operator&& op) const noexcept;
+
 private:
     static const unsigned BLOCK_SIZE = 128;
 };
@@ -74,6 +78,7 @@ using  VertexBased8 = VertexBased<8>;
 using VertexBased16 = VertexBased<16>;
 using VertexBased32 = VertexBased<32>;
 
-} // namespace load_balacing
+} // namespace load_balancing
+} // namespace hornets_nest
 
 #include "VertexBased.i.cuh"

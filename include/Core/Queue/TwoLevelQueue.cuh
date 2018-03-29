@@ -37,7 +37,7 @@
  */
 #pragma once
 
-namespace hornet_alg {
+namespace hornets_nest {
 
 /**
  * @internal
@@ -62,35 +62,34 @@ struct ptr2_t {
 template<typename T>
 class TwoLevelQueue {
 public:
-    explicit TwoLevelQueue() = default;
+    TwoLevelQueue() = default;
 
     /**
      * @brief Default costructor
-     * @param[in] custinger reference to the custinger instance
+     * @param[in] hornet reference to the hornet instance
      * @param[in] enable_traverse if `true` enable the traverse of the vertices
      *            stored in the queue
      * @param[in] max_allocated_items number of allocated items for a single
      *            level of the queue. Default value: V * 2
      */
     template<typename HornetClass>
-    explicit TwoLevelQueue(const HornetClass& custinger,
+    explicit TwoLevelQueue(const HornetClass& hornet,
                            const float work_factor = 2.0f) noexcept;
 
     explicit TwoLevelQueue(size_t max_allocated_items) noexcept;
 
     template<typename HornetClass>
-    void initilize(const HornetClass& custinger,
+    void initialize(const HornetClass& hornet,
                    const float work_factor = 2.0f) noexcept;
 
-    void initilize(size_t max_allocated_items) noexcept;
+    void initialize(size_t max_allocated_items) noexcept;
 
+    HOST_DEVICE
     TwoLevelQueue(const TwoLevelQueue<T>& obj) noexcept;
 
     //TwoLevelQueue(TwoLevelQueue<T>&& obj) noexcept;
 
-    /**
-     * @brief Default Decostructor
-     */
+    HOST_DEVICE
     ~TwoLevelQueue() noexcept;
 
     /**
@@ -185,14 +184,19 @@ private:
     ///@internal @brief input and output queue pointers
     ptr2_t<T>    _d_queue_ptrs        { nullptr, nullptr };
 
-    const size_t _max_allocated_items { 0 };
+    size_t       _max_allocated_items { 0 };
     ///@internal @brief device counter of the queue for `traverse_edges()`
     int2*        _d_counters          { nullptr };
     mutable int2 _h_counters          { 0, 0 };
     bool         _kernel_copy         { false };
     int          _enqueue_items       { 0 };
+
+    /**
+     * @brief Internal function to initialize max allocated items
+     */
+    void _initialize() noexcept;
 };
 
-} // namespace hornet_alg
+} // namespace hornets_nest
 
 #include "TwoLevelQueue.i.cuh"

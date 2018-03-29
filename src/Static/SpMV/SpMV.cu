@@ -34,9 +34,9 @@
  * </blockquote>}
  */
 #include "Static/SpMV/SpMV.cuh"
-#include <GraphIO/GraphWeight.hpp>
+#include <Graph/GraphWeight.hpp>
 
-namespace hornet_alg {
+namespace hornets_nest {
 ///////////////
 // OPERATORS //
 ///////////////
@@ -58,9 +58,9 @@ struct SpMVOperator {
 // SpMV //
 //////////
 
-SpMV::SpMV(HornetGPU& hornet, int* h_vector) :
+SpMV::SpMV(HornetGraph& hornet, int* h_vector) :
                                 StaticAlgorithm(hornet),
-                                load_balacing(hornet),
+                                load_balancing(hornet),
                                 h_vector(h_vector) {
     gpu::allocate(d_vector, hornet.nV());
     gpu::allocate(d_result, hornet.nV());
@@ -77,7 +77,7 @@ void SpMV::reset() {
 }
 
 void SpMV::run() {
-    forAllEdges(hornet, SpMVOperator { d_vector, d_result }, load_balacing);
+    forAllEdges(hornet, SpMVOperator { d_vector, d_result }, load_balancing);
 }
 
 void SpMV::release() {
@@ -105,4 +105,4 @@ bool SpMV::validate() {
     return ret;
 }
 
-} // namespace hornet_alg
+} // namespace hornets_nest

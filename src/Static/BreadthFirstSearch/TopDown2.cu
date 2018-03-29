@@ -35,10 +35,10 @@
  */
 #include "Static/BreadthFirstSearch/TopDown2.cuh"
 #include "Core/Auxilary/DuplicateRemoving.cuh"
-#include <GraphIO/GraphStd.hpp>
-#include <GraphIO/BFS.hpp>
+#include <Graph/GraphStd.hpp>
+#include <Graph/BFS.hpp>
 
-namespace hornet_alg {
+namespace hornets_nest {
 
 const dist_t INF = std::numeric_limits<dist_t>::max();
 
@@ -67,7 +67,7 @@ struct BFSOperator2 {
     }
 };
 
-struct BFSOperatorAtomic {
+struct BFSOperatorAtomic {                  //deterministic
     dist_t               current_level;
     dist_t*              d_distances;
     TwoLevelQueue<vid_t> queue;
@@ -83,10 +83,10 @@ struct BFSOperatorAtomic {
 // BfsTopDown2 //
 /////////////////
 
-BfsTopDown2::BfsTopDown2(HornetGPU& hornet) :
+BfsTopDown2::BfsTopDown2(HornetGraph& hornet) :
                                  StaticAlgorithm(hornet),
                                  queue(hornet, 5),
-                                 load_balacing(hornet) {
+                                 load_balancing(hornet) {
     gpu::allocate(d_distances, hornet.nV());
     reset();
 }
@@ -112,7 +112,7 @@ void BfsTopDown2::set_parameters(vid_t source) {
 void BfsTopDown2::run() {
     while (queue.size() > 0) {
         forAllEdges(hornet, queue, BFSOperator1 { d_distances, queue },
-                    load_balacing);
+                    load_balancing);
         queue.swap();
         forAll(queue, BFSOperator2 { d_distances, current_level });
         current_level++;
@@ -123,7 +123,7 @@ void BfsTopDown2::run() {
     while (queue.size() > 0) {
         forAllEdges(hornet, queue,
                     BFSOperatorAtomic { current_level, d_distances, queue },
-                    load_balacing);
+                    load_balancing);
         queue.swap();
         current_level++;
     }
@@ -149,4 +149,4 @@ bool BfsTopDown2::validate() {
     return gpu::equal(h_distances, h_distances + graph.nV(), d_distances);
 }
 
-} // namespace hornet_alg
+} // namespace hornets_nest

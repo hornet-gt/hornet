@@ -35,8 +35,34 @@
  *
  * @file
  */
-namespace load_balacing {
+namespace hornets_nest {
+namespace load_balancing {
 namespace kernel {
+
+/**
+ * @brief
+ */
+template<unsigned VW_SIZE, typename HornetDevice, typename Operator>
+__global__
+void vertexBasedVertexPairsKernel(HornetDevice              hornet,
+                                  const vid_t* __restrict__ d_input,
+                                  int                       num_vertices,
+                                  Operator                  op) {
+    int   group_id = (blockIdx.x * blockDim.x + threadIdx.x) / VW_SIZE;
+    int     stride = (gridDim.x * blockDim.x) / VW_SIZE;
+    int group_lane = threadIdx.x % VW_SIZE;
+
+    for (auto i = group_id; i < num_vertices; i += stride) {
+        __syncthreads();
+        const auto& src = hornet.vertex(d_input[i]);
+        for (auto j = group_lane; j < src.degree(); j += VW_SIZE) {
+            const auto& edge = src.edge(j);
+            const auto& dst = hornet.vertex(edge.dst_id());
+            op(src, dst);
+        }
+        __syncthreads();
+    }
+}
 
 /**
  * @brief
@@ -81,5 +107,27 @@ void vertexBasedKernel(HornetDevice hornet, Operator op) {
     }
 }
 
+/**
+ * @brief
+ */
+template<unsigned VW_SIZE, typename HornetDevice, typename Operator>
+__global__
+void vertexBasedVertexPairsKernel(HornetDevice hornet, Operator op) {
+    int   group_id = (blockIdx.x * blockDim.x + threadIdx.x) / VW_SIZE;
+    int     stride = (gridDim.x * blockDim.x) / VW_SIZE;
+    int group_lane = threadIdx.x % VW_SIZE;
+
+    for (auto i = group_id; i < hornet.nV(); i += stride) {
+        const auto& src = hornet.vertex(i);
+
+        for (auto j = group_lane; j < src.degree();  j += VW_SIZE) {
+            const auto& edge = src.edge(j);
+            const auto& dst = hornet.vertex(edge.dst_id());
+            op(src, dst);
+        }
+    }
+}
+
 } // kernel
-} // namespace load_balacing
+} // namespace load_balancing
+} // namespace hornets_nest

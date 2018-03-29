@@ -35,7 +35,7 @@
  *
  * @file
  */
-namespace hornet_alg {
+namespace hornets_nest {
 
 template<typename T>
 HostDeviceVar<T>::HostDeviceVar() noexcept {
@@ -53,8 +53,9 @@ HostDeviceVar<T>::HostDeviceVar(const HostDeviceVar& obj) noexcept :
                                         _d_value_ptr(obj._d_value_ptr),
                                         _copy_count(obj._copy_count + 1) {
     if (_copy_count == 2)
-        cuMemcpyToDeviceAsync(_value, _d_value_ptr);
+        cuMemcpyToDevice(_value, _d_value_ptr);
     assert(_copy_count < 3);
+    obj._enable_sync = true;
 }
 
 template<typename T>
@@ -69,7 +70,7 @@ void HostDeviceVar<T>::sync() noexcept {
 #if defined(__CUDA_ARCH__)
     *_d_value_ptr = _value;
 #else
-    cuMemcpyToHostAsync(_d_value_ptr, _value);
+    cuMemcpyToHost(_d_value_ptr, _value);
 #endif
 }
 
@@ -83,7 +84,10 @@ template<typename T>
 __host__ __device__ __forceinline__
 HostDeviceVar<T>::operator T() noexcept {
 #if !defined(__CUDA_ARCH__)
-    cuMemcpyToHostAsync(_d_value_ptr, _value);
+    if (_enable_sync) {
+        cuMemcpyToHost(_d_value_ptr, _value);
+        _enable_sync = false;
+    }
 #endif
     return _value;
 //#else
@@ -113,4 +117,4 @@ T& HostDeviceVar<T>::operator()() noexcept {
     return _value;
 }
 
-} // namespace hornet_alg
+} // namespace hornets_nest

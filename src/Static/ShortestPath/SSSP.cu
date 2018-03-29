@@ -34,10 +34,10 @@
  * </blockquote>}
  */
 #include "Static/ShortestPath/SSSP.cuh"
-#include <GraphIO/GraphWeight.hpp>
-#include <GraphIO/BellmanFord.hpp>
+#include <Graph/GraphWeight.hpp>
+#include <Graph/BellmanFord.hpp>
 
-namespace hornet_alg {
+namespace hornets_nest {
 
 const weight_t INF = std::numeric_limits<weight_t>::max();
 
@@ -46,19 +46,17 @@ const weight_t INF = std::numeric_limits<weight_t>::max();
 // OPERATORS //
 ///////////////
 
-struct SSSPOperator {
+struct SSSPOperator {               //deterministic
     weight_t*            d_distances;
     TwoLevelQueue<vid_t> queue;
 
     OPERATOR(Vertex& vertex, Edge& edge) {
-        auto       src = vertex.id();
-        auto       dst = edge.dst_id();
-        auto    weight = edge.weight();
+        auto src       = vertex.id();
+        auto dst       = edge.dst_id();
+        auto weight    = edge.weight();
         auto tentative = d_distances[src] + weight;
-        if (tentative < d_distances[dst]) {
-            d_distances[dst] = tentative;
+        if (atomicMin(d_distances + dst, tentative) > tentative)
             queue.insert(dst);
-        }
     }
 };
 //------------------------------------------------------------------------------
@@ -66,9 +64,9 @@ struct SSSPOperator {
 // SSSP //
 /////////////////
 
-SSSP::SSSP(HornetGPU& hornet) : StaticAlgorithm(hornet),
-                                queue(hornet),
-                                load_balacing(hornet) {
+SSSP::SSSP(HornetGraph& hornet) : StaticAlgorithm(hornet),
+                                  queue(hornet, 4.0f),
+                                  load_balancing(hornet) {
     gpu::allocate(d_distances, hornet.nV());
     reset();
 }
@@ -92,7 +90,7 @@ void SSSP::set_parameters(vid_t source) {
 void SSSP::run() {
     while (queue.size() > 0) {
         forAllEdges(hornet, queue, SSSPOperator { d_distances, queue },
-                    load_balacing);
+                    load_balancing);
         queue.swap();
     }
 }
@@ -105,8 +103,8 @@ void SSSP::release() {
 bool SSSP::validate() {
     using namespace graph;
     GraphWeight<vid_t, eoff_t, weight_t>
-        graph(hornet.csr_offsets(), hornet.nV(),
-              hornet.csr_edges(), hornet.nE(), hornet.edge_field<1>());
+    graph(hornet.csr_offsets(), hornet.nV(),
+          hornet.csr_edges(), hornet.nE(), hornet.edge_field<1>());
     BellmanFord<vid_t, eoff_t, weight_t> sssp(graph);
     sssp.run(sssp_source);
 
@@ -114,4 +112,4 @@ bool SSSP::validate() {
     return gpu::equal(h_distances, h_distances + graph.nV(), d_distances);
 }
 
-} // namespace hornet_alg
+} // namespace hornets_nest

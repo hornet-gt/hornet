@@ -44,18 +44,18 @@
 #include "Core/LoadBalancing/ScanBased.cuh"
 #include "Core/LoadBalancing/BinarySearch.cuh"
 #include <Core/GPUCsr/Csr.cuh>
-#include <Core/GPU/Hornet.cuh>
+#include <Core/GPUHornet/Hornet.cuh>
 
-namespace hornet_alg {
+namespace hornets_nest {
 
 using weight_t = int;
 
-//using HornetGPU = gpu::Hornet<EMPTY, TypeList<float>>;
-using HornetGPU = csr::Hornet<EMPTY, TypeList<weight_t>>;
+//using HornetGraph = gpu::Hornet<EMPTY, TypeList<weight_t>>;
+using HornetGraph = gpu::Csr<EMPTY, TypeList<weight_t>>;
 
-class SSSP : public StaticAlgorithm<HornetGPU> {
+class SSSP : public StaticAlgorithm<HornetGraph> {
 public:
-    SSSP(HornetGPU& hornet);
+    SSSP(HornetGraph& hornet);
     ~SSSP();
 
     void reset()    override;
@@ -66,11 +66,11 @@ public:
     void set_parameters(vid_t source);
 private:
     TwoLevelQueue<vid_t>        queue;
-    load_balacing::BinarySearch load_balacing;
-    //load_balacing::VertexBased1 load_balacing;
-    //load_balacing::ScanBased load_balacing;
+    load_balancing::BinarySearch load_balancing;
+    //load_balancing::VertexBased1 load_balancing;
+    //load_balancing::ScanBased load_balancing;
     weight_t* d_distances { nullptr };
     vid_t     sssp_source { 0 };
 };
 
-} // namespace hornet_alg
+} // namespace hornets_nest

@@ -33,9 +33,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include <Device/SafeCudaAPI.cuh>
+#include <Device/Util/SafeCudaAPI.cuh>
 
-namespace hornet_alg {
+namespace hornets_nest {
 
 template<typename HornetClass>
 StaticAlgorithm<HornetClass>::StaticAlgorithm(HornetClass& hornet) noexcept :
@@ -74,4 +74,4 @@ void StaticAlgorithm<HornetClass>::syncDeviceWithHost() noexcept {
                                cudaMemcpyHostToDevice) )
 }
 */
-} // namespace hornet_alg
+} // namespace hornets_nest

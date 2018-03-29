@@ -1,5 +1,5 @@
 /**
- * @brief Device-wide Binary Search load balacing
+ * @brief Device-wide Binary Search load balancing
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
@@ -40,13 +40,14 @@
 
 #include "Core/Queue/TwoLevelQueue.cuh"
 
+namespace hornets_nest {
 /**
- * @brief The namespace provides all load balacing methods to traverse vertices
+ * @brief The namespace provides all load balancing methods to traverse vertices
  */
-namespace load_balacing {
+namespace load_balancing {
 
 /**
- * @brief The class implements the BinarySearch load balacing
+ * @brief The class implements the BinarySearch load balancing
  */
 class BinarySearch {
 public:
@@ -91,6 +92,7 @@ private:
     const size_t _work_size;
 };
 
-} // namespace load_balacing
+} // namespace load_balancing
+} // namespace hornets_nest
 
 #include "Core/LoadBalancing/BinarySearch.i.cuh"

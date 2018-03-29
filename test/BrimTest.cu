@@ -3,15 +3,15 @@
  * @file
  */
 //#include "Static/ShortestPath/SSSP.cuh"
-#include <GraphIO/GraphWeight.hpp>
-#include <GraphIO/Brim.hpp>
+#include <Graph/GraphWeight.hpp>
+#include <Graph/Brim.hpp>
 #include <BasicTypes.hpp>
-#include <Device/Timer.cuh>
+#include <Device/Util/Timer.cuh>
 
 int main(int argc, char* argv[]) {
     using namespace timer;
     using namespace graph;
-    using namespace hornet;
+    using namespace hornets_nest;
 
     graph::GraphWeight<vid_t, eoff_t, int> graph;
     graph.read(argv[1]);

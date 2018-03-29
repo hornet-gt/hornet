@@ -35,11 +35,12 @@
  *
  * @file
  */
-#include <Device/Basic.cuh>
-#include <Device/Definition.cuh>
-#include <Device/WarpScan.cuh>
+#include <Device/Util/Basic.cuh>
+#include <Device/Util/DeviceProperties.cuh>
+#include <Device/Primitives/WarpScan.cuh>
 
-namespace load_balacing {
+namespace hornets_nest {
+namespace load_balancing {
 namespace kernel {
 
 template<unsigned BLOCK_SIZE, bool WARP_GATHER = false,
@@ -52,9 +53,8 @@ void scanBasedKernel(HornetDevice              hornet,
                      Operator                  op) {
     using  it_t = typename HornetDevice::edgeit_t;
     using EdgeT = typename HornetDevice::EdgeT;
-    const unsigned      LOCAL_SIZE = xlib::SMemPerWarp<it_t>::value;
-    const unsigned ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE,
-                                                        it_t>::value;
+    const unsigned      LOCAL_SIZE = xlib::smem_per_warp<it_t>();
+    const unsigned ITEMS_PER_BLOCK = xlib::smem_per_block<it_t, BLOCK_SIZE>();
     __shared__ it_t smem[ITEMS_PER_BLOCK];
 
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -101,4 +101,5 @@ void scanBasedKernel(HornetDevice              hornet,
 }
 
 } // kernel
-} // namespace load_balacing
+} // namespace load_balancing
+} // namespace hornets_nest

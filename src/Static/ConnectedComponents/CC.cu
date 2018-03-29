@@ -34,9 +34,9 @@
  * </blockquote>}
  */
 #include "Static/ConnectedComponents/CC.cuh"
-#include <GraphIO/WCC.hpp>
+#include <Graph/WCC.hpp>
 
-namespace hornet_alg {
+namespace hornets_nest {
 
 const color_t    NO_COLOR = std::numeric_limits<color_t>::max();
 const color_t FIRST_COLOR = color_t(0);
@@ -71,7 +71,7 @@ struct BuildVertexEnqueue {
 };
 
 struct BuildPairQueue {
-    TwoLevelQueue<idpair_t> queue_pair;
+    TwoLevelQueue<vid2_t> queue_pair;
 
     OPERATOR(Vertex& src, Edge& edge) {
         if (src.id() > edge.dst_id()) {
@@ -88,8 +88,7 @@ struct ColoringOperator {
         bool continue_var;
         auto src_color = d_colors[vertex_pair.x];
         auto dst_color = d_colors[vertex_pair.y];
-        //printf("%d\t->\t%d:\t%d\t%d\n",
-        //        vertex_pair.x, vertex_pair.y, src_color, dst_color);
+
         if (src_color > dst_color) {
             d_colors[vertex_pair.y] = d_colors[vertex_pair.x];
             continue_var = true;
@@ -103,34 +102,19 @@ struct ColoringOperator {
 
         if (continue_var)
             d_continue = true;
-        //gpu::reduce_or(d_continue.ptr(), continue_var);
+
     }
 };
-
-/*
-struct ColorigAtomic {
-    EnqueueOperator(color_t* d_colors_, TwoLevelQueue<int2> queue_) :
-                                Common(d_colors_, queue_) {}
-
-    __device__ __forceinline__
-    bool operator()(const int2& item) {
-        auto src_color = d_colors[item.x];
-        auto old_color = atomicMax(d_colors + item.y, src_color);
-        if (src_color < old_color)
-            atomicMax(d_colors + item.x, old_color);
-        //d_colors[item.x] = old_color;
-    }
-};*/
 
 //------------------------------------------------------------------------------
 ////////
 // CC //
 ////////
 
-CC::CC(HornetGPU& hornet) : StaticAlgorithm(hornet),
+CC::CC(HornetGraph& hornet) : StaticAlgorithm(hornet),
                             queue(hornet),
                             queue_pair(hornet),
-                            load_balacing(hornet) {
+                            load_balancing(hornet) {
     gpu::allocate(d_colors, hornet.nV());
     reset();
 }
@@ -153,7 +137,7 @@ void CC::run() {
 
     while (queue.size() > 0) {
         forAllEdges(hornet, queue, GiantCCOperator { d_colors, queue },
-                    load_balacing);
+                    load_balancing);
         queue.swap();
     }
     queue.clear();
@@ -162,7 +146,7 @@ void CC::run() {
     queue.swap();
     if (queue.size() == 0)
         return;
-    forAllEdges(hornet, queue, BuildPairQueue { queue_pair }, load_balacing);
+    forAllEdges(hornet, queue, BuildPairQueue { queue_pair }, load_balancing);
 
     queue_pair.swap();
     do {
@@ -199,8 +183,7 @@ bool CC::validate() {
 
     bool ret = true;
     for (vid_t i = 0; i < graph.nV(); i++) {
-        std::cout << i << "\t"
-                  << h_results[i] << "\t" << d_results[i] << std::endl;
+
         if (color_match1[ h_results[i] ] == NO_COLOR &&
                 color_match2[ d_results[i] ] == NO_COLOR) {
             color_match2[ d_results[i] ] = h_results[i];
@@ -218,4 +201,4 @@ bool CC::validate() {
     return ret;
 }
 
-} // namespace hornet_alg
+} // namespace hornets_nest

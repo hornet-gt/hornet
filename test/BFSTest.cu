@@ -3,27 +3,30 @@
  * @file
  */
 #include "Static/BreadthFirstSearch/TopDown.cuh"
-#include <GraphIO/GraphStd.hpp>
+#include <Graph/GraphStd.hpp>
 #include <Util/CommandLineParam.hpp>
 #include <cuda_profiler_api.h> //--profile-from-start off
 
 int main(int argc, char* argv[]) {
     using namespace timer;
-    using namespace hornet_alg;
+    using namespace hornets_nest;
 
     graph::GraphStd<vid_t, eoff_t> graph;
-    CommandLineParam cmd(graph, argc, argv);
-    //graph.print();
+    CommandLineParam cmd(graph, argc, argv,false);
 
-    HornetInit hornet_init(graph.nV(), graph.nE(), graph.out_offsets_ptr(),
-                           graph.out_edges_ptr());
 
-    HornetGPU hornet_graph(hornet_init);
-    //hornet_graph.print();
+    HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
+                           graph.csr_out_edges());
+
+    HornetGraph hornet_graph(hornet_init);
 
     BfsTopDown bfs_top_down(hornet_graph);
 
-    bfs_top_down.set_parameters(graph.max_out_degree_id());
+	vid_t root = graph.max_out_degree_id();
+	if (argc==3)
+	  root = atoi(argv[2]);
+
+    bfs_top_down.set_parameters(root);
 
     Timer<DEVICE> TM;
     cudaProfilerStart();

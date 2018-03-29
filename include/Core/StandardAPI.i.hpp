@@ -36,13 +36,13 @@
  */
 #pragma once
 
-#include <Device/Algorithm.cuh>
-#include "Device/SafeCudaAPI.cuh"
-#include "Device/CubWrapper.cuh"
+#include <Device/Util/Algorithm.cuh>
+#include <Device/Util/SafeCudaAPI.cuh>
+#include <Device/Primitives/CubWrapper.cuh>
 #include <omp.h>
 #include <cstring>
 
-namespace hornet {
+namespace hornets_nest {
 namespace gpu {
 
 template<typename T>
@@ -110,12 +110,12 @@ void excl_prefixsum(const T* input, size_t num_items, T* output) {
 template<typename HostIterator, typename DeviceIterator>
 bool equal(HostIterator host_start, HostIterator host_end,
            DeviceIterator device_start) noexcept {
-    return cu::equal(host_start, host_end, device_start);
+    return xlib::gpu::equal(host_start, host_end, device_start);
 }
 
 template<typename T>
-void print(const T* device_input, size_t num_items) {
-    cu::printArray(device_input, num_items);
+void printArray(const T* device_input, size_t num_items) {
+    xlib::gpu::printArray(device_input, num_items);
 }
 
 } // namespace gpu
@@ -170,6 +170,16 @@ void memsetOne(T* pointer, size_t num_items) {
 }
 
 template<typename T>
+void generate_randoms(T* pointer, size_t num_items, T min, T max) {
+    auto seed = std::chrono::high_resolution_clock::now().time_since_epoch()
+                .count();
+    std::mt19937 engine(seed);
+    std::uniform_int_distribution<T> distrib(min, max);
+    std::generate(pointer, pointer + num_items,
+                  [&](){ return distrib(engine); } );
+}
+
+template<typename T>
 T reduce(const T* input, size_t num_items) {
     T th_result[MAX_THREADS];
     #pragma omp parallel firstprivate(input, num_items)
@@ -211,7 +221,7 @@ void excl_prefixsum(const T* input, size_t num_items, T* output) {
 }
 
 template<typename T>
-void print(const T* host_input, size_t num_items) {
+void printArray(const T* host_input, size_t num_items) {
     xlib::printArray(host_input, num_items);
 }
 

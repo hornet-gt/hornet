@@ -32,13 +32,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include <Device/Definition.cuh>        //xlib::SMemPerBlock
-#include <Device/PrintExt.cuh>          //cu::printArray
-#include <Device/PTX.cuh>              //xlib::__msb
-#include <Device/SafeCudaAPI.cuh>       //cuMemcpyToDeviceAsync
+#include <Device/Util/DeviceProperties.cuh>       //xlib::SMemPerBlock
+#include <Device/Util/PrintExt.cuh>         //xlib::gpu::printArray
+#include <Device/Util/PTX.cuh>              //xlib::__msb
+#include <Device/Util/SafeCudaAPI.cuh>      //cuMemcpyToDeviceAsync
 #include <BasicTypes.hpp>
 
-namespace hornet_alg {
+namespace hornets_nest {
 
 template<typename T>
 void ptr2_t<T>::swap() noexcept {
@@ -46,21 +46,24 @@ void ptr2_t<T>::swap() noexcept {
 }
 
 //------------------------------------------------------------------------------
-
 template<typename T>
 template<typename HornetClass>
 TwoLevelQueue<T>::TwoLevelQueue(const HornetClass& hornet,
                                 const float work_factor) noexcept :
                               _max_allocated_items(hornet.nV() * work_factor) {
-    static_assert(hornet::IsHornet<HornetClass>::value,
+    static_assert(IsHornet<HornetClass>::value,
                  "TwoLevelQueue paramenter is not an instance of Hornet Class");
-    cuMalloc(_d_queue_ptrs.first, _max_allocated_items);
-    cuMalloc(_d_queue_ptrs.second, _max_allocated_items);
-    cuMalloc(_d_counters, 1);
-    cuMemset0x00(_d_counters);
+    _initialize();
 }
 
 template<typename T>
+TwoLevelQueue<T>::TwoLevelQueue(size_t max_allocated_items) noexcept :
+                        _max_allocated_items(max_allocated_items) {
+    _initialize();
+}
+
+template<typename T>
+HOST_DEVICE
 TwoLevelQueue<T>::TwoLevelQueue(const TwoLevelQueue<T>& obj) noexcept :
                             _max_allocated_items(obj._max_allocated_items),
                             _d_queue_ptrs(obj._d_queue_ptrs),
@@ -69,17 +72,32 @@ TwoLevelQueue<T>::TwoLevelQueue(const TwoLevelQueue<T>& obj) noexcept :
                             _kernel_copy(true) {}
 
 template<typename T>
+HOST_DEVICE
 TwoLevelQueue<T>::~TwoLevelQueue() noexcept {
+#if !defined(__CUDA_ARCH__)
     if (!_kernel_copy)
         cuFree(_d_queue_ptrs.first, _d_queue_ptrs.second, _d_counters);
+#endif
 }
 
 template<typename T>
 template<typename HornetClass>
-void TwoLevelQueue<T>::initilize(const HornetClass& custinger,
-                                 const float work_factors) noexcept {
-    static_assert(hornet::IsHornet<HornetClass>::value,
+void TwoLevelQueue<T>::initialize(const HornetClass& hornet,
+                                 const float work_factor) noexcept {
+    _max_allocated_items = hornet.nV() * work_factor;
+    static_assert(IsHornet<HornetClass>::value,
                  "TwoLevelQueue paramenter is not an instance of Hornet Class");
+    _initialize();
+}
+
+template<typename T>
+void TwoLevelQueue<T>::initialize(size_t max_allocated_items) noexcept {
+    _max_allocated_items = max_allocated_items;
+    _initialize();
+}
+
+template<typename T>
+void TwoLevelQueue<T>::_initialize() noexcept {
     cuMalloc(_d_queue_ptrs.first, _max_allocated_items);
     cuMalloc(_d_queue_ptrs.second, _max_allocated_items);
     cuMalloc(_d_counters, 1);
@@ -130,7 +148,7 @@ __global__ void swapKernel(int2* d_counters) {
 
 template<typename T>
 void TwoLevelQueue<T>::sync() const noexcept {
-    cuMemcpyToHostAsync(_d_counters, _h_counters);
+    cuMemcpyToHost(_d_counters, _h_counters);
     assert(_h_counters.x < _max_allocated_items && "TwoLevelQueue too small");
     assert(_h_counters.y < _max_allocated_items && "TwoLevelQueue too small");
 }
@@ -173,13 +191,13 @@ int TwoLevelQueue<T>::output_size() const noexcept {
 template<typename T>
 void TwoLevelQueue<T>::print() const noexcept {
     sync();
-    cu::printArray(_d_queue_ptrs.first, _h_counters.x);
+    xlib::gpu::printArray(_d_queue_ptrs.first, _h_counters.x);
 }
 
 template<typename T>
 void TwoLevelQueue<T>::print_output() const noexcept {
     sync();
-    cu::printArray(_d_queue_ptrs.second, _h_counters.y);
+    xlib::gpu::printArray(_d_queue_ptrs.second, _h_counters.y);
 }
 
 template<typename T>
@@ -187,4 +205,4 @@ int TwoLevelQueue<T>::enqueue_items() const noexcept {
     return _enqueue_items;
 }
 
-} // namespace hornet_alg
+} // namespace hornets_nest

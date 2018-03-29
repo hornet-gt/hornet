@@ -39,14 +39,14 @@
 #include "Static/PageRank/PageRank.cuh"
 #include "PageRankOperators.cuh"
 
-namespace hornet_alg {
+namespace hornets_nest {
 
 StaticPageRank::StaticPageRank(HornetGPU& hornet,
                                int  iteration_max,
                                pr_t threshold,
                                pr_t damp) :
                                     StaticAlgorithm(hornet),
-                                    load_balacing(hornet) {
+                                    load_balancing(hornet) {
     setInputParameters(iteration_max, threshold, damp);
 	hd_prdata().nV = hornet.nV();
 	gpu::allocate(hd_prdata().prev_pr,  hornet.nV() + 1);
@@ -96,8 +96,8 @@ void StaticPageRank::run() {
 		forAllnumV(hornet, ResetCurr { hd_prdata });
 		forAllVertices(hornet, ComputeContribuitionPerVertex { hd_prdata });
 		forAllEdges(hornet, AddContribuitionsUndirected { hd_prdata },
-                    load_balacing);
-		//forAllEdges(hornet, AddContribuitions { hd_prdata }, load_balacing);
+                    load_balancing);
+		//forAllEdges(hornet, AddContribuitions { hd_prdata }, load_balancing);
 		forAllnumV(hornet, DampAndDiffAndCopy { hd_prdata });
 
 		forAllnumV(hornet, Sum { hd_prdata });
@@ -157,4 +157,4 @@ bool StaticPageRank::validate() {
 	return true;//?????????
 }
 
-}// hornet_alg namespace
+}// hornets_nest namespace

@@ -44,9 +44,9 @@
 #include "Core/LoadBalancing/BinarySearch.cuh"
 #include "Core/HostDeviceVar.cuh"
 #include <Core/GPUCsr/Csr.cuh>
-#include <Core/GPU/Hornet.cuh>
+#include <Core/GPUHornet/Hornet.cuh>
 
-namespace hornet_alg {
+namespace hornets_nest {
 
 //using HornetGPU = csr::Hornet<EMPTY, EMPTY>;
 using HornetGPU = gpu::Hornet<EMPTY, EMPTY>;
@@ -94,9 +94,9 @@ public:
 	void printRankings();
 
 private:
-    load_balacing::BinarySearch load_balacing;
+    load_balancing::BinarySearch load_balancing;
     HostDeviceVar<PrData>       hd_prdata;
     pr_t*                       host_page_rank { nullptr };
 };
 
-} // hornet_alg namespace
+} // hornets_nest namespace

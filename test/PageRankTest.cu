@@ -3,17 +3,17 @@
  * @file
  */
 #include "Static/PageRank/PageRank.cuh"
-#include <GraphIO/GraphStd.hpp>
+#include <Graph/GraphStd.hpp>
 #include <Util/CommandLineParam.hpp>
 
 int main(int argc, char* argv[]) {
     using namespace timer;
-    using namespace hornet_alg;
+    using namespace hornets_nest;
     graph::GraphStd<vid_t, eoff_t> graph;
     CommandLineParam cmd(graph, argc, argv);
 
-    HornetInit hornet_init(graph.nV(), graph.nE(), graph.out_offsets_ptr(),
-                           graph.out_edges_ptr());
+    HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
+                           graph.csr_out_edges());
     HornetGPU hornet_graph(hornet_init);
 
     StaticPageRank page_rank(hornet_graph, 5, 0.001);

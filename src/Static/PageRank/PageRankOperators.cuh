@@ -38,7 +38,7 @@
  */
 #pragma once
 
-namespace hornet_alg {
+namespace hornets_nest {
 
 struct InitOperator {
     HostDeviceVar<PrData> hd_prdata;
@@ -144,4 +144,4 @@ struct SetIds {
     }
 };
 
-} // hornetAlgs namespace
+} // hornets_nest namespace

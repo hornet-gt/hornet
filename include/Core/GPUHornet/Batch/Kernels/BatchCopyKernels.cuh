@@ -112,17 +112,17 @@ void copySparseToSparseKernel(const degree_t* __restrict__  d_prefixsum,
                               int                           work_size,
                               void*                        *d_old_ptrs,
                               void*                        *d_new_ptrs) {
-    const int ITEMS_PER_BLOCK = xlib::smem_per_block<int, BLOCK_SIZE>();
+    //const int ITEMS_PER_BLOCK = xlib::smem_per_block<int, BLOCK_SIZE>();
     using DataLayout = BestLayoutDevPitchAux<PITCH<EdgeTypes...>,
                                              TypeList< vid_t, EdgeTypes... >>;
 
-    __shared__ degree_t smem[ITEMS_PER_BLOCK];
+    //__shared__ degree_t smem[ITEMS_PER_BLOCK];
     const auto& lambda = [&] (int pos, degree_t offset) {
                                 auto block_old = DataLayout(d_old_ptrs[pos]);
                                 auto block_new = DataLayout(d_new_ptrs[pos]);
                                 block_new[offset] = block_old[offset];
                             };
-    xlib::binarySearchLB<BLOCK_SIZE>(d_prefixsum, work_size, smem, lambda);
+    xlib::simpleBinarySearchLB<BLOCK_SIZE>(d_prefixsum, work_size, nullptr, lambda);
 }
 
 template<bool = true>

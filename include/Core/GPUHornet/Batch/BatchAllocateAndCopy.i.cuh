@@ -209,8 +209,8 @@ void HORNET::copySparseToSparse(const degree_t* d_prefixsum,
                                 void**          d_new_ptrs)
                                 noexcept {
     const unsigned BLOCK_SIZE = 256;
-    int smem       = xlib::DeviceProperty::smem_per_block<int>(BLOCK_SIZE);
-    int num_blocks = xlib::ceil_div(prefixsum_total, smem);
+    //int smem       = xlib::DeviceProperty::smem_per_block<int>(BLOCK_SIZE);
+    int num_blocks = xlib::ceil_div(prefixsum_total, BLOCK_SIZE);
 
     copySparseToSparseKernel<BLOCK_SIZE, EdgeTypes...>
         <<< num_blocks, BLOCK_SIZE >>>

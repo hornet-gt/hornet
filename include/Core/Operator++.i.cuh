@@ -96,28 +96,21 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
 
     using namespace adj_union;
     int       id = blockIdx.x * blockDim.x + threadIdx.x;
-    int queue_id = id / threads_per_union;
-    int thread_union_id = threadIdx.x % threads_per_union;
-    int block_local_id = threadIdx.x;
     int stride = blockDim.x * gridDim.x;
-    int queue_stride = stride / threads_per_union;
 
-    // TODO: dynamic vs. static shared memory allocation?
-    __shared__ vid_t pathPoints[256*2]; // i*2+0 = vi, i+2+1 = u_i
-    for (auto i = start+queue_id; i < end; i += queue_stride) {
+    for (auto i = id; i < end; i += stride) 
+    {
         auto src_vtx = hornet.vertex(array[2*i]);
         auto dst_vtx = hornet.vertex(array[2*i+1]);
         int srcLen = src_vtx.degree();
         int destLen = dst_vtx.degree();
-        int total_work = srcLen + destLen - 1;
         vid_t src = src_vtx.id();
         vid_t dest = dst_vtx.id();
-
+        // re-check logic; does it work for undirected?
         bool avoidCalc = (src == dest) || (srcLen < 2);
         if (avoidCalc)
             continue;
 
-        // determine u,v where |adj(u)| <= |adj(v)|
         bool sourceSmaller = srcLen < destLen;
         vid_t u = sourceSmaller ? src : dest;
         vid_t v = sourceSmaller ? dest : src;
@@ -127,75 +120,8 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
         degree_t v_len = sourceSmaller ? destLen : srcLen;
         vid_t* u_nodes = hornet.vertex(u).neighbor_ptr();
         vid_t* v_nodes = hornet.vertex(v).neighbor_ptr();
+        op(u_vtx, v_vtx, u_nodes, u_nodes+u_len-1, v_nodes, v_nodes+v_len-1, flag);
 
-        int work_per_thread = total_work/threads_per_union;
-        int remainder_work = total_work % threads_per_union;
-        int diag_id, next_diag_id;
-        diag_id = thread_union_id*work_per_thread + std::min(thread_union_id, remainder_work);
-        next_diag_id = (thread_union_id+1)*work_per_thread + std::min(thread_union_id+1, remainder_work);
-        //printf("u=%d, v=%d, diag_id=%d, union_id=%d, total_work=%d, work_per_thread=%d, remainder_work=%d\n",
-        //        u, v, diag_id, thread_union_id, total_work, work_per_thread, remainder_work);
-        vid_t low_ui, low_vi, high_vi, high_ui, ui_curr, vi_curr;
-        if (diag_id > 0 && diag_id < total_work) {
-            if (diag_id < u_len) {
-                low_ui = diag_id-1;
-                high_ui = 0;
-                low_vi = 0;
-                high_vi = diag_id-1;
-            } else if (diag_id < v_len) {
-                low_ui = u_len-1;
-                high_ui = 0;
-                low_vi = diag_id-u_len;
-                high_vi = diag_id-1;
-            } else {
-                low_ui = u_len-1;
-                high_ui = diag_id - v_len;
-                low_vi = diag_id-u_len;
-                high_vi = v_len-1;
-            }
-            bSearchPath(u_nodes, v_nodes, u_len, v_len, low_vi, low_ui, high_vi,
-                     high_ui, &vi_curr, &ui_curr);
-            pathPoints[block_local_id*2] = vi_curr; 
-            pathPoints[block_local_id*2+1] = ui_curr; 
-        }
-
-        __syncthreads();
-
-        vid_t vi_begin, ui_begin, vi_end, ui_end;
-        vi_begin = ui_begin = vi_end = ui_end = -1;
-        int vi_inBounds, ui_inBounds;
-        if (diag_id == 0) {
-            vi_begin = 0;
-            ui_begin = 0;
-        } else if (diag_id > 0 && diag_id < total_work) {
-            vi_begin = vi_curr;
-            ui_begin = ui_curr;
-            vi_inBounds = (vi_curr < v_len-1);
-            ui_inBounds = (ui_curr < u_len-1);
-            if (vi_inBounds && ui_inBounds) {
-                int comp = (u_nodes[ui_curr+1] >= v_nodes[vi_curr+1]);
-                vi_begin += comp;
-                ui_begin += !comp;
-            } else {
-                vi_begin += vi_inBounds;
-                ui_begin += ui_inBounds;
-            }
-        }
-        
-        if ((diag_id < total_work) && (next_diag_id >= total_work)) {
-            vi_end = v_len - 1;
-            ui_end = u_len - 1;
-            //printf("u=%d, v=%d intersect, diag_id %d, union_id %d: (%d, %d) -> (%d, %d))\n", 
-            //        u, v, diag_id, thread_union_id, vi_begin, ui_begin, vi_end, ui_end); 
-        } else if (diag_id < total_work) {
-            vi_end = pathPoints[(block_local_id+1)*2];
-            ui_end = pathPoints[(block_local_id+1)*2+1];
-            //printf("u=%d, v=%d intersect, diag_id %d, union_id %d: (%d, %d) -> (%d, %d))\n", 
-            //        u, v, diag_id, thread_union_id, vi_begin, ui_begin, vi_end, ui_end); 
-        }
-        if (diag_id < total_work) {
-            op(u_vtx, v_vtx, u_nodes+ui_begin, u_nodes+ui_end, v_nodes+vi_begin, v_nodes+vi_end, flag);
-        }
     }
 }
 
@@ -331,18 +257,19 @@ namespace adj_unions {
             degree_t dst_len = dst.degree();
             degree_t u_len = (src_len <= dst_len) ? src_len : dst_len;
             degree_t v_len = (src_len > dst_len) ? dst_len : src_len;
-            unsigned int log_u = 32-__clz(u_len-1);
-            unsigned int log_v = 32-__clz(v_len-1);
+            unsigned int log_u = 32-__clz(u_len);
+            unsigned int log_v = 32-__clz(v_len);
             int binary_work = u_len;
             int binary_work_est = u_len*log_v;
-            int intersect_work = u_len + v_len;
-            const int WORK_FACTOR = 100;
-            int METHOD = (WORK_FACTOR*intersect_work >= binary_work_est);
-            int log_work = METHOD ? 32-__clz(binary_work): 32-__clz(intersect_work);
-
-            bin_index = (METHOD*MAX_ADJ_UNIONS_BINS/2)+(log_work*BINS_1D_DIM+log_v); 
-            //bin_index = MAX_ADJ_UNIONS_BINS/2+((src.id() + dst.id())%(MAX_ADJ_UNIONS_BINS/2));
+            int intersect_work = u_len + v_len + log_u;
+            const int WORK_FACTOR = 1;
+            //int METHOD = (WORK_FACTOR*intersect_work >= binary_work_est);
+            int METHOD = 0;
+            bin_index = (METHOD*MAX_ADJ_UNIONS_BINS/2)+((MAX_ADJ_UNIONS_BINS/2-1)-(log_u*BINS_1D_DIM)+log_v); 
+            //bin_index = (METHOD*MAX_ADJ_UNIONS_BINS/2)+(log_u*BINS_1D_DIM)+log_v; 
+            //bin_index = (src.id() + dst.id())%(MAX_ADJ_UNIONS_BINS/2);
             //bin_index = MAX_ADJ_UNIONS_BINS/2;
+            //bin_index = 0;
 
             // Either count or add the item to the appropriate queue position
             if (countOnly)
@@ -398,11 +325,10 @@ void forAllAdjUnions(HornetClass&          hornet,
     std::partial_sum(queue_sizes, queue_sizes+MAX_ADJ_UNIONS_BINS, queue_pos+1);
     // transfer prefx results to device
     cudaMemcpy(hd_queue_info().d_queue_pos, queue_pos, (MAX_ADJ_UNIONS_BINS+1)*sizeof(unsigned long long), cudaMemcpyHostToDevice);
-
-    /*
+    
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS+1; i++)
         printf("queue=%d prefix sum: %llu\n", i, queue_pos[i]);
-    */
+   
     // bin edges
     if (vertex_pairs.size())
         forAllVertexPairs(hornet, vertex_pairs, bin_edges {hd_queue_info, false});
@@ -415,9 +341,9 @@ void forAllAdjUnions(HornetClass&          hornet,
     
     //int threads_per=32;
     /*
-    cudaMemcpy(hd_queue_info().queue_pos, hd_queue_info().d_queue_pos, (MAX_ADJ_UNIONS_BINS+1)*sizeof(unsigned long long), cudaMemcpyDeviceToHost);
+    cudaMemcpy(queue_pos, hd_queue_info().d_queue_pos, (MAX_ADJ_UNIONS_BINS+1)*sizeof(unsigned long long), cudaMemcpyDeviceToHost);
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS+1; i++)
-        printf("queue=%d prefix sum after: %llu\n", i, hd_queue_info().queue_pos[i]);
+        printf("queue=%d prefix sum after: %llu\n", i, queue_pos[i]);
     */
     //forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_edge_queue, 0, hd_queue_info().queue_pos[MAX_ADJ_UNIONS_BINS], op, 32, 0);
     
@@ -432,23 +358,12 @@ void forAllAdjUnions(HornetClass&          hornet,
     const int LOG_OFFSET = 3; // seems optimal from testing a few inputs; tunable
     int log_factor = LOG_OFFSET; 
     // balanced kernel
-    while ((bin_offset+log_factor)*BINS_1D_DIM <= MAX_ADJ_UNIONS_BINS/2) {
-        threads_per = 1 << (log_factor - LOG_OFFSET); 
-        bin_index = (bin_offset+log_factor)*BINS_1D_DIM;
-        //std::cout << "bin_index " << bin_index << std::endl;
-        end_index = queue_pos[bin_index];
-        size = end_index - start_index;
-        if (size) {
-            TM.start();
-            forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_edge_queue, start_index, end_index, op, threads_per, 0);
-            TM.stop();
-            TM.print("balanced queue processing:");
-            TM.reset();
-        }
-        start_index = end_index;
-        log_factor += 1;
-    }
+    end_index = queue_pos[MAX_ADJ_UNIONS_BINS/2];
+    size = end_index - start_index;
+    forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_edge_queue, 0, end_index, op, 1, 0);
 
+    //size = queue_pos[MAX_ADJ_UNIONS_BINS] - start_index;
+    //printf("size=%llu\n", size); 
     // imbalanced kernel 
     bin_offset = MAX_ADJ_UNIONS_BINS/2;
     start_index = queue_pos[bin_offset];
@@ -461,7 +376,8 @@ void forAllAdjUnions(HornetClass&          hornet,
         size = end_index - start_index;
         //printf("threads_per: %d, size: %llu\n, (%llu, %llu)\n", threads_per, size, start_index, end_index); 
         if (size) {
-            printf("threads_per=%d, size=%llu\n", threads_per, size); 
+            //printf("threads_per=%d, size=%llu\n", threads_per, size); 
+            printf("threads_per: %d, size: %llu, bin: %d, (%llu, %llu)\n", threads_per, size, bin_index, start_index, end_index); 
             TM.start();
             forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_edge_queue, start_index, end_index, op, threads_per, 1);
             TM.stop();

@@ -162,7 +162,7 @@ void buildQueueKernel(HornetDevice               hornet,
             d_old_degrees[i] = vnode.degree();
 
         bool flag = is_insert ? new_degree > vnode.limit() :
-                                new_degree < vnode.limit() / 2;
+                                new_degree <= vnode.limit() / 2;
         if (flag) {
             int offset = queue.offset();
             queue_id[offset]         = src;

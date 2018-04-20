@@ -93,6 +93,8 @@ public:
 
 	void printRankings();
 
+    PrData pr_data();
+
 private:
     load_balancing::BinarySearch load_balancing;
     HostDeviceVar<PrData>       hd_prdata;

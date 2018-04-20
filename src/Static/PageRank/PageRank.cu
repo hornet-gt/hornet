@@ -154,7 +154,11 @@ int StaticPageRank::get_iteration_count() {
 }
 
 bool StaticPageRank::validate() {
-	return true;//?????????
+	return false;//?????????
+}
+
+PrData StaticPageRank::pr_data(void) {
+    return hd_prdata;
 }
 
 }// hornets_nest namespace

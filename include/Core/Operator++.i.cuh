@@ -290,6 +290,29 @@ void forAllVerticesKernel(HornetDevice              hornet,
         op(vertex);
     }
 }
+
+template<typename HornetDevice, typename Operator>
+__global__
+void forAllEdgesKernel(HornetDevice               hornet,
+                       const vid_t* __restrict__   d_src,
+                       const vid_t* __restrict__   d_dst,
+                       int                          size,
+                       Operator                   op) {
+
+    int stride = blockDim.x;
+    int  start = blockIdx.x * stride + threadIdx.x;
+    int    end = start + stride;
+    if (end > size) {
+        end = size;
+    }
+
+    for (auto i = start; i < end; i += stride) {
+        const auto& src = hornet.vertex(d_src[i]);
+        const auto& dst = hornet.vertex(d_dst[i]);
+        op(src, dst);
+    }
+}
+
 /*
 template<unsigned BLOCK_SIZE, unsigned ITEMS_PER_BLOCK,
          typename HornetDevice, typename Operator>
@@ -582,6 +605,7 @@ void forAllVertices(HornetClass&                hornet,
                     const TwoLevelQueue<vid_t>& queue,
                     const Operator&             op) {
     auto size = queue.size();
+    if (size == 0) { return; }
     detail::forAllVerticesKernel
         <<< xlib::ceil_div<BLOCK_SIZE_OP2>(size), BLOCK_SIZE_OP2 >>>
         (hornet.device_side(), queue.device_input_ptr(), size, op);
@@ -612,6 +636,17 @@ void forAllEdges(HornetClass&                hornet,
                  const Operator&             op,
                  const LoadBalancing&        load_balancing) {
     load_balancing.apply(hornet, queue.device_input_ptr(), queue.size(), op);
+}
+
+template<typename HornetClass, typename Operator>
+void forAllEdges(HornetClass& hornet,
+                 const BatchUpdate& batch_update,
+                 const Operator& op) {
+    auto size = batch_update.size();
+    detail::forAllEdgesKernel
+        <<< xlib::ceil_div<BLOCK_SIZE_OP2>(size), BLOCK_SIZE_OP2 >>>
+        (hornet.device_side(), batch_update.src_ptr(), batch_update.dst_ptr(), size, op);
+    CHECK_CUDA_ERROR
 }
 
 } // namespace hornets_nest

@@ -75,6 +75,7 @@ int main(int argc, char* argv[]) {
 	kcPostUpdate.run();
 
 	TM.stop();
+    std::cout<<"Dynamic Katz\n";
     auto total_time = TM.duration();
     std::cout << "The number of iterations   : "
               << kcPostUpdate.get_iteration_count()

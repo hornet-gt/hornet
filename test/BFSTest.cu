@@ -13,20 +13,19 @@ int main(int argc, char* argv[]) {
 
     graph::GraphStd<vid_t, eoff_t> graph;
     CommandLineParam cmd(graph, argc, argv,false);
-    //graph.print();
+
 
     HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
                            graph.csr_out_edges());
 
     HornetGraph hornet_graph(hornet_init);
-    //hornet_graph.print();
 
     BfsTopDown bfs_top_down(hornet_graph);
 
 	vid_t root = graph.max_out_degree_id();
 	if (argc==3)
 	  root = atoi(argv[2]);
-    //bfs_top_down.set_parameters(graph.max_out_degree_id());
+
     bfs_top_down.set_parameters(root);
 
     Timer<DEVICE> TM;

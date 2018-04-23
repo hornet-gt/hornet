@@ -47,10 +47,13 @@ int main(int argc, char* argv[]) {
     using namespace hornets_nest;
     using namespace timer;
 
-    int max_iterations = 1000;
-    int           topK = 100;
+	// Limit the number of iteartions for graphs with large number of vertices.
+    int max_iterations = 50;
 
+
+	cudaSetDevice(0);
     GraphStd<vid_t, eoff_t> graph(UNDIRECTED);
+    
     graph.read(argv[1], SORT | PRINT_INFO);
 
     HornetInit hornet_init(graph.nV(), graph.nE(),
@@ -58,10 +61,15 @@ int main(int argc, char* argv[]) {
                            graph.csr_out_edges());
 
     HornetGraph hornet_graph(hornet_init);
-
-    // Finding largest vertex
-    degree_t max_degree_vertex = hornet_graph.max_degree_id();
+	// Users can add the number of TopK vertices for the approximation
+	int           topK = graph.nV();
+     if(argc>2)
+        topK=atoi(argv[2]);
+ 
+    // Finding largest vertex degree
+    degree_t max_degree_vertex = hornet_graph.max_degree();
     std::cout << "Max degree vextex is " << max_degree_vertex << std::endl;
+
 
     KatzCentrality kcPostUpdate(hornet_graph, max_iterations, topK,
                                 max_degree_vertex);
@@ -74,8 +82,9 @@ int main(int argc, char* argv[]) {
     TM.stop();
 
     auto total_time = TM.duration();
-    std::cout << "The number of iterations   : "
+    std::cout << "The number of iterations     : "
               << kcPostUpdate.get_iteration_count()
+              << "\nTopK                       : " << topK 
               << "\nTotal time for KC          : " << total_time
               << "\nAverage time per iteartion : "
               << total_time /

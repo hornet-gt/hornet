@@ -163,8 +163,9 @@ public:
      * @brief
      */
     void reserveBatchOpResource(const size_t max_batch_size,
-                              BatchProperty batch_prop = BatchProperty())
-                              noexcept;
+                         const BatchProperty batch_prop = batch_property::IN_PLACE |
+                         batch_property::REMOVE_CROSS_DUPLICATE |
+                         batch_property::REMOVE_BATCH_DUPLICATE) noexcept;
 
     /**
      * @brief

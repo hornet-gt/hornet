@@ -43,7 +43,7 @@ namespace gpu {
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::reserveBatchOpResource(const size_t max_batch_size,
-                                  BatchProperty batch_prop) noexcept {
+                                  const BatchProperty batch_prop) noexcept {
     size_t max_b_size = max_batch_size;
     if (batch_prop & batch_property::GEN_INVERSE)
         max_b_size *= 2u;

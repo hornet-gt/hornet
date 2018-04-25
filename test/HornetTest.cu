@@ -32,41 +32,42 @@ void exec(int argc, char* argv[]) {
 
     graph::GraphStd<vid_t, eoff_t> graph;
     graph.read(argv[1]);
-    //graph.print();
-    //if (param.binary)
-    //    graph.writeBinary(xlib::extract_filepath_noextension(argv[1]) + ".bin");
-    // graph.writeDimacs10th(xlib::extract_filepath_noextension(argv[1]) + ".graph");
-    //graph.writeMarket(xlib::extract_filepath_noextension(argv[1]) + ".mtx");
-    //--------------------------------------------------------------------------
     auto weights = new int[graph.nE()];
     std::iota(weights, weights + graph.nE(), 0);
     //--------------------------------------------------------------------------
     HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
                            graph.csr_out_edges());
-    //hornet_init.insertEdgeData(weights);
 
     HornetGPU hornet_gpu(hornet_init);
-    //hornet_gpu.mem_manager_info();
-    //hornet_gpu.print();
-    //return;
-    //hornet_gpu.check_sorted_adjs();
     std::cout << "------------------------------------------------" <<std::endl;
     //--------------------------------------------------------------------------
     using namespace batch_gen_property;
 
     if (argc == 3) {
         int batch_size = std::stoi(argv[2]);
+
+#ifdef TEST
+        batch_size = 100;
+#endif
         vid_t* batch_src, *batch_dst;
         cuMallocHost(batch_src, batch_size);
         cuMallocHost(batch_dst, batch_size);
-
+#ifdef TEST
+        for (int i = 0; i < batch_size - 10; ++i) {
+            batch_src[i] = 33;
+            batch_dst[i] = 8;
+        }
+        for (int i = batch_size - 10; i < batch_size; ++i) {
+            batch_src[i] = 33;
+            batch_dst[i] = 8;
+        }
+#else
         generateBatch(graph, batch_size, batch_src, batch_dst,
-                      BatchGenType::INSERT, UNIQUE); //| PRINT
-        //vid_t batch_src[] = { 0, 0, 2 };
-        //vid_t batch_dst[] = { 2, 6, 7 };
+                      BatchGenType::INSERT, UNIQUE);
+#endif
         gpu::BatchUpdate batch_update(batch_src, batch_dst, batch_size);
 
-        batch_update.print();
+        //batch_update.print();
         std::cout << "------------------------------------------------" <<std::endl;
 
         using namespace gpu::batch_property;
@@ -75,6 +76,8 @@ void exec(int argc, char* argv[]) {
         //hornet_gpu.allocateEdgeDeletion(batch_size,
         //                                 IN_PLACE | REMOVE_CROSS_DUPLICATE);
 
+        hornet_gpu.print();
+        std::cout << "------------------------------------------------" <<std::endl;
         cudaProfilerStart();
         Timer<DEVICE> TM(3);
         TM.start();
@@ -83,13 +86,14 @@ void exec(int argc, char* argv[]) {
         //hornet_gpu.deleteEdgeBatch(batch_update);
 
         TM.stop();
-        TM.print("Insertion "s + std::to_string(batch_size) + ":  ");
+        //TM.print("Insertion "s + std::to_string(batch_size) + ":  ");
         cudaProfilerStop();
         //hornet_gpu.check_sorted_adjs();
         //delete[] batch_src;
         //delete[] batch_dst;
         cuFreeHost(batch_src);
         cuFreeHost(batch_dst);
+        //batch_update.print();
         hornet_gpu.print();
     }
     delete[] weights;

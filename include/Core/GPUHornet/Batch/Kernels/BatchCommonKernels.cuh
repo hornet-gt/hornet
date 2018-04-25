@@ -105,22 +105,28 @@ template<int BLOCK_SIZE, typename HornetDevice>
 __global__
 void bulkMarkDuplicate(HornetDevice              hornet,
                        const int*   __restrict__ d_prefixsum,
-                       const vid_t* __restrict__ d_batch_src,
+                       const int*   __restrict__ d_batch_offsets,//offset in batch
+                       const vid_t* __restrict__ d_batch_unique_src,
                        const vid_t* __restrict__ d_batch_dst,
                        int                       batch_size,
                        bool*        __restrict__ d_flags) {
 
-    const int ITEMS_PER_BLOCK = xlib::smem_per_block<int, BLOCK_SIZE>();
-    __shared__ int smem[ITEMS_PER_BLOCK];
-
     const auto& lambda = [&] (int pos, degree_t offset) {
-                    auto     vertex = hornet.vertex(d_batch_src[pos]);
+                    auto     vertex = hornet.vertex(d_batch_unique_src[pos]);
                     assert(offset < vertex.degree());
-                    auto       edge = vertex.edge(offset);
-                    if (d_batch_dst[pos] == edge.dst_id())
-                        d_flags[pos] = false;
+                    auto        dst = vertex.edge(offset).dst_id();
+                    int start = d_batch_offsets[pos];
+                    int end   = d_batch_offsets[pos + 1];
+                    int found = xlib::lower_bound_left(
+                            d_batch_dst + start,
+                            end - start,
+                            dst);
+                    if (found >= 0 && (dst == d_batch_dst[start + found])) {
+                        d_flags[start + found] = false;
+                    }
+
                 };
-    xlib::binarySearchLB<BLOCK_SIZE>(d_prefixsum, batch_size, smem, lambda);
+    xlib::simpleBinarySearchLB<BLOCK_SIZE>(d_prefixsum, batch_size, nullptr, lambda);
 }
 
 //==============================================================================
@@ -156,7 +162,7 @@ void buildQueueKernel(HornetDevice               hornet,
             d_old_degrees[i] = vnode.degree();
 
         bool flag = is_insert ? new_degree > vnode.limit() :
-                                new_degree < vnode.limit() / 2;
+                                new_degree <= vnode.limit() / 2;
         if (flag) {
             int offset = queue.offset();
             queue_id[offset]         = src;

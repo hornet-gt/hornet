@@ -42,91 +42,110 @@ namespace hornets_nest {
 namespace gpu {
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
-void HORNET::allocateEdgeDeletion(size_t max_batch_size,
-                                  BatchProperty batch_prop) noexcept {
-    _batch_prop = batch_prop;
-    if (_batch_prop == batch_property::GEN_INVERSE)
-        max_batch_size *= 2u;
-    auto csr_size = std::min(max_batch_size, static_cast<size_t>(_nV));
+void HORNET::reserveBatchOpResource(const size_t max_batch_size,
+                                  const BatchProperty batch_prop) noexcept {
+    size_t max_b_size = max_batch_size;
+    if (batch_prop & batch_property::GEN_INVERSE)
+        max_b_size *= 2u;
 
-    allocatePrepocessing(max_batch_size, csr_size);
+    allocatePrepocessing(max_b_size);
 
-    if (_batch_prop != batch_property::IN_PLACE)
-        allocateOOPEdgeDeletion(csr_size);
-    else {
-        allocateInPlaceUpdate(csr_size);
+    if (batch_prop & batch_property::IN_PLACE) {
+        allocateInPlaceUpdate(max_b_size);
+    } else {
+        ERROR("Edge Batch operation OUT-OF-PLACE not implemented")
+    }
+
+    if (max_b_size > _max_batch_size) {
+        _max_batch_size = max_b_size;
     }
 }
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
-void HORNET::allocateEdgeInsertion(size_t max_batch_size,
+void HORNET::allocateEdgeInsertion(const size_t max_batch_size,
                                    BatchProperty batch_prop) noexcept {
+    size_t max_b_size = max_batch_size;
     _batch_prop = batch_prop;
-    if (_batch_prop == batch_property::GEN_INVERSE)
-        max_batch_size *= 2u;
-    auto csr_size = std::min(max_batch_size, static_cast<size_t>(_nV));
+    if (_batch_prop & batch_property::GEN_INVERSE)
+        max_b_size *= 2u;
+    auto csr_size = std::min(max_b_size, static_cast<size_t>(_nV));
 
-    allocatePrepocessing(max_batch_size, csr_size);
+    allocatePrepocessing(max_b_size);
 
-    if (_batch_prop == batch_property::IN_PLACE)
-        allocateInPlaceUpdate(csr_size);
+    if (_batch_prop & batch_property::IN_PLACE)
+        allocateInPlaceUpdate(max_b_size);
     else
         ERROR("Edge Batch insertion OUT-OF-PLACE not implemented")
 
-    if (_batch_prop == batch_property::REMOVE_BATCH_DUPLICATE || _is_sorted)
-        cub_sort_pair.initialize(max_batch_size, false);
+    if (_batch_prop & batch_property::REMOVE_BATCH_DUPLICATE || _is_sorted)
+        cub_sort_pair.initialize(max_b_size, false);
 }
 
 //==============================================================================
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
-void HORNET::allocatePrepocessing(size_t max_batch_size, size_t csr_size)
-                                  noexcept {
-    cub_prefixsum.initialize(max_batch_size);
-    cub_runlength.initialize(max_batch_size);
-    cub_select_flag.initialize(max_batch_size);
-    cub_sort.initialize(max_batch_size);
+void HORNET::allocateInPlaceUpdate(const size_t max_batch_size) noexcept {
+    //simple resizing when requested memory is greater than currently owned
+    if (max_batch_size > _max_batch_size) {
+        cuFree(_d_locations);
+        cuFree(_d_batch_offset);
+        cuFree(_d_counter);
+        cuFree(_d_queue_new_degree);
+        cuFree(_d_queue_new_ptr);
+        cuFree(_d_queue_old_ptr);
+        cuFree(_d_queue_old_degree);
+        cuFree(_d_queue_id);
+        cuFree(_d_queue_size);
+        cuFreeHost(_h_queue_new_ptr);
+        cuFreeHost(_h_queue_new_degree);
+        cuFreeHost(_h_queue_old_ptr);
+        cuFreeHost(_h_queue_old_degree);
 
-    cuMalloc(_d_batch_src,    max_batch_size);
-    cuMalloc(_d_batch_dst,    max_batch_size);
-    cuMalloc(_d_tmp_sort_src, max_batch_size);
-    cuMalloc(_d_tmp_sort_dst, max_batch_size);
-    cuMalloc(_d_counts,       csr_size + 1);
-    cuMalloc(_d_unique,       csr_size);
-
-    if (_batch_prop == batch_property::REMOVE_CROSS_DUPLICATE) {
-        auto used_size = _batch_prop == batch_property::REMOVE_BATCH_DUPLICATE ?
-                            csr_size : max_batch_size;
-        cuMalloc(_d_degree_tmp, used_size + 1);
-        cuMalloc(_d_flags,      used_size);
-        cuMemset(_d_flags,      used_size, 0x01);    //all true
+        cuMalloc(_d_locations, max_batch_size);
+        cuMalloc(_d_batch_offset, max_batch_size + 1);
+        cuMalloc(_d_counter,      max_batch_size + 1);
+        cuMalloc(_d_queue_new_degree, max_batch_size + 1);
+        cuMalloc(_d_queue_new_ptr,    max_batch_size);
+        cuMalloc(_d_queue_old_ptr,    max_batch_size);
+        cuMalloc(_d_queue_old_degree, max_batch_size + 1);
+        cuMalloc(_d_queue_id,         max_batch_size);
+        cuMalloc(_d_queue_size, 1);
+        cuMallocHost(_h_queue_new_ptr,    max_batch_size);
+        cuMallocHost(_h_queue_new_degree, max_batch_size);
+        cuMallocHost(_h_queue_old_ptr,    max_batch_size);
+        cuMallocHost(_h_queue_old_degree, max_batch_size + 1);
     }
+    //_max_batch_size is set to max_batch_size by calling function
 }
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
-void HORNET::allocateOOPEdgeDeletion(size_t csr_size) noexcept {
-    ERROR("cuMalloc with multiple arguments should be tested")
-    /*cuMalloc(_d_degree_tmp,  csr_size + 1,
-             _d_degree_new,  csr_size + 1,
-             _d_tmp,         _nE,
-             _d_ptrs_array,  csr_size,
-             _d_inverse_pos, _nV);*/
-}
+void HORNET::allocatePrepocessing(const size_t max_batch_size) noexcept {
+    cub_prefixsum.resize(max_batch_size);
+    cub_runlength.resize(max_batch_size);
+    cub_select_flag.resize(max_batch_size);
+    cub_sort.resize(max_batch_size);
+    cub_sort_pair.resize(max_batch_size);
 
-template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
-void HORNET::allocateInPlaceUpdate(size_t csr_size) noexcept {
-    cuMalloc(_d_queue_new_degree, csr_size);
-    cuMalloc(_d_queue_new_ptr,    csr_size);
-    cuMalloc(_d_queue_old_ptr,    csr_size);
-    cuMalloc(_d_queue_old_degree, csr_size + 1);
-    cuMalloc(_d_queue_id,         csr_size);
-    cuMalloc(_d_queue_size, 1);
+    if (max_batch_size > _max_batch_size) {
 
-    _h_queue_id = new int[csr_size];
-    cuMallocHost(_h_queue_new_ptr,    csr_size);
-    cuMallocHost(_h_queue_new_degree, csr_size);
-    cuMallocHost(_h_queue_old_ptr,    csr_size);
-    cuMallocHost(_h_queue_old_degree, csr_size + 1);
+        cuFree(_d_batch_src);
+        cuFree(_d_batch_dst);
+        cuFree(_d_tmp_sort_src);
+        cuFree(_d_tmp_sort_dst);
+        cuFree(_d_counts);
+        cuFree(_d_unique);
+        cuFree(_d_degree_tmp);
+        cuFree(_d_flags);
+
+        cuMalloc(_d_batch_src,    max_batch_size);
+        cuMalloc(_d_batch_dst,    max_batch_size);
+        cuMalloc(_d_tmp_sort_src, max_batch_size);
+        cuMalloc(_d_tmp_sort_dst, max_batch_size);
+        cuMalloc(_d_counts,       max_batch_size + 1);
+        cuMalloc(_d_unique,       max_batch_size);
+        cuMalloc(_d_degree_tmp,   max_batch_size + 1);
+        cuMalloc(_d_flags,        max_batch_size);
+    }
 }
 
 //==============================================================================
@@ -190,8 +209,8 @@ void HORNET::copySparseToSparse(const degree_t* d_prefixsum,
                                 void**          d_new_ptrs)
                                 noexcept {
     const unsigned BLOCK_SIZE = 256;
-    int smem       = xlib::DeviceProperty::smem_per_block<int>(BLOCK_SIZE);
-    int num_blocks = xlib::ceil_div(prefixsum_total, smem);
+    //int smem       = xlib::DeviceProperty::smem_per_block<int>(BLOCK_SIZE);
+    int num_blocks = xlib::ceil_div(prefixsum_total, BLOCK_SIZE);
 
     copySparseToSparseKernel<BLOCK_SIZE, EdgeTypes...>
         <<< num_blocks, BLOCK_SIZE >>>

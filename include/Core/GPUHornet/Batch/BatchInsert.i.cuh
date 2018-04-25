@@ -42,20 +42,27 @@ namespace hornets_nest {
 namespace gpu {
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
-void HORNET::insertEdgeBatch(BatchUpdate& batch_update) noexcept {
+void HORNET::insertEdgeBatch(BatchUpdate& batch_update, const BatchProperty batch_prop) noexcept {
+    reserveBatchOpResource(batch_update.original_size(), batch_prop);
     const unsigned BLOCK_SIZE = 128;
-    int num_uniques = batch_preprocessing(batch_update, true);
+    int num_uniques = batch_preprocessing(batch_update, batch_prop, true);
     //==========================================================================
     size_t  batch_size = batch_update.size();
     vid_t* d_batch_src = batch_update.src_ptr();
     vid_t* d_batch_dst = batch_update.dst_ptr();
-                                       //is_insert, get_old_degree
+
     fixInternalRepresentation(num_uniques, true, true);
     //==========================================================================
     //////////////////////
     // OPERATE ON BATCH //
     //////////////////////
+    if ((batch_size == 0) || (num_uniques == 0)) {
+        return;
+    }
     cub_prefixsum.run(_d_counts, num_uniques + 1);
+#if defined(DEBUG_INSERT)
+        xlib::gpu::printArray(_d_counts, num_uniques + 1, "_d_counts:\n");
+#endif
 
     if (_is_sorted) { // IN_PLACE SORTING !! (may be slow)
         //Merge sort
@@ -64,21 +71,24 @@ void HORNET::insertEdgeBatch(BatchUpdate& batch_update) noexcept {
             (device_side(), _d_degree_tmp, _d_unique,
              _d_counts, num_uniques, d_batch_dst);
         CHECK_CUDA_ERROR
-    }
-    else {  // BULK COPY BATCH INTO HORNET
-        int smem = xlib::DeviceProperty::smem_per_block(BLOCK_SIZE);
-        int num_blocks = xlib::ceil_div(batch_size, smem);
+    } else {  // BULK COPY BATCH INTO HORNET
 #if defined(DEBUG_INSERT)
-        cu::printArray(_d_degree_tmp, num_uniques, "_d_degree_tmp:\n");
+        std::cout<<"Num Uniques "<<num_uniques<<"\n";
+        xlib::gpu::printArray(_d_degree_tmp, num_uniques, "_d_degree_tmp:\n");
+        xlib::gpu::printArray(_d_unique, num_uniques, "_d_unique:\n");
+    xlib::gpu::printArray(_d_batch_src, batch_size, "_d_batch_src:\n");
+    xlib::gpu::printArray(_d_batch_dst, batch_size, "_d_batch_dst:\n");
 #endif
-        bulkCopyAdjLists<BLOCK_SIZE>  <<< num_blocks, BLOCK_SIZE >>>
+        bulkCopyAdjLists<BLOCK_SIZE>  <<< xlib::ceil_div(batch_size, BLOCK_SIZE), BLOCK_SIZE >>>
             (device_side(), _d_counts, num_uniques + 1,
              d_batch_dst, _d_unique, _d_degree_tmp);
         CHECK_CUDA_ERROR
     }
 
-    if (_batch_prop == batch_property::CSR)
-        build_batch_csr(batch_update, num_uniques, false);
+    if (batch_prop == batch_property::CSR)
+        build_batch_csr(batch_update, batch_prop, num_uniques, false);
+
+    _nE += batch_size;
 }
 
 } // namespace gpu

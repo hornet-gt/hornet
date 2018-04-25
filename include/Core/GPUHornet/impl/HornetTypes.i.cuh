@@ -94,8 +94,8 @@ template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 __device__ __forceinline__
 degree_t VERTEX::limit() const {
     return ::max(static_cast<degree_t>(MIN_EDGES_PER_BLOCK),
-                 PREFER_FASTER_UPDATE ? xlib::roundup_pow2(degree()) :
-                                        xlib::roundup_pow2(degree() + 1));
+                 PREFER_FASTER_UPDATE ? xlib::roundup_pow2(degree() + 1) :
+                                        xlib::roundup_pow2(degree()));
 }
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>

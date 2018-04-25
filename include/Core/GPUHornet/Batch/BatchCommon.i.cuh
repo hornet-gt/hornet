@@ -34,12 +34,179 @@
  * </blockquote>}
  */
 #include "Kernels/BatchCommonKernels.cuh"
-#include <Device/Util/PrintExt.cuh>          //cu::printArray
+#include <Device/Util/PrintExt.cuh>          //xlib::gpu::printArray
 
-#define DEBUG_FIXINTERNAL
+//#define DEBUG_FIXINTERNAL
+//#define DEBUG_INSERT
 
 namespace hornets_nest {
 namespace gpu {
+
+//#define BATCH_DEBUG
+
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
+void HORNET::copyBatchUpdateData(
+        const BatchUpdate& batch_update,
+        const BatchProperty batch_prop,
+        vid_t * const d_batch_src,
+        vid_t * const d_batch_dst,
+        size_t * const batch_size) noexcept {
+    size_t b_size = batch_update.original_size();
+    if (batch_update.type() == BatchType::HOST) {
+        cuMemcpyToDevice(batch_update.original_src_ptr(), b_size,
+                         d_batch_src);
+        cuMemcpyToDevice(batch_update.original_dst_ptr(), b_size,
+                         d_batch_dst);
+    } else {
+        cuMemcpyDevToDev(batch_update.original_src_ptr(), b_size,
+                         d_batch_src);
+        cuMemcpyDevToDev(batch_update.original_dst_ptr(), b_size,
+                         d_batch_dst);
+    }
+    if (batch_prop & batch_property::GEN_INVERSE) {
+        cuMemcpyDevToDev(d_batch_src, b_size,
+                               d_batch_dst + b_size);
+        cuMemcpyDevToDev(d_batch_dst, b_size,
+                               d_batch_src + b_size);
+        b_size *= 2;
+    }
+
+#if defined(BATCH_DEBUG)
+    xlib::gpu::printArray(d_batch_src, b_size, "Batch Input:\n");
+    xlib::gpu::printArray(d_batch_dst, b_size);
+#endif
+
+    *batch_size = b_size;
+}
+
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
+void HORNET::sort_batch(
+        BatchUpdate& batch_update,
+        const BatchProperty batch_prop,
+        const bool is_insert,
+        vid_t ** d_batch_src_ptr,
+        vid_t ** d_batch_dst_ptr,
+        const size_t batch_size) noexcept {
+    if (batch_prop & batch_property::REMOVE_BATCH_DUPLICATE || (is_insert && _is_sorted)) {
+        //If duplicates are present within a batch,
+        //sort (src, dst) pair to detect duplicates
+        cub_sort_pair.run(_d_batch_src, _d_batch_dst, batch_size,
+                          _d_tmp_sort_src, _d_tmp_sort_dst, _nV, _nV);
+        *d_batch_src_ptr = _d_batch_src;
+        *d_batch_dst_ptr = _d_batch_dst;
+    } else {
+        //User assumes that there are no duplicates within a batch
+        cub_sort.run(_d_batch_src, _d_batch_dst, batch_size,
+                      _d_tmp_sort_src, _d_tmp_sort_dst, _nV);
+        *d_batch_src_ptr = _d_tmp_sort_src;
+        *d_batch_dst_ptr = _d_tmp_sort_dst;
+    }
+}
+
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
+void HORNET::remove_batch_duplicates(
+        vid_t * d_batch_src,
+        vid_t * d_batch_dst,
+        size_t * const batch_size) noexcept {
+    const unsigned BLOCK_SIZE = 128;
+    size_t b_size = *batch_size;
+    markUniqueKernel
+        <<< xlib::ceil_div<BLOCK_SIZE>(b_size), BLOCK_SIZE >>>
+        (device_side(), d_batch_src, d_batch_dst, b_size, _d_flags);
+    CHECK_CUDA_ERROR
+    cub_select_flag.run(d_batch_src, b_size, _d_flags);
+    *batch_size = cub_select_flag.run(d_batch_dst, b_size, _d_flags);
+}
+
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
+void HORNET::remove_cross_duplicates(
+        BatchUpdate& batch_update,
+        vid_t * const d_batch_src,
+        vid_t * const d_batch_dst,
+        size_t * const batch_size) noexcept {
+    const unsigned BLOCK_SIZE = 128;
+    size_t b_size = *batch_size;
+    cuMemset(_d_flags, b_size, 0x01);
+
+    int num_uniques = cub_runlength.run(d_batch_src, b_size,
+                                        _d_unique, _d_counts);
+    cuMemcpyDevToDev(_d_counts, num_uniques + 1, _d_batch_offset);
+    cub_prefixsum.run(_d_batch_offset, num_uniques + 1);
+
+    vertexDegreeKernel
+        <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
+        (device_side(), _d_unique, num_uniques, _d_degree_tmp);
+    CHECK_CUDA_ERROR
+
+    cub_prefixsum.run(_d_degree_tmp, num_uniques + 1);
+
+#if defined(BATCH_DEBUG)
+    xlib::gpu::printArray(_d_degree_tmp, num_uniques + 1, "Degree Prefix:\n");
+#endif
+
+    degree_t degree_tmp_sum;
+    cuMemcpyToHost(_d_degree_tmp + num_uniques, degree_tmp_sum);
+
+    if (degree_tmp_sum == 0) {
+        return;
+    }
+
+    bulkMarkDuplicate<BLOCK_SIZE>
+        <<< xlib::ceil_div(degree_tmp_sum, BLOCK_SIZE), BLOCK_SIZE >>>
+        (device_side(),
+         _d_degree_tmp, _d_batch_offset,
+         _d_unique, _d_batch_dst,
+         num_uniques + 1, _d_flags);
+    CHECK_CUDA_ERROR
+
+#if defined(BATCH_DEBUG)
+    xlib::gpu::printArray(_d_flags, b_size, "D Flags:\n");
+#endif
+
+    cub_select_flag.run(d_batch_src, b_size, _d_flags);
+    *batch_size = cub_select_flag.run(d_batch_dst, b_size, _d_flags);
+}
+
+template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
+int HORNET::batch_preprocessing(
+        BatchUpdate& batch_update,
+        const BatchProperty batch_prop,
+        bool is_insert) noexcept {
+
+    vid_t * d_batch_src = _d_batch_src;
+    vid_t * d_batch_dst = _d_batch_dst;
+    size_t batch_size;
+    copyBatchUpdateData(batch_update, batch_prop, d_batch_src, d_batch_dst, &batch_size);
+
+    ///////////////////
+    // SORT + UNIQUE //
+    ///////////////////
+
+    sort_batch(batch_update, batch_prop, is_insert, &d_batch_src, &d_batch_dst, batch_size);
+
+    if (batch_prop & batch_property::REMOVE_BATCH_DUPLICATE) {
+        remove_batch_duplicates(d_batch_src, d_batch_dst, &batch_size);
+    }
+
+    if (batch_prop & batch_property::REMOVE_CROSS_DUPLICATE) {
+        if (!is_insert)
+            WARNING("REMOVE_CROSS_DUPLICATE enabled with deletion!!")
+
+        remove_cross_duplicates(batch_update, d_batch_src, d_batch_dst, &batch_size);
+    }
+
+    batch_update.set_device_ptrs(d_batch_src, d_batch_dst, batch_size);
+
+    int num_uniques = cub_runlength.run(d_batch_src, batch_size,
+                                        _d_unique, _d_counts);
+#if defined(BATCH_DEBUG)
+    xlib::gpu::printArray(d_batch_src, batch_size, "Preprocessing Gives:\n");
+    xlib::gpu::printArray(d_batch_dst, batch_size);
+    xlib::gpu::printArray(_d_unique, num_uniques, "Unique:\n");
+    xlib::gpu::printArray(_d_counts, num_uniques, "Counts:\n");
+#endif
+    return num_uniques;
+}
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 int HORNET::batch_preprocessing(BatchUpdate& batch_update, bool is_insert)
@@ -60,7 +227,7 @@ int HORNET::batch_preprocessing(BatchUpdate& batch_update, bool is_insert)
         cuMemcpyDevToDev(batch_update.original_dst_ptr(), batch_size,
                          _d_batch_dst);
     }
-    if (_batch_prop == GEN_INVERSE) {
+    if (_batch_prop & GEN_INVERSE) {
         cuMemcpyDevToDev(_d_batch_src, batch_size,
                                _d_batch_dst + batch_size);
         cuMemcpyDevToDev(_d_batch_dst, batch_size,
@@ -71,13 +238,13 @@ int HORNET::batch_preprocessing(BatchUpdate& batch_update, bool is_insert)
     // SORT + UNIQUE //
     ///////////////////
 #if defined(BATCH_DEBUG)
-    cu::printArray(_d_batch_src, batch_size, "Batch Input:\n");
-    cu::printArray(_d_batch_dst, batch_size);
+    xlib::gpu::printArray(_d_batch_src, batch_size, "Batch Input:\n");
+    xlib::gpu::printArray(_d_batch_dst, batch_size);
 #endif
     auto d_batch_src = _d_batch_src;
     auto d_batch_dst = _d_batch_dst;
 
-    if (_batch_prop == REMOVE_BATCH_DUPLICATE || (is_insert && _is_sorted)) {
+    if (_batch_prop & REMOVE_BATCH_DUPLICATE || (is_insert && _is_sorted)) {
 
         cub_sort_pair.run(_d_batch_src, _d_batch_dst, batch_size,
                           _d_tmp_sort_src, _d_tmp_sort_dst, _nV, _nV);
@@ -90,13 +257,13 @@ int HORNET::batch_preprocessing(BatchUpdate& batch_update, bool is_insert)
         d_batch_dst = _d_tmp_sort_dst;
     }
 
-    if (_batch_prop == REMOVE_BATCH_DUPLICATE) {
+    if (_batch_prop & REMOVE_BATCH_DUPLICATE) {
             markUniqueKernel
             <<< xlib::ceil_div<BLOCK_SIZE>(batch_size), BLOCK_SIZE >>>
             (device_side(), _d_batch_src, _d_batch_dst, batch_size, _d_flags);
         CHECK_CUDA_ERROR
 
-        if (_batch_prop == REMOVE_CROSS_DUPLICATE) {
+        if (_batch_prop & REMOVE_CROSS_DUPLICATE) {
             if (!is_insert)
                 WARNING("REMOVE_CROSS_DUPLICATE enabled with deletion!!")
 
@@ -116,7 +283,7 @@ int HORNET::batch_preprocessing(BatchUpdate& batch_update, bool is_insert)
         }
     }
 
-    if (_batch_prop == REMOVE_CROSS_DUPLICATE) {
+    if (_batch_prop & REMOVE_CROSS_DUPLICATE) {
         if (!is_insert)
             WARNING("REMOVE_CROSS_DUPLICATE enabled with deletion!!")
 
@@ -135,7 +302,7 @@ int HORNET::batch_preprocessing(BatchUpdate& batch_update, bool is_insert)
             cub_prefixsum.run(_d_degree_tmp, batch_size + 1);
 
     #if defined(BATCH_DEBUG)
-            cu::printArray(_d_degree_tmp, batch_size + 1, "Degree Prefix:\n");
+            xlib::gpu::printArray(_d_degree_tmp, batch_size + 1, "Degree Prefix:\n");
     #endif
             int smem = xlib::DeviceProperty::smem_per_block(BLOCK_SIZE);
             int num_blocks = xlib::ceil_div(batch_size, smem);
@@ -145,6 +312,9 @@ int HORNET::batch_preprocessing(BatchUpdate& batch_update, bool is_insert)
                 (device_side(), _d_degree_tmp, _d_batch_src, _d_batch_dst,
                  batch_size + 1, _d_flags);
             CHECK_CUDA_ERROR
+#if defined(BATCH_DEBUG)
+    xlib::gpu::printArray(_d_flags, batch_size, "D Flags:\n");
+#endif
         }
         cub_select_flag.run(d_batch_src, batch_size, _d_flags);
         batch_size = cub_select_flag.run(d_batch_dst, batch_size, _d_flags);
@@ -155,10 +325,10 @@ L1: batch_update.set_device_ptrs(d_batch_src, d_batch_dst, batch_size);
     int num_uniques = cub_runlength.run(d_batch_src, batch_size,
                                         _d_unique, _d_counts);
 #if defined(BATCH_DEBUG)
-    cu::printArray(d_batch_src, batch_size, "After Preprocessing:\n");
-    cu::printArray(d_batch_dst, batch_size);
-    cu::printArray(_d_unique, num_uniques, "Unique:\n");
-    cu::printArray(_d_counts, num_uniques, "Counts:\n");
+    xlib::gpu::printArray(d_batch_src, batch_size, "After Preprocessing:\n");
+    xlib::gpu::printArray(d_batch_dst, batch_size);
+    xlib::gpu::printArray(_d_unique, num_uniques, "Unique:\n");
+    xlib::gpu::printArray(_d_counts, num_uniques, "Counts:\n");
 #endif
     return num_uniques;
 }
@@ -166,15 +336,18 @@ L1: batch_update.set_device_ptrs(d_batch_src, d_batch_dst, batch_size);
 //==============================================================================
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
-void HORNET::build_batch_csr(BatchUpdate& batch_update, int num_uniques,
-                             bool require_prefix_sum) noexcept {
+void HORNET::build_batch_csr(
+        BatchUpdate& batch_update,
+        const BatchProperty batch_prop,
+        int num_uniques,
+        bool require_prefix_sum) noexcept {
     const unsigned BLOCK_SIZE = 128;
     if (require_prefix_sum)
         xlib::CubExclusiveSum<int>::srun(_d_counts, num_uniques + 1);
 
     batch_update.set_csr(_d_unique, _d_counts, num_uniques);
 
-    if (_batch_prop == batch_property::CSR_WIDE) {
+    if (batch_prop == batch_property::CSR_WIDE) {
         cuMemset0x00(_d_wide_csr, _nV + 1);
         scatterDegreeKernel
             <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
@@ -190,6 +363,9 @@ void HORNET::build_batch_csr(BatchUpdate& batch_update, int num_uniques,
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::fixInternalRepresentation(int num_uniques, bool is_insert,
                                        bool get_old_degree) noexcept {
+    if (num_uniques == 0) {
+        return;
+    }
     const unsigned BLOCK_SIZE = 128;
     cuMemset0x00(_d_queue_size);
 
@@ -217,7 +393,7 @@ void HORNET::fixInternalRepresentation(int num_uniques, bool is_insert,
         cuMemcpyToHost(_d_queue_old_degree, h_num_realloc, _h_queue_old_degree);
 
     #if defined(DEBUG_INSERT)
-        cu::printArray(_d_queue_id, h_num_realloc, "realloc ids:\n");
+        xlib::gpu::printArray(_d_queue_id, h_num_realloc, "realloc ids:\n");
     #endif
         for (int i = 0; i < h_num_realloc; i++) {
             auto     new_degree = _h_queue_new_degree[i];
@@ -226,18 +402,24 @@ void HORNET::fixInternalRepresentation(int num_uniques, bool is_insert,
         cuMemcpyToDevice(_h_queue_new_ptr, h_num_realloc, _d_queue_new_ptr);
 
         //----------------------------------------------------------------------
+        // update data structures
         updateVertexDataKernel
-            <<< xlib::ceil_div<BLOCK_SIZE>(h_num_realloc), BLOCK_SIZE >>>                        // update data structures
+            <<< xlib::ceil_div<BLOCK_SIZE>(h_num_realloc), BLOCK_SIZE >>>
             (device_side(), _d_queue_id, _d_queue_new_degree,
              _d_queue_new_ptr, h_num_realloc);
         CHECK_CUDA_ERROR
         //----------------------------------------------------------------------
         //----------------------------------------------------------------------
         // Copy old adj list to new pointers
-        cub_prefixsum.run(_d_queue_old_degree, h_num_realloc + 1);
+        degree_t * d_prefixsum;                         //alias
 
-        const auto& d_prefixsum = _d_queue_old_degree;   //alias
+        if (is_insert) {
+            d_prefixsum = _d_queue_old_degree;
+        } else {
+            d_prefixsum = _d_queue_new_degree;
+        }
         int      prefixsum_size = h_num_realloc;         //alias
+        cub_prefixsum.run(d_prefixsum, h_num_realloc + 1);
 
         degree_t prefixsum_total;                //get the total
         cuMemcpyToHost(d_prefixsum + prefixsum_size, prefixsum_total);

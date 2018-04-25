@@ -48,16 +48,18 @@ int HORNET::global_id = 0;
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 HORNET::Hornet(const HornetInit& hornet_init,
-               bool traspose) noexcept :
+               bool transpose) noexcept :
                             _hornet_init(hornet_init),
                             _nV(hornet_init.nV()),
                             _nE(hornet_init.nE()),
                             _id(global_id++),
-                            _is_sorted(hornet_init.is_sorted()) {
-    //if (traspose)
-    //    transpose();
-    //else
-        initialize();
+                            _is_sorted(hornet_init.is_sorted()),
+                            cub_prefixsum(0),
+                            cub_runlength(0),
+                            cub_select_flag(0),
+                            cub_sort(0),
+                            cub_sort_pair(0, false) {
+    initialize();
 }
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
@@ -66,12 +68,12 @@ HORNET::~Hornet() noexcept {
     delete[] _csr_offsets;
     delete[] _csr_edges;
     cuFree(_d_batch_src, _d_batch_dst, _d_tmp_sort_src, _d_tmp_sort_dst,
-           _d_counts, _d_unique, _d_degree_tmp, _d_flags);
-    cuFree(_d_queue_new_degree, _d_queue_new_ptr, _d_queue_old_ptr,
-           _d_queue_old_degree, _d_queue_id, _d_queue_size);
+            _d_counts, _d_unique, _d_degree_tmp, _d_flags);
+    cuFree(_d_locations, _d_batch_offset, _d_counter,
+            _d_queue_new_degree, _d_queue_new_ptr, _d_queue_old_ptr,
+            _d_queue_old_degree, _d_queue_id, _d_queue_size);
     cuFreeHost(_h_queue_new_ptr, _h_queue_new_degree, _h_queue_old_ptr,
                _h_queue_old_degree);
-    delete[] _h_queue_id;
 }
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>

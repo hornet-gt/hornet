@@ -71,10 +71,8 @@ void exec(int argc, char* argv[]) {
         std::cout << "------------------------------------------------" <<std::endl;
 
         using namespace gpu::batch_property;
-        hornet_gpu.allocateEdgeInsertion(batch_size,
-                                         IN_PLACE | REMOVE_CROSS_DUPLICATE);
-        //hornet_gpu.allocateEdgeDeletion(batch_size,
-        //                                 IN_PLACE | REMOVE_CROSS_DUPLICATE);
+
+        hornet_gpu.reserveBatchOpResource(batch_size);
 
         hornet_gpu.print();
         std::cout << "------------------------------------------------" <<std::endl;

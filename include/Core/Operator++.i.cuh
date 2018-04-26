@@ -331,8 +331,8 @@ namespace adj_unions {
             degree_t dst_len = dst.degree();
             degree_t u_len = (src_len <= dst_len) ? src_len : dst_len;
             degree_t v_len = (src_len <= dst_len) ? dst_len : src_len;
-            unsigned int log_u = 32-__clz(u_len-1);
-            unsigned int log_v = 32-__clz(v_len-1);
+            unsigned int log_u = std::min(32-__clz(u_len), 31);
+            unsigned int log_v = std::min(32-__clz(v_len), 31);
             int binary_work = u_len;
             int binary_work_est = u_len*log_v;
             int intersect_work = u_len + v_len;

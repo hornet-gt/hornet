@@ -330,7 +330,7 @@ namespace adj_unions {
             degree_t src_len = src.degree();
             degree_t dst_len = dst.degree();
             degree_t u_len = (src_len <= dst_len) ? src_len : dst_len;
-            degree_t v_len = (src_len > dst_len) ? dst_len : src_len;
+            degree_t v_len = (src_len <= dst_len) ? dst_len : src_len;
             unsigned int log_u = 32-__clz(u_len-1);
             unsigned int log_v = 32-__clz(v_len-1);
             int binary_work = u_len;

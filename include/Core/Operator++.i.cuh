@@ -243,15 +243,18 @@ namespace adj_unions {
             degree_t dst_len = dst.degree();
             degree_t u_len = (src_len <= dst_len) ? src_len : dst_len;
             degree_t v_len = (src_len <= dst_len) ? dst_len : src_len;
-            unsigned int log_u = 32-__clz(u_len);
-            unsigned int log_v = 32-__clz(v_len);
+            unsigned int log_u = std::min(32-__clz(u_len), 31);
+            unsigned int log_v = std::min(32-__clz(v_len), 31);
+            //printf("u_len, v_len): (%u, %u)\n", u_len, v_len);
+            //printf("(log_u, log_v): (%u, %u)\n", log_u, log_v);
             int binary_work = u_len;
             int binary_work_est = u_len*log_v;
             int intersect_work = u_len + v_len;
-            const int WORK_FACTOR = 1;
+            const int WORK_FACTOR = 1000;
             int METHOD = (WORK_FACTOR*intersect_work >= binary_work_est);
             //int METHOD = 0;
-            bin_index = (METHOD*MAX_ADJ_UNIONS_BINS/2)+((MAX_ADJ_UNIONS_BINS/2-1)-(log_u*BINS_1D_DIM)+log_v); 
+            bin_index = (METHOD*MAX_ADJ_UNIONS_BINS/2)+((MAX_ADJ_UNIONS_BINS/2)-(log_u*BINS_1D_DIM+log_v)); 
+            //printf("bin index: %d\n", bin_index);
             //bin_index = (METHOD*MAX_ADJ_UNIONS_BINS/2)+(log_u*BINS_1D_DIM)+log_v; 
             //bin_index = (src.id() + dst.id())%(MAX_ADJ_UNIONS_BINS);
             //bin_index = MAX_ADJ_UNIONS_BINS/2;
@@ -311,10 +314,10 @@ void forAllAdjUnions(HornetClass&          hornet,
     std::partial_sum(queue_sizes, queue_sizes+MAX_ADJ_UNIONS_BINS, queue_pos+1);
     // transfer prefx results to device
     cudaMemcpy(hd_queue_info().d_queue_pos, queue_pos, (MAX_ADJ_UNIONS_BINS+1)*sizeof(unsigned long long), cudaMemcpyHostToDevice);
-   /* 
+    /* 
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS+1; i++)
         printf("queue=%d prefix sum: %llu\n", i, queue_pos[i]);
-   */
+    */
     // bin edges
     if (vertex_pairs.size())
         forAllVertexPairs(hornet, vertex_pairs, bin_edges {hd_queue_info, false});
@@ -324,12 +327,14 @@ void forAllAdjUnions(HornetClass&          hornet,
     TM.stop();
     TM.print("queueing and binning:");
     TM.reset();
-    
+   
+    long long totalEdgesCounted = 0;
     // balanced kernel
     unsigned int start_index = 0;
     unsigned int end_index = queue_pos[MAX_ADJ_UNIONS_BINS/2];
     long long size = end_index - start_index;
     printf("balanced, (%llu, %llu), size=%llu\n", start_index, end_index, size); 
+    totalEdgesCounted += size;
     TM.start();
     forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_edge_queue, start_index, end_index, op, 0);
     TM.stop();
@@ -341,12 +346,14 @@ void forAllAdjUnions(HornetClass&          hornet,
     end_index = queue_pos[MAX_ADJ_UNIONS_BINS];
     size = end_index - start_index;
     printf("imbalanced, (%llu, %llu), size=%llu\n", start_index, end_index, size); 
+    totalEdgesCounted += size;
     TM.start();
     forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_edge_queue, start_index, end_index, op, 1);
     TM.stop();
     TM.reset();
     TM.print("imbalanced kernel runtime:");
-    
+    std::cout << "total edges in graph: " << hornet.nE() << std::endl; 
+    std::cout << "total edges processed: " << totalEdgesCounted << std::endl;
     free(queue_sizes);
     free(queue_pos);
 }

@@ -131,10 +131,14 @@ void TriangleCounting2::reset(){
     forAllVertices(hornet, OPERATOR_InitTriangleCounts { triPerVertex });
 }
 
-void TriangleCounting2::run(){
+void TriangleCounting2::run() {
     //printf("Inside run()\n");
-    forAllAdjUnions(hornet, OPERATOR_AdjIntersectionCountBalanced { triPerVertex });
+    forAllAdjUnions(hornet, OPERATOR_AdjIntersectionCountBalanced { triPerVertex }, 1);
     //forAllAdjUnions(hornet, OPERATOR_AdjIntersectionCount { triPerVertex });
+}
+
+void TriangleCounting2::run(const int WORK_FACTOR=1){
+    forAllAdjUnions(hornet, OPERATOR_AdjIntersectionCountBalanced { triPerVertex }, WORK_FACTOR);
 }
 
 

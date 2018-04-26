@@ -235,6 +235,7 @@ namespace adj_unions {
     struct bin_edges {
         HostDeviceVar<queue_info> d_queue_info;
         bool countOnly;
+        const int WORK_FACTOR;
         int total_work, bin_index;
 
         OPERATOR(Vertex& src, Vertex& dst) {
@@ -250,7 +251,7 @@ namespace adj_unions {
             int binary_work = u_len;
             int binary_work_est = u_len*log_v;
             int intersect_work = u_len + v_len;
-            const int WORK_FACTOR = 1000;
+            //const int WORK_FACTOR = 1000;
             int METHOD = (WORK_FACTOR*intersect_work >= binary_work_est);
             //int METHOD = 0;
             bin_index = (METHOD*MAX_ADJ_UNIONS_BINS/2)+((MAX_ADJ_UNIONS_BINS/2)-(log_u*BINS_1D_DIM+log_v)); 
@@ -275,15 +276,17 @@ namespace adj_unions {
 
 template<typename HornetClass, typename Operator>
 void forAllAdjUnions(HornetClass&         hornet,
-                     const Operator&      op)
+                     const Operator&      op,
+                     const int WORK_FACTOR)
 {
-    forAllAdjUnions(hornet, TwoLevelQueue<vid2_t>(hornet, 0), op); // TODO: why can't just pass in 0?
+    forAllAdjUnions(hornet, TwoLevelQueue<vid2_t>(hornet, 0), op, WORK_FACTOR); // TODO: why can't just pass in 0?
 }
 
 template<typename HornetClass, typename Operator>
 void forAllAdjUnions(HornetClass&          hornet,
                      TwoLevelQueue<vid2_t> vertex_pairs,
-                     const Operator&       op)
+                     const Operator&       op,
+                     const int WORK_FACTOR)
 {
     using namespace adj_unions;
     HostDeviceVar<queue_info> hd_queue_info;
@@ -304,9 +307,9 @@ void forAllAdjUnions(HornetClass&          hornet,
 
     // figure out cutoffs/counts per bin
     if (vertex_pairs.size())
-        forAllVertexPairs(hornet, vertex_pairs, bin_edges {hd_queue_info, true});
+        forAllVertexPairs(hornet, vertex_pairs, bin_edges {hd_queue_info, true, WORK_FACTOR});
     else
-        forAllEdgeVertexPairs(hornet, bin_edges {hd_queue_info, true}, load_balancing);
+        forAllEdgeVertexPairs(hornet, bin_edges {hd_queue_info, true, WORK_FACTOR}, load_balancing);
 
     // copy queue size info to from device to host
     cudaMemcpy(queue_sizes, hd_queue_info().d_queue_sizes, (MAX_ADJ_UNIONS_BINS)*sizeof(unsigned long long), cudaMemcpyDeviceToHost);
@@ -320,9 +323,9 @@ void forAllAdjUnions(HornetClass&          hornet,
     */
     // bin edges
     if (vertex_pairs.size())
-        forAllVertexPairs(hornet, vertex_pairs, bin_edges {hd_queue_info, false});
+        forAllVertexPairs(hornet, vertex_pairs, bin_edges {hd_queue_info, false, WORK_FACTOR});
     else
-        forAllEdgeVertexPairs(hornet, bin_edges {hd_queue_info, false}, load_balancing);
+        forAllEdgeVertexPairs(hornet, bin_edges {hd_queue_info, false, WORK_FACTOR}, load_balancing);
 
     TM.stop();
     TM.print("queueing and binning:");

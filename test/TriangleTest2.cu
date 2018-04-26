@@ -91,11 +91,19 @@ int main(int argc, char* argv[]) {
     HornetGraph hornet_graph(hornet_init);
     TriangleCounting2 tc(hornet_graph);
     tc.init();
+    
+    int work_factor;
+    if (argc > 2) {
+        work_factor = atoi(argv[2]);
+    } else {
+        work_factor = 1;
+    }
+
     Timer<DEVICE> TM(5);
     //cudaProfilerStart();
     TM.start();
 
-    tc.run();
+    tc.run(work_factor);
 
     TM.stop();
     //cudaProfilerStop();

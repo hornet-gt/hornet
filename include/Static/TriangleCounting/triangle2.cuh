@@ -27,6 +27,7 @@ public:
     void release()  override;
     bool validate() override { return true; }
 
+    void run(const int WORK_FACTOR);
     void init();
 
     triangle_t countTriangles();

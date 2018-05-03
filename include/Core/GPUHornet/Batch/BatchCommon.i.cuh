@@ -87,7 +87,14 @@ void HORNET::sort_batch(
         vid_t ** d_batch_src_ptr,
         vid_t ** d_batch_dst_ptr,
         const size_t batch_size) noexcept {
-    if ((batch_prop & batch_property::REMOVE_BATCH_DUPLICATE) || (is_insert && _is_sorted) || (!is_insert)) {
+    //The batch needs to be sorted in the following cases :
+    //1. INSERT with REMOVE_CROSS_DUPLICATE
+    //2. INSERT with REMOVE_BATCH_DUPLICATE
+    //3. DELETE
+    if ((batch_prop & batch_property::REMOVE_BATCH_DUPLICATE) ||
+            (batch_prop & batch_property::REMOVE_CROSS_DUPLICATE) ||
+            (is_insert && _is_sorted) || //legacy
+            (!is_insert)) {
         //If duplicates are present within a batch,
         //sort (src, dst) pair to detect duplicates
         cub_sort_pair.run(_d_batch_src, _d_batch_dst, batch_size,

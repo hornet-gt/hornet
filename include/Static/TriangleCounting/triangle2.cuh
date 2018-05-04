@@ -28,6 +28,7 @@ public:
     bool validate() override { return true; }
 
     void init();
+    void copyTCToHost(triangle_t* h_tcs);
 
     triangle_t countTriangles();
 

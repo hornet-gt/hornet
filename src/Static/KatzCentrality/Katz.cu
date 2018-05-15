@@ -242,4 +242,8 @@ bool KatzCentrality::validate() {
     return true;
 }
 
+//KatzData KatzCentrality::katz_data() {
+//    return hd_katzdata;
+//}
+//
 } // namespace hornets_nest

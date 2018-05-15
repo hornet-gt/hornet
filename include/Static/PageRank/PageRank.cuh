@@ -48,7 +48,6 @@
 
 namespace hornets_nest {
 
-//using HornetGPU = csr::Hornet<EMPTY, EMPTY>;
 using HornetGPU = gpu::Hornet<EMPTY, EMPTY>;
 
 using pr_t = float;

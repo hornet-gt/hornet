@@ -120,9 +120,6 @@ void StaticPageRank::printRankings() {
     gpu::copyToDevice(hd_prdata().curr_pr, hornet.nV(), d_scores);
 	forAllnumV(hornet, SetIds { d_ids });
 
-	//?? standard_context_t context(false);
-	//?? mergesort(d_scores,d_ids,hd_prdata().nV,greater_t<float>(),context);
-
     host::copyFromDevice(d_scores, hornet.nV(), h_scores);
     host::copyFromDevice(d_ids,    hornet.nV(), h_ids);
 
@@ -154,7 +151,7 @@ int StaticPageRank::get_iteration_count() {
 }
 
 bool StaticPageRank::validate() {
-	return false;//?????????
+	return true;//TODO : Add validation code
 }
 
 PrData StaticPageRank::pr_data(void) {

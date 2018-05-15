@@ -8,7 +8,7 @@ add_subdirectory(externals/hornet)
 
 include_directories(include)
 include_directories(externals/hornet/include)
-include_directories(externals/hornet/externals/cub-1.7.4)
+include_directories(externals/hornet/externals/cub-1.8.0)
 include_directories(externals/hornet/externals/cpp-btree-master)
 include_directories(externals/hornet/externals/xlib/include)
 

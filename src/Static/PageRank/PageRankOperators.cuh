@@ -103,8 +103,6 @@ struct DampAndDiffAndCopy {
     HostDeviceVar<PrData> hd_prdata;
 
     OPERATOR(vid_t src) {
-    	// hd_prdata().curr_pr[src]=(1-hd_prdata().damp)/float(hd_prdata().nV)+
-        //                          hd_prdata().damp*hd_prdata().curr_pr[src];
     	hd_prdata().curr_pr[src]  = hd_prdata().normalized_damp +
                                    hd_prdata().damp * hd_prdata().curr_pr[src];
 

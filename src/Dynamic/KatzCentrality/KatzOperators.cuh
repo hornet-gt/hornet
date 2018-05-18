@@ -54,9 +54,9 @@ struct InitStreaming {
 struct SetupInsertions {
     HostDeviceVar<KatzDynamicData> kd;
 
-    OPERATOR(Vertex& vertex, Edge& edge) {
-        auto src = vertex.id();
-        auto dst = edge.dst_id();
+    OPERATOR(Vertex& src_vertex, Vertex& dst_vertex) {
+        auto src = src_vertex.id();
+        auto dst = dst_vertex.id();
         atomicAdd(kd().KC + src, kd().alpha);
         atomicAdd(kd().new_paths_prev + src, 1);
         vid_t prev = atomicCAS(kd().active + src, 0, kd().iteration);
@@ -70,10 +70,10 @@ struct SetupInsertions {
 struct SetupDeletions {
     HostDeviceVar<KatzDynamicData> kd;
 
-    OPERATOR(Vertex& vertex, Edge& edge) {
+    OPERATOR(Vertex& src_vertex, Vertex& dst_vertex) {
         double minus_alpha = -kd().alpha;
-        auto           dst = edge.dst_id();
-        auto           src = vertex.id();
+        auto src = src_vertex.id();
+        auto dst = dst_vertex.id();
 
         atomicAdd(kd().KC + src, minus_alpha);
         atomicAdd(kd().new_paths_prev + src, -1);
@@ -133,9 +133,9 @@ struct UpdateActiveNewPaths {
 struct UpdateNewPathsBatchInsert {
     HostDeviceVar<KatzDynamicData> kd;
 
-    OPERATOR(Vertex& vertex_id, Edge& edge) {
-        auto dst = edge.dst_id();
-        auto src = vertex_id.id();
+    OPERATOR(Vertex& src_vertex, Vertex& dst_vertex) {
+        auto src = src_vertex.id();
+        auto dst = dst_vertex.id();
 
         ulong_t val_to_add = kd().num_paths[kd().iteration - 1][dst];
         atomicAdd(kd().new_paths_curr + src, val_to_add);
@@ -147,9 +147,9 @@ struct UpdateNewPathsBatchInsert {
 struct UpdateNewPathsBatchDelete {
     HostDeviceVar<KatzDynamicData> kd;
 
-    OPERATOR(Vertex& vertex, Edge& edge) {
-        auto dst = edge.dst_id();
-        auto src = vertex.id();
+    OPERATOR(Vertex& src_vertex, Vertex& dst_vertex) {
+        auto src = src_vertex.id();
+        auto dst = dst_vertex.id();
 
         ulong_t val_to_remove = -kd().num_paths[kd().iteration - 1][dst];
         atomicAdd(kd().new_paths_curr + src, val_to_remove);

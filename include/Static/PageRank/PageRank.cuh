@@ -36,58 +36,68 @@
  *
  * @file
  */
-#include "Static/KatzCentrality/Katz.cuh"
-#include <Device/Util/Timer.cuh>
-#include <Graph/GraphStd.hpp>
+#pragma once
 
-int main(int argc, char* argv[]) {
-    using namespace graph::structure_prop;
-    using namespace graph::parsing_prop;
-    using namespace graph;
-    using namespace hornets_nest;
-    using namespace timer;
+#include "HornetAlg.hpp"
+#include "Core/LoadBalancing/VertexBased.cuh"
+#include "Core/LoadBalancing/ScanBased.cuh"
+#include "Core/LoadBalancing/BinarySearch.cuh"
+#include "Core/HostDeviceVar.cuh"
+#include <Core/GPUCsr/Csr.cuh>
+#include <Core/GPUHornet/Hornet.cuh>
 
-	// Limit the number of iteartions for graphs with large number of vertices.
-    int max_iterations = 50;
+namespace hornets_nest {
 
+using HornetGPU = gpu::Hornet<EMPTY, EMPTY>;
 
-	cudaSetDevice(0);
-    GraphStd<vid_t, eoff_t> graph(UNDIRECTED);
-    
-    graph.read(argv[1], SORT | PRINT_INFO);
+using pr_t = float;
 
-    HornetInit hornet_init(graph.nV(), graph.nE(),
-                           graph.csr_out_offsets(),
-                           graph.csr_out_edges());
+struct PrData {
+	pr_t* prev_pr;
+	pr_t* curr_pr;
+	pr_t* abs_diff;
 
-    HornetGraph hornet_graph(hornet_init);
-	// Users can add the number of TopK vertices for the approximation
-	int           topK = graph.nV();
-     if(argc>2)
-        topK=atoi(argv[2]);
- 
-    // Finding largest vertex degree
-    degree_t max_degree_vertex = hornet_graph.max_degree();
-    std::cout << "Max degree vextex is " << max_degree_vertex << std::endl;
+	pr_t* reduction_out;
+	pr_t* contri;
 
+	int   iteration;
+	int   iteration_max;
+	int   nV;
+	pr_t  threshold;
+	pr_t  damp;
+	pr_t  normalized_damp;
+};
 
-    KatzCentrality kcPostUpdate(hornet_graph, max_iterations, topK,
-                                max_degree_vertex);
+// Label propogation is based on the values from the previous iteration.
+class StaticPageRank : public StaticAlgorithm<HornetGPU> {
+public:
+    StaticPageRank(HornetGPU& hornet,
+                   int  iteration_max = 20,
+                   pr_t     threshold = 0.001f,
+                   pr_t          damp = 0.85f);
+    ~StaticPageRank();
 
-    Timer<DEVICE> TM;
-    TM.start();
+    void reset()    override;
+    void run()      override;
+    void release()  override;
+    bool validate() override;
 
-    kcPostUpdate.run();
+	void setInputParameters(int iteration_max = 20,
+                            pr_t    threshold = 0.001f,
+                            pr_t         damp = 0.85f);
 
-    TM.stop();
+	int get_iteration_count();
 
-    auto total_time = TM.duration();
-    std::cout << "The number of iterations     : "
-              << kcPostUpdate.get_iteration_count()
-              << "\nTopK                       : " << topK 
-              << "\nTotal time for KC          : " << total_time
-              << "\nAverage time per iteartion : "
-              << total_time /
-                 static_cast<float>(kcPostUpdate.get_iteration_count())
-              << "\n";
-}
+	const pr_t* get_page_rank_score_host();
+
+	void printRankings();
+
+    PrData pr_data();
+
+private:
+    load_balancing::BinarySearch load_balancing;
+    HostDeviceVar<PrData>       hd_prdata;
+    pr_t*                       host_page_rank { nullptr };
+};
+
+} // hornets_nest namespace

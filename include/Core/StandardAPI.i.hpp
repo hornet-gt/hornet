@@ -57,7 +57,7 @@ void free(T* pointer) {
 
 template<typename T>
 void copyToDevice(const T* device_input, size_t num_items, T* device_output) {
-    cuMemcpyDeviceToDevice(device_input, num_items, device_output);
+    cuMemcpyDevToDev(device_input, num_items, device_output);
 }
 
 template<typename T>

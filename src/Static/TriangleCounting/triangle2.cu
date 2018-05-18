@@ -108,6 +108,9 @@ struct OPERATOR_AdjIntersectionCountBalanced {
     }
 };
 
+void TriangleCounting2::copyTCToHost(triangle_t* h_tcs) {
+    gpu::copyToHost(triPerVertex, hornet.nV(), h_tcs);
+}
 
 triangle_t TriangleCounting2::countTriangles(){
 

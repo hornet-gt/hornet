@@ -184,6 +184,10 @@ void KatzCentrality::run() {
     }
 }
 
+void KatzCentrality::copyKCToHost(double* d) {
+    gpu::copyToHost(hd_katzdata().KC, hornet.nV(), d);
+}
+
 // This function should only be used directly within run() and is currently
 // commented out due to to large execution overheads.
 void KatzCentrality::printKMostImportant() {
@@ -238,4 +242,8 @@ bool KatzCentrality::validate() {
     return true;
 }
 
+//KatzData KatzCentrality::katz_data() {
+//    return hd_katzdata;
+//}
+//
 } // namespace hornets_nest

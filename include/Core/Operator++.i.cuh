@@ -359,7 +359,7 @@ namespace adj_unions {
             int binary_work_est = u_len*log_v;
             int intersect_work_est = u_len + v_len;
             //const int WORK_FACTOR = 100;
-            const int WORK_FACTOR = 0; // force balanced-only
+            const int WORK_FACTOR = 9999; // force balanced-only
             int METHOD = (WORK_FACTOR*intersect_work_est >= binary_work_est);
             bin_index = (METHOD*MAX_ADJ_UNIONS_BINS/2)+(log_u*BINS_1D_DIM+log_v); 
             //bin_index = MAX_ADJ_UNIONS_BINS/2+((src.id() + dst.id())%(MAX_ADJ_UNIONS_BINS/2));
@@ -451,7 +451,7 @@ void forAllAdjUnions(HornetClass&          hornet,
     const int LOG_OFFSET = 2; // seems optimal from testing a few inputs; tunable
     int threads_log = 1;
     // balanced kernel
-    while ((threads_log < BALANCED_THREADS_LOGMAX) && (threads_log+LOG_OFFSET < MAX_ADJ_UNIONS_BINS/2)) 
+    while ((threads_log < BALANCED_THREADS_LOGMAX) && (threads_log+LOG_OFFSET < BINS_1D_DIM)) 
     {
         bin_index = bin_offset+(threads_log+LOG_OFFSET)*BINS_1D_DIM;
         end_index = queue_pos[bin_index];
@@ -485,21 +485,22 @@ void forAllAdjUnions(HornetClass&          hornet,
         TM.print("balanced queue processing:");
         TM.reset();
     }
-    
-    // imbalanced kernel 
-    /*
+
+    // imbalanced kernel
+    const int LOG_OFFSET2 = 2;
+    const int IMBALANCED_THREADS_LOGMAX = BINS_1D_DIM-1; 
     bin_offset = MAX_ADJ_UNIONS_BINS/2;
-    start_index = queue_pos[bin_offset];
-    log_factor = LOG_OFFSET;
-    while (bin_offset+(log_factor*BINS_1D_DIM) <= MAX_ADJ_UNIONS_BINS) {
-        threads_per = 1 << (log_factor - LOG_OFFSET); 
-        bin_index = bin_offset+(log_factor*BINS_1D_DIM);
-        //std::cout << "bin_index " << bin_index << std::endl;
+    threads_log = 1;
+    while ((threads_log < IMBALANCED_THREADS_LOGMAX) && (threads_log+LOG_OFFSET2 < BINS_1D_DIM)) 
+    {
+        bin_index = bin_offset+(threads_log+LOG_OFFSET2)*BINS_1D_DIM;
         end_index = queue_pos[bin_index];
         size = end_index - start_index;
-        //printf("threads_per: %d, size: %llu\n, (%llu, %llu)\n", threads_per, size, start_index, end_index); 
         if (size) {
-            printf("threads_per=%d, size=%llu\n", threads_per, size); 
+            printf("(start_index, end_index): %d, %d\n", start_index, end_index);
+            printf("threads_log, bin_index: %d, %d\n", threads_log, bin_index);
+            threads_per = 1 << (threads_log-1); 
+            printf("threads_per: %d, size: %d\n", threads_per, size);
             TM.start();
             forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_edge_queue, start_index, end_index, op, threads_per, 1);
             TM.stop();
@@ -507,9 +508,24 @@ void forAllAdjUnions(HornetClass&          hornet,
             TM.reset();
         }
         start_index = end_index;
-        log_factor += 1;
+        threads_log += 1;
     }
-    */
+    // process remaining "tail" bins
+    bin_index = MAX_ADJ_UNIONS_BINS;
+    end_index = queue_pos[bin_index];
+    size = end_index - start_index;
+    if (size) {
+        printf("(start_index, end_index): %d, %d\n", start_index, end_index);
+        printf("threads_log, bin_index: %d, %d\n", threads_log, bin_index);
+        threads_per = 1 << (threads_log-1); 
+        printf("threads_per: %d, size: %d\n", threads_per, size);
+        TM.start();
+        forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_edge_queue, start_index, end_index, op, threads_per, 1);
+        TM.stop();
+        TM.print("imbalanced queue processing:");
+        TM.reset();
+    }
+
     free(queue_sizes);
     free(queue_pos);
 }

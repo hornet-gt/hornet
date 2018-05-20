@@ -357,10 +357,11 @@ namespace adj_unions {
             unsigned int log_u = std::min(32-__clz(u_len), 31);
             unsigned int log_v = std::min(32-__clz(v_len), 31);
             int binary_work_est = u_len*log_v;
-            int intersect_work_est = u_len + v_len;
-            //const int WORK_FACTOR = 100;
-            const int WORK_FACTOR = 9999; // force balanced-only
-            int METHOD = (WORK_FACTOR*intersect_work_est >= binary_work_est);
+            int intersect_work_est = u_len + v_len + log_u;
+            //const int WORK_FACTOR = 9999; // force balanced-only
+            //const int WORK_FACTOR = 0;
+            const int WORK_FACTOR = 1;
+            int METHOD = ((WORK_FACTOR*intersect_work_est >= binary_work_est) || (intersect_work_est > 1024));
             bin_index = (METHOD*MAX_ADJ_UNIONS_BINS/2)+(log_u*BINS_1D_DIM+log_v); 
             //bin_index = MAX_ADJ_UNIONS_BINS/2+((src.id() + dst.id())%(MAX_ADJ_UNIONS_BINS/2));
             //bin_index = MAX_ADJ_UNIONS_BINS/2;
@@ -456,11 +457,9 @@ void forAllAdjUnions(HornetClass&          hornet,
         bin_index = bin_offset+(threads_log+LOG_OFFSET)*BINS_1D_DIM;
         end_index = queue_pos[bin_index];
         size = end_index - start_index;
-        printf("(start_index, end_index): %d, %d\n", start_index, end_index);
-        printf("threads_log, bin_index: %d, %d\n", threads_log, bin_index);
         if (size) {
             threads_per = 1 << (threads_log-1); 
-            printf("threads_per: %d\n", threads_per);
+            printf("threads_per=%d, size=%d\n", threads_per, size);
             TM.start();
             forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_edge_queue, start_index, end_index, op, threads_per, 0);
             TM.stop();
@@ -475,10 +474,8 @@ void forAllAdjUnions(HornetClass&          hornet,
     end_index = queue_pos[bin_index];
     size = end_index - start_index;
     if (size) {
-        printf("(start_index, end_index): %d, %d\n", start_index, end_index);
-        printf("threads_log, bin_index: %d, %d\n", threads_log, bin_index);
         threads_per = 1 << (threads_log-1); 
-        printf("threads_per: %d\n", threads_per);
+        printf("threads_per=%d, size=%d\n", threads_per, size);
         TM.start();
         forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_edge_queue, start_index, end_index, op, threads_per, 0);
         TM.stop();
@@ -497,10 +494,8 @@ void forAllAdjUnions(HornetClass&          hornet,
         end_index = queue_pos[bin_index];
         size = end_index - start_index;
         if (size) {
-            printf("(start_index, end_index): %d, %d\n", start_index, end_index);
-            printf("threads_log, bin_index: %d, %d\n", threads_log, bin_index);
             threads_per = 1 << (threads_log-1); 
-            printf("threads_per: %d, size: %d\n", threads_per, size);
+            printf("threads_per=%d, size=%d\n", threads_per, size);
             TM.start();
             forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_edge_queue, start_index, end_index, op, threads_per, 1);
             TM.stop();
@@ -515,8 +510,8 @@ void forAllAdjUnions(HornetClass&          hornet,
     end_index = queue_pos[bin_index];
     size = end_index - start_index;
     if (size) {
-        printf("(start_index, end_index): %d, %d\n", start_index, end_index);
-        printf("threads_log, bin_index: %d, %d\n", threads_log, bin_index);
+        //printf("(start_index, end_index): %d, %d\n", start_index, end_index);
+        //printf("threads_log, bin_index: %d, %d\n", threads_log, bin_index);
         threads_per = 1 << (threads_log-1); 
         printf("threads_per: %d, size: %d\n", threads_per, size);
         TM.start();

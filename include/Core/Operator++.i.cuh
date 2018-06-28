@@ -1,4 +1,5 @@
 #include <Device/Util/Timer.cuh>
+#include <Core/Operator++.cuh>
 
 namespace hornets_nest {
 namespace detail {
@@ -442,7 +443,7 @@ void forAllAdjUnions(HornetClass&          hornet,
         printf("queue=%d prefix sum after: %llu\n", i, hd_queue_info().queue_pos[i]);
     */
     
-    const int BALANCED_THREADS_LOGMAX = 9; // 1 << 9 = 256
+    const int BALANCED_THREADS_LOGMAX = 31-__builtin_clz(BLOCK_SIZE_OP2)+1; // assumes BLOCK_SIZE is int type
     int bin_index;
     int bin_offset = 0;
     unsigned long long start_index = 0; 

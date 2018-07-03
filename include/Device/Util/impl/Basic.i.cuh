@@ -103,7 +103,7 @@ __device__ __forceinline__
 void sync() {
     if (NUM_THREADS <= xlib::WARP_SIZE) {
 #if __CUDA_ARCH__ >= 700
-        __sync_warp(0xFFFFFFFF);
+        __syncwarp(0xFFFFFFFF);
 #endif
     }
     else

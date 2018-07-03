@@ -168,12 +168,14 @@ void forAllEdges(HornetClass&         hornet,
 
 template<typename HornetClass, typename Operator>
 void forAllAdjUnions(HornetClass&         hornet,
-                     const Operator&      op);
+                     const Operator&      op,
+                     const int WORK_FACTOR=1);
 
 template<typename HornetClass, typename Operator>
 void forAllAdjUnions(HornetClass&         hornet,
                      TwoLevelQueue<vid2_t> vertex_pairs,
-                     const Operator&      op);
+                     const Operator&      op,
+                     const int WORK_FACTOR=1);
 
 template<typename HornetClass, typename Operator>
 void forAllEdgesAdjUnionSequential(HornetClass &hornet, vid_t* queue, const unsigned long long size, const Operator &op, int flag);

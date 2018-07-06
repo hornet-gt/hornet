@@ -337,6 +337,8 @@ void forAllEdgesKernel(const eoff_t* __restrict__ csr_offsets,
 //==============================================================================
 #define MAX_ADJ_UNIONS_BINS 2048
 #define BINS_1D_DIM 32
+#define LOG_OFFSET_BALANCED 3
+#define LOG_OFFSET_IMBALANCED 2
 namespace adj_unions {
     struct queue_info {
         unsigned long long *d_queue_sizes;
@@ -361,8 +363,16 @@ namespace adj_unions {
             int binary_work_est = u_len*log_v;
             int intersect_work_est = u_len + v_len + log_u;
             //const int WORK_FACTOR = 9999; // force imbalanced-only
-            int METHOD = ((WORK_FACTOR*intersect_work_est >= binary_work_est) || (intersect_work_est > 1024));
-            bin_index = (METHOD*MAX_ADJ_UNIONS_BINS/2)+(log_u*BINS_1D_DIM+log_v); 
+            int BALANCED_WORK_LIMIT = BLOCK_SIZE_OP2*(1<<LOG_OFFSET_BALANCED-1);
+            int METHOD = ((WORK_FACTOR*intersect_work_est >= binary_work_est) || (intersect_work_est > BALANCED_WORK_LIMIT));
+            //int METHOD = ((WORK_FACTOR*intersect_work_est >= binary_work_est)); 
+            if (!METHOD && u_len <= 1) {
+                bin_index = (METHOD*MAX_ADJ_UNIONS_BINS/2);
+            } else if (!METHOD) {
+                bin_index = (METHOD*MAX_ADJ_UNIONS_BINS/2)+(log_v*BINS_1D_DIM+log_u);
+            } else {
+                bin_index = (METHOD*MAX_ADJ_UNIONS_BINS/2)+(log_u*BINS_1D_DIM+log_v); 
+            }
             //bin_index = MAX_ADJ_UNIONS_BINS/2+((src.id() + dst.id())%(MAX_ADJ_UNIONS_BINS/2));
             //bin_index = 0;
 
@@ -449,12 +459,11 @@ void forAllAdjUnions(HornetClass&          hornet,
     unsigned long long end_index; 
     unsigned int threads_per;
     unsigned long long size;
-    const int LOG_OFFSET = 2; // seems optimal from testing a few inputs; tunable
     int threads_log = 1;
     // balanced kernel
-    while ((threads_log < BALANCED_THREADS_LOGMAX) && (threads_log+LOG_OFFSET < BINS_1D_DIM)) 
+    while ((threads_log < BALANCED_THREADS_LOGMAX) && (threads_log+LOG_OFFSET_BALANCED < BINS_1D_DIM)) 
     {
-        bin_index = bin_offset+(threads_log+LOG_OFFSET)*BINS_1D_DIM;
+        bin_index = bin_offset+(threads_log+LOG_OFFSET_BALANCED)*BINS_1D_DIM;
         end_index = queue_pos[bin_index];
         size = end_index - start_index;
         if (size) {
@@ -485,13 +494,12 @@ void forAllAdjUnions(HornetClass&          hornet,
     start_index = end_index;
 
     // imbalanced kernel
-    const int LOG_OFFSET2 = 2;
     const int IMBALANCED_THREADS_LOGMAX = BINS_1D_DIM-1; 
     bin_offset = MAX_ADJ_UNIONS_BINS/2;
     threads_log = 1;
-    while ((threads_log < IMBALANCED_THREADS_LOGMAX) && (threads_log+LOG_OFFSET2 < BINS_1D_DIM)) 
+    while ((threads_log < IMBALANCED_THREADS_LOGMAX) && (threads_log+LOG_OFFSET_IMBALANCED < BINS_1D_DIM)) 
     {
-        bin_index = bin_offset+(threads_log+LOG_OFFSET2)*BINS_1D_DIM;
+        bin_index = bin_offset+(threads_log+LOG_OFFSET_IMBALANCED)*BINS_1D_DIM;
         end_index = queue_pos[bin_index];
         size = end_index - start_index;
         if (size) {

@@ -364,8 +364,8 @@ namespace adj_unions {
             int intersect_work_est = u_len + v_len + log_u;
             //const int WORK_FACTOR = 9999; // force imbalanced-only
             int BALANCED_WORK_LIMIT = BLOCK_SIZE_OP2*(1<<LOG_OFFSET_BALANCED-1);
-            int METHOD = ((WORK_FACTOR*intersect_work_est >= binary_work_est) || (intersect_work_est > BALANCED_WORK_LIMIT));
-            //int METHOD = ((WORK_FACTOR*intersect_work_est >= binary_work_est)); 
+            //int METHOD = ((WORK_FACTOR*intersect_work_est >= binary_work_est) || (intersect_work_est > BALANCED_WORK_LIMIT));
+            int METHOD = ((WORK_FACTOR*intersect_work_est >= binary_work_est)); 
             if (!METHOD && u_len <= 1) {
                 bin_index = (METHOD*MAX_ADJ_UNIONS_BINS/2);
             } else if (!METHOD) {

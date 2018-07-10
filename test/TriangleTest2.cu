@@ -73,12 +73,15 @@ void hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
 
 
 int main(int argc, char* argv[]) {
-    
-    int device = 0;
-    struct cudaDeviceProp properties;
-    cudaGetDeviceProperties(&properties, device);
-    std::cout<<"using "<<properties.multiProcessorCount<<" multiprocessors"<<std::endl;
-    std::cout<<"max threads per processor: "<<properties.maxThreadsPerMultiProcessor<<std::endl;
+    int deviceCount = 0;
+    cudaGetDeviceCount(&deviceCount);      
+    std::cout << "Number of devices: " << deviceCount << std::endl; 
+    //int device = 4;
+    //cudaSetDevice(device);
+    //struct cudaDeviceProp properties;
+    //cudaGetDeviceProperties(&properties, device);
+    //std::cout<<"using "<<properties.multiProcessorCount<<" multiprocessors"<<std::endl;
+    //std::cout<<"max threads per processor: "<<properties.maxThreadsPerMultiProcessor<<std::endl;
    
     using namespace graph::structure_prop;
     using namespace graph::parsing_prop;

@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
     Timer<DEVICE> TM(5);
     TM.start();
 
-    // cc.run();
+    cc.run();
 
     TM.stop();
     TM.print("Computation time:");

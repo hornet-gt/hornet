@@ -5,16 +5,20 @@
 #include "Static/ClusteringCoefficient/cc.cuh"
 #include "Static/TriangleCounting/triangle2.cuh"
 
+using namespace xlib;
+
 namespace hornets_nest {
 
 ClusteringCoefficient::ClusteringCoefficient(HornetGraph& hornet) :
-                                       StaticAlgorithm(hornet)                                      
-{                                      
-    tri = new TriangleCounting2(hornet);   
+                                        TriangleCounting2(hornet)
+                                       // StaticAlgorithm(hornet)                                      
+{
+    // tri = new TriangleCounting2(hornet);   
 }
 
 ClusteringCoefficient::~ClusteringCoefficient(){
-    tri->release();
+    // tri->release();
+    TriangleCounting2::release();
     release();
 }
 
@@ -39,24 +43,46 @@ ClusteringCoefficient::~ClusteringCoefficient(){
 //     return sum;
 // }
 
+struct OPERATOR_LocalClusteringCoefficients {
+    triangle_t *d_triPerVertex;
+    float      *d_ccLocal;
+
+    OPERATOR (Vertex &vertex) {
+        degree_t deg = vertex.degree();
+        d_ccLocal[vertex.id()] = 0;
+
+        if(deg>1){
+            d_ccLocal[vertex.id()] = (float)d_triPerVertex[vertex.id()]/(float)(deg*(deg-1));
+        }
+    }
+};
+
 
 void ClusteringCoefficient::reset(){
-    tri->reset();
+    TriangleCounting2::reset();
 }
 
 void ClusteringCoefficient::run(){
-    tri->run();
+    TriangleCounting2::run();
+    forAllVertices(hornet, OPERATOR_LocalClusteringCoefficients { triPerVertex,d_ccLocal }); 
+
+
+    // int* d_ccLocalInt;
+    // int sumInt=gpu::reduce(d_ccLocalInt, 10);
+
+    // float sum=gpu::reduce(d_ccLocal, hornet.nV());
 }
 
 
 void ClusteringCoefficient::release(){
-    gpu::free(ccLocal);
-    ccLocal = nullptr;
+    gpu::free(d_ccLocal);
+    d_ccLocal = nullptr;
 }
 
 void ClusteringCoefficient::init(){
     //printf("Inside init. Printing hornet.nV(): %d\n", hornet.nV());
-    gpu::allocate(ccLocal, hornet.nV());
+    gpu::allocate(d_ccLocal, hornet.nV());
+    TriangleCounting2::init();
     reset();
 }
 

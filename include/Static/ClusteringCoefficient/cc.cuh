@@ -20,7 +20,7 @@ using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
 
 //==============================================================================
 
-class ClusteringCoefficient : public StaticAlgorithm<HornetGraph> {
+class ClusteringCoefficient : public TriangleCounting2 {
 public:
     ClusteringCoefficient(HornetGraph& hornet);
     ~ClusteringCoefficient();
@@ -35,8 +35,7 @@ public:
 
 
 private:
-   float* ccLocal { nullptr };
-   TriangleCounting2* tri;
+   float* d_ccLocal { nullptr };
 };
 
 //==============================================================================

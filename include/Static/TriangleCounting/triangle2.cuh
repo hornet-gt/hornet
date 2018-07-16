@@ -32,7 +32,7 @@ public:
 
     triangle_t countTriangles();
 
-private:
+protected:
    triangle_t* triPerVertex { nullptr };
 
 };

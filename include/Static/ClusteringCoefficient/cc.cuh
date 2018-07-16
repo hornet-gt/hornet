@@ -13,11 +13,9 @@
 
 namespace hornets_nest {
 
-//using triangle_t = int;
-using triangle_t = unsigned long long;
+
 using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
-
-
+using clusterCoeff_t =  float;
 //==============================================================================
 
 class ClusteringCoefficient : public TriangleCounting2 {
@@ -31,11 +29,13 @@ public:
     bool validate() override { return true; }
 
     void init();
-    // void copyTCToHost(triangle_t* h_tcs);
+
+    /// Array needs to be pre-allocated by user
+    void copyLocalClusCoeffToHost(clusterCoeff_t* h_tcs);
 
 
 private:
-   float* d_ccLocal { nullptr };
+   clusterCoeff_t* d_ccLocal { nullptr };
 };
 
 //==============================================================================

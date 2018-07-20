@@ -43,7 +43,22 @@
 namespace hornets_nest {
 
 
-struct Init {
+// Used at the very beginning of every BC computation.
+// Used only once.
+struct InitBC {
+    HostDeviceVar<BCData> bcd;
+
+
+    OPERATOR(vid_t src) {
+        bcd().bc[0] = 0.0;
+    }
+};
+
+
+
+// Used at the very beginning of every BC computation.
+// Once per root
+struct InitOneTree {
     HostDeviceVar<BCData> bcd;
 
     // Used at the very beginning
@@ -74,14 +89,14 @@ struct Init {
 
 //------------------------------------------------------------------------------
 
-struct BC_TopDown {
+struct BC_BFSTopDown {
     HostDeviceVar<BCData> bcd;
 
     OPERATOR(Vertex& src, Edge& edge){
-        // int x=src.id();
+
         degree_t nextLevel = bcd().currLevel + 1;
 
-        vid_t v = src.id(), w = edge.id();        
+        vid_t v = src.id(), w = edge.dst_id();        
 
         degree_t prev = atomicCAS(bcd().d + w, INT32_MAX, nextLevel);
         if (prev == INT32_MAX) {
@@ -105,14 +120,14 @@ struct BC_TopDown {
 
     //     vertexId_t *d = bcd().d;  // depth
     //     vertexId_t *sigma = bcd().sigma;
-    //     float *delta = bcd().delta;
+    //     bc_t *delta = bcd().delta;
 
     //     vertexId_t v = src;
     //     vertexId_t w = dst;
 
     //     if (d[w] == d[v] + 1)
     //     {
-    //         atomicAdd(delta + v, ((float) sigma[v] / (float) sigma[w]) * (1 + delta[w]));
+    //         atomicAdd(delta + v, ((bc_t) sigma[v] / (bc_t) sigma[w]) * (1 + delta[w]));
     //     }
     // }
 
@@ -121,18 +136,17 @@ struct BC_DepAccumulation {
     HostDeviceVar<BCData> bcd;
 
     OPERATOR(Vertex& src, Edge& edge){
-        // degree_t nextLevel = bcd().currLevel + 1;
 
-        // vid_t v = src.id(), w = edge_dst.id();        
+        vid_t v = src.id(), w = edge.dst_id();        
 
-        // degree_t *d = bcd().d;  // depth
-        // degree_t *sigma = bcd().sigma;
-        // float *delta = bcd().delta;
+        degree_t *d = bcd().d;  // depth
+        degree_t *sigma = bcd().sigma;
+        bc_t *delta = bcd().delta;
 
-        // if (d[w] == d[v] + 1)
-        // {
-        //     atomicAdd(delta + v, ((float) sigma[v] / (float) sigma[w]) * (1 + delta[w]));
-        // }
+        if (d[w] == d[v] + 1)
+        {
+            atomicAdd(delta + v, ((bc_t) sigma[v] / (bc_t) sigma[w]) * (1 + delta[w]));
+        }
     }
 };
 

@@ -52,13 +52,15 @@ namespace hornets_nest {
 
 using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
 
-using paths = degree_t;
+using paths_t = degree_t;
+using bc_t = float;
 
 struct BCData {
-    float *bc;
-    int   *d;
-    paths *sigma;
-    float *delta;
+    vid_t *d;
+    vid_t *depth_indices;
+    paths_t *sigma;
+    bc_t *delta;
+    bc_t *bc;
     degree_t currLevel;
     TwoLevelQueue<vid_t> queue;
 };
@@ -70,12 +72,16 @@ public:
 
     ~BCCentrality();
 
+    void setRoot(vid_t root_);
+
     void reset()    override;
     void run()      override;
     void release()  override;
     bool validate() override;
 
     BCData bc_data();
+
+
 
 private:
     load_balancing::BinarySearch load_balancing;
@@ -84,6 +90,7 @@ private:
 
     // bool approx;
 
+    int root;
 
     // void printKMostImportant();
 };

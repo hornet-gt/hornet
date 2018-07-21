@@ -2,10 +2,9 @@
  * @brief
  * @author Oded Green                                                       <br>
  *   NVIDIA Corporation                                                     <br>       
- *   ogreen@nvidia.com
- *   @author Muhammad Osama Sakhi                                           <br>
- *   Georgia Institute of Technology                                        <br>       
+ *   ogreen@nvidia.com                                                      <br>       
  * @date July, 2018
+ *
  *
  * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
@@ -34,65 +33,89 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
- *
- * @file
  */
-#pragma once
-
-#include "HornetAlg.hpp"
-#include "Core/LoadBalancing/VertexBased.cuh"
-#include "Core/LoadBalancing/ScanBased.cuh"
-#include "Core/LoadBalancing/BinarySearch.cuh"
-#include "Core/HostDeviceVar.cuh"
-#include <Core/GPUCsr/Csr.cuh>
 #include <Core/GPUHornet/Hornet.cuh>
 
+#include "Static/BetweennessCentrality/bc.cuh"
+#include "Static/BetweennessCentrality/approximate_bc.cuh"
 
+#include <stdio.h>
+#include <stdlib.h>
+
+using namespace std;
 namespace hornets_nest {
 
-using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
+/// TODO - changed hostKatzdata to pointer so that I can try to inherit it in
+// the streaming case.
 
-using paths_t = degree_t;
-using bc_t = float;
+ApproximateBC::ApproximateBC(HornetGraph& hornet, 
+    vid_t* h_rootIDs_, vid_t numRoots_):
+                                       BCCentrality(hornet)
+{
+    numRoots = numRoots_;
+    h_rootIDs = new vid_t[numRoots];
+    memcpy(h_rootIDs,h_rootIDs_, sizeof(vid_t)*numRoots);
 
-struct BCData {
-    vid_t *d;
-    vid_t *depth_indices;
-    paths_t *sigma;
-    bc_t *delta;
-    bc_t *bc;
-    vid_t root;
-    degree_t currLevel;
-    TwoLevelQueue<vid_t> queue;
-};
+    reset();
+}
 
-class BCCentrality : public StaticAlgorithm<HornetGraph> {
-public:
-    BCCentrality(HornetGraph& hornet);
-    // BCCentrality(HornetGraph& hornet, int k_roots, vid_t* roots);
+ApproximateBC::~ApproximateBC() {
+    release();
+}
 
-    ~BCCentrality();
+void ApproximateBC::reset() {
+    BCCentrality::reset();
+}
 
-    void setRoot(vid_t root_);
+void ApproximateBC::release(){
+    delete [] h_rootIDs;
+}
 
-    void reset()    override;
-    void run()      override;
-    void release()  override;
-    bool validate() override;
+void ApproximateBC::run() {
 
-    BCData bc_data();
-
-
-
-private:
-    load_balancing::BinarySearch load_balancing;
-
-    HostDeviceVar<BCData>       hd_BCData;    
-
-    // bool approx;
+    for(vid_t r=0; r<numRoots; r++){
+        if((r%200)==0)
+            cout << r << ", " << flush;
+        
+        BCCentrality::setRoot(h_rootIDs[r]);
+        BCCentrality::run();
+    }
+    cout << endl;
+}
 
 
-    // void printKMostImportant();
-};
+bool ApproximateBC::validate() {
+    return true;
+}
 
-} // hornetAlgs namespace
+    
+void ApproximateBC::generateRandomRootsUniform(vid_t nV, 
+    vid_t numRoots, vid_t** returnRoots, int RandSeed){
+
+    bool* selected = new bool[nV];
+
+    vid_t* tempRoots = new vid_t[numRoots];
+    memset(selected,false,sizeof(bool)*nV);
+
+    time_t t;
+
+    if (RandSeed==-1)
+        srand((unsigned) time(&t));
+
+    int v=0;
+    while(v<numRoots){
+        vid_t randV = rand()%nV;
+
+        if(selected[randV]==true)
+            continue;
+        selected[randV]=true;
+        tempRoots[v++]=randV;
+
+    }
+
+    delete[] selected;
+    *returnRoots = tempRoots;
+}
+
+
+} // namespace hornets_nest

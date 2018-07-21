@@ -89,7 +89,7 @@ void BCCentrality::release(){
 }
 
 void BCCentrality::setRoot(vid_t root_){
-    root=root_;
+    hd_BCData().root=root_;
 }
 
 void BCCentrality::run() {
@@ -98,13 +98,14 @@ void BCCentrality::run() {
     // Initialization
     hd_BCData().currLevel=0;
     forAllnumV(hornet, InitOneTree { hd_BCData });
+    vid_t root = hd_BCData().root;
 
     hd_BCData().queue.insert(root);                   // insert source in the frontier
     gpu::memsetZero(hd_BCData().d + root);
 
     // Regular BFS
     hd_BCData().depth_indices[0]=1;
-    
+
     while (hd_BCData().queue.size() > 0) {
 
         hd_BCData().depth_indices[hd_BCData().currLevel+1]=
@@ -128,10 +129,9 @@ void BCCentrality::run() {
         // cout << "Depth in the RBFS " <<  hd_BCData().queue.size() << endl;
         forAllEdges(hornet, hd_BCData().queue, BC_DepAccumulation { hd_BCData }, load_balancing);
 
-        
+        forAllnumV(hornet, IncrementBC { hd_BCData });
 
         hd_BCData().currLevel--;
-
     }
 }
 

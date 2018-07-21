@@ -2,9 +2,7 @@
  * @brief
  * @author Oded Green                                                       <br>
  *   NVIDIA Corporation                                                     <br>       
- *   ogreen@nvidia.com
- *   @author Muhammad Osama Sakhi                                           <br>
- *   Georgia Institute of Technology                                        <br>       
+ *   ogreen@nvidia.com                                                      <br>
  * @date July, 2018
  *
  * @copyright Copyright © 2017 Hornet. All rights reserved.
@@ -47,52 +45,27 @@
 #include <Core/GPUCsr/Csr.cuh>
 #include <Core/GPUHornet/Hornet.cuh>
 
+#include "Static/BetweennessCentrality/bc.cuh"
+
 
 namespace hornets_nest {
 
-using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
 
-using paths_t = degree_t;
-using bc_t = float;
-
-struct BCData {
-    vid_t *d;
-    vid_t *depth_indices;
-    paths_t *sigma;
-    bc_t *delta;
-    bc_t *bc;
-    vid_t root;
-    degree_t currLevel;
-    TwoLevelQueue<vid_t> queue;
-};
-
-class BCCentrality : public StaticAlgorithm<HornetGraph> {
+class ExactBC : public BCCentrality {
 public:
-    BCCentrality(HornetGraph& hornet);
-    // BCCentrality(HornetGraph& hornet, int k_roots, vid_t* roots);
+    ExactBC(HornetGraph& hornet);
 
-    ~BCCentrality();
-
-    void setRoot(vid_t root_);
+    ~ExactBC();
 
     void reset()    override;
     void run()      override;
     void release()  override;
     bool validate() override;
 
-    BCData bc_data();
-
-
-
 private:
-    load_balancing::BinarySearch load_balancing;
 
-    HostDeviceVar<BCData>       hd_BCData;    
+    vid_t start_v, stop_v;
 
-    // bool approx;
-
-
-    // void printKMostImportant();
 };
 
 } // hornetAlgs namespace

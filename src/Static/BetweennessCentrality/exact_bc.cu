@@ -2,10 +2,9 @@
  * @brief
  * @author Oded Green                                                       <br>
  *   NVIDIA Corporation                                                     <br>       
- *   ogreen@nvidia.com
- *   @author Muhammad Osama Sakhi                                           <br>
- *   Georgia Institute of Technology                                        <br>       
+ *   ogreen@nvidia.com                                                      <br>
  * @date July, 2018
+ *
  *
  * @copyright Copyright © 2017 Hornet. All rights reserved.
  *
@@ -34,65 +33,52 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
- *
- * @file
  */
-#pragma once
 
-#include "HornetAlg.hpp"
-#include "Core/LoadBalancing/VertexBased.cuh"
-#include "Core/LoadBalancing/ScanBased.cuh"
-#include "Core/LoadBalancing/BinarySearch.cuh"
-#include "Core/HostDeviceVar.cuh"
-#include <Core/GPUCsr/Csr.cuh>
-#include <Core/GPUHornet/Hornet.cuh>
+#include "Static/BetweennessCentrality/bc.cuh"
+#include "Static/BetweennessCentrality/exact_bc.cuh"
 
-
+using namespace std;
 namespace hornets_nest {
 
-using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
+/// TODO - changed hostKatzdata to pointer so that I can try to inherit it in
+// the streaming case.
 
-using paths_t = degree_t;
-using bc_t = float;
+ExactBC::ExactBC(HornetGraph& hornet) :
+                                       BCCentrality(hornet)
+{
+    start_v = 0;
+    stop_v  = hornet.nV();
 
-struct BCData {
-    vid_t *d;
-    vid_t *depth_indices;
-    paths_t *sigma;
-    bc_t *delta;
-    bc_t *bc;
-    vid_t root;
-    degree_t currLevel;
-    TwoLevelQueue<vid_t> queue;
-};
+    reset();
+}
 
-class BCCentrality : public StaticAlgorithm<HornetGraph> {
-public:
-    BCCentrality(HornetGraph& hornet);
-    // BCCentrality(HornetGraph& hornet, int k_roots, vid_t* roots);
+ExactBC::~ExactBC() {
+    release();
+}
 
-    ~BCCentrality();
+void ExactBC::reset() {
+    BCCentrality::reset();
+}
 
-    void setRoot(vid_t root_);
-
-    void reset()    override;
-    void run()      override;
-    void release()  override;
-    bool validate() override;
-
-    BCData bc_data();
+void ExactBC::release(){
+}
 
 
+void ExactBC::run() {
 
-private:
-    load_balancing::BinarySearch load_balancing;
+    for(vid_t r=start_v; r<stop_v; r++){
+        if((r%200)==0)
+            cout << r << ", " << flush;
+        BCCentrality::setRoot(r);
+        BCCentrality::run();
+    }
+    cout << endl;
+}
 
-    HostDeviceVar<BCData>       hd_BCData;    
 
-    // bool approx;
+bool ExactBC::validate() {
+    return true;
+}
 
-
-    // void printKMostImportant();
-};
-
-} // hornetAlgs namespace
+} // namespace hornets_nest

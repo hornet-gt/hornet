@@ -151,4 +151,16 @@ struct BC_DepAccumulation {
 };
 
 
+// Used at the very beginning of every BC computation.
+// Once per root
+struct IncrementBC {
+    HostDeviceVar<BCData> bcd;
+
+    // Used at the very beginning
+    OPERATOR(vid_t src) {
+        if(src != bcd().root)
+            bcd().bc[src]+=bcd().delta[src];
+    }
+};
+
 } // namespace hornets_nest

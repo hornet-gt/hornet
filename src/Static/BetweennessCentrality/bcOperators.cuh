@@ -69,26 +69,6 @@ struct InitOneTree {
     }
 };
 
-    // static __device__ __forceinline__ void bcExpandFrontier(cuStinger* custing,
-    //     vertexId_t src, vertexId_t dst, void* metadata)
-    // {
-    //     bcTree* bcd = (bcTree*) metadata;
-    //     vertexId_t nextLevel = bcd().currLevel + 1;
-
-    //     vertexId_t v = src;
-    //     vertexId_t w = dst;
-
-    //     vertexId_t prev = atomicCAS(bcd().d + w, INT32_MAX, nextLevel);
-    //     if (prev == INT32_MAX) {
-    //         bcd().queue.enqueue(w);
-    //     }
-    //     if (bcd().d[w] == nextLevel) {
-    //         atomicAdd(bcd().sigma + w, bcd().sigma[v]);
-    //     }
-    // }
-
-//------------------------------------------------------------------------------
-
 struct BC_BFSTopDown {
     HostDeviceVar<BCData> bcd;
 
@@ -107,29 +87,6 @@ struct BC_BFSTopDown {
         }
     }
 };
-
-
-
-//------------------------------------------------------------------------------
-
-    // // Dependency accumulation for one frontier
-    // static __device__ __forceinline__ void dependencyAccumulation(cuStinger* custing,
-    //     vertexId_t src, vertexId_t dst, void* metadata)
-    // {
-    //     bcTree* bcd = (bcTree*) metadata;
-
-    //     vertexId_t *d = bcd().d;  // depth
-    //     vertexId_t *sigma = bcd().sigma;
-    //     bc_t *delta = bcd().delta;
-
-    //     vertexId_t v = src;
-    //     vertexId_t w = dst;
-
-    //     if (d[w] == d[v] + 1)
-    //     {
-    //         atomicAdd(delta + v, ((bc_t) sigma[v] / (bc_t) sigma[w]) * (1 + delta[w]));
-    //     }
-    // }
 
 
 struct BC_DepAccumulation {

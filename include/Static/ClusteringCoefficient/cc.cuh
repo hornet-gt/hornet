@@ -35,7 +35,12 @@ public:
 
 
 private:
+    // One value per vertex
    clusterCoeff_t* d_ccLocal { nullptr };
+
+    // One value per graph
+   clusterCoeff_t* d_ccGlobal { nullptr };   
+   clusterCoeff_t  h_ccGlobal;   
 };
 
 //==============================================================================

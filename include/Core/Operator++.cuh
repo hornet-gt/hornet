@@ -168,20 +168,22 @@ void forAllEdges(HornetClass&         hornet,
 
 template<typename HornetClass, typename Operator>
 void forAllAdjUnions(HornetClass&         hornet,
-                     const Operator&      op);
+                     const Operator&      op,
+                     const int WORK_FACTOR=1);
 
 template<typename HornetClass, typename Operator>
 void forAllAdjUnions(HornetClass&         hornet,
                      TwoLevelQueue<vid2_t> vertex_pairs,
-                     const Operator&      op);
+                     const Operator&      op,
+                     const int WORK_FACTOR=1);
 
 template<typename HornetClass, typename Operator>
 void forAllEdgesAdjUnionSequential(HornetClass &hornet, vid_t* queue, const unsigned long long size, const Operator &op, int flag);
 template<typename HornetClass, typename Operator>
-void forAllEdgesAdjUnionBalanced(HornetClass &hornet, vid_t* queue, const unsigned long long size, const Operator &op, unsigned long long threads_per_union, int flag);
+void forAllEdgesAdjUnionBalanced(HornetClass &hornet, vid_t* queue, const unsigned long long start, const unsigned long long end, const Operator &op, unsigned long long threads_per_union, int flag);
 
 template<typename HornetClass, typename Operator>
-void forAllEdgesAdjUnionImbalanced(HornetClass &hornet, vid_t* queue, const unsigned long long size, const Operator &op, unsigned long long threads_per_union, int flag);
+void forAllEdgesAdjUnionImbalanced(HornetClass &hornet, vid_t* queue, const unsigned long long start, const unsigned long long end, const Operator &op, unsigned long long threads_per_union, int flag);
 
 /**
  * @brief apply the `Operator` to all vertices in the graph

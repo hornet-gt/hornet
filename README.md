@@ -73,20 +73,20 @@ version installed on the system
 | (SSSP) Single-Source Shortest Path  |     yes       | on-going |
 | (CC) Connected Components           |     yes       | on-going |
 | (SCC) Strongly Connected Components |    to-do      |  to-do   |
-| (MST) Minimum Spanning Tree         |    to-do      |  to-do   |
+| (MST) Minimum Spanning Tree         |   on-going    |  to-do   |
 | (BC) Betweeness Centrality          |   on-going    | on-going |
 | (PG) Page Rank                      |     yes       | on-going |
 | (TC) Triangle Counting              |     yes       |   yes    |
 | (KC) Katz Centrality                |     yes       |   yes    |
 | (MIS) Maximal Independent Set       |   on-going    |  to-do   |
 | (MF) Maximum Flow                   |    to-do      |  to-do   |
-| (CC) Clustering Coeffient           |    to-do      |  to-do   |
+| (CC) Clustering Coeffient           |   on-going    |  to-do   |
 | (ST) St-Connectivity                |    to-do      |  to-do   |
 | (TC) Transitive Closure             |    to-do      |  to-do   |
 | Community Detection                 |    to-do      |  to-do   |
 | Temporal Motif Finding              |   on-going    |  to-do   |
 | Sparse Vector-Matrix Multiplication |     yes       |  to-do   |
-| Jaccard indices                     |    to-do      |  to-do   |
+| Jaccard indices                     |   on-going    |  to-do   |
 | Energy/Parity Game                  |   on-going    |  to-do   |
 
 ## Performance ##
@@ -148,12 +148,16 @@ If you find any bugs please report them by using the repository (github **issues
 We are also ready to engage in improving and extending the framework if you request new features.
 
 ## Publications ##
-
+* F. Busato, O. Green, N. Bombieri, D. Bader, **“Hornet: An Efficient Data Structure for Dynamic Sparse Graphs and Matrices”**, IEEE High Performance Extreme Computing Conference (HPEC), Waltham, Massachusetts, 2018
+[link](https://www.researchgate.net/publication/327569751_Hornet_An_Efficient_Data_Structure_for_Dynamic_Sparse_Graphs_and_Matrices_on_GPUs) 
 * Oded Green, David A. Bader, **"cuSTINGER: Supporting dynamic graph algorithms
   for GPUs"**,
   IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September,
   2016, Waltham, MA, USA, pp. 1-6.
   [link](https://www.researchgate.net/publication/308174457_cuSTINGER_Supporting_dynamic_graph_algorithms_for_GPUs)
+* Fox, O. Green, K. Gabert, X. An, D. Bader, **“Fast and Adaptive List Intersections on the GPU”**, IEEE High Performance Extreme Computing Conference (HPEC), Waltham, Massachusetts, 2018 \**HPEC Graph Challenge Finalist *\*
+* O. Green, J. Fox, A. Tripathy, A. Watkins, K. Gabert, E. Kim, X. An, K. Aatish, D. Bader, **“Logarithmic Radix Binning and Vectorized Triangle Counting”**, IEEE High Performance Extreme Computing Conference (HPEC), Waltham, Massachusetts, 2018 (HPEC Graph Challenge Innovation Award)
+*	A. van der Grinten, E. Bergamini, O. Green, H. Meyerhenke, D. Bader, **“Scalable Katz Ranking Computation in Large Dynamic Graphs”**, European Symposium on Algorithms, Helsinki, Finland, 2018 
 * Oded Green, James Fox, Euna Kim, Federico Busato, Nicola Bombieri,
   Kartik Lakhotia, Shijie Zhou, Shreyas Singapura, Hanqing Zeng,
   Rajgopal Kannan, Viktor Prasanna, David A. Bader,

@@ -112,20 +112,16 @@ We are also ready to engage in improving and extending the framework if you requ
 
 ## Publications ##
 
+
+* F. Busato, O. Green, N. Bombieri, D. Bader, **“Hornet: An Efficient Data Structure for Dynamic Sparse Graphs and Matrices”**, IEEE High Performance Extreme Computing Conference (HPEC), Waltham, Massachusetts, 2018
+[link](https://www.researchgate.net/publication/327569751_Hornet_An_Efficient_Data_Structure_for_Dynamic_Sparse_Graphs_and_Matrices_on_GPUs) 
 * Oded Green, David A. Bader, **"cuSTINGER: Supporting dynamic graph algorithms
   for GPUs"**,
   IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September,
   2016, Waltham, MA, USA, pp. 1-6.
   [link](https://www.researchgate.net/publication/308174457_cuSTINGER_Supporting_dynamic_graph_algorithms_for_GPUs)
-* Oded Green, James Fox, Euna Kim, Federico Busato, Nicola Bombieri,
-  Kartik Lakhotia, Shijie Zhou, Shreyas Singapura, Hanqing Zeng,
-  Rajgopal Kannan, Viktor Prasanna, David A. Bader,
-  **"Quickly Finding a Truss in a Haystack"**,
-  IEEE/Amazon/DARPA Graph Challenge, \**Innovation Awards*\*.
-* Devavret Makkar, David A. Bader, Oded Green,
-  **Exact and Parallel Triangle Counting in Streaming Graphs**,
-  IEEE Conference on High Performance Computing, Data, and Analytics (HiPC),
-  18-21 December 2017, Jaipur, India, pp. 1-10.
+  
+  Algorithm publications can be found in HornetsNest.
 
 ---
 ### <center>If you find this software useful in academic work, please acknowledge Hornet. </center> ###

@@ -1,12 +1,61 @@
 
+/**
+ * @brief
+ * @author Oded Green                                                       <br>
+ *   NVIDIA Corporation                                                     <br>       
+ *   ogreen@nvidia.com
+ * @date October, 2018
+ *
+ *
+ * @copyright Copyright © 2017 Hornet. All rights reserved.
+ *
+ * @license{<blockquote>
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ * * Neither the name of the copyright holder nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * </blockquote>}
+ * 
+ * Please cite:
+ * * J. Fox, O. Green, K. Gabert, X. An, D. Bader, “Fast and Adaptive List Intersections on the GPU”, 
+ * IEEE High Performance Extreme Computing Conference (HPEC), 
+ * Waltham, Massachusetts, 2018
+ * * O. Green, J. Fox, A. Tripathy, A. Watkins, K. Gabert, E. Kim, X. An, K. Aatish, D. Bader, 
+ * “Logarithmic Radix Binning and Vectorized Triangle Counting”, 
+ * IEEE High Performance Extreme Computing Conference (HPEC), 
+ * Waltham, Massachusetts, 2018
+ * * O. Green, P. Yalamanchili ,L.M. Munguia, “Fast Triangle Counting on GPU”, 
+ * Irregular Applications: Architectures and Algorithms (IA3), 
+ * New Orleans, Louisiana, 2014
+ * 
+ */
+
+
 #include <cuda.h>
 #include <cuda_runtime.h>
 
 #include "Static/ClusteringCoefficient/cc.cuh"
 #include "Static/TriangleCounting/triangle2.cuh"
 
-// #include <Device/Util/SafeCudaAPI.cuh>
-// #include <Device/Primitives/CubWrapper.cuh>
 
 #include "Core/StandardAPI.hpp"
 
@@ -51,12 +100,6 @@ void ClusteringCoefficient::run(){
     forAllVertices(hornet, OPERATOR_LocalClusteringCoefficients { triPerVertex,d_ccLocal }); 
 
 
-    // int* d_ccLocalInt;
-    // int sumInt=gpu::reduce<clusterCoeff_t>(d_ccLocal, size_t(hornet.nV()));
-
-    // xlib::CubReduce<clusterCoeff_t> red(d_ccLocal, hornet.nV());
-    // gpu::reduce
-
     int _num_items = hornet.nV();
 
     void*  _d_temp_storage     { nullptr };
@@ -69,8 +112,7 @@ void ClusteringCoefficient::run(){
     gpu::free(_d_temp_storage);
 
     std::cout << "Global CC " << h_ccGlobal/hornet.nV() << std::endl;
-    // clusterCoeff_t sum=gpu::reduce(d_ccLocal, hornet.nV());
-}
+ }
 
 
 void ClusteringCoefficient::release(){

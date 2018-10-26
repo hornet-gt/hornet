@@ -205,4 +205,9 @@ int TwoLevelQueue<T>::enqueue_items() const noexcept {
     return _enqueue_items;
 }
 
+template<typename T>
+void TwoLevelQueue<T>::set_positions(int2 &h_positions){
+   _h_counters=h_positions;
+   cuMemcpyToDevice(_h_counters, _d_counters);    
+}
 } // namespace hornets_nest

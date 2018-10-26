@@ -8,34 +8,34 @@
 #include <Core/GPUCsr/Csr.cuh>
 #include <Core/GPUHornet/Hornet.cuh>
 
+#include "Static/TriangleCounting/triangle2.cuh"
+
+
 namespace hornets_nest {
 
-//using triangle_t = int;
-using triangle_t = unsigned long long;
+
 using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
-
-
+using clusterCoeff_t =  float;
 //==============================================================================
 
-class TriangleCounting2 : public StaticAlgorithm<HornetGraph> {
+class ClusteringCoefficient : public TriangleCounting2 {
 public:
-    TriangleCounting2(HornetGraph& hornet);
-    ~TriangleCounting2();
+    ClusteringCoefficient(HornetGraph& hornet);
+    ~ClusteringCoefficient();
 
     void reset()    override;
     void run()      override;
     void release()  override;
     bool validate() override { return true; }
 
-    void run(const int WORK_FACTOR);
     void init();
-    void copyTCToHost(triangle_t* h_tcs);
 
-    triangle_t countTriangles();
+    /// Array needs to be pre-allocated by user
+    void copyLocalClusCoeffToHost(clusterCoeff_t* h_tcs);
 
-protected:
-   triangle_t* triPerVertex { nullptr };
 
+private:
+   clusterCoeff_t* d_ccLocal { nullptr };
 };
 
 //==============================================================================

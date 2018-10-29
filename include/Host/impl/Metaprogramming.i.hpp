@@ -187,6 +187,19 @@ struct SizeSum<T> {
     static const unsigned value = sizeof(T);
 };
 
+//FirstNSizeSum<0, T, Ts...>::value should be 0
+//FirstNSizeSum<1, T, Ts...>::value should be sizeof(T)
+//FirstNSizeSum<2, T0, T1, Ts...>::value should be sizeof(T0) + sizeof(T1)
+template<int N, typename T, typename... Ts>
+struct FirstNSizeSum<N, T, Ts...> {
+    static const unsigned value = sizeof(T) + FirstNSizeSum<N-1, Ts...>::value;
+};
+
+template<typename T, typename... Ts>
+struct FirstNSizeSum<0, T, Ts...> {
+    static const unsigned value = 0;
+};
+
 template<typename... TArgs>
 struct MaxSize {
     static const unsigned value = xlib::max(sizeof(TArgs)...);

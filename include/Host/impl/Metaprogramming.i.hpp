@@ -190,8 +190,15 @@ struct SizeSum<T> {
 //FirstNSizeSum<0, T, Ts...>::value should be 0
 //FirstNSizeSum<1, T, Ts...>::value should be sizeof(T)
 //FirstNSizeSum<2, T0, T1, Ts...>::value should be sizeof(T0) + sizeof(T1)
+template<int N, typename... TArgs>
+struct FirstNSizeSum {
+    static const unsigned value = 0;
+};
+//------------------------------------------------------------------------------
+
 template<int N, typename T, typename... Ts>
 struct FirstNSizeSum<N, T, Ts...> {
+    static_assert(N <= 1+(sizeof...(Ts)), "FirstNSizeSum index exceeds parameter pack size");
     static const unsigned value = sizeof(T) + FirstNSizeSum<N-1, Ts...>::value;
 };
 

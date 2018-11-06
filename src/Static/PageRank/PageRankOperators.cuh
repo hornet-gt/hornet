@@ -77,7 +77,7 @@ struct ComputeContribuitionPerVertex {
 
 //------------------------------------------------------------------------------
 
-struct AddContribuitions {
+struct AddContribuitionsPush {
     HostDeviceVar<PrData> hd_prdata;
 
     OPERATOR(Vertex& src, Edge& edge) {
@@ -88,7 +88,7 @@ struct AddContribuitions {
 
 //------------------------------------------------------------------------------
 
-struct AddContribuitionsUndirected {
+struct AddContribuitionsPull {
     HostDeviceVar<PrData> hd_prdata;
 
     OPERATOR(Vertex& src, Edge& edge) {

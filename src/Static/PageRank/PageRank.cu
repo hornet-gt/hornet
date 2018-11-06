@@ -41,19 +41,27 @@
 
 namespace hornets_nest {
 
+
 StaticPageRank::StaticPageRank(HornetGPU& hornet,
-                               int  iteration_max,
-                               pr_t threshold,
-                               pr_t damp) :
+	            	int  iteration_max,
+	            	pr_t     threshold,
+	            	pr_t          damp,
+		        	bool isUndirected):
                                     StaticAlgorithm(hornet),
                                     load_balancing(hornet) {
-    setInputParameters(iteration_max, threshold, damp);
+	if(isUndirected==true)
+		printf("Init is true\n");
+	else
+		printf("Init is false\n");
+
+    setInputParameters(iteration_max, threshold, damp,isUndirected);
 	hd_prdata().nV = hornet.nV();
 	gpu::allocate(hd_prdata().prev_pr,  hornet.nV() + 1);
 	gpu::allocate(hd_prdata().curr_pr,  hornet.nV() + 1);
 	gpu::allocate(hd_prdata().abs_diff, hornet.nV() + 1);
 	gpu::allocate(hd_prdata().contri,   hornet.nV() + 1);
 	gpu::allocate(hd_prdata().reduction_out, 1);
+
 	reset();
 }
 
@@ -76,12 +84,18 @@ void StaticPageRank::reset(){
 
 void StaticPageRank::setInputParameters(int  iteration_max,
                                         pr_t threshold,
-                                        pr_t damp) {
+                                        pr_t damp,
+                                        bool isUndirected) {
 	hd_prdata().iteration_max   = iteration_max;
 	hd_prdata().threshold       = threshold;
 	hd_prdata().damp            = damp;
 	hd_prdata().normalized_damp = (1.0f - hd_prdata().damp) /
                                   static_cast<float>(hornet.nV());
+	this->isUndirected = isUndirected;
+	if(this->isUndirected==true)
+		printf("Init is true\n");
+	else
+		printf("Init is false\n");
 }
 
 void StaticPageRank::run() {
@@ -90,14 +104,24 @@ void StaticPageRank::run() {
 
 	pr_t h_out = hd_prdata().threshold + 1;
 
+	if(this->isUndirected==true)
+		printf("Run is true\n");
+	else
+		printf("Run is false\n");
+
+
 	while(hd_prdata().iteration < hd_prdata().iteration_max &&
           h_out > hd_prdata().threshold) {
 
 		forAllnumV(hornet, ResetCurr { hd_prdata });
 		forAllVertices(hornet, ComputeContribuitionPerVertex { hd_prdata });
-		forAllEdges(hornet, AddContribuitionsUndirected { hd_prdata },
-                    load_balancing);
-		//forAllEdges(hornet, AddContribuitions { hd_prdata }, load_balancing);
+		if (isUndirected == true){
+			printf("***");
+			forAllEdges(hornet, AddContribuitionsPush { hd_prdata }, load_balancing);
+		}else{
+			printf("###");
+			forAllEdges(hornet, AddContribuitionsPull { hd_prdata },load_balancing);
+		}
 		forAllnumV(hornet, DampAndDiffAndCopy { hd_prdata });
 
 		forAllnumV(hornet, Sum { hd_prdata });

@@ -1,3 +1,0 @@
-[submodule "externals/xlib"]
-	path = externals/xlib
-	url = https://github.com/hornet-gt/XLib

@@ -15,20 +15,20 @@ FIND_PACKAGE(CUDA REQUIRED)
 set(CUDA_SEPARABLE_COMPILATION ON)
 
 include_directories(include)
-include_directories(externals/cub-1.8.0)
-include_directories(externals/cpp-btree-master)
-include_directories(xlib/include)
+include_directories(../externals/cub-1.8.0)
+include_directories(../externals/cpp-btree-master)
+include_directories(../xlib/include)
 include_directories(${CUDA_INCLUDE_DIRS})
 
 #set(WARNING_FLAGS ON)
 set(CUB_LIBRARY ON)
-include(compiler-util/CMakeLists.txt)
+include(../compiler-util/CMakeLists.txt)
 
 #-------------------------------------------------------------------------------
 file(GLOB_RECURSE CPP_SRCS ${PROJECT_SOURCE_DIR}/src/*.cpp)
 file(GLOB_RECURSE CU_SRCS  ${PROJECT_SOURCE_DIR}/src/*.cu)
-file(GLOB_RECURSE SCPP_SRCS ${PROJECT_SOURCE_DIR}/xlib/src/*.cpp)
-file(GLOB_RECURSE SCU_SRCS  ${PROJECT_SOURCE_DIR}/xlib/src/*.cu)
+file(GLOB_RECURSE SCPP_SRCS ${PROJECT_SOURCE_DIR}/../xlib/src/*.cpp)
+file(GLOB_RECURSE SCU_SRCS  ${PROJECT_SOURCE_DIR}/../xlib/src/*.cu)
 
 cuda_add_library(hornet ${CPP_SRCS} ${CU_SRCS} ${SCPP_SRCS} ${SCU_SRCS})
 #-------------------------------------------------------------------------------

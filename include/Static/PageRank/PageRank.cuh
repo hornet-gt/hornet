@@ -72,9 +72,10 @@ struct PrData {
 class StaticPageRank : public StaticAlgorithm<HornetGPU> {
 public:
     StaticPageRank(HornetGPU& hornet,
-                   int  iteration_max = 20,
-                   pr_t     threshold = 0.001f,
-                   pr_t          damp = 0.85f);
+	            	int  iteration_max = 20,
+	            	pr_t     threshold = 0.001f,
+	            	pr_t          damp = 0.85f,
+		        	bool  isUndirected = false);
     ~StaticPageRank();
 
     void reset()    override;
@@ -84,7 +85,8 @@ public:
 
 	void setInputParameters(int iteration_max = 20,
                             pr_t    threshold = 0.001f,
-                            pr_t         damp = 0.85f);
+                            pr_t         damp = 0.85f,
+		                    bool isUndirected  = false);
 
 	int get_iteration_count();
 
@@ -95,9 +97,10 @@ public:
     PrData pr_data();
 
 private:
-    load_balancing::BinarySearch load_balancing;
-    HostDeviceVar<PrData>       hd_prdata;
-    pr_t*                       host_page_rank { nullptr };
+    load_balancing::BinarySearch 	load_balancing;
+    HostDeviceVar<PrData>       	hd_prdata;
+    pr_t*                       	host_page_rank { nullptr };
+    bool 							isUndirected;
 };
 
 } // hornets_nest namespace

@@ -5,7 +5,6 @@ cmake_minimum_required(VERSION 3.5)
 #FIND_PACKAGE(CUDA REQUIRED)
 
 set(WARNING_FLAGS ON)
-#set(CUDA_C_COMPILER "/nethome/fbusata3/bin/llvm-3.6.2.src/build/bin/clang++")
 
 include(${PROJECT_SOURCE_DIR}/../CMakeLists.txt)
 

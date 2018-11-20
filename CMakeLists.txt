@@ -16,14 +16,13 @@ set(CUDA_SEPARABLE_COMPILATION ON)
 
 include_directories(include)
 include_directories(externals/cub-1.8.0)
-include_directories(externals/moderngpu/src)
 include_directories(externals/cpp-btree-master)
 include_directories(xlib/include)
 include_directories(${CUDA_INCLUDE_DIRS})
 
 #set(WARNING_FLAGS ON)
 set(CUB_LIBRARY ON)
-include(xlib/util/CMakeLists.txt)
+include(compiler-util/CMakeLists.txt)
 
 #-------------------------------------------------------------------------------
 file(GLOB_RECURSE CPP_SRCS ${PROJECT_SOURCE_DIR}/src/*.cpp)

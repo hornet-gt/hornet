@@ -1,3 +1,18 @@
+/*
+Please cite:
+* J. Fox, O. Green, K. Gabert, X. An, D. Bader, “Fast and Adaptive List Intersections on the GPU”, 
+IEEE High Performance Extreme Computing Conference (HPEC), 
+Waltham, Massachusetts, 2018
+* O. Green, J. Fox, A. Tripathy, A. Watkins, K. Gabert, E. Kim, X. An, K. Aatish, D. Bader, 
+“Logarithmic Radix Binning and Vectorized Triangle Counting”, 
+IEEE High Performance Extreme Computing Conference (HPEC), 
+Waltham, Massachusetts, 2018
+* O. Green, P. Yalamanchili ,L.M. Munguia, “Fast Triangle Counting on GPU”, 
+Irregular Applications: Architectures and Algorithms (IA3), 
+New Orleans, Louisiana, 2014 
+*/
+
+
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -104,7 +119,7 @@ struct OPERATOR_AdjIntersectionCountBalanced {
         }
 
         atomicAdd(d_triPerVertex+u.id(), count);
-        atomicAdd(d_triPerVertex+v.id(), count);
+        //atomicAdd(d_triPerVertex+v.id(), count);
     }
 };
 
@@ -134,10 +149,14 @@ void TriangleCounting2::reset(){
     forAllVertices(hornet, OPERATOR_InitTriangleCounts { triPerVertex });
 }
 
-void TriangleCounting2::run(){
+void TriangleCounting2::run() {
     //printf("Inside run()\n");
-    forAllAdjUnions(hornet, OPERATOR_AdjIntersectionCountBalanced { triPerVertex });
+    forAllAdjUnions(hornet, OPERATOR_AdjIntersectionCountBalanced { triPerVertex }, 1);
     //forAllAdjUnions(hornet, OPERATOR_AdjIntersectionCount { triPerVertex });
+}
+
+void TriangleCounting2::run(const int WORK_FACTOR=1){
+    forAllAdjUnions(hornet, OPERATOR_AdjIntersectionCountBalanced { triPerVertex }, WORK_FACTOR);
 }
 
 

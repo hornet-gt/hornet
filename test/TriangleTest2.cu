@@ -73,31 +73,47 @@ void hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
 
 
 int main(int argc, char* argv[]) {
-
+    int deviceCount = 0;
+    cudaGetDeviceCount(&deviceCount);      
+    std::cout << "Number of devices: " << deviceCount << std::endl; 
+    //int device = 4;
+    //cudaSetDevice(device);
+    //struct cudaDeviceProp properties;
+    //cudaGetDeviceProperties(&properties, device);
+    //std::cout<<"using "<<properties.multiProcessorCount<<" multiprocessors"<<std::endl;
+    //std::cout<<"max threads per processor: "<<properties.maxThreadsPerMultiProcessor<<std::endl;
+   
     using namespace graph::structure_prop;
     using namespace graph::parsing_prop;
 
     graph::GraphStd<vid_t, eoff_t> graph(UNDIRECTED);
-    graph.read(argv[1], SORT | PRINT_INFO);
+    graph.read(argv[1], DIRECTED_BY_DEGREE | PRINT_INFO | SORT);
     HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
                            graph.csr_out_edges());
 
     HornetGraph hornet_graph(hornet_init);
-    //hornet_graph.print();
     TriangleCounting2 tc(hornet_graph);
     tc.init();
+    
+    int work_factor;
+    if (argc > 2) {
+        work_factor = atoi(argv[2]);
+    } else {
+        work_factor = 1;
+    }
+
     Timer<DEVICE> TM(5);
-    cudaProfilerStart();
+    //cudaProfilerStart();
     TM.start();
 
-    tc.run();
+    tc.run(work_factor);
 
     TM.stop();
-    cudaProfilerStop();
+    //cudaProfilerStop();
     TM.print("Computation time:");
 
     triangle_t deviceTriangleCount = tc.countTriangles();
-    printf("Device triangles: %lu\n", deviceTriangleCount);
+    printf("Device triangles: %llu\n", deviceTriangleCount);
   
     /*
     int64_t hostTriCount = 0;

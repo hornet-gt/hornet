@@ -14,8 +14,9 @@ include_directories(externals/hornet/externals/xlib/include)
 
 include(externals/hornet/externals/xlib/util/CMakeLists.txt)
 #-------------------------------------------------------------------------------
-file(GLOB_RECURSE CU_SRCS ${PROJECT_SOURCE_DIR}/src/*.cu)
-file(GLOB_RECURSE CPP_SRCS ${PROJECT_SOURCE_DIR}/externals/hornet/externals/xlib/src/*.cu)
+
+file(GLOB_RECURSE CU_SRCS ${PROJECT_SOURCE_DIR}/src/*)
+file(GLOB_RECURSE CPP_SRCS ${PROJECT_SOURCE_DIR}/externals/xlib/src/*)
 
 cuda_add_library(hornetAlg ${CU_SRCS})
 #-------------------------------------------------------------------------------

@@ -180,6 +180,8 @@ public:
      */
     int enqueue_items() const noexcept;
 
+    void set_positions(int2 &h_positions);
+
 private:
     ///@internal @brief input and output queue pointers
     ptr2_t<T>    _d_queue_ptrs        { nullptr, nullptr };

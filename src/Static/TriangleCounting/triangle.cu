@@ -2,6 +2,14 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
+/*
+Please cite:
+* O. Green, P. Yalamanchili ,L.M. Munguia, “Fast Triangle Counting on GPU”, 
+Irregular Applications: Architectures and Algorithms (IA3), New Orleans, Louisiana, 2014 
+* O. Green, R. McColl, D. Bader, "GPU Merge Path - A GPU Merging Algorithm", 
+ACM 26th International Conference on Supercomputing, Venice, Italy, 2012
+*/
+
 #include "Static/TriangleCounting/triangle.cuh"
 
 using namespace hornets_nest;

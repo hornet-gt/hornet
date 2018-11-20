@@ -32,7 +32,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
- */
+
+Please cite:
+A. van der Grinten, E. Bergamini, O. Green, H. Meyerhenke, D. Bader, 
+“Scalable Katz Ranking Computation in Large Dynamic Graphs”, 
+European Symposium on Algorithms, Helsinki, Finland, 2018 
+*/
 
 #include "Static/KatzCentrality/Katz.cuh"
 #include "KatzOperators.cuh"

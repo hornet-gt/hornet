@@ -1,0 +1,3 @@
+[submodule "externals/hornet"]
+	path = externals/hornet
+	url = https://github.com/hornet-gt/hornet

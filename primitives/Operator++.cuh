@@ -38,9 +38,9 @@
  */
 #pragma once
 
-#include "Core/Queue/TwoLevelQueue.cuh"
-#include "Core/HostDeviceVar.cuh"
-#include "Core/LoadBalancing/VertexBased.cuh"
+#include "Queue/TwoLevelQueue.cuh"
+#include "HostDeviceVar.cuh"
+#include "LoadBalancing/VertexBased.cuh"
 #include <BasicTypes.hpp>
 #include <Core/GPUHornet/BatchUpdate.cuh>
 

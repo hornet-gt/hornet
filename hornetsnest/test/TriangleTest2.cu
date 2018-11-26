@@ -4,9 +4,6 @@
  */
 
 #include "HornetAlg.hpp"
-#include "Core/LoadBalancing/VertexBased.cuh"
-#include "Core/LoadBalancing/ScanBased.cuh"
-#include "Core/LoadBalancing/BinarySearch.cuh"
 #include <Core/GPUCsr/Csr.cuh>
 #include <Core/GPUHornet/Hornet.cuh>
 #include <Graph/GraphStd.hpp>

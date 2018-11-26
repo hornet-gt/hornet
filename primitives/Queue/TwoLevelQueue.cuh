@@ -201,4 +201,4 @@ private:
 
 } // namespace hornets_nest
 
-#include "TwoLevelQueue.i.cuh"
+#include "Queue/TwoLevelQueue.i.cuh"

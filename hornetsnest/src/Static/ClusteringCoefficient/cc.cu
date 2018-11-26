@@ -56,9 +56,6 @@
 #include "Static/ClusteringCoefficient/cc.cuh"
 #include "Static/TriangleCounting/triangle2.cuh"
 
-
-#include "Core/StandardAPI.hpp"
-
 using namespace xlib;
 using namespace gpu;
 

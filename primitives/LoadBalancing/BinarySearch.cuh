@@ -38,7 +38,7 @@
  */
 #pragma once
 
-#include "Core/Queue/TwoLevelQueue.cuh"
+#include "Queue/TwoLevelQueue.cuh"
 
 namespace hornets_nest {
 /**
@@ -95,4 +95,4 @@ private:
 } // namespace load_balancing
 } // namespace hornets_nest
 
-#include "Core/LoadBalancing/BinarySearch.i.cuh"
+#include "LoadBalancing/BinarySearch.i.cuh"

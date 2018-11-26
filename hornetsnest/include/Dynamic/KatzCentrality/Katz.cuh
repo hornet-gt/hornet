@@ -39,7 +39,6 @@
 #pragma once
 
 #include "HornetAlg.hpp"
-#include "Core/StandardAPI.hpp"
 #include "Static/KatzCentrality/Katz.cuh"
 
 namespace hornets_nest {

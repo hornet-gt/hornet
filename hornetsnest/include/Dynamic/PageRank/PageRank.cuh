@@ -40,7 +40,6 @@
 #pragma once
 
 #include "HornetAlg.hpp"
-#include "Core/StandardAPI.hpp"
 #include "Static/PageRank/PageRank.cuh"
 
 //namespace hornets_nest {

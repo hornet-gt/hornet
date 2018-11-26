@@ -34,7 +34,7 @@
  * </blockquote>}
  */
 #include "Static/BreadthFirstSearch/TopDown2.cuh"
-#include "Core/Auxilary/DuplicateRemoving.cuh"
+#include "Auxilary/DuplicateRemoving.cuh"
 #include <Graph/GraphStd.hpp>
 #include <Graph/BFS.hpp>
 

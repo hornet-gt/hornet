@@ -40,14 +40,14 @@
  */
 #pragma once
 
-#include "Core/HornetAlg.cuh"
-#include "Core/Operator++.cuh"
-#include "Core/Queue/TwoLevelQueue.cuh"
-#include "Core/StandardAPI.hpp"
-#include "Core/HostDeviceVar.cuh"
-#include "Core/LoadBalancing/VertexBased.cuh"
-#include "Core/LoadBalancing/ScanBased.cuh"
-#include "Core/LoadBalancing/BinarySearch.cuh"
+#include "HornetAlg.cuh"
+#include "Operator++.cuh"
+#include "Queue/TwoLevelQueue.cuh"
+#include "StandardAPI.hpp"
+#include "HostDeviceVar.cuh"
+#include "LoadBalancing/VertexBased.cuh"
+#include "LoadBalancing/ScanBased.cuh"
+#include "LoadBalancing/BinarySearch.cuh"
 
 
 #include <BasicTypes.hpp>

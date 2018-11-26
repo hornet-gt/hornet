@@ -128,4 +128,4 @@ void printArray(const T* host_input, size_t num_items);
 } // namespace host
 } // namespace hornet
 
-#include "Core/StandardAPI.i.hpp"
+#include "StandardAPI.i.hpp"

@@ -1,5 +1,5 @@
 #include <Device/Util/Timer.cuh>
-#include <Core/Operator++.cuh>
+#include <Operator++.cuh>
 
 namespace hornets_nest {
 namespace detail {

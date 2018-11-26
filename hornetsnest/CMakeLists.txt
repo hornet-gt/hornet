@@ -7,6 +7,7 @@ FIND_PACKAGE(CUDA REQUIRED)
 add_subdirectory(../hornet build)
 
 include_directories(include)
+include_directories(../primitives)
 include_directories(../hornet/include)
 include_directories(../externals/cub-1.8.0)
 include_directories(../externals/cpp-btree-master)

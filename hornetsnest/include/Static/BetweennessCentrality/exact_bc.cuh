@@ -38,12 +38,6 @@
 #pragma once
 
 #include "HornetAlg.hpp"
-#include "Core/LoadBalancing/VertexBased.cuh"
-#include "Core/LoadBalancing/ScanBased.cuh"
-#include "Core/LoadBalancing/BinarySearch.cuh"
-#include "Core/HostDeviceVar.cuh"
-#include <Core/GPUCsr/Csr.cuh>
-#include <Core/GPUHornet/Hornet.cuh>
 
 #include "Static/BetweennessCentrality/bc.cuh"
 

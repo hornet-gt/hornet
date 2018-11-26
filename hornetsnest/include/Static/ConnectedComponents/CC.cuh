@@ -39,12 +39,6 @@
 #pragma once
 
 #include "HornetAlg.hpp"
-#include "Core/HostDeviceVar.cuh"
-#include "Core/LoadBalancing/VertexBased.cuh"
-#include "Core/LoadBalancing/ScanBased.cuh"
-#include "Core/LoadBalancing/BinarySearch.cuh"
-#include <Core/GPUCsr/Csr.cuh>
-#include <Core/GPUHornet/Hornet.cuh>
 
 namespace hornets_nest {
 

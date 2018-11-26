@@ -44,4 +44,12 @@
 #include "Core/Operator++.cuh"
 #include "Core/Queue/TwoLevelQueue.cuh"
 #include "Core/StandardAPI.hpp"
+#include "Core/HostDeviceVar.cuh"
+#include "Core/LoadBalancing/VertexBased.cuh"
+#include "Core/LoadBalancing/ScanBased.cuh"
+#include "Core/LoadBalancing/BinarySearch.cuh"
+
+
 #include <BasicTypes.hpp>
+#include <Core/GPUCsr/Csr.cuh>
+#include <Core/GPUHornet/Hornet.cuh>

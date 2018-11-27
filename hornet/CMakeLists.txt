@@ -15,6 +15,7 @@ FIND_PACKAGE(CUDA REQUIRED)
 set(CUDA_SEPARABLE_COMPILATION ON)
 
 include_directories(include)
+include_directories(../primitives)
 include_directories(../externals/cub-1.8.0)
 include_directories(../externals/cpp-btree-master)
 include_directories(../xlib/include)

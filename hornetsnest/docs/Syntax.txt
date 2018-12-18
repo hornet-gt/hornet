@@ -1,0 +1,24 @@
+
+Usage: ./<executable> <graph_file> [ options ]
+
+Options:
+    --directed      Force reading the input graph as directed.
+                    If the graph is stored as undirected, each edge is added
+                    with probability 0.5.
+
+    --undirected    Force reading the input graph as undirected.
+                    If the graph is stored as directed, for each edge is added
+                    the inverse direction.
+
+    --sort-adj      Sort each adjacency list
+
+    --randomize-id  Randomize graph ids
+
+    --no-info       Read the graph without printing any information
+
+    --device <num>  Select the device on which execute (default: 0)
+
+    --write_binary  Convert the input graph into a binary format and store it in
+                    the same directory with the .bin extension
+
+    --help          Print this help

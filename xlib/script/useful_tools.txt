@@ -1,0 +1,61 @@
+#-------------------------------------------------------------------------------
+# TOOLS
+# - valgrind
+# - clang static analyser
+# - cppcheck
+# - oclint
+#-------------------------------------------------------------------------------
+https://github.com/danmar/cppcheck/
+
+wget http://valgrind.org/downloads/valgrind-3.11.0.tar.bz2
+tar xf valgrind-3.11.0.tar.bz2
+cd valgrind-3.11.0
+./configure
+make -j 6
+sudo make install
+
+wget https://sourceforge.net/projects/cppcheck/files/cppcheck/1.75/cppcheck-1.75.tar.bz2
+tar xf cppcheck-1.75.tar.bz2
+cd cppcheck-1.75
+mkdir build
+cd build
+cmake ..
+make -j 6
+sudo make install
+
+wget https://github.com/oclint/oclint/archive/v0.11.tar.gz
+tar xf v0.11.tar.gz
+cd v0.11
+
+#-------------------------------------------------------------------------------
+# clang static analyser
+
+scan-build -v make
+
+# cyclomatic complexity
+
+lyzard -V
+
+# Code lines
+
+cloc [ --by-file ] .
+
+grep -w -l -r | xarg sed -i s/$1/$2/g
+
+# -w whole word
+# -l show filename
+# -r recursive
+
+# -i modify the file
+# s/ substitute
+# /g all occurences in lines
+
+
+
+cuda-memcheck --leak-check full --report-api-errors all
+
+cuda-memcheck --tool synccheck
+
+cuda-memcheck --tool initcheck
+
+scan-build -analyze-headers --force-analyze-debug-code -maxloop 10 -enable-checker alpha,debug,nullability,optin,security

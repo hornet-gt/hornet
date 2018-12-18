@@ -13,11 +13,10 @@ The document is organized as follows:
 * [Supported graph formats](#supported-graph-formats)
 * [Code Documentation](#code-documentation)
 * [Notes](#notes)
-* [Additional Utilities](#additional-utilities)
 * [Reporting bugs and contributing](#reporting-bugs-and-contributing)
+* [Hornet Developers](#hornet-developers)
 * [Publications](#publications)
 * [Hornet Developers](#hornet-developers)
-* [Acknowledgements](#acknowledgements)
 * [License](#licence)
 
 ### Requirements ###
@@ -36,6 +35,13 @@ The following basic steps are required to build and execute Hornet:
 ```bash
 git clone --recursive https://github.com/hornet-gt/hornet
 cd hornet/build
+cmake ..
+make p
+```
+
+To build HornetsNest (algorithms directory):
+```bash
+cd hornetsnest/build
 cmake ..
 make p
 ```
@@ -100,15 +106,36 @@ The documentation is also accessible online [**here**.](https://federicounivr.gi
     * [valgrind v3.13](http://valgrind.org/)
     * [clang static analyzer v279](https://clang-analyzer.llvm.org/)
 
-### Additional Utilities ###
-
-* `util/count_lines.sh` : some statistics about Hornet code.
-* `util/uf_graph_download.sh` : simple script to download and extract University of Florida Sparse Matrix Collection graphs in a directory.
 
 ### Reporting bugs and contributing ###
 
 If you find any bugs please report them by using the repository (github **issues** panel).
 We are also ready to engage in improving and extending the framework if you request new features.
+
+## Hornet Algorithms ##
+
+|           Algorithm                 |    Static     | Dynamic  |
+| :-----------------------------------|:-------------:|:--------:|
+| (BFS) Breadth-first Search          |     yes       | on-going |
+| (SSSP) Single-Source Shortest Path  |     yes       | on-going |
+| (CC) Connected Components           |     yes       | on-going |
+| (SCC) Strongly Connected Components |    to-do      |  to-do   |
+| (MST) Minimum Spanning Tree         |   on-going    |  to-do   |
+| (BC) Betweeness Centrality          |     yes       | on-going |
+| (PG) Page Rank                      |     yes       |   yes    |
+| (TC) Triangle Counting              |     yes       | on-going |
+| (KC) Katz Centrality                |     yes       |   yes    |
+| (MIS) Maximal Independent Set       |   on-going    |  to-do   |
+| (MF) Maximum Flow                   |    to-do      |  to-do   |
+| (CC) Clustering Coeffient           |     yes       |  to-do   |
+| (ST) St-Connectivity                |    to-do      |  to-do   |
+| (TC) Transitive Closure             |    to-do      |  to-do   |
+| Community Detection                 |    on-going   |  to-do   |
+| Temporal Motif Finding              |   on-going    |  to-do   |
+| Sparse Vector-Matrix Multiplication |     yes       |  to-do   |
+| Jaccard indices                     |   on-going    |  to-do   |
+| Energy/Parity Game                  |   on-going    |  to-do   |
+
 
 ## Publications ##
 
@@ -120,22 +147,27 @@ We are also ready to engage in improving and extending the framework if you requ
   IEEE High Performance Extreme Computing Conference (HPEC), 13-15 September,
   2016, Waltham, MA, USA, pp. 1-6.
   [link](https://www.researchgate.net/publication/308174457_cuSTINGER_Supporting_dynamic_graph_algorithms_for_GPUs)
-  
-  Algorithm publications can be found in HornetsNest.
-
+* Fox, O. Green, K. Gabert, X. An, D. Bader, **“Fast and Adaptive List Intersections on the GPU”**, IEEE High Performance Extreme Computing Conference (HPEC), Waltham, Massachusetts, 2018 \**HPEC Graph Challenge Finalist *\*
+* O. Green, J. Fox, A. Tripathy, A. Watkins, K. Gabert, E. Kim, X. An, K. Aatish, D. Bader, **“Logarithmic Radix Binning and Vectorized Triangle Counting”**, IEEE High Performance Extreme Computing Conference (HPEC), Waltham, Massachusetts, 2018 (HPEC Graph Challenge Innovation Award)
+* A. van der Grinten, E. Bergamini, O. Green, H. Meyerhenke, D. Bader, **“Scalable Katz Ranking Computation in Large Dynamic Graphs”**, European Symposium on Algorithms, Helsinki, Finland, 2018 
+* Oded Green, James Fox, Euna Kim, Federico Busato, Nicola Bombieri,
+  Kartik Lakhotia, Shijie Zhou, Shreyas Singapura, Hanqing Zeng,
+  Rajgopal Kannan, Viktor Prasanna, David A. Bader,
+  **"Quickly Finding a Truss in a Haystack"**,
+  IEEE/Amazon/DARPA Graph Challenge, \**Innovation Awards*\*.
+* Devavret Makkar, David A. Bader, Oded Green,
+  **Exact and Parallel Triangle Counting in Streaming Graphs**,
+  IEEE Conference on High Performance Computing, Data, and Analytics (HiPC),
+  18-21 December 2017, Jaipur, India, pp. 1-10.
 ---
 ### <center>If you find this software useful in academic work, please acknowledge Hornet. </center> ###
 ***
 
 ## Hornet Developers ##
 
-##### Data Structure ######
 
 * `Federico Busato`, Ph.D. Student, University of Verona (Italy)
 * `Oded Green`, Researcher, Georgia Institute of Technology
-
-##### Algorithms ######
-
 * `Federico Busato`, Ph.D. Student, University of Verona (Italy)
 * `Oded Green`, Researcher, Georgia Institute of Technology
 * `James Fox`, Ph.D. Student, Georgia Institute of Technology : *Maximal Independent Set*, *Temporal Motif Finding*
@@ -144,9 +176,6 @@ We are also ready to engage in improving and extending the framework if you requ
 * `Euna Kim`, Ph.D. Student, Georgia Institute of Technology : *Dynamic PageRank*
 * ...
 
-## Acknowledgements ##
-
-* Grant...
 
 ## License ##
 

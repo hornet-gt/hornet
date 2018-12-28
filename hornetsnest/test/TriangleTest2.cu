@@ -22,7 +22,7 @@ using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
 int hostSingleIntersection (const vid_t ai, const degree_t alen, const vid_t * a,
                             const vid_t bi, const degree_t blen, const vid_t * b){
 
-    int32_t ka = 0, kb = 0;
+    //int32_t ka = 0, kb = 0;
      int32_t out = 0;
 
 
@@ -50,7 +50,7 @@ int hostSingleIntersection (const vid_t ai, const degree_t alen, const vid_t * a
 void hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
     const vid_t * ind, int64_t* allTriangles)
 {
-    int32_t edge=0;
+    //int32_t edge=0;
     int64_t sum=0;
     for (vid_t src = 0; src < nv; src++)
     {

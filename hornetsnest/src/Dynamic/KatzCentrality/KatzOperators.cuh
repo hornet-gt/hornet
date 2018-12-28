@@ -76,7 +76,8 @@ struct SetupDeletions {
         auto dst = dst_vertex.id();
 
         atomicAdd(kd().KC + src, minus_alpha);
-        atomicAdd(kd().new_paths_prev + src, -1);
+        //atomicAdd(kd().new_paths_prev + src, -1);
+        atomicAdd(kd().new_paths_prev + src, static_cast<std::remove_pointer_t<decltype(kd().new_paths_prev)>>(-1));//atomicSub or atmoicDec will be clearer but these functions currently (up to CUDA 10) do not support 64 bit integer. It may be better to store the old value and assert the old value is larger than 0 for safety.
         vid_t prev = atomicCAS(kd().active + src, 0, kd().iteration);
         if (prev == 0)
             kd().active_queue.insert(src);

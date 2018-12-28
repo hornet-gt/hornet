@@ -90,7 +90,7 @@ void testTriangleCountingConfigurations(HornetGraph& hornet, vid_t nv,degree_t n
                         int nbl=sps/tsp;
 
                         running_time[q] = time;
-                        printf("### %d %d %d %d %d \t\t %ld \t %f\n", blocks,sps, tsp, nbl, shifter,sumDevice, time);
+                        printf("### %d %d %d %d %d \t\t %u \t %f\n", blocks,sps, tsp, nbl, shifter, sumDevice, time);
                         average += time;
                     }
                     average = average/10;
@@ -156,7 +156,7 @@ int main(const int argc, char *argv[]){
 int hostSingleIntersection (const vid_t ai, const degree_t alen, const vid_t * a,
                             const vid_t bi, const degree_t blen, const vid_t * b){
 
-    int32_t ka = 0, kb = 0;
+    //int32_t ka = 0, kb = 0;
      int32_t out = 0;
 
 
@@ -184,7 +184,7 @@ int hostSingleIntersection (const vid_t ai, const degree_t alen, const vid_t * a
 int* hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
     const vid_t * ind, int64_t* allTriangles)
 {
-    int32_t edge=0;
+    //int32_t edge=0;
     int64_t sum=0;
     int count = 0;
     int *histogram = new int[27]();

@@ -32,7 +32,7 @@ int main() {
         //======================================================================
         TM.start();
 
-        if (cudaMalloc(&d_array, size) != cudaSuccess)
+        if (cudaMalloc(&d_array, size) != cudaSuccess)//cudaMalloc instead of cuMalloc to test return value, cuMalloc calls std::exit() on error.
             break;
 
         TM.stop();
@@ -49,7 +49,7 @@ int main() {
         //----------------------------------------------------------------------
         TM.start();
 
-        cudaMallocHost(&h_array_pinned, size);
+        cuMallocHost(h_array_pinned, size);
 
         TM.stop();
 
@@ -60,21 +60,21 @@ int main() {
         cuMemcpyToDeviceAsync(h_array_pinned, size, d_array);
 
         TM.stop();
-        cudaFreeHost(h_array_pinned);
+        cuFreeHost(h_array_pinned);
         H2D_pinned_time.push_back(TM.duration());
         //----------------------------------------------------------------------
         TM.start();
 
-        cudaMemset(d_array, 0x00, size);
+        cuMemset0x00(d_array, size);
 
         TM.stop();
         memset_time.push_back(TM.duration());
         //----------------------------------------------------------------------
         byte_t* d_array2;
-        if (cudaMalloc(&d_array2, size) == cudaSuccess) {
+        if (cudaMalloc(&d_array2, size) == cudaSuccess) {//cudaMalloc instead of cuMalloc to test return value, cuMalloc calls std::exit() on error.
             TM.start();
 
-            cudaMemcpy(d_array2, d_array, size, cudaMemcpyDeviceToDevice);
+            cuMemcpyDevToDev(d_array, size, d_array2);
 
             TM.stop();
             D2D_time.push_back(TM.duration());
@@ -112,24 +112,23 @@ int main() {
     Timer<DEVICE> TM2(2);
 
     xlib::byte_t array[4 * xlib::MB];
-    cudaMalloc(&d_array, 4 * xlib::MB);
-    cudaMallocHost(&h_array_pinned, 4 * xlib::MB);
+    cuMalloc(d_array, 4 * xlib::MB);
+    cuMallocHost(h_array_pinned, 4 * xlib::MB);
 
     TM2.start();
 
-    cudaMemcpy(array, d_array, 4 * xlib::MB, cudaMemcpyDeviceToHost);
+    cuMemcpyToHost(d_array, 4 * xlib::MB, array);
 
     TM2.stop();
     TM2.print("Stack");
 
     TM2.start();
 
-    cudaMemcpyAsync(h_array_pinned, d_array, 4 * xlib::MB,
-                    cudaMemcpyDeviceToHost);
+    cuMemcpyToHostAsync(d_array, 4 * xlib::MB, h_array_pinned);
 
     TM2.stop();
     TM2.print("Pinned");
 
-    cudaFree(d_array);
-    cudaFreeHost(h_array_pinned);
+    cuFree(d_array);
+    cuFreeHost(h_array_pinned);
 }

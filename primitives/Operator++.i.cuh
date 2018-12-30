@@ -412,12 +412,12 @@ void forAllAdjUnions(HornetClass&          hornet,
     TM.start();
 
     // memory allocations host and device side
-    cudaMalloc(&(hd_queue_info().d_edge_queue), 2*hornet.nE()*sizeof(vid_t));
-    cudaMalloc(&(hd_queue_info().d_queue_sizes), (MAX_ADJ_UNIONS_BINS)*sizeof(unsigned long long));
-    cudaMemset(hd_queue_info().d_queue_sizes, 0, MAX_ADJ_UNIONS_BINS*sizeof(unsigned long long));
+    cuMalloc(hd_queue_info().d_edge_queue, 2*hornet.nE());
+    cuMalloc(hd_queue_info().d_queue_sizes, MAX_ADJ_UNIONS_BINS);
+    cuMemset0x00(hd_queue_info().d_queue_sizes, MAX_ADJ_UNIONS_BINS);
     unsigned long long *queue_sizes = (unsigned long long *)calloc(MAX_ADJ_UNIONS_BINS, sizeof(unsigned long long));
-    cudaMalloc(&(hd_queue_info().d_queue_pos), (MAX_ADJ_UNIONS_BINS+1)*sizeof(unsigned long long));
-    cudaMemset(hd_queue_info().d_queue_pos, 0, (MAX_ADJ_UNIONS_BINS+1)*sizeof(unsigned long long));
+    cuMalloc(hd_queue_info().d_queue_pos, MAX_ADJ_UNIONS_BINS+1);
+    cuMemset0x00(hd_queue_info().d_queue_pos, MAX_ADJ_UNIONS_BINS+1);
     unsigned long long *queue_pos = (unsigned long long *)calloc(MAX_ADJ_UNIONS_BINS+1, sizeof(unsigned long long));
 
     // figure out cutoffs/counts per bin
@@ -427,11 +427,11 @@ void forAllAdjUnions(HornetClass&          hornet,
         forAllEdgeVertexPairs(hornet, bin_edges {hd_queue_info, true, WORK_FACTOR}, load_balancing);
 
     // copy queue size info to from device to host
-    cudaMemcpy(queue_sizes, hd_queue_info().d_queue_sizes, (MAX_ADJ_UNIONS_BINS)*sizeof(unsigned long long), cudaMemcpyDeviceToHost);
+    cuMemcpyToHost(hd_queue_info().d_queue_sizes, MAX_ADJ_UNIONS_BINS, queue_sizes);
     // prefix sum over bin sizes
     std::partial_sum(queue_sizes, queue_sizes+MAX_ADJ_UNIONS_BINS, queue_pos+1);
     // transfer prefx results to device
-    cudaMemcpy(hd_queue_info().d_queue_pos, queue_pos, (MAX_ADJ_UNIONS_BINS+1)*sizeof(unsigned long long), cudaMemcpyHostToDevice);
+    cuMemcpyToDevice(queue_pos, MAX_ADJ_UNIONS_BINS+1, hd_queue_info().d_queue_pos);
     /* 
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS+1; i++)
         printf("queue=%d prefix sum: %llu\n", i, queue_pos[i]);
@@ -447,7 +447,7 @@ void forAllAdjUnions(HornetClass&          hornet,
     TM.reset();
     
     /*
-    cudaMemcpy(hd_queue_info().queue_pos, hd_queue_info().d_queue_pos, (MAX_ADJ_UNIONS_BINS+1)*sizeof(unsigned long long), cudaMemcpyDeviceToHost);
+    cuMemcpyToHost(hd_queue_info().d_queue_pos, MAX_ADJ_UNIONS_BINS+1, hd_queue_info().queue_pos);
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS+1; i++)
         printf("queue=%d prefix sum after: %llu\n", i, hd_queue_info().queue_pos[i]);
     */

@@ -45,33 +45,5 @@ template<typename HornetClass>
 StaticAlgorithm<HornetClass>::~StaticAlgorithm() noexcept {
     cuFree(_d_ptr);
 }
-/*
-template<typename HornetClass>
-template<typename T>
-T* StaticAlgorithm<HornetClass>::register_data(T& data) noexcept {
-    if (_is_registered)
-        ERROR("register_data() can be called only one times")
-    _is_registered = true;
-    _data_size     = sizeof(T);
-    _h_ptr         = &data;
-    SAFE_CALL( cudaMalloc(&_d_ptr, _data_size) )
-    return reinterpret_cast<T*>(_d_ptr);
-}
 
-template<typename HornetClass>
-void StaticAlgorithm<HornetClass>::syncHostWithDevice() noexcept {
-    if (!_is_registered)
-        ERROR("register_data() must be called before syncHostWithDevice()")
-    SAFE_CALL( cudaMemcpyAsync(_h_ptr, _d_ptr, _data_size,
-                               cudaMemcpyDeviceToHost) )
-}
-
-template<typename HornetClass>
-void StaticAlgorithm<HornetClass>::syncDeviceWithHost() noexcept {
-    if (!_is_registered)
-        ERROR("register_data() must be called before syncDeviceWithHost()")
-    SAFE_CALL( cudaMemcpyAsync(_d_ptr, _h_ptr, _data_size,
-                               cudaMemcpyHostToDevice) )
-}
-*/
 } // namespace hornets_nest

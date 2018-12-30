@@ -441,7 +441,7 @@ void TriangleCounting::init(){
 triangle_t TriangleCounting::countTriangles(){
     hd_triangleData.sync();
     triangle_t* outputArray = (triangle_t*)malloc((hd_triangleData().nv+2)*sizeof(triangle_t));
-    cudaMemcpy(outputArray,hd_triangleData().triPerVertex,(hd_triangleData().nv+2)*sizeof(triangle_t),cudaMemcpyDeviceToHost);
+    gpu::copyToHost(hd_triangleData().triPerVertex, (hd_triangleData().nv+2), outputArray);
     triangle_t sum=0;
     for(int i=0; i<(hd_triangleData().nv); i++){
         // printf("%d %ld\n", i,outputArray[i]);

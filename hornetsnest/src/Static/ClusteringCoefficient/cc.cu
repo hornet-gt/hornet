@@ -50,9 +50,6 @@
  */
 
 
-#include <cuda.h>
-#include <cuda_runtime.h>
-
 #include "Static/ClusteringCoefficient/cc.cuh"
 #include "Static/TriangleCounting/triangle2.cuh"
 
@@ -96,13 +93,12 @@ void ClusteringCoefficient::run(){
     TriangleCounting2::run();
     forAllVertices(hornet, OPERATOR_LocalClusteringCoefficients { triPerVertex,d_ccLocal }); 
 
-
     int _num_items = hornet.nV();
 
-    void*  _d_temp_storage     { nullptr };
+    byte_t*  _d_temp_storage     { nullptr };
     size_t _temp_storage_bytes { 0 };
     cub::DeviceReduce::Sum(_d_temp_storage, _temp_storage_bytes,d_ccLocal, d_ccGlobal, _num_items); // Allocating storage needed by CUB for the reduce
-    cudaMalloc(&_d_temp_storage, _temp_storage_bytes);
+    gpu::allocate(_d_temp_storage, _temp_storage_bytes);
     cub::DeviceReduce::Sum(_d_temp_storage, _temp_storage_bytes, d_ccLocal, d_ccGlobal, _num_items);
 
     gpu::copyToHost(d_ccGlobal, 1, &h_ccGlobal);

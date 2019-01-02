@@ -37,6 +37,7 @@
 #pragma once
 
 #include <Device/Util/Algorithm.cuh>
+#include <Device/Util/PrintExt.cuh>
 #include <Device/Util/SafeCudaAPI.cuh>
 #include <Device/Primitives/CubWrapper.cuh>
 #include <omp.h>

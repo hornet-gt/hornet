@@ -36,6 +36,8 @@
  */
 #pragma once
 
+#include <limits>
+
 namespace hornets_nest {
 namespace gpu {
 

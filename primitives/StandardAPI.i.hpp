@@ -131,8 +131,18 @@ void allocate(T*& pointer, size_t num_items) {
 }
 
 template<typename T>
+void allocatePageLocked(T*& pointer, size_t num_items) {
+    cuMallocHost(pointer, num_items);
+}
+
+template<typename T>
 void free(T*& pointer) {
     delete[] pointer;
+}
+
+template<typename T>
+void freePageLocked(T*& pointer) {
+    cuFreeHost(pointer);
 }
 
 template<typename T>

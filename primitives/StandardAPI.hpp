@@ -85,13 +85,13 @@ template<typename T>
 void allocate(T*& pointer, size_t num_items);
 
 template<typename T>
-void allocateNotPageable(T*& pointer, size_t num_items);
+void allocatePageLocked(T*& pointer, size_t num_items);//invokes cudaMallocHost instead of new, cudaMallocHost allocates page-locked memory, should be freed using freePageLocked
 
 template<typename T>
 void free(T*& pointer);
 
 template<typename T>
-void freePageable(T*& pointer);
+void freePageLocked(T*& pointer);//invokes cudaFreeHost instead of delete
 
 template<typename T>
 void copyToHost(const T* host_input, size_t num_items, T* host_output);

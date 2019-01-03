@@ -39,6 +39,7 @@
 #include <Device/Util/Algorithm.cuh>
 #include <Device/Util/PrintExt.cuh>
 #include <Device/Util/SafeCudaAPI.cuh>
+#include <Device/Util/SafeCudaAPIAsync.cuh>
 #include <Device/Primitives/CubWrapper.cuh>
 #include <omp.h>
 #include <cstring>
@@ -56,6 +57,11 @@ void free(T* pointer) {
     cuFree(pointer);
 }
 
+template<typename... TArgs>
+void free(TArgs*... ptrs) {
+    cuFree(ptrs...);
+}
+
 template<typename T>
 void copyToDevice(const T* device_input, size_t num_items, T* device_output) {
     cuMemcpyDevToDev(device_input, num_items, device_output);
@@ -64,6 +70,11 @@ void copyToDevice(const T* device_input, size_t num_items, T* device_output) {
 template<typename T>
 void copyToHost(const T* device_input, size_t num_items, T* host_output) {
     cuMemcpyToHost(device_input, num_items, host_output);
+}
+
+template<typename T>
+void copyToHostAsync(const T* device_input, size_t num_items, T* host_output) {
+    cuMemcpyToHostAsync(device_input, num_items, host_output);
 }
 
 template<typename T>
@@ -85,6 +96,11 @@ template<typename T>
 void copyDeviceToHost(const T* source, T& value) {
     cuMemcpyToHost(source, value);
 }*/
+
+template<typename T>
+void memset(T* pointer, size_t num_items, unsigned char mask) {
+    cuMemset(pointer, num_items, mask);
+}
 
 template<typename T>
 void memsetZero(T* pointer, size_t num_items) {
@@ -145,6 +161,11 @@ void freePageLocked(T*& pointer) {
     cuFreeHost(pointer);
 }
 
+template<typename... TArgs>
+void freePageLocked(TArgs*... ptrs) {
+    cuFree(ptrs...);
+}
+
 template<typename T>
 void copyToHost(const T* host_input, size_t num_items, T* host_output) {
     std::copy(host_input, host_input + num_items, host_output);
@@ -153,6 +174,11 @@ void copyToHost(const T* host_input, size_t num_items, T* host_output) {
 template<typename T>
 void copyToDevice(const T* host_input, size_t num_items, T* device_output) {
     cuMemcpyToDevice(host_input, num_items, device_output);
+}
+
+template<typename T>
+void copyToDeviceAsync(const T* host_input, size_t num_items, T* device_output) {
+    cuMemcpyToDeviceAsync(host_input, num_items, device_output);
 }
 
 template<typename T>

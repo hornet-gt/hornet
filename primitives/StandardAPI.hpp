@@ -54,7 +54,13 @@ template<typename T>
 void copyToHost(const T* device_input, size_t num_items, T* host_output);
 
 template<typename T>
+void copyToHostAsync(const T* device_input, size_t num_items, T* host_output);
+
+template<typename T>
 void copyFromHost(const T* host_input, size_t num_items, T* device_output);
+
+template<typename T>
+void memset(T* pointer, size_t num_items = 1, unsigned char mask = 0x00);
 
 template<typename T>
 void memsetZero(T* pointer, size_t num_items = 1);
@@ -98,6 +104,9 @@ void copyToHost(const T* host_input, size_t num_items, T* host_output);
 
 template<typename T>
 void copyToDevice(const T* host_input, size_t num_items, T* device_output);
+
+template<typename T>
+void copyToDeviceAsync(const T* host_input, size_t num_items, T* device_output);
 
 template<typename T>
 void copyToDevice(T host_value, T* device_output);

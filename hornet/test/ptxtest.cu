@@ -4,6 +4,9 @@
 //#include "Device/CubWrapper.cuh"
 #include "Device/Util/SafeCudaAPI.cuh"
 #include "Device/Util/PrintExt.cuh"
+#include "StandardAPI.hpp"
+
+using namespace hornets_nest;
 
 struct __align__(16) SS {
      int a[2];
@@ -103,10 +106,10 @@ int main() {
     int batch_size = 128;
     auto h_batch = new int[batch_size];
     std::fill(h_batch, h_batch + batch_size, 1);
-    cuMalloc(d_input, batch_size);
-    cuMalloc(d_output, batch_size);
-    cuMemset0x00(d_output, batch_size);
-    cuMemcpyToDevice(h_batch, batch_size, d_input);
+    gpu::allocate(d_input, batch_size);
+    gpu::allocate(d_output, batch_size);
+    gpu::memsetZero(d_output, batch_size);
+    host::copyToDevice(h_batch, batch_size, d_input);
 
     //xlib::CubExclusiveSum<int> prefixsum(d_input, batch_size, d_output);
     //prefixsum.run();

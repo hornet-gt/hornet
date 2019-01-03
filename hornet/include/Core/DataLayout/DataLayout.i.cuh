@@ -33,6 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
+#include "StandardAPI.hpp"
 #include <Device/Util/SafeCudaAPI.cuh>
 #include <Device/Util/SafeCudaAPISync.cuh>
 #include <cstring>
@@ -165,14 +166,14 @@ AoS<TArgs...>::AoS(const void* (&array)[sizeof...(TArgs)],
     _h_ptr = new AoSData<TArgs...>[num_items];
     for (auto i = 0; i < num_items; i++)
         _h_ptr[i] = AoSData<TArgs...>(array, i);
-    cuMalloc(_d_ptr, num_items);
-    cuMemcpyToDevice(_h_ptr, num_items, _d_ptr);
+    gpu::allocate(_d_ptr, num_items);
+    host::copyToDevice(_h_ptr, num_items, _d_ptr);
 }
 
 template<typename... TArgs>
 AoS<TArgs...>::~AoS() noexcept {
     delete[] _h_ptr;
-    cuFree(_d_ptr);
+    gpu::free(_d_ptr);
 }
 
 template<typename... TArgs>
@@ -182,13 +183,13 @@ void AoS<TArgs...>::initialize(const void* (&array)[sizeof...(TArgs)],
     _h_ptr     = new AoSData<TArgs...>[num_items];
     for (auto i = 0; i < num_items; i++)
         _h_ptr[i] = AoSData<TArgs...>(array, i);
-    cuMalloc(_d_ptr, num_items);
-    cuMemcpyToDevice(_h_ptr, num_items, _d_ptr);
+    gpu::allocate(_d_ptr, num_items);
+    host::copyToDevice(_h_ptr, num_items, _d_ptr);
 }
 
 template<typename... TArgs>
 void AoS<TArgs...>::update() noexcept {
-    cuMemcpyToHost(_d_ptr, _num_items, _h_ptr);
+    gpu::copyToHost(_d_ptr, _num_items, _h_ptr);
 }
 
 template<typename... TArgs>
@@ -238,11 +239,11 @@ SoA<TArgs...>::SoA(void* (&array)[sizeof...(TArgs)],
                         _pitch(xlib::upper_approx<512>(num_items) * MAX_SIZE) {
     auto allocated_items = xlib::upper_approx<512>(num_items);
     _h_ptr = new AoSData<TArgs...>[allocated_items];
-    cuMalloc(_d_ptr, allocated_items);
+    gpu::allocate(_d_ptr, allocated_items);
 
     for (int i = 0; i < NUM_ARGS; i++) {
         auto d_ptr = reinterpret_cast<byte_t*>(_d_ptr) +  _pitch * i;
-        cuMemcpyToDevice(static_cast<byte_t*>(array[i]),
+        host::copyToDevice(static_cast<byte_t*>(array[i]),
                          allocated_items * TYPE_SIZES[i], d_ptr);
     }
 }
@@ -250,7 +251,7 @@ SoA<TArgs...>::SoA(void* (&array)[sizeof...(TArgs)],
 template<typename... TArgs>
 SoA<TArgs...>::~SoA() noexcept {
     delete[] _h_ptr;
-    cuFree(_d_ptr);
+    gpu::free(_d_ptr);
 }
 
 template<typename... TArgs>
@@ -259,11 +260,11 @@ void SoA<TArgs...>::initialize(const void* (&array)[sizeof...(TArgs)],
     _num_items = num_items;
     _pitch     = xlib::upper_approx<512>(num_items) * MAX_SIZE;
     auto allocated_items = xlib::upper_approx<512>(num_items);
-    cuMalloc(_d_ptr, allocated_items);
+    gpu::allocate(_d_ptr, allocated_items);
 
     for (int i = 0; i < NUM_ARGS; i++) {
         auto d_ptr = reinterpret_cast<byte_t*>(_d_ptr) +  _pitch * i;
-        cuMemcpyToDevice(static_cast<const byte_t*>(array[i]),
+        host::copyToDevice(static_cast<const byte_t*>(array[i]),
                          allocated_items * TYPE_SIZES[i], d_ptr);
     }
 }
@@ -273,7 +274,7 @@ void SoA<TArgs...>::update() noexcept {
     auto allocated_items = xlib::upper_approx<512>(_num_items);
     if (_h_ptr == nullptr)
         _h_ptr = new AoSData<TArgs...>[allocated_items];
-    cuMemcpyToHost(_d_ptr, allocated_items, _h_ptr);
+    gpu::copyToHost(_d_ptr, allocated_items, _h_ptr);
 }
 
 template<typename... TArgs>

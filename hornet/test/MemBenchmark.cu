@@ -1,6 +1,4 @@
-#include <Device/Util/SafeCudaAPI.cuh>
-#include <Device/Util/SafeCudaAPISync.cuh>
-#include <Device/Util/SafeCudaAPIAsync.cuh>
+#include <StandardAPI.hpp>
 #include <Device/Primitives/SimpleKernels.cuh>
 #include <Device/Util/Timer.cuh>
 #include <cmath>
@@ -10,6 +8,7 @@
 #include <vector>
 
 using namespace timer;
+using namespace hornets_nest;
 using xlib::byte_t;
 using ttime_t = float;
 
@@ -32,7 +31,7 @@ int main() {
         //======================================================================
         TM.start();
 
-        if (cudaMalloc(&d_array, size) != cudaSuccess)//cudaMalloc instead of cuMalloc to test return value, cuMalloc calls std::exit() on error.
+        if (cudaMalloc(&d_array, size) != cudaSuccess)//cudaMalloc instead of gpu::allocate to test return value, gpu::allocate calls std::exit() on error.
             break;
 
         TM.stop();
@@ -41,7 +40,7 @@ int main() {
         auto h_array = new byte_t[size];
         TM.start();
 
-        cuMemcpyToDevice(h_array, size, d_array);
+        host::copyToDevice(h_array, size, d_array);
 
         TM.stop();
         delete[] h_array;
@@ -49,7 +48,7 @@ int main() {
         //----------------------------------------------------------------------
         TM.start();
 
-        cuMallocHost(h_array_pinned, size);
+        host::allocatePageLocked(h_array_pinned, size);
 
         TM.stop();
 
@@ -57,33 +56,33 @@ int main() {
         //----------------------------------------------------------------------
         TM.start();
 
-        cuMemcpyToDeviceAsync(h_array_pinned, size, d_array);
+        host::copyToDeviceAsync(h_array_pinned, size, d_array);
 
         TM.stop();
-        cuFreeHost(h_array_pinned);
+        host::freePageLocked(h_array_pinned);
         H2D_pinned_time.push_back(TM.duration());
         //----------------------------------------------------------------------
         TM.start();
 
-        cuMemset0x00(d_array, size);
+        gpu::memsetZero(d_array, size);
 
         TM.stop();
         memset_time.push_back(TM.duration());
         //----------------------------------------------------------------------
         byte_t* d_array2;
-        if (cudaMalloc(&d_array2, size) == cudaSuccess) {//cudaMalloc instead of cuMalloc to test return value, cuMalloc calls std::exit() on error.
+        if (cudaMalloc(&d_array2, size) == cudaSuccess) {//cudaMalloc instead of gpu::allocate to test return value, gpu::allocate calls std::exit() on error.
             TM.start();
 
-            cuMemcpyDevToDev(d_array, size, d_array2);
+            gpu::copyToDevice(d_array, size, d_array2);
 
             TM.stop();
             D2D_time.push_back(TM.duration());
-            cuFree(d_array2);
+            gpu::free(d_array2);
         }
         else {
             D2D_time.push_back(std::nan(""));
         }
-        cuFree(d_array);
+        gpu::free(d_array);
         //----------------------------------------------------------------------
         size *= 2;
     }
@@ -112,23 +111,23 @@ int main() {
     Timer<DEVICE> TM2(2);
 
     xlib::byte_t array[4 * xlib::MB];
-    cuMalloc(d_array, 4 * xlib::MB);
-    cuMallocHost(h_array_pinned, 4 * xlib::MB);
+    gpu::allocate(d_array, 4 * xlib::MB);
+    host::allocatePageLocked(h_array_pinned, 4 * xlib::MB);
 
     TM2.start();
 
-    cuMemcpyToHost(d_array, 4 * xlib::MB, array);
+    gpu::copyToHost(d_array, 4 * xlib::MB, array);
 
     TM2.stop();
     TM2.print("Stack");
 
     TM2.start();
 
-    cuMemcpyToHostAsync(d_array, 4 * xlib::MB, h_array_pinned);
+    gpu::copyToHostAsync(d_array, 4 * xlib::MB, h_array_pinned);
 
     TM2.stop();
     TM2.print("Pinned");
 
-    cuFree(d_array);
-    cuFreeHost(h_array_pinned);
+    gpu::free(d_array);
+    host::freePageLocked(h_array_pinned);
 }

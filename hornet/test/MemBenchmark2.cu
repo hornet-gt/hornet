@@ -34,7 +34,7 @@ int main() {
         //======================================================================
         TM.start();
 
-        if (cudaMalloc(&d_array, size) != cudaSuccess)//cudaMalloc instead of cuMalloc to test return value, cuMalloc calls std::exit() on error.
+        if (cudaMalloc(&d_array, size) != cudaSuccess)//cudaMalloc instead of gpu::allocate to test return value, gpu::allocate calls std::exit() on error.
             break;
 
         TM.stop();
@@ -43,7 +43,7 @@ int main() {
         auto h_array = new byte_t[size];
         TM.start();
 
-        cuMemcpyToDevice(h_array, size, d_array);
+        host::copyToDevice(h_array, size, d_array);
 
         TM.stop();
         delete[] h_array;
@@ -51,7 +51,7 @@ int main() {
         //----------------------------------------------------------------------
         TM.start();
 
-        cuMallocHost(h_array_pinned, size);
+        host::allocatePageLocked(h_array_pinned, size);
 
         TM.stop();
 
@@ -60,15 +60,15 @@ int main() {
 
         TM.start();
 
-        cuMemcpyToDevice(h_array_pinned, size, d_array);
+        host::copyToDevice(h_array_pinned, size, d_array);
 
         TM.stop();
-        cuFreeHost(h_array_pinned);
+        host::freePageLocked(h_array_pinned);
         H2D_pinned_time.push_back(TM.duration());
         //----------------------------------------------------------------------
         TM.start();
 
-        cuMemset0x00(d_array, size);
+        gpu::memsetZero(d_array, size);
 
         TM.stop();
         memset_time.push_back(TM.duration());
@@ -83,10 +83,10 @@ int main() {
         memset_kernel_time.push_back(TM.duration());
         //----------------------------------------------------------------------
         byte_t* d_array2;
-        if (cudaMalloc(&d_array2, size) == cudaSuccess) {//cudaMalloc instead of cuMalloc to test return value, cuMalloc calls std::exit() on error.
+        if (cudaMalloc(&d_array2, size) == cudaSuccess) {//cudaMalloc instead of gpu::allocate to test return value, gpu::allocate calls std::exit() on error.
             TM.start();
 
-            cuMemcpyDevToDev(d_array, size, d_array2);
+            gpu::copyToDevice(d_array, size, d_array2);
 
             TM.stop();
             D2D_time.push_back(TM.duration());
@@ -97,13 +97,13 @@ int main() {
 
             TM.stop();
             memcpy_kernel_time.push_back(TM.duration());
-            cuFree(d_array2);
+            gpu::free(d_array2);
         }
         else {
             D2D_time.push_back(std::nan(""));
             memcpy_kernel_time.push_back(std::nan(""));
         }
-        cuFree(d_array);
+        gpu::free(d_array);
         //----------------------------------------------------------------------
         size *= 2;
     }

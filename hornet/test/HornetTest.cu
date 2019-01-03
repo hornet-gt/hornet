@@ -1,4 +1,5 @@
 #include "Hornet.hpp"
+#include "StandardAPI.hpp"
 #include "Core/GPUHornet/BatchUpdate.cuh"
 #include "Util/BatchFunctions.hpp"
 #include <Host/FileUtil.hpp>            //xlib::extract_filepath_noextension
@@ -50,8 +51,8 @@ void exec(int argc, char* argv[]) {
         batch_size = 100;
 #endif
         vid_t* batch_src, *batch_dst;
-        cuMallocHost(batch_src, batch_size);
-        cuMallocHost(batch_dst, batch_size);
+        host::allocatePageLocked(batch_src, batch_size);
+        host::allocatePageLocked(batch_dst, batch_size);
 #ifdef TEST
         for (int i = 0; i < batch_size - 10; ++i) {
             batch_src[i] = 33;
@@ -89,8 +90,7 @@ void exec(int argc, char* argv[]) {
         //hornet_gpu.check_sorted_adjs();
         //delete[] batch_src;
         //delete[] batch_dst;
-        cuFreeHost(batch_src);
-        cuFreeHost(batch_dst);
+        host::freePageLocked(batch_src, batch_dst);
         //batch_update.print();
         hornet_gpu.print();
     }

@@ -13,7 +13,6 @@
 #include <Graph/Dijkstra.hpp>
 
 #include <iostream>
-#include "Device/Util/SafeCudaAPIAsync.cuh" //cuMemset0x00Async
 
 #include "Device/Util/Timer.cuh"
 #include "Device/DataMovement/impl/Block.i.cuh"
@@ -21,10 +20,15 @@
 //#define ENABLE_MGPU
 #include <random>
 #include <chrono>
+#include "StandardAPI.hpp"
 
 #if defined(ENABLE_MGPU)
     #include <moderngpu/kernel_load_balance.hxx>
 #endif
+
+using namespace graph;
+using namespace timer;
+using namespace hornets_nest;
 
 template<int ITEMS_PER_BLOCK, int BLOCK_SIZE>
 __global__
@@ -47,10 +51,6 @@ void MergePathTest2(const int* __restrict__ d_partitions,
         (d_partitions, num_partitions, d_prefixsum, prefixsum_size, smem, lambda);
 }
 
-using namespace xlib;
-using namespace graph;
-using namespace timer;
-
 const bool PRINT      = false;
 const int  BLOCK_SIZE = 128;
 
@@ -63,7 +63,7 @@ void copyKernel(const int* __restrict__ input, int num_blocks, int smem_size) {
     __shared__ int smem[ITEMS_PER_BLOCK];
 
     for (int i = blockIdx.x; i < num_blocks; i += gridDim.x) {
-        block::StrideOp<0, ITEMS_PER_BLOCK, BLOCK_SIZE>
+        xlib::block::StrideOp<0, ITEMS_PER_BLOCK, BLOCK_SIZE>
             ::copy(input + i * ITEMS_PER_BLOCK, smem_size, smem);
         /*auto smem_tmp = smem + threadIdx.x;
         auto d_tmp    = input + i * ITEMS_PER_BLOCK + threadIdx.x;
@@ -239,7 +239,7 @@ int main(int argc, char* argv[]) {
     int num_blocks_copy = 100000;
 
     int* d_input;
-    cuMalloc(d_input, ITEMS_PER_BLOCK * num_blocks_copy);
+    gpu::allocate(d_input, ITEMS_PER_BLOCK * num_blocks_copy);
 
     Timer<DEVICE, micro> TM;
     TM.start();
@@ -327,9 +327,9 @@ int main(int argc, char* argv[]) {
     if (PRINT) {
         graph.print_raw();
         std::cout << "Experted results:\n\n";
-        xlib::printArray(prefixsum, size + 1);
-        xlib::printArray(h_pos, prefixsum[size]);
-        xlib::printArray(h_offset, prefixsum[size]);
+        host::printArray(prefixsum, size + 1);
+        host::printArray(h_pos, prefixsum[size]);
+        host::printArray(h_offset, prefixsum[size]);
     }
 
     int* d_prefixsum, *d_pos, *d_offset, *d_partitions;
@@ -346,14 +346,14 @@ int main(int argc, char* argv[]) {
               << "\n   Num Merges Part.: " << merge_blocks
               << "\n" << std::endl;
 
-    cuMalloc(d_prefixsum, size + 1);
-    cuMalloc(d_pos, ceil_total);
-    cuMalloc(d_offset, ceil_total);
-    cuMalloc(d_partitions, merge_blocks + 1);
-    cuMemcpyToDevice(prefixsum, size + 1, d_prefixsum);
-    cuMemset0x00(d_pos, ceil_total);
-    cuMemset0x00(d_offset, ceil_total);
-    cuMemset0x00(d_partitions, num_blocks + 1);
+    gpu::allocate(d_prefixsum, size + 1);
+    gpu::allocate(d_pos, ceil_total);
+    gpu::allocate(d_offset, ceil_total);
+    gpu::allocate(d_partitions, merge_blocks + 1);
+    host::copyToDevice(prefixsum, size + 1, d_prefixsum);
+    gpu::memsetZero(d_pos, ceil_total);
+    gpu::memsetZero(d_offset, ceil_total);
+    gpu::memsetZero(d_partitions, num_blocks + 1);
     //--------------------------------------------------------------------------
     TM.start();
 
@@ -361,15 +361,15 @@ int main(int argc, char* argv[]) {
         <<< num_block_partitions, BLOCK_SIZE >>>
         (d_prefixsum, size + 1, d_partitions, num_blocks);*/
 
-    mergePathLBPartition <ITEMS_PER_BLOCK>
+    xlib::mergePathLBPartition <ITEMS_PER_BLOCK>
         <<< merge_block_partitions, BLOCK_SIZE >>>
         (d_prefixsum, size, graph.nE(), num_merge, d_partitions, merge_blocks);
 
     TM.stop();
     TM.print("Partition:  ");
 
-    //::gpu::printArray(d_partitions + merge_blocks - 5, 6);
-    //::gpu::printArray(d_partitions, 5);
+    //gpu::printArray(d_partitions + merge_blocks - 5, 6);
+    //gpu::printArray(d_partitions, 5);
 
     TM.start();
 
@@ -389,16 +389,16 @@ int main(int argc, char* argv[]) {
     //--------------------------------------------------------------------------
     if (PRINT) {
         std::cout << "Results:\n\n";
-        ::gpu::printArray(d_pos,    graph.nE());
-        ::gpu::printArray(d_offset, graph.nE());
+        gpu::printArray(d_pos,    graph.nE());
+        gpu::printArray(d_offset, graph.nE());
     }
-    //xlib::printArray(h_pos, 100);
-    //::gpu::printArray(d_pos,  100);
+    //host::printArray(h_pos, 100);
+    //gpu::printArray(d_pos,  100);
 
     std::cout << "\n Check Positions: "
-              << ::gpu::equal(h_pos, h_pos + graph.nE(), d_pos)
+              << gpu::equal(h_pos, h_pos + graph.nE(), d_pos)
               //<< "\n   Check Offsets: "
-              //<< ::gpu::equal(h_offset, h_offset + graph.nE(), d_offset)
+              //<< gpu::equal(h_offset, h_offset + graph.nE(), d_offset)
               << "\n" << std::endl;
 
     //L1:

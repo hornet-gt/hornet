@@ -51,10 +51,10 @@ template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
         vid_t* d_batch_dst = batch_update.dst_ptr();
         //--------------------------------------------------------------------------
 
-        cuMemcpyDevToDev(_d_counts, num_uniques + 1, _d_batch_offset);
+        gpu::copyToDevice(_d_counts, num_uniques + 1, _d_batch_offset);
         cub_prefixsum.run(_d_batch_offset, num_uniques + 1);
-        cuMemset0x00(_d_counter, num_uniques + 1);
-        cuMemset0x00(_d_flags,        batch_size);
+        gpu::memsetZero(_d_counter, num_uniques + 1);
+        gpu::memsetZero(_d_flags,        batch_size);
 
         ///////////////////
         // DELETE KERNEL //
@@ -67,7 +67,7 @@ template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
         //It is possible that a user tries to delete (s,d) from hornet
         //even if degree(s) = 0
         degree_t degree_tmp_sum;
-        cuMemcpyToHost(_d_degree_tmp + num_uniques, degree_tmp_sum);
+        gpu::copyToHost(_d_degree_tmp + num_uniques, 1, &degree_tmp_sum);
 
         if (degree_tmp_sum == 0) {
             return;
@@ -87,7 +87,7 @@ template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
         }
         num_uniques = cub_runlength.run(d_batch_src, batch_size,
                 _d_unique, _d_counts);
-        cuMemcpyDevToDev(_d_counts, num_uniques + 1, _d_batch_offset);
+        gpu::copyToDevice(_d_counts, num_uniques + 1, _d_batch_offset);
         cub_prefixsum.run(_d_batch_offset, num_uniques + 1);
 #ifdef BATCH_DELETE_DEBUG
     xlib::gpu::printArray(_d_batch_src, batch_size, "_d_batch_src:\n");

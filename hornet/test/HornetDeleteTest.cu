@@ -1,4 +1,5 @@
 #include "Hornet.hpp"
+#include "StandardAPI.hpp"
 #include "Core/GPUHornet/BatchUpdate.cuh"
 #include "Util/BatchFunctions.hpp"
 #include <Device/Util/CudaUtil.cuh>          //xlib::deviceInfo
@@ -76,8 +77,8 @@ void deleteBatchTest(HornetGPU &hornet,
 
     #else
     vid_t* batch_src, *batch_dst;
-    cuMallocHost(batch_src, batch_size);
-    cuMallocHost(batch_dst, batch_size);
+    host::allocatePageLocked(batch_src, batch_size);
+    host::allocatePageLocked(batch_dst, batch_size);
     generateBatch(graph,
             batch_size, batch_src, batch_dst,
             BatchGenType::INSERT);
@@ -89,7 +90,6 @@ void deleteBatchTest(HornetGPU &hornet,
 
     #ifndef RANDOM
     #else
-    cuFreeHost(batch_src);
-    cuFreeHost(batch_dst);
+    host::freePageLocked(batch_src, batch_dst);
     #endif
 }

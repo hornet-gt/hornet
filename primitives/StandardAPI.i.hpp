@@ -41,6 +41,9 @@
 #include <Device/Util/SafeCudaAPI.cuh>
 #include <Device/Util/SafeCudaAPIAsync.cuh>
 #include <Device/Primitives/CubWrapper.cuh>
+#if defined(RMM_WRAPPER)
+#include <rmm.h>
+#endif
 #include <omp.h>
 #include <cstring>
 
@@ -49,17 +52,58 @@ namespace gpu {
 
 template<typename T>
 void allocate(T*& pointer, size_t num_items) {
+#if defined(RMM_WRAPPER)
+    auto result = RMM_ALLOC(&pointer, num_items * sizeof(T), 0);//by default, use the default stream
+    if (result != RMM_SUCCESS) {
+        std::cerr << xlib::Color::FG_RED << "\nRMM error\n" << xlib::Color::FG_DEFAULT
+                  << xlib::Emph::SET_UNDERLINE << __FILE__
+                  << xlib::Emph::SET_RESET  << "(" << __LINE__ << ")"
+                  << " [ "
+                  << xlib::Color::FG_L_CYAN << "hornets_nest::gpu::allocate" << xlib::Color::FG_DEFAULT
+                  << " ] : " << rmmAlloc
+                  << " -> " << rmmGetErrorString(result)
+                  << "(" << static_cast<int>(result) << ")\n";
+        assert(false);
+        std::atexit(reinterpret_cast<void(*)()>(cudaDeviceReset));
+        std::exit(EXIT_FAILURE);
+    }
+#else
     cuMalloc(pointer, num_items);
+#endif
 }
 
 template<typename T>
-void free(T* pointer) {
+typename std::enable_if<std::is_pointer<T>::value>::type
+free(T& pointer) {
+#if defined(RMM_WRAPPER)
+    auto result = RMM_FREE(pointer, 0);//by default, use the default stream
+    if (result != RMM_SUCCESS) {
+        std::cerr << xlib::Color::FG_RED << "\nRMM error\n" << xlib::Color::FG_DEFAULT
+                  << xlib::Emph::SET_UNDERLINE << __FILE__
+                  << xlib::Emph::SET_RESET  << "(" << __LINE__ << ")"
+                  << " [ "
+                  << xlib::Color::FG_L_CYAN << "hornets_nest::gpu::free" << xlib::Color::FG_DEFAULT
+                  << " ] : " << rmmFree
+                  << " -> " << rmmGetErrorString(result)
+                  << "(" << static_cast<int>(result) << ")\n";
+        assert(false);
+        std::atexit(reinterpret_cast<void(*)()>(cudaDeviceReset));
+        std::exit(EXIT_FAILURE);
+    }
+#else
     cuFree(pointer);
+#endif
 }
 
-template<typename... TArgs>
-void free(TArgs*... ptrs) {
-    cuFree(ptrs...);
+template<typename T, typename... TArgs>
+typename std::enable_if<std::is_pointer<T>::value>::type
+free(T& pointer, TArgs*... pointers) {
+#if defined(RMM_WRAPPER)
+    hornets_nest::gpu::free(pointer);
+    hornets_nest::gpu::free(pointers...);
+#else
+    cuFree(pointer, pointers...);
+#endif
 }
 
 template<typename T>
@@ -162,8 +206,8 @@ void freePageLocked(T*& pointer) {
 }
 
 template<typename... TArgs>
-void freePageLocked(TArgs*... ptrs) {
-    cuFree(ptrs...);
+void freePageLocked(TArgs*... pointers) {
+    cuFree(pointers...);
 }
 
 template<typename T>

@@ -45,7 +45,12 @@ template<typename T>
 void allocate(T*& pointer, size_t num_items);
 
 template<typename T>
-void free(T* pointer);
+typename std::enable_if<std::is_pointer<T>::value>::type
+free(T& pointer);
+
+template<typename T, typename... TArgs>
+typename std::enable_if<std::is_pointer<T>::value>::type
+free(T& pointer, TArgs*... pointers);
 
 template<typename T>
 void copyToDevice(const T* device_input, size_t num_items, T* device_output);

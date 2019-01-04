@@ -7,7 +7,8 @@ set(UNUSED_COMPILER_OPTIONS OFF)    #unused compiler flags
 set(MARCH_COMPILER_OPTIONS OFF)     #march compiler flag
 #EXTERNAL VARIABLE
 #set(WARNING_FLAGS ON)
-#set(CUB_LIBRARY   <PATH>)
+#set(CUB_LIBRARY   ON)
+#set(RMM_LIBRARY   ON)
 #set(CUDAHC <PATH>)
 #===============================================================================
 ###################
@@ -131,7 +132,17 @@ endif()
 
 if (CUB_LIBRARY)
     set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCUB_WRAPPER" )
-    #include_directories(${CUB_LIBRARY})
+endif()
+
+if (RMM_LIBRARY)
+    set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DRMM_WRAPPER" )
+    add_compile_options("-DRMM_WRAPPER")
+    include_directories(../externals/rmm/include)
+    include_directories(../externals/rmm/src)
+    include_directories(../externals/rmm/thirdparty/cnmem/include)
+    add_library(rmm SHARED IMPORTED)
+    set_target_properties(rmm PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/../externals/rmm/build/librmm.so)
+    set(OPTIONAL_MM_LIBRARY "rmm")
 endif()
 
 if (NVTX)

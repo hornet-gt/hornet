@@ -23,6 +23,7 @@ include_directories(${CUDA_INCLUDE_DIRS})
 
 #set(WARNING_FLAGS ON)
 set(CUB_LIBRARY ON)
+set(RMM_LIBRARY ON)
 include(../compiler-util/CMakeLists.txt)
 
 #-------------------------------------------------------------------------------
@@ -32,6 +33,7 @@ file(GLOB_RECURSE SCPP_SRCS ${PROJECT_SOURCE_DIR}/../xlib/src/*.cpp)
 file(GLOB_RECURSE SCU_SRCS  ${PROJECT_SOURCE_DIR}/../xlib/src/*.cu)
 
 cuda_add_library(hornet ${CPP_SRCS} ${CU_SRCS} ${SCPP_SRCS} ${SCU_SRCS})
+
 #-------------------------------------------------------------------------------
 
 cuda_add_executable(lb_test       		test/BinarySearchTest.cu)
@@ -41,14 +43,16 @@ cuda_add_executable(hornet_insert_test	test/HornetInsertTest.cu)
 cuda_add_executable(hornet_delete_test	test/HornetDeleteTest.cu)
 cuda_add_executable(mem_benchmark 		test/MemBenchmark.cu)
 cuda_add_executable(weight_test   		test/WeightTest.cu)
+#cuda_add_executable(rmm_benchmark 		test/RMMBenchmark.cu)
 
-target_link_libraries(lb_test       	 	hornet ${CUDA_LIBRARIES})
-target_link_libraries(ptxtest       	 	hornet ${CUDA_LIBRARIES})
-target_link_libraries(hornet_test   	 	hornet ${CUDA_LIBRARIES})
-target_link_libraries(hornet_insert_test	hornet ${CUDA_LIBRARIES})
-target_link_libraries(hornet_delete_test	hornet ${CUDA_LIBRARIES})
-target_link_libraries(mem_benchmark 		hornet ${CUDA_LIBRARIES})
-target_link_libraries(weight_test   		hornet ${CUDA_LIBRARIES})
+target_link_libraries(lb_test       	 	hornet ${OPTIONAL_MM_LIBRARY} ${CUDA_LIBRARIES})
+target_link_libraries(ptxtest       	 	hornet ${OPTIONAL_MM_LIBRARY} ${CUDA_LIBRARIES})
+target_link_libraries(hornet_test   	 	hornet ${OPTIONAL_MM_LIBRARY} ${CUDA_LIBRARIES})
+target_link_libraries(hornet_insert_test	hornet ${OPTIONAL_MM_LIBRARY} ${CUDA_LIBRARIES})
+target_link_libraries(hornet_delete_test	hornet ${OPTIONAL_MM_LIBRARY} ${CUDA_LIBRARIES})
+target_link_libraries(mem_benchmark 		hornet ${OPTIONAL_MM_LIBRARY} ${CUDA_LIBRARIES})
+target_link_libraries(weight_test   		hornet ${OPTIONAL_MM_LIBRARY} ${CUDA_LIBRARIES})
+#target_link_libraries(rmm_benchmark 		hornet ${OPTIONAL_MM_LIBRARY} ${CUDA_LIBRARIES})
 
 #cuda_add_executable(data_layout test/DataLayout.cu)
 #cuda_add_executable(csr_test test/CsrTest.cu)

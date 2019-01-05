@@ -49,38 +49,29 @@ int main() {
         std::cout << "." << std::flush;
 
         {
-            xlib::byte_t* h_p_cpp = nullptr;
             my_timer.start();
             for (std::size_t i = 0; i < repeat_cnt; i++) {
-                h_p_cpp = new (std::nothrow) xlib::byte_t[size];
+                std::unique_ptr<xlib::byte_t[]> h_p_cpp(new (std::nothrow) xlib::byte_t[size]);//no initialization, should not use std::make_unique here as this enforces initialization and is slower.
                 if (h_p_cpp == nullptr) {
                     std::cout << std::endl;
                     std::cout << "new failed (size=" << xlib::human_readable(size) << "), this is normal if the size exceeds available host memory." << std::endl;
                     success = false;
                     break;
                 }
-                delete[] h_p_cpp;
             }
             my_timer.stop();
             v_alloc_time_host_cpp.push_back(my_timer.duration());
         }
 
         if (success == true ) {
-            xlib::byte_t* h_p_cuda = nullptr;
             my_timer.start();
             for (std::size_t i = 0; i < repeat_cnt; i++) {
-                auto result = cudaSuccess;
-                result = cudaMallocHost(&h_p_cuda, size);//cudaMallocHost instead of host::allocatePageLocked to test return value, host::allocatePageLocked calls std::exit on error.
-                if (result != cudaSuccess) {
+                auto my_new = [](const size_t size) { xlib::byte_t* h_p_cuda; auto result = cudaMallocHost(&h_p_cuda, size); if (result == cudaSuccess) { return static_cast<xlib::byte_t*>(h_p_cuda); } else { return static_cast<xlib::byte_t*>(nullptr); } };
+                auto my_del = [](xlib::byte_t* h_p_cuda) { SAFE_CALL(cudaFreeHost(h_p_cuda)); };
+                std::unique_ptr<xlib::byte_t[], decltype(my_del)> h_p_cuda(my_new(size), my_del);
+                if (h_p_cuda == nullptr) {
                     std::cout << std::endl;
                     std::cout << "cudaMallocHost failed (size=" << xlib::human_readable(size) << "), this is normal if the size exceeds available host memory (that can be page-locked)." << std::endl;
-                    success = false;
-                    break;
-                }
-                result = cudaFreeHost(h_p_cuda);
-                if (result != cudaSuccess) {
-                    std::cout << std::endl;
-                    std::cout << "cudaFreeHost failed (size=" << xlib::human_readable(size) << ")." << std::endl;
                     success = false;
                     break;
                 }
@@ -90,21 +81,14 @@ int main() {
         }
 
         if (success == true ) {
-            xlib::byte_t* d_p_cuda = nullptr;
             my_timer.start();
             for (std::size_t i = 0; i < repeat_cnt; i++) {
-                auto result = cudaSuccess;
-                result = cudaMalloc(&d_p_cuda, size);//directly invokes cudaMalloc (gpu::allocate invokes RMM_ALLOC if RMM_WRAPPER is defined).
-                if (result != cudaSuccess) {
+                auto my_new = [](const size_t size) { xlib::byte_t* d_p_cuda; auto result = cudaMalloc(&d_p_cuda, size); if (result == cudaSuccess) { return static_cast<xlib::byte_t*>(d_p_cuda); } else { return static_cast<xlib::byte_t*>(nullptr); } };
+                auto my_del = [](xlib::byte_t* d_p_cuda) { SAFE_CALL(cudaFree(d_p_cuda)); };
+                std::unique_ptr<xlib::byte_t[], decltype(my_del)> d_p_cuda(my_new(size), my_del);
+                if (d_p_cuda == nullptr) {
                     std::cout << std::endl;
                     std::cout << "cudaMalloc failed (size=" << xlib::human_readable(size) << "), this is normal if the size exceeds available device memory." << std::endl;
-                    success = false;
-                    break;
-                }
-                result = cudaFree(d_p_cuda);
-                if (result != cudaSuccess) {
-                    std::cout << std::endl;
-                    std::cout << "cudaFree failed (size=" << xlib::human_readable(size) << ")." << std::endl;
                     success = false;
                     break;
                 }
@@ -114,21 +98,14 @@ int main() {
         }
 
         if (success == true ) {
-            xlib::byte_t* d_p_rmm = nullptr;
             my_timer.start();
             for (std::size_t i = 0; i < repeat_cnt; i++) {
-                auto result = RMM_SUCCESS;
-                result = RMM_ALLOC(&d_p_rmm, size, 0);//by default, use the default stream, RMM_ALLOC instead of gpu::allocate to test return value, gpu::allocate calls std::exit on error.
-                if (result != RMM_SUCCESS) {
+                auto my_new = [](const size_t size) { xlib::byte_t* d_p_rmm; auto result = RMM_ALLOC(&d_p_rmm, size, 0);/* by default, use the default stream, RMM_ALLOC instead of gpu::allocate to test return value, gpu::allocate calls std::exit on error */ if (result == RMM_SUCCESS) { return static_cast<xlib::byte_t*>(d_p_rmm); } else { return static_cast<xlib::byte_t*>(nullptr); } };
+                auto my_del = [](xlib::byte_t* d_p_rmm) { gpu::free(d_p_rmm); };
+                std::unique_ptr<xlib::byte_t[], decltype(my_del)> d_p_rmm(my_new(size), my_del);
+                if (d_p_rmm == nullptr) {
                     std::cout << std::endl;
                     std::cout << "RMM_ALLOC failed (size=" << xlib::human_readable(size) << "), this is normal if the size exceeds available device memory (accessible to RMM)." << std::endl;
-                    success = false;
-                    break;
-                }
-                result = RMM_FREE(d_p_rmm, 0);//by default, use the default stream
-                if (result != RMM_SUCCESS) {
-                    std::cout << std::endl;
-                    std::cout << "RMM_FREE failed (size=" << xlib::human_readable(size) << ")." << std::endl;
                     success = false;
                     break;
                 }

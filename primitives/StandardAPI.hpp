@@ -41,6 +41,12 @@
 namespace hornets_nest {
 namespace gpu {
 
+#if defined(RMM_WRAPPER)
+void initializeRMMPoolAllocation(const size_t initPoolSize);
+
+void finalizeRMMPoolAllocation(void);
+#endif
+
 template<typename T>
 void allocate(T*& pointer, size_t num_items);
 

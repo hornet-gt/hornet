@@ -257,6 +257,8 @@ int main(int argc, char* argv[]) {
     TM.stop();
     TM.print("copy2");
 
+    gpu::free(d_input);
+
     return 1;
     /*int* __restrict__ ptr1, * __restrict__ ptr2;
     lambdaKernel<<<1,1>>>( [=]__device__(int i){
@@ -426,4 +428,6 @@ int main(int argc, char* argv[]) {
               << std::equal(h_pos, h_pos + graph.nE(), lbs_host.data())
               << "\n" << std::endl;
 #endif
+
+    gpu::free(d_partitions, d_offset, d_pos, d_prefixsum);
 }

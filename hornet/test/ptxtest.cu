@@ -121,4 +121,6 @@ int main() {
     CHECK_CUDA_ERROR
 
     cu::printArray(d_output, batch_size);*/
+
+    gpu::free(d_output, d_input);
 }

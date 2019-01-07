@@ -89,8 +89,7 @@ void HORNET::transpose() noexcept {
     gpu::copyToHost(d_coo_src_out, _nE, const_cast<vid_t*>(_csr_edges));
     _internal_csr_data = true;
 
-    gpu::free(d_coo_dst, d_coo_src, d_counts_out, d_unique_out,
-              d_coo_src_out, d_counts_out);
+    gpu::free(d_unique_out, d_counts_out, d_coo_dst_out, d_coo_src_out, d_coo_dst, d_coo_src, d_csr_offsets);
 
     initialize();
 }

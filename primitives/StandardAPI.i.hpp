@@ -51,15 +51,36 @@ namespace hornets_nest {
 namespace gpu {
 
 #if defined(RMM_WRAPPER)
+//it may be better to move this inside a cpp file (similar to xlib::detail::cudaErrorHandler) if there is an appropriate place.
+#define RMM_ERROR_HANDLER(func_name) do {                                                   \
+    std::cerr << xlib::Color::FG_RED << "\nRMM error\n" << xlib::Color::FG_DEFAULT          \
+        << xlib::Emph::SET_UNDERLINE << __FILE__                                            \
+        << xlib::Emph::SET_RESET  << "(" << __LINE__ << ")"                                 \
+        << " [ "                                                                            \
+        << xlib::Color::FG_L_CYAN << (func_name) << xlib::Color::FG_DEFAULT \
+        << " ] : " << rmmAlloc                                                              \
+        << " -> " << rmmGetErrorString(result)                                              \
+        << "(" << static_cast<int>(result) << ")\n";                                        \
+    assert(false);                                                                          \
+    std::atexit(reinterpret_cast<void(*)()>(cudaDeviceReset));                              \
+    std::exit(EXIT_FAILURE);                                                                \
+} while (0)
+
 void initializeRMMPoolAllocation(const size_t initPoolSize) {
     rmmOptions_t options;
     options.allocation_mode = PoolAllocation;
     options.initial_pool_size = initPoolSize;
-    rmmInitialize(&options);
+    auto result = rmmInitialize(&options);
+    if (result != RMM_SUCCESS) {
+        RMM_ERROR_HANDLER("hornets_nest::gpu::initializeRMMPoolAllocation");
+    }
 }
 
 void finalizeRMMPoolAllocation(void) {
-    rmmFinalize();
+    auto result = rmmFinalize();
+    if (result != RMM_SUCCESS) {
+        RMM_ERROR_HANDLER("hornets_nest::gpu::finalizeRMMPoolAllocation");
+    }
 }
 #endif
 
@@ -68,17 +89,7 @@ void allocate(T*& pointer, size_t num_items) {
 #if defined(RMM_WRAPPER)
     auto result = RMM_ALLOC(&pointer, num_items * sizeof(T), 0);//by default, use the default stream
     if (result != RMM_SUCCESS) {
-        std::cerr << xlib::Color::FG_RED << "\nRMM error\n" << xlib::Color::FG_DEFAULT
-                  << xlib::Emph::SET_UNDERLINE << __FILE__
-                  << xlib::Emph::SET_RESET  << "(" << __LINE__ << ")"
-                  << " [ "
-                  << xlib::Color::FG_L_CYAN << "hornets_nest::gpu::allocate" << xlib::Color::FG_DEFAULT
-                  << " ] : " << rmmAlloc
-                  << " -> " << rmmGetErrorString(result)
-                  << "(" << static_cast<int>(result) << ")\n";
-        assert(false);
-        std::atexit(reinterpret_cast<void(*)()>(cudaDeviceReset));
-        std::exit(EXIT_FAILURE);
+        RMM_ERROR_HANDLER("hornets_nest::gpu::allocate");
     }
 #else
     cuMalloc(pointer, num_items);
@@ -91,17 +102,7 @@ free(T& pointer) {
 #if defined(RMM_WRAPPER)
     auto result = RMM_FREE(pointer, 0);//by default, use the default stream
     if (result != RMM_SUCCESS) {
-        std::cerr << xlib::Color::FG_RED << "\nRMM error\n" << xlib::Color::FG_DEFAULT
-                  << xlib::Emph::SET_UNDERLINE << __FILE__
-                  << xlib::Emph::SET_RESET  << "(" << __LINE__ << ")"
-                  << " [ "
-                  << xlib::Color::FG_L_CYAN << "hornets_nest::gpu::free" << xlib::Color::FG_DEFAULT
-                  << " ] : " << rmmFree
-                  << " -> " << rmmGetErrorString(result)
-                  << "(" << static_cast<int>(result) << ")\n";
-        assert(false);
-        std::atexit(reinterpret_cast<void(*)()>(cudaDeviceReset));
-        std::exit(EXIT_FAILURE);
+        RMM_ERROR_HANDLER("hornets_nest::gpu::free");
     }
 #else
     cuFree(pointer);

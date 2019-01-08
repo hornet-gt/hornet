@@ -43,7 +43,7 @@ namespace gpu {
 
 #if defined(RMM_WRAPPER)
 __forceinline__
-void initializeRMMPoolAllocation(const size_t initPoolSize);
+void initializeRMMPoolAllocation(const size_t initPoolSize=0);//if initial pool size is set to 0, RMM currently assigns half the device memory
 
 __forceinline__
 void finalizeRMMPoolAllocation(void);

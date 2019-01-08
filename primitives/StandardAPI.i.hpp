@@ -220,7 +220,7 @@ void freePageLocked(T*& pointer) {
 
 template<typename... TArgs>
 void freePageLocked(TArgs*... pointers) {
-    cuFree(pointers...);
+    cuFreeHost(pointers...);
 }
 
 template<typename T>

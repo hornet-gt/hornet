@@ -94,19 +94,10 @@ __global__ void segReduceTest() {
     printf("%f ", value);
 }
 
-int main() {
-#if defined(RMM_WRAPPER)
-    size_t init_pool_size = 128 * 1024 * 1024;//128MB
-    gpu::initializeRMMPoolAllocation(init_pool_size);
-#endif
-
+int exec(void) {
     segReduceTest<<<1, 32>>>();
     cudaDeviceSynchronize();
     std::cout << std::endl;
-
-#if defined(RMM_WRAPPER)
-    gpu::finalizeRMMPoolAllocation();
-#endif
 
     return 0;
 #if 0//Seunghwa Kang: this code does not execute and is not relevant to ptxtest, I may delete this sometime in the future.
@@ -121,3 +112,22 @@ int main() {
     gpu::free(d_output, d_input);
 #endif
 }
+int main() {
+    int ret = 0;
+#if defined(RMM_WRAPPER)
+    gpu::initializeRMMPoolAllocation();//update initPoolSize if you know your memory requirement and memory availability in your system, if initial pool size is set to 0 (default value), RMM currently assigns half the device memory.
+    {//scoping technique to make sure that gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+#endif
+
+    ret = exec();
+
+#if defined(RMM_WRAPPER)
+    }//scoping technique to make sure that gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+    gpu::finalizeRMMPoolAllocation();
+#endif
+
+    cudaDeviceReset();//not sure this is really necessary, but if yes, this should be placed in every test.
+
+    return ret;
+}
+

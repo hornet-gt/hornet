@@ -42,8 +42,10 @@ namespace hornets_nest {
 namespace gpu {
 
 #if defined(RMM_WRAPPER)
+__forceinline__
 void initializeRMMPoolAllocation(const size_t initPoolSize);
 
+__forceinline__
 void finalizeRMMPoolAllocation(void);
 #endif
 

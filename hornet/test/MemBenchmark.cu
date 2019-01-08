@@ -13,6 +13,11 @@ using xlib::byte_t;
 using ttime_t = float;
 
 int main() {
+#if defined(RMM_WRAPPER)
+    size_t init_pool_size = 128 * 1024 * 1024;//128MB
+    gpu::initializeRMMPoolAllocation(init_pool_size);
+#endif
+
     size_t size = 1024;
     Timer<DEVICE> TM;
 
@@ -77,12 +82,12 @@ int main() {
 
             TM.stop();
             D2D_time.push_back(TM.duration());
-            gpu::free(d_array2);
+            SAFE_CALL(cudaFree(d_array2));
         }
         else {
             D2D_time.push_back(std::nan(""));
         }
-        gpu::free(d_array);
+        SAFE_CALL(cudaFree(d_array));
         //----------------------------------------------------------------------
         size *= 2;
     }
@@ -130,4 +135,10 @@ int main() {
 
     gpu::free(d_array);
     host::freePageLocked(h_array_pinned);
+
+#if defined(RMM_WRAPPER)
+    gpu::finalizeRMMPoolAllocation();
+#endif
+
+    return 0;
 }

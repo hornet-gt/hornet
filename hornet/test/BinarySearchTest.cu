@@ -148,45 +148,11 @@ struct LL {
 };
 
 int main(int argc, char* argv[]) {
-    //xlib::NaturalIterator natural_iterator;
-    /*const int NUM_THREADS = 5;
-    int  offsets[] = { 0, 2, 2, 4, 8, 16 };
-    int*   offset2 = offsets + 1;
-    const int SIZE = sizeof(offsets) / sizeof(int) - 1;
-    int  max_value = offsets[SIZE];
-    int  num_merge = max_value + SIZE;
-    int      ITEMS = xlib::ceil_div<NUM_THREADS>(num_merge);
+#if defined(RMM_WRAPPER)
+    size_t init_pool_size = 128 * 1024 * 1024;//128MB
+    gpu::initializeRMMPoolAllocation(init_pool_size);
+#endif
 
-    std::cout << std::endl << "ITEMS  " <<  ITEMS << std::endl;
-    std::cout << "........................" << std::endl;
-    for (int i = 0; i < NUM_THREADS; i++) {
-        auto range_start = merge_path_search(offset2, SIZE,
-                                             natural_iterator, max_value,
-                                             min(i * ITEMS, num_merge));
-        auto   range_end = merge_path_search(offset2, SIZE,
-                                             natural_iterator, max_value,
-                                             min((i + 1) * ITEMS, num_merge));
-        std::cout << range_start.x << "  " << range_end.x << "\t\t"
-                  << range_start.y << "  " << range_end.y
-                  << "\t\t"
-                  << offset2[range_start.x] << "\t\t"
-                  << (range_end.x - range_start.x) + (range_end.y - range_start.y)
-                  << std::endl;
-
-        for (int j = 0; j < ITEMS; j++) {
-            if (range_start.y < offset2[range_start.x]) {
-                std::cout << "       " << range_start.y << "\n";
-                range_start.y++;
-            }
-            else {
-                //std::cout << "       " << range_start.x << "\n";
-                range_start.x++;
-            }
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;
-    return 0;*/
     using namespace graph;
     GraphStd<int, int> graph1;
     graph1.read(argv[1]);
@@ -208,16 +174,6 @@ int main(int argc, char* argv[]) {
 
 
     Timer<HOST> TM1;
-    /*BellmanFord<int, int, int> bellman_ford(graph_weight);
-
-    TM1.start();
-
-    for (int i = 0; i < graph1.nV(); i++) {
-        bellman_ford.run(i);
-        bellman_ford.reset();
-    }
-    TM1.stop();
-    TM1.print("BellmanFord");*/
 
     Dijkstra<int, int, int> dijkstra(graph_weight);
 
@@ -229,9 +185,12 @@ int main(int argc, char* argv[]) {
     }
     TM1.stop();
     TM1.print("Dijkstra");
+
+#if defined(RMM_WRAPPER)
+    gpu::finalizeRMMPoolAllocation();
+#endif
+
     return 1;
-
-
 
     const int THREAD_ITEMS    = 11;
     const int ITEMS_PER_BLOCK = BLOCK_SIZE * THREAD_ITEMS;
@@ -260,38 +219,6 @@ int main(int argc, char* argv[]) {
     gpu::free(d_input);
 
     return 1;
-    /*int* __restrict__ ptr1, * __restrict__ ptr2;
-    lambdaKernel<<<1,1>>>( [=]__device__(int i){
-                            ptr1[i] = ptr2[i];
-                            ptr1[i + 10] = ptr2[i + 10];
-                            ptr1[i + 20] = ptr2[i + 20];
-                          }, 10);
-
-    lambdaKernel<<<1,1>>>( LL{ptr1, ptr2}, 10);
-
-    lambdaKernel2<<<1,1>>>([]__device__(int i, const int* ptr2, int* ptr1){
-                            ptr1[i] = ptr2[i];
-                            ptr1[i + 10] = ptr2[i + 10];
-                            ptr1[i + 20] = ptr2[i + 20];
-                          }, 10, ptr2, ptr1);
-
-    noLambdaKernel<<<1,1>>>( ptr2, ptr1, 10);*/
-
-
-
-    /*TM.start();
-
-    xlib::global_sync_reset();
-
-    TM.stop();
-    TM.print("global_reset");
-    TM.start();
-
-    globalSyncTest2<64> <<< 56 * 2048 / 256, 256 >>> ();
-
-    TM.stop();
-    TM.print("global_sync");
-    CHECK_CUDA_ERROR*/
 
     GraphStd<> graph;
     graph.read(argv[1], parsing_prop::PRINT_INFO | parsing_prop::RM_SINGLETON);
@@ -313,18 +240,6 @@ int main(int argc, char* argv[]) {
         h_pos[i] = -1;
     //--------------------------------------------------------------------------
     int num_merge = graph.nE() + graph.nV();
-
-    /*for (int i = 0; i < 70; i++) {
-        auto range_start = ::merge_path_search(prefixsum, size + 1,
-                                             natural_iterator, prefixsum[size],
-                                             min(i * THREAD_ITEMS, num_merge));
-        auto   range_end = ::merge_path_search(prefixsum, size + 1,
-                                             natural_iterator, prefixsum[size],
-                                             min((i + 1) * THREAD_ITEMS, num_merge));
-        std::cout << i << "\t" << min(i * THREAD_ITEMS, num_merge)
-                  << "\t(" << range_start.x << ", " << range_start.y << ")\t\t("
-                  << range_end.x  << "\t" << range_end.y << ")" <<std::endl;
-    }*/
 
     if (PRINT) {
         graph.print_raw();
@@ -359,10 +274,6 @@ int main(int argc, char* argv[]) {
     //--------------------------------------------------------------------------
     TM.start();
 
-    /*binarySearchLBPartition <ITEMS_PER_BLOCK>
-        <<< num_block_partitions, BLOCK_SIZE >>>
-        (d_prefixsum, size + 1, d_partitions, num_blocks);*/
-
     xlib::mergePathLBPartition <ITEMS_PER_BLOCK>
         <<< merge_block_partitions, BLOCK_SIZE >>>
         (d_prefixsum, size, graph.nE(), num_merge, d_partitions, merge_blocks);
@@ -370,16 +281,7 @@ int main(int argc, char* argv[]) {
     TM.stop();
     TM.print("Partition:  ");
 
-    //gpu::printArray(d_partitions + merge_blocks - 5, 6);
-    //gpu::printArray(d_partitions, 5);
-
     TM.start();
-
-    //MergePathTest<ITEMS_PER_BLOCK, BLOCK_SIZE> <<< num_blocks, BLOCK_SIZE >>>
-    //    (d_prefixsum, size + 1, d_pos, d_offset);
-
-    //MergePathTest2<ITEMS_PER_BLOCK, BLOCK_SIZE> <<< num_blocks, BLOCK_SIZE >>>
-    //    (d_partitions, num_blocks, d_prefixsum, size + 1, d_pos, d_offset);
 
     MergePathTest2<ITEMS_PER_BLOCK, BLOCK_SIZE> <<< merge_blocks, BLOCK_SIZE >>>
         (d_partitions, merge_blocks, d_prefixsum, size + 1, d_pos, d_offset);
@@ -394,8 +296,6 @@ int main(int argc, char* argv[]) {
         gpu::printArray(d_pos,    graph.nE());
         gpu::printArray(d_offset, graph.nE());
     }
-    //host::printArray(h_pos, 100);
-    //gpu::printArray(d_pos,  100);
 
     std::cout << "\n Check Positions: "
               << gpu::equal(h_pos, h_pos + graph.nE(), d_pos)

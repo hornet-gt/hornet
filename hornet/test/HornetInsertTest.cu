@@ -21,8 +21,20 @@ void exec(int argc, char* argv[]);
  * @brief Example tester for Hornet
  */
 int main(int argc, char* argv[]) {
+#if defined(RMM_WRAPPER)
+    size_t init_pool_size = 128 * 1024 * 1024;//128MB
+    gpu::initializeRMMPoolAllocation(init_pool_size);
+#endif
+
     exec(argc, argv);
+
+#if defined(RMM_WRAPPER)
+    gpu::finalizeRMMPoolAllocation();
+#endif
+
     cudaDeviceReset();
+
+    return 0;
 }
 
 void exec(int argc, char* argv[]) {
@@ -66,5 +78,5 @@ void exec(int argc, char* argv[]) {
     std::cout<<"=======\n";
     TM.print("Insertion " + std::to_string(batch_size) + ":  ");
 
-    host::freePageLocked(batch_src, batch_dst);
+    host::freePageLocked(batch_dst, batch_src);
 }

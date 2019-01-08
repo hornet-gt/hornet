@@ -97,13 +97,13 @@ int main() {
 
             TM.stop();
             memcpy_kernel_time.push_back(TM.duration());
-            gpu::free(d_array2);
+            SAFE_CALL(cudaFree(d_array2));
         }
         else {
             D2D_time.push_back(std::nan(""));
             memcpy_kernel_time.push_back(std::nan(""));
         }
-        gpu::free(d_array);
+        SAFE_CALL(cudaFree(d_array));
         //----------------------------------------------------------------------
         size *= 2;
     }

@@ -95,13 +95,21 @@ __global__ void segReduceTest() {
 }
 
 int main() {
-    //ptxKernel3<<<1, 1>>>();
+#if defined(RMM_WRAPPER)
+    size_t init_pool_size = 128 * 1024 * 1024;//128MB
+    gpu::initializeRMMPoolAllocation(init_pool_size);
+#endif
+
     segReduceTest<<<1, 32>>>();
     cudaDeviceSynchronize();
     std::cout << std::endl;
+
+#if defined(RMM_WRAPPER)
+    gpu::finalizeRMMPoolAllocation();
+#endif
+
     return 0;
-
-
+#if 0//Seunghwa Kang: this code does not execute and is not relevant to ptxtest, I may delete this sometime in the future.
     int* d_input, *d_output;
     int batch_size = 128;
     auto h_batch = new int[batch_size];
@@ -110,17 +118,6 @@ int main() {
     gpu::allocate(d_output, batch_size);
     gpu::memsetZero(d_output, batch_size);
     host::copyToDevice(h_batch, batch_size, d_input);
-
-    //xlib::CubExclusiveSum<int> prefixsum(d_input, batch_size, d_output);
-    //prefixsum.run();
-    /*xlib::CubExclusiveSum<int> prefixsum(batch_size * 10);
-
-    segReduceTest<<<1, 32>>>();
-
-    prefixsum.run(d_input, batch_size, d_output);
-    CHECK_CUDA_ERROR
-
-    cu::printArray(d_output, batch_size);*/
-
     gpu::free(d_output, d_input);
+#endif
 }

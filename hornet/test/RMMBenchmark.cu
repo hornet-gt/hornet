@@ -14,10 +14,9 @@ using timer_duration_t = float;//return type of timer::Timer::duration()
 int main() {
 #if defined(RMM_WRAPPER)
     constexpr size_t repeat_cnt = 10;
+    size_t init_pool_size = 128 * 1024 * 1024;//128MB
     size_t min_size = 1024;//1KB
     size_t round = 0;
-
-    rmmOptions_t options;
 
     std::vector<timer_duration_t> v_alloc_time_host_cpp;//new and delete
     std::vector<timer_duration_t> v_alloc_time_host_cuda;//cudaMallocHost and cudaFreeHost
@@ -26,19 +25,10 @@ int main() {
 
     timer::Timer<timer::DEVICE,timer::milli> my_timer;
 
-    options.allocation_mode = PoolAllocation;
-    //options.allocation_mode = CudaDefaultAllocation;
-    options.initial_pool_size = 128 * 1024 * 1024;//128MB, relevant only if PoolAllocation is selected.
-
-    if (options.allocation_mode == PoolAllocation) {
-        std::cout << "Computing (repeat count=" << repeat_cnt << ", RMM alloc mode=pool, RMM init pool size=" << xlib::human_readable(options.initial_pool_size) << ")" << std::endl;
-    }
-    else {
-        std::cout << "Computing (repeat count=" << repeat_cnt << ", RMM alloc mode=cuda default)" << std::endl;
-    }
+    std::cout << "Computing (repeat count=" << repeat_cnt << ", RMM alloc mode=pool, RMM init pool size=" << xlib::human_readable(init_pool_size) << ")" << std::endl;
 
     my_timer.start();
-    rmmInitialize(&options);
+    gpu::initializeRMMPoolAllocation(init_pool_size);
     my_timer.stop();
     auto rmm_initialize_duration = my_timer.duration();
 
@@ -127,7 +117,7 @@ int main() {
     }
 
     my_timer.start();
-    rmmFinalize();
+    gpu::finalizeRMMPoolAllocation();
     my_timer.stop();
     auto rmm_finalize_duration = my_timer.duration();
 

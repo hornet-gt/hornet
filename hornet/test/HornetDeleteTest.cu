@@ -23,10 +23,22 @@ void deleteBatchTest(HornetGPU &hornet,
         const bool print_debug = false);
 
 int main(int argc, char* argv[]) {
+#if defined(RMM_WRAPPER)
+    size_t init_pool_size = 128 * 1024 * 1024;//128MB
+    gpu::initializeRMMPoolAllocation(init_pool_size);
+#endif
+
     exec(argc, argv);
+
+#if defined(RMM_WRAPPER)
+    gpu::finalizeRMMPoolAllocation();
+#endif
+
     cudaDeviceReset();
+
     return 0;
 }
+
 void exec(int argc, char* argv[]) {
     using namespace graph::structure_prop;
     using namespace graph::parsing_prop;

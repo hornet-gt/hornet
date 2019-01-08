@@ -147,13 +147,9 @@ struct LL {
     }
 };
 
-int main(int argc, char* argv[]) {
-#if defined(RMM_WRAPPER)
-    size_t init_pool_size = 128 * 1024 * 1024;//128MB
-    gpu::initializeRMMPoolAllocation(init_pool_size);
-#endif
-
+int exec(int argc, char* argv[]) {
     using namespace graph;
+
     GraphStd<int, int> graph1;
     graph1.read(argv[1]);
 
@@ -185,10 +181,6 @@ int main(int argc, char* argv[]) {
     }
     TM1.stop();
     TM1.print("Dijkstra");
-
-#if defined(RMM_WRAPPER)
-    gpu::finalizeRMMPoolAllocation();
-#endif
 
     return 1;
 
@@ -330,4 +322,26 @@ int main(int argc, char* argv[]) {
 #endif
 
     gpu::free(d_partitions, d_offset, d_pos, d_prefixsum);
+
+    return 0;
 }
+
+int main(int argc, char* argv[]) {
+    int ret = 0;
+#if defined(RMM_WRAPPER)
+    gpu::initializeRMMPoolAllocation();//update initPoolSize if you know your memory requirement and memory availability in your system, if initial pool size is set to 0 (default value), RMM currently assigns half the device memory.
+    {//scoping technique to make sure that gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+#endif
+
+    ret = exec(argc, argv);
+
+#if defined(RMM_WRAPPER)
+    }//scoping technique to make sure that gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+    gpu::finalizeRMMPoolAllocation();
+#endif
+
+    cudaDeviceReset();//not sure this is really necessary, but if yes, this should be placed in every test.
+
+    return ret;
+}
+

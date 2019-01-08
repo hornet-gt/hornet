@@ -11,10 +11,9 @@
 using namespace hornets_nest;
 using timer_duration_t = float;//return type of timer::Timer::duration()
 
-int main() {
+int exec() {
 #if defined(RMM_WRAPPER)
     constexpr size_t repeat_cnt = 10;
-    size_t init_pool_size = 128 * 1024 * 1024;//128MB
     size_t min_size = 1024;//1KB
     size_t round = 0;
 
@@ -25,12 +24,7 @@ int main() {
 
     timer::Timer<timer::DEVICE,timer::milli> my_timer;
 
-    std::cout << "Computing (repeat count=" << repeat_cnt << ", RMM alloc mode=pool, RMM init pool size=" << xlib::human_readable(init_pool_size) << ")" << std::endl;
-
-    my_timer.start();
-    gpu::initializeRMMPoolAllocation(init_pool_size);
-    my_timer.stop();
-    auto rmm_initialize_duration = my_timer.duration();
+    std::cout << "Computing (repeat count=" << repeat_cnt << ", RMM alloc mode=pool)" << std::endl;
 
     while (true) {
         size_t size = min_size << round;
@@ -116,11 +110,6 @@ int main() {
         }
     }
 
-    my_timer.start();
-    gpu::finalizeRMMPoolAllocation();
-    my_timer.stop();
-    auto rmm_finalize_duration = my_timer.duration();
-
     std::cout << "RESULT:" << std::endl;
     std::cout << std::setprecision(2) << std::right << std::fixed
               << std::setw(8)  << "SIZE"
@@ -138,13 +127,30 @@ int main() {
                   << std::setw(16) << v_alloc_time_device_rmm[i] << std::endl;
     }
 
-    std::cout << "rmmInitialize:" << rmm_initialize_duration << " rmmFinalize:" << rmm_finalize_duration << std::endl;
-
     std::cout << "* unit: ms, measured time includes both memory allocation and deallocation." << std::endl;
 #else
     std::cout << "RMM_WRAPPER should be defined to benchmark RMM." << std::endl;
 #endif
 
     return 0;
+}
+
+int main() {
+    int ret = 0;
+#if defined(RMM_WRAPPER)
+    gpu::initializeRMMPoolAllocation();//update initPoolSize if you know your memory requirement and memory availability in your system, if initial pool size is set to 0 (default value), RMM currently assigns half the device memory.
+    {//scoping technique to make sure that gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+#endif
+
+    ret = exec();
+
+#if defined(RMM_WRAPPER)
+    }//scoping technique to make sure that gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+    gpu::finalizeRMMPoolAllocation();
+#endif
+
+    cudaDeviceReset();//not sure this is really necessary, but if yes, this should be placed in every test.
+
+    return ret;
 }
 

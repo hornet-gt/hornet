@@ -5,6 +5,7 @@
 #include "Static/BetweennessCentrality/bc.cuh"
 #include "Static/BetweennessCentrality/exact_bc.cuh"
 #include "Static/BetweennessCentrality/approximate_bc.cuh"
+#include <StandardAPI.hpp>
 #include <Graph/GraphStd.hpp>
 #include <Util/CommandLineParam.hpp>
 #include <cuda_profiler_api.h> //--profile-from-start off
@@ -14,7 +15,7 @@ using namespace graph;
 using namespace graph::structure_prop;
 using namespace graph::parsing_prop;
 
-int main(int argc, char* argv[]) {
+int exec(int argc, char* argv[]) {
     using namespace timer;
     using namespace hornets_nest;
 
@@ -74,6 +75,25 @@ int main(int argc, char* argv[]) {
 
     delete[] roots;
 
-
-
+    return 0;
 }
+
+int main(int argc, char* argv[]) {
+    int ret = 0;
+#if defined(RMM_WRAPPER)
+    hornets_nest::gpu::initializeRMMPoolAllocation();//update initPoolSize if you know your memory requirement and memory availability in your system, if initial pool size is set to 0 (default value), RMM currently assigns half the device memory.
+    {//scoping technique to make sure that hornets_nest::gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+#endif
+
+    ret = exec(argc, argv);
+
+#if defined(RMM_WRAPPER)
+    }//scoping technique to make sure that hornets_nest::gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+    hornets_nest::gpu::finalizeRMMPoolAllocation();
+#endif
+
+    cudaDeviceReset();//not sure this is really necessary, but if yes, this should be placed in every test.
+
+    return ret;
+}
+

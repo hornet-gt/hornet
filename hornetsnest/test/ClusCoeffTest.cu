@@ -4,6 +4,7 @@
  */
 
 #include "HornetAlg.hpp"
+#include <StandardAPI.hpp>
 #include <Core/GPUCsr/Csr.cuh>
 #include <Core/GPUHornet/Hornet.cuh>
 #include <Graph/GraphStd.hpp>
@@ -16,9 +17,7 @@ using namespace hornets_nest;
 
 using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
 
-
-
-int main(int argc, char* argv[]) {
+int exec(int argc, char* argv[]) {
 
     using namespace graph::structure_prop;
     using namespace graph::parsing_prop;
@@ -43,3 +42,23 @@ int main(int argc, char* argv[]) {
   
     return 0;
 }
+
+int main(int argc, char* argv[]) {
+    int ret = 0;
+#if defined(RMM_WRAPPER)
+    hornets_nest::gpu::initializeRMMPoolAllocation();//update initPoolSize if you know your memory requirement and memory availability in your system, if initial pool size is set to 0 (default value), RMM currently assigns half the device memory.
+    {//scoping technique to make sure that hornets_nest::gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+#endif
+
+    ret = exec(argc, argv);
+
+#if defined(RMM_WRAPPER)
+    }//scoping technique to make sure that hornets_nest::gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+    hornets_nest::gpu::finalizeRMMPoolAllocation();
+#endif
+
+    cudaDeviceReset();//not sure this is really necessary, but if yes, this should be placed in every test.
+
+    return ret;
+}
+

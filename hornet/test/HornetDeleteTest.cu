@@ -11,46 +11,6 @@ using namespace hornets_nest;
 using HornetGPU = hornets_nest::gpu::Hornet<EMPTY, EMPTY>;
 #define RANDOM
 
-void exec(int argc, char* argv[]);
-void deleteBatch(HornetGPU &hornet,
-        const vid_t * src,
-        const vid_t * dst,
-        const int batch_size,
-        const bool print_debug = false);
-void deleteBatchTest(HornetGPU &hornet,
-        graph::GraphStd<vid_t, eoff_t> &graph,
-        int batch_size,
-        const bool print_debug = false);
-
-int main(int argc, char* argv[]) {
-#if defined(RMM_WRAPPER)
-    size_t init_pool_size = 128 * 1024 * 1024;//128MB
-    gpu::initializeRMMPoolAllocation(init_pool_size);
-#endif
-
-    exec(argc, argv);
-
-#if defined(RMM_WRAPPER)
-    gpu::finalizeRMMPoolAllocation();
-#endif
-
-    cudaDeviceReset();
-
-    return 0;
-}
-
-void exec(int argc, char* argv[]) {
-    using namespace graph::structure_prop;
-    using namespace graph::parsing_prop;
-    xlib::device_info();
-    graph::GraphStd<vid_t, eoff_t> graph;
-    graph.read(argv[1]);
-    HornetInit hornet_init(graph.nV(), graph.nE(),
-            graph.csr_out_offsets(), graph.csr_out_edges());
-    HornetGPU hornet(hornet_init);
-    deleteBatchTest(hornet, graph, std::stoi(argv[2]), false);
-}
-
 void deleteBatch(HornetGPU &hornet,
         vid_t * src,
         vid_t * dst,
@@ -105,3 +65,36 @@ void deleteBatchTest(HornetGPU &hornet,
     host::freePageLocked(batch_src, batch_dst);
     #endif
 }
+
+int exec(int argc, char* argv[]) {
+    using namespace graph::structure_prop;
+    using namespace graph::parsing_prop;
+    xlib::device_info();
+    graph::GraphStd<vid_t, eoff_t> graph;
+    graph.read(argv[1]);
+    HornetInit hornet_init(graph.nV(), graph.nE(),
+            graph.csr_out_offsets(), graph.csr_out_edges());
+    HornetGPU hornet(hornet_init);
+    deleteBatchTest(hornet, graph, std::stoi(argv[2]), false);
+    return 0;
+}
+
+int main(int argc, char* argv[]) {
+    int ret = 0;
+#if defined(RMM_WRAPPER)
+    gpu::initializeRMMPoolAllocation();//update initPoolSize if you know your memory requirement and memory availability in your system, if initial pool size is set to 0 (default value), RMM currently assigns half the device memory.
+    {//scoping technique to make sure that gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+#endif
+
+    ret = exec(argc, argv);
+
+#if defined(RMM_WRAPPER)
+    }//scoping technique to make sure that gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+    gpu::finalizeRMMPoolAllocation();
+#endif
+
+    cudaDeviceReset();//not sure this is really necessary, but if yes, this should be placed in every test.
+
+    return ret;
+}
+

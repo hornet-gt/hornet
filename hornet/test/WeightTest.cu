@@ -9,19 +9,30 @@ using namespace hornets_nest;
  * @brief Ensure that the GraphIO GraphWeight class can read weights
  * @author Kasimir Gabert <kasimir@gatech.edu>
  */
-int main(int argc, char* argv[]) {
-#if defined(RMM_WRAPPER)
-    size_t init_pool_size = 128 * 1024 * 1024;//128MB
-    gpu::initializeRMMPoolAllocation(init_pool_size);
-#endif
-
+int exec(int argc, char* argv[]) {
     graph::GraphWeight<vid_t, eoff_t, weight_t> graph;
     graph.read(argv[1]);
     graph.print();
 
+    return 0;
+}
+
+int main(int argc, char* argv[]) {
+    int ret = 0;
 #if defined(RMM_WRAPPER)
+    gpu::initializeRMMPoolAllocation();//update initPoolSize if you know your memory requirement and memory availability in your system, if initial pool size is set to 0 (default value), RMM currently assigns half the device memory.
+    {//scoping technique to make sure that gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+#endif
+
+    ret = exec(argc, argv);
+
+#if defined(RMM_WRAPPER)
+    }//scoping technique to make sure that gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
     gpu::finalizeRMMPoolAllocation();
 #endif
 
-    return 0;
+    cudaDeviceReset();//not sure this is really necessary, but if yes, this should be placed in every test.
+
+    return ret;
 }
+

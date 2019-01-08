@@ -12,12 +12,7 @@ using namespace hornets_nest;
 using xlib::byte_t;
 using ttime_t = float;
 
-int main() {
-#if defined(RMM_WRAPPER)
-    size_t init_pool_size = 128 * 1024 * 1024;//128MB
-    gpu::initializeRMMPoolAllocation(init_pool_size);
-#endif
-
+int exec(void) {
     size_t size = 1024;
     Timer<DEVICE> TM;
 
@@ -136,9 +131,25 @@ int main() {
     gpu::free(d_array);
     host::freePageLocked(h_array_pinned);
 
+    return 0;
+}
+
+int main(void) {
+    int ret = 0;
 #if defined(RMM_WRAPPER)
+    gpu::initializeRMMPoolAllocation();//update initPoolSize if you know your memory requirement and memory availability in your system, if initial pool size is set to 0 (default value), RMM currently assigns half the device memory.
+    {//scoping technique to make sure that gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+#endif
+
+    ret = exec();
+
+#if defined(RMM_WRAPPER)
+    }//scoping technique to make sure that gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
     gpu::finalizeRMMPoolAllocation();
 #endif
 
-    return 0;
+    cudaDeviceReset();//not sure this is really necessary, but if yes, this should be placed in every test.
+
+    return ret;
 }
+

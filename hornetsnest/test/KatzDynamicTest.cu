@@ -37,10 +37,11 @@
  * @file
  */
 #include "Dynamic/KatzCentrality/Katz.cuh"
+#include <StandardAPI.hpp>
 #include <Device/Util/Timer.cuh>
 #include <Graph/GraphStd.hpp>
 
-int main(int argc, char* argv[]) {
+int exec(int argc, char* argv[]) {
     using namespace graph::structure_prop;
     using namespace graph::parsing_prop;
     using namespace graph;
@@ -84,4 +85,26 @@ int main(int argc, char* argv[]) {
               << total_time /
                  static_cast<float>(kcPostUpdate.get_iteration_count())
               << "\n";
+
+    return 0;
 }
+
+int main(int argc, char* argv[]) {
+    int ret = 0;
+#if defined(RMM_WRAPPER)
+    hornets_nest::gpu::initializeRMMPoolAllocation();//update initPoolSize if you know your memory requirement and memory availability in your system, if initial pool size is set to 0 (default value), RMM currently assigns half the device memory.
+    {//scoping technique to make sure that hornets_nest::gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+#endif
+
+    ret = exec(argc, argv);
+
+#if defined(RMM_WRAPPER)
+    }//scoping technique to make sure that hornets_nest::gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+    hornets_nest::gpu::finalizeRMMPoolAllocation();
+#endif
+
+    cudaDeviceReset();//not sure this is really necessary, but if yes, this should be placed in every test.
+
+    return ret;
+}
+

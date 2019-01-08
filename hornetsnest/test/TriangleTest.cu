@@ -4,6 +4,7 @@
 #include <cstdlib>
 
 #include "Static/TriangleCounting/triangle.cuh"
+#include <StandardAPI.hpp>
 #include <Device/Util/Timer.cuh>
 
 #include <Graph/GraphStd.hpp>
@@ -110,48 +111,6 @@ void testTriangleCountingConfigurations(HornetGraph& hornet, vid_t nv,degree_t n
     cout << nv << ", " << ne << ", "<< minTime << ", " << minTimeHornet<< endl;
 }
 
-int* hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
-    const vid_t * ind, int64_t* allTriangles);
-
-int main(const int argc, char *argv[]){
- 
-    using namespace graph::structure_prop;
-    using namespace graph::parsing_prop;
-
-    int device=0;
-
-    cudaSetDevice(device);
-    cudaDeviceProp prop;
-    cudaGetDeviceProperties(&prop, device);
- 
-    graph::GraphStd<vid_t, eoff_t> graph(UNDIRECTED);
-    graph.read(argv[1], SORT | PRINT_INFO);
-
-
-    HornetInit hornet_init(graph.nV(), graph.nE(),
-                                 graph.csr_out_offsets(),
-                                 graph.csr_out_edges());
-
-    std::cout << "Initializing GPU graph" << std::endl;
-    HornetGraph hornet_graph(hornet_init);
-    std::cout << "Checking sortd adj" << std::endl;
-
-    hornet_graph.check_sorted_adjs();
-    // std::cout << "Is sorted " <<  << std::endl;
-
-    int64_t hostTris;
-    std::cout << "Starting host triangle counting" << std::endl;
-    int *histogram = hostCountTriangles(graph.nV(), graph.nE(),graph.csr_out_offsets(), graph.csr_out_edges(),&hostTris);
-    testTriangleCountingConfigurations(hornet_graph,graph.nV(),graph.nE(),histogram);
-    delete histogram;
-    return 0;
-}
-
-
-
-
-
-
 // CPU Version - assume sorted index lists. 
 int hostSingleIntersection (const vid_t ai, const degree_t alen, const vid_t * a,
                             const vid_t bi, const degree_t blen, const vid_t * b){
@@ -217,3 +176,57 @@ int* hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
     printf("Sequential number of triangles %ld\n",sum);
     return histogram;
 }
+
+int exec(const int argc, char *argv[]){
+ 
+    using namespace graph::structure_prop;
+    using namespace graph::parsing_prop;
+
+    int device=0;
+
+    cudaSetDevice(device);
+    cudaDeviceProp prop;
+    cudaGetDeviceProperties(&prop, device);
+ 
+    graph::GraphStd<vid_t, eoff_t> graph(UNDIRECTED);
+    graph.read(argv[1], SORT | PRINT_INFO);
+
+
+    HornetInit hornet_init(graph.nV(), graph.nE(),
+                                 graph.csr_out_offsets(),
+                                 graph.csr_out_edges());
+
+    std::cout << "Initializing GPU graph" << std::endl;
+    HornetGraph hornet_graph(hornet_init);
+    std::cout << "Checking sortd adj" << std::endl;
+
+    hornet_graph.check_sorted_adjs();
+    // std::cout << "Is sorted " <<  << std::endl;
+
+    int64_t hostTris;
+    std::cout << "Starting host triangle counting" << std::endl;
+    int *histogram = hostCountTriangles(graph.nV(), graph.nE(),graph.csr_out_offsets(), graph.csr_out_edges(),&hostTris);
+    testTriangleCountingConfigurations(hornet_graph,graph.nV(),graph.nE(),histogram);
+    delete histogram;
+    return 0;
+}
+
+int main(int argc, char* argv[]) {
+    int ret = 0;
+#if defined(RMM_WRAPPER)
+    hornets_nest::gpu::initializeRMMPoolAllocation();//update initPoolSize if you know your memory requirement and memory availability in your system, if initial pool size is set to 0 (default value), RMM currently assigns half the device memory.
+    {//scoping technique to make sure that hornets_nest::gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+#endif
+
+    ret = exec(argc, argv);
+
+#if defined(RMM_WRAPPER)
+    }//scoping technique to make sure that hornets_nest::gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+    hornets_nest::gpu::finalizeRMMPoolAllocation();
+#endif
+
+    cudaDeviceReset();//not sure this is really necessary, but if yes, this should be placed in every test.
+
+    return ret;
+}
+

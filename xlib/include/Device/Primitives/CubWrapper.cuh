@@ -40,6 +40,7 @@
 #pragma once
 
 #include <limits>
+#include <utility>
 
 namespace xlib {
 

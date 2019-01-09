@@ -183,7 +183,7 @@ int exec(int argc, char* argv[]) {
     TM1.print("Dijkstra");
 
     return 1;
-
+#if 0//unrechable code, may better be deleted unless this code will be reused.
     const int THREAD_ITEMS    = 11;
     const int ITEMS_PER_BLOCK = BLOCK_SIZE * THREAD_ITEMS;
 
@@ -324,6 +324,7 @@ int exec(int argc, char* argv[]) {
     gpu::free(d_partitions, d_offset, d_pos, d_prefixsum);
 
     return 0;
+#endif
 }
 
 int main(int argc, char* argv[]) {

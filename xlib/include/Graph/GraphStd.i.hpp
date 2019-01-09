@@ -123,7 +123,7 @@ GraphStd<vid_t, eoff_t>::VertexIt::operator* () const noexcept {
 template<typename vid_t, typename eoff_t>
 inline GraphStd<vid_t, eoff_t>
 ::Edge::Edge(vid_t src_id, eoff_t id, const GraphStd& graph) noexcept : _graph(graph),
-                                                         _src_id(src_id), _edge_id(id) {};
+                                                         _edge_id(id), _src_id(src_id) {};
 
 template<typename vid_t, typename eoff_t>
 inline eoff_t GraphStd<vid_t, eoff_t>::Edge::id() const noexcept {

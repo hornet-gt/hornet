@@ -119,9 +119,6 @@ inline MemoryMapped::~MemoryMapped() noexcept {
         ERROR("MemoryMapped: file partially read/write");
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-conversion"
-
 template<typename T, typename... Ts>
 void MemoryMapped::read(T* data, size_t size, Ts... args) {
     if (_print)
@@ -178,7 +175,6 @@ void MemoryMapped::write_noprint(const T* data, size_t size, Ts... args) {
 
 inline void MemoryMapped::write_noprint() const noexcept {}
 
-#pragma clang diagnostic pop
 #endif
 
 } // namespace xlib

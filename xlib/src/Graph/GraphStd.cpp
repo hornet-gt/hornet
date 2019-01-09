@@ -249,7 +249,6 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
             std::cout << "Creating degree-directed graph ..." << std::endl;
         eoff_t counter = 0;
         vid_t u, v;
-        vid_t vid_small, vid_large;
         degree_t deg_u, deg_v;
         coo_t* coo_edges_tmp = new coo_t[_nE];
         degree_t* _out_degrees_tmp = new degree_t[_nV]();
@@ -350,9 +349,6 @@ void GraphStd<vid_t, eoff_t>::print() const noexcept {
     std::cout << std::endl;
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-conversion"
-
 template<typename vid_t, typename eoff_t>
 void GraphStd<vid_t, eoff_t>::print_raw() const noexcept {
     xlib::printArray(_out_offsets, _nV + 1, "Out-Offsets  ");           //NOLINT
@@ -403,7 +399,6 @@ void GraphStd<vid_t, eoff_t>
     }
 }
 
-#pragma clang diagnostic pop
 #endif
 
 template<typename vid_t, typename eoff_t>

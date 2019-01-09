@@ -124,7 +124,7 @@ void HORNET::initialize() noexcept {
         if (FORCE_SOA || !xlib::IsVectorizable<vid_t, EdgeTypes...>::value ||
                 sizeof...(EdgeTypes) == 0) {
             #pragma unroll
-            for (int j = 0; j < NUM_ETYPES; j++) {
+            for (size_t j = 0; j < NUM_ETYPES; j++) {
                 size_t    num_bytes = degree * ETYPE_SIZES[j];
                 size_t offset_bytes = offset * ETYPE_SIZES[j];
                 std::memcpy(h_blockarray + PITCH<EdgeTypes...> * j,

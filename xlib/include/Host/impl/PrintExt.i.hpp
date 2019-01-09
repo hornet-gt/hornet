@@ -194,10 +194,8 @@ printBits(const T& value) {
                                         uint64_t, T>::type>::type;
 
     char bits[T_SIZE + 1] = {};
-    #pragma unroll
     for (int i = 0; i < T_SIZE; i++) {
-        bits[i] = reinterpret_cast<R>(value) & static_cast<R>(1 << i) ?
-                  '1' : '0';
+        bits[i] = reinterpret_cast<R>(value) & static_cast<R>(1 << i) ? '1' : '0';
     }
     printf("%s\n", bits);
 }

@@ -226,9 +226,6 @@ void GraphWeight<vid_t, eoff_t, weight_t>::print() const noexcept {
     std::cout << std::endl;
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-conversion"
-
 template<typename vid_t, typename eoff_t, typename weight_t>
 void GraphWeight<vid_t, eoff_t, weight_t>::print_raw() const noexcept {
     xlib::printArray(_out_offsets, _nV + 1, "Out-Offsets  ");           //NOLINT
@@ -282,7 +279,6 @@ void GraphWeight<vid_t, eoff_t, weight_t>
     }
 }
 
-#pragma clang diagnostic pop
 #endif
 
 template<typename vid_t, typename eoff_t, typename weight_t>

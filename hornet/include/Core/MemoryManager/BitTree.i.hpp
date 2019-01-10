@@ -236,7 +236,7 @@ int BitTreeBase<block_t>::size() const noexcept {
 
 template<typename block_t>
 bool BitTreeBase<block_t>::full() const noexcept {
-    return _size == _num_blocks;
+    return _size == static_cast<size_t>(_num_blocks);
 }
 
 template<typename block_t>

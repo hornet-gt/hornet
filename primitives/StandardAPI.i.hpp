@@ -52,13 +52,13 @@ namespace gpu {
 
 #if defined(RMM_WRAPPER)
 //it may be better to move this inside a cpp file (similar to xlib::detail::cudaErrorHandler) if there is an appropriate place.
-#define RMM_ERROR_HANDLER(func_name) do {                                                   \
+#define RMM_ERROR_HANDLER(caller_name, callee_name, result) do {                                                   \
     std::cerr << xlib::Color::FG_RED << "\nRMM error\n" << xlib::Color::FG_DEFAULT          \
         << xlib::Emph::SET_UNDERLINE << __FILE__                                            \
         << xlib::Emph::SET_RESET  << "(" << __LINE__ << ")"                                 \
         << " [ "                                                                            \
-        << xlib::Color::FG_L_CYAN << (func_name) << xlib::Color::FG_DEFAULT \
-        << " ] : " << rmmAlloc                                                              \
+        << xlib::Color::FG_L_CYAN << (caller_name) << xlib::Color::FG_DEFAULT \
+        << " ] : " << callee_name                                                              \
         << " -> " << rmmGetErrorString(result)                                              \
         << "(" << static_cast<int>(result) << ")\n";                                        \
     assert(false);                                                                          \
@@ -72,14 +72,14 @@ void initializeRMMPoolAllocation(const size_t initPoolSize) {
     options.initial_pool_size = initPoolSize;
     auto result = rmmInitialize(&options);
     if (result != RMM_SUCCESS) {
-        RMM_ERROR_HANDLER("hornets_nest::gpu::initializeRMMPoolAllocation");
+        RMM_ERROR_HANDLER("hornets_nest::gpu::initializeRMMPoolAllocation", "rmmInitialize", result);
     }
 }
 
 void finalizeRMMPoolAllocation(void) {
     auto result = rmmFinalize();
     if (result != RMM_SUCCESS) {
-        RMM_ERROR_HANDLER("hornets_nest::gpu::finalizeRMMPoolAllocation");
+        RMM_ERROR_HANDLER("hornets_nest::gpu::finalizeRMMPoolAllocation", "rmmFinalize", result);
     }
 }
 #endif
@@ -89,7 +89,7 @@ void allocate(T*& pointer, size_t num_items) {
 #if defined(RMM_WRAPPER)
     auto result = RMM_ALLOC(&pointer, num_items * sizeof(T), 0);//by default, use the default stream
     if (result != RMM_SUCCESS) {
-        RMM_ERROR_HANDLER("hornets_nest::gpu::allocate");
+        RMM_ERROR_HANDLER("hornets_nest::gpu::allocate", "rmmAlloc", result);
     }
 #else
     cuMalloc(pointer, num_items);
@@ -102,7 +102,7 @@ free(T& pointer) {
 #if defined(RMM_WRAPPER)
     auto result = RMM_FREE(pointer, 0);//by default, use the default stream
     if (result != RMM_SUCCESS) {
-        RMM_ERROR_HANDLER("hornets_nest::gpu::free");
+        RMM_ERROR_HANDLER("hornets_nest::gpu::free", "rmmFree", result);
     }
 #else
     cuFree(pointer);

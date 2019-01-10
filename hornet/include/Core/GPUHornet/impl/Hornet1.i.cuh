@@ -111,7 +111,7 @@ void HORNET::initialize() noexcept {
             ptrs_array[i] = nullptr;
             continue;
         }*/
-        if (degree >= EDGES_PER_BLOCKARRAY)
+        if (static_cast<size_t>(degree) >= EDGES_PER_BLOCKARRAY)
             ERROR("degree >= EDGES_PER_BLOCKARRAY, (", degree, ")")
 
         const auto& mem_data = _mem_manager.insert(degree);
@@ -123,7 +123,6 @@ void HORNET::initialize() noexcept {
 
         if (FORCE_SOA || !xlib::IsVectorizable<vid_t, EdgeTypes...>::value ||
                 sizeof...(EdgeTypes) == 0) {
-            #pragma unroll
             for (size_t j = 0; j < NUM_ETYPES; j++) {
                 size_t    num_bytes = degree * ETYPE_SIZES[j];
                 size_t offset_bytes = offset * ETYPE_SIZES[j];

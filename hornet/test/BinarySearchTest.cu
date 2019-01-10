@@ -51,9 +51,10 @@ void MergePathTest2(const int* __restrict__ d_partitions,
         (d_partitions, num_partitions, d_prefixsum, prefixsum_size, smem, lambda);
 }
 
+#if 0//used by (commented out) unrechable code, may better be deleted unless this code will be reused.
 const bool PRINT      = false;
 const int  BLOCK_SIZE = 128;
-
+#endif
 
 __device__ int d_value;
 

@@ -196,7 +196,7 @@ void GraphWeight<vid_t, eoff_t, weight_t>::COOtoCSR() noexcept {
         _in_offsets[0] = 0;
         std::partial_sum(_in_degrees, _in_degrees + _nV, _in_offsets + 1);
         std::fill(tmp, tmp + _nV, 0);
-        for (eoff_t i = 0; i < _coo_size; i++) {
+        for (size_t i = 0; i < _coo_size; i++) {
             auto    src = std::get<0>(_coo_edges[i]);
             auto    dst = std::get<1>(_coo_edges[i]);
             auto offset = _in_offsets[dst] + tmp[dst]++;

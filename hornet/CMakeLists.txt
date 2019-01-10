@@ -1,69 +1,57 @@
-get_directory_property(has_parent PARENT_DIRECTORY)
-if (has_parent)
-    set(QUIET_SUBMODULE ON)
-else()
-    set(QUIET_SUBMODULE OFF)
-endif()
+cmake_minimum_required(VERSION 3.8) #language level CUDA support was added in CMake 3.8
 
-#-------------------------------------------------------------------------------
 set(PROJECT "Hornet")
-project(${PROJECT} CXX)
+project(${PROJECT} LANGUAGES CXX CUDA)
 
-cmake_minimum_required(VERSION 3.5)
-FIND_PACKAGE(CUDA REQUIRED)
-
-set(CUDA_SEPARABLE_COMPILATION ON)
-
-include_directories(include)
-include_directories(../primitives)
-include_directories(../externals/cub-1.8.0)
-include_directories(../externals/cpp-btree-master)
-include_directories(../xlib/include)
-include_directories(${CUDA_INCLUDE_DIRS})
-
-#set(WARNING_FLAGS ON)
-set(CUB_LIBRARY ON)
-set(RMM_LIBRARY ON)
 include(../compiler-util/CMakeLists.txt)
 
-#-------------------------------------------------------------------------------
+###################################################################################################
+# - include paths ---------------------------------------------------------------------------------
+
+include_directories(include)
+
+###################################################################################################
+# - library targets -------------------------------------------------------------------------------
+
 file(GLOB_RECURSE CPP_SRCS ${PROJECT_SOURCE_DIR}/src/*.cpp)
 file(GLOB_RECURSE CU_SRCS  ${PROJECT_SOURCE_DIR}/src/*.cu)
 file(GLOB_RECURSE SCPP_SRCS ${PROJECT_SOURCE_DIR}/../xlib/src/*.cpp)
 file(GLOB_RECURSE SCU_SRCS  ${PROJECT_SOURCE_DIR}/../xlib/src/*.cu)
 
-cuda_add_library(hornet ${CPP_SRCS} ${CU_SRCS} ${SCPP_SRCS} ${SCU_SRCS})
+add_library(hornet ${CPP_SRCS} ${CU_SRCS} ${SCPP_SRCS} ${SCU_SRCS})
 
-#-------------------------------------------------------------------------------
+###################################################################################################
+# - link libraries --------------------------------------------------------------------------------
 
-cuda_add_executable(lb_test       		test/BinarySearchTest.cu)
-cuda_add_executable(ptxtest       		test/ptxtest.cu)
-cuda_add_executable(hornet_test   		test/HornetTest.cu)
-cuda_add_executable(hornet_insert_test	test/HornetInsertTest.cu)
-cuda_add_executable(hornet_delete_test	test/HornetDeleteTest.cu)
-cuda_add_executable(mem_benchmark 		test/MemBenchmark.cu)
-cuda_add_executable(weight_test   		test/WeightTest.cu)
-if (RMM_LIBRARY)
-cuda_add_executable(rmm_benchmark 		test/RMMBenchmark.cu)
+if(RMM_LIBRARY)
+target_link_libraries(hornet rmm)
+endif()
+if(USE_NVTX)
+target_link_libraries(hornet ${NVTX_LIBRARIES})
 endif()
 
-target_link_libraries(lb_test       	 	hornet ${OPTIONAL_MM_LIBRARY} ${CUDA_LIBRARIES})
-target_link_libraries(ptxtest       	 	hornet ${OPTIONAL_MM_LIBRARY} ${CUDA_LIBRARIES})
-target_link_libraries(hornet_test   	 	hornet ${OPTIONAL_MM_LIBRARY} ${CUDA_LIBRARIES})
-target_link_libraries(hornet_insert_test	hornet ${OPTIONAL_MM_LIBRARY} ${CUDA_LIBRARIES})
-target_link_libraries(hornet_delete_test	hornet ${OPTIONAL_MM_LIBRARY} ${CUDA_LIBRARIES})
-target_link_libraries(mem_benchmark 		hornet ${OPTIONAL_MM_LIBRARY} ${CUDA_LIBRARIES})
-target_link_libraries(weight_test   		hornet ${OPTIONAL_MM_LIBRARY} ${CUDA_LIBRARIES})
-if (RMM_LIBRARY)
-target_link_libraries(rmm_benchmark 		hornet ${OPTIONAL_MM_LIBRARY} ${CUDA_LIBRARIES})
+###################################################################################################
+# - add executables -------------------------------------------------------------------------------
+
+add_executable(lb_test            test/BinarySearchTest.cu)
+add_executable(ptxtest            test/ptxtest.cu)
+add_executable(hornet_test        test/HornetTest.cu)
+add_executable(hornet_insert_test test/HornetInsertTest.cu)
+add_executable(hornet_delete_test test/HornetDeleteTest.cu)
+add_executable(mem_benchmark      test/MemBenchmark.cu)
+add_executable(weight_test        test/WeightTest.cu)
+if(RMM_LIBRARY)
+add_executable(rmm_benchmark      test/RMMBenchmark.cu)
 endif()
 
-#cuda_add_executable(data_layout test/DataLayout.cu)
-#cuda_add_executable(csr_test test/CsrTest.cu)
-#target_link_libraries(csr_test hornet ${CUDA_LIBRARIES})
-#target_link_libraries(data_layout hornet ${CUDA_LIBRARIES})
-#cuda_add_executable(mem_test test/MemoryManagement.cu)
-#TARGET_LINK_LIBRARIES(mem_test hornet)
-#-------------------------------------------------------------------------------
-##subscript_out_of_range
-#cmake -DCMAKE_BUILD_TYPE=Release -DCUDAHC=$clang39 ..
+target_link_libraries(lb_test            hornet)
+target_link_libraries(ptxtest            hornet)
+target_link_libraries(hornet_test        hornet)
+target_link_libraries(hornet_insert_test hornet)
+target_link_libraries(hornet_delete_test hornet)
+target_link_libraries(mem_benchmark      hornet)
+target_link_libraries(weight_test        hornet)
+if(RMM_LIBRARY)
+target_link_libraries(rmm_benchmark      hornet)
+endif()
+

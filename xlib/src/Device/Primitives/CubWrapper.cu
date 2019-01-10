@@ -486,7 +486,7 @@ void CubRunLengthEncode<T>::initialize(const int max_items) noexcept {
     cuMalloc(_d_num_runs_out, 1);
     T* d_in = nullptr, *d_unique_out = nullptr;
     int* d_counts_out = nullptr;
-    size_t temp_storage_bytes;
+    size_t temp_storage_bytes = 0;
     cub::DeviceRunLengthEncode::Encode(nullptr, temp_storage_bytes,
                                        d_in, d_unique_out, d_counts_out,
                                        _d_num_runs_out, _num_items);
@@ -523,7 +523,7 @@ template<typename T>
 int CubRunLengthEncode<T>::run(const T* d_in, const int num_items,
                                T* d_unique_out, int* d_counts_out) noexcept {
     int temp_num_items = num_items;
-    size_t temp_storage_bytes;
+    size_t temp_storage_bytes = 0;
     cub::DeviceRunLengthEncode::Encode(nullptr, temp_storage_bytes,
                                        d_in, d_unique_out, d_counts_out,
                                        _d_num_runs_out, temp_num_items);
@@ -578,7 +578,7 @@ CubExclusiveSum<T>::CubExclusiveSum(const int max_items) noexcept {
 template<typename T>
 void CubExclusiveSum<T>::initialize(const int max_items) noexcept {
     CubWrapper::initialize(max_items);
-    size_t temp_storage_bytes;
+    size_t temp_storage_bytes = 0;
     T* d_in = nullptr, *d_out = nullptr;
     cub::DeviceScan::ExclusiveSum(nullptr, temp_storage_bytes,
                                   d_in, d_out, _num_items);
@@ -611,7 +611,7 @@ void CubExclusiveSum<T>::run(
         const int num_items,
         T* d_out) const noexcept {
     int temp_num_items = num_items;
-    size_t temp_storage_bytes;
+    size_t temp_storage_bytes = 0;
     cub::DeviceScan::ExclusiveSum(nullptr, temp_storage_bytes,
                                   d_in, d_out, temp_num_items);
     cub::DeviceScan::ExclusiveSum(_d_temp_storage, temp_storage_bytes,
@@ -662,7 +662,7 @@ template<typename T>
 void CubSelectFlagged<T>::initialize(const int max_items) noexcept {
     CubWrapper::initialize(max_items);
     cuMalloc(_d_num_selected_out, 1);
-    size_t temp_storage_bytes;
+    size_t temp_storage_bytes = 0;
     T* d_in = nullptr, *d_out = nullptr;
     bool* d_flags = nullptr;
 
@@ -696,7 +696,7 @@ template<typename T>
 int CubSelectFlagged<T>::run(const T* d_in, const int num_items,
                              const bool* d_flags, T* d_out) noexcept {
     int temp_num_items = num_items;
-    size_t temp_storage_bytes;
+    size_t temp_storage_bytes = 0;
     cub::DeviceSelect::Flagged(nullptr, temp_storage_bytes, d_in,
                                d_flags, d_out, _d_num_selected_out,
                                temp_num_items);
@@ -746,3 +746,4 @@ template class CubSelectFlagged<int>;
 } // namespace xlib
 
 #endif
+

@@ -42,6 +42,8 @@
 #include <limits>
 #include <utility>
 
+#if defined(CUB_WRAPPER)
+
 namespace xlib {
 
 class CubWrapper {
@@ -379,3 +381,6 @@ private:
 //==============================================================================
 
 } // namespace xlib
+
+#endif
+

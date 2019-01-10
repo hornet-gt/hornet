@@ -247,6 +247,47 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
     if (_prop.is_directed_by_degree()) {
         if (_prop.is_print())
             std::cout << "Creating degree-directed graph ..." << std::endl;
+#if 1//the original code has memory leaks.
+        {
+            auto coo_edges_tmp = new coo_t[_nE];
+            eoff_t counter = 0;
+            for (eoff_t i=0; i<_nE; i++) {
+                auto u = _coo_edges[i].first;
+                auto v = _coo_edges[i].second;
+                auto deg_u = _out_degrees[u];
+                auto deg_v = _out_degrees[v];
+                if ((deg_u < deg_v) || ((deg_u == deg_v) && (u < v))) {
+                    coo_edges_tmp[counter++] = {u, v}; 
+                }
+            }
+            assert(_coo_edges != nullptr);
+            delete[] _coo_edges;
+            _coo_edges = coo_edges_tmp;
+            _nE = counter;
+        }
+ 
+        if (_structure.is_reverse()) {
+            auto _in_degrees_tmp = new degree_t[_nV]();
+            if (_structure.is_directed()) {
+                for (eoff_t i = 0; i < _nE; i++) {
+                    _in_degrees_tmp[_coo_edges[i].second]++;
+                }
+            }
+            assert(_in_degrees != nullptr);
+            delete[] _in_degrees;
+            _in_degrees = _in_degrees_tmp;
+        }
+
+        {
+            auto _out_degrees_tmp = new degree_t[_nV]();
+            for (eoff_t i = 0; i < _nE; i++) {
+                _out_degrees_tmp[_coo_edges[i].first]++;
+            }
+            assert(_out_degrees != nullptr);
+            delete[] _out_degrees;
+            _out_degrees = _out_degrees_tmp;
+        }
+#else
         eoff_t counter = 0;
         vid_t u, v;
         degree_t deg_u, deg_v;
@@ -264,7 +305,7 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
                 coo_edges_tmp[counter++] = {u, v}; 
             }
         }
-        _coo_edges = coo_edges_tmp;
+        _coo_edges = coo_edges_tmp;//memory pointed by _coo_edges dangles and possibly leaks?
         _nE = counter;
         
         if (_structure.is_directed() && _structure.is_reverse()) {
@@ -277,9 +318,10 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
             for (eoff_t i = 0; i < _nE; i++)
                 _out_degrees_tmp[_coo_edges[i].first]++;
         }
-        _out_degrees = _out_degrees_tmp;
+        _out_degrees = _out_degrees_tmp;//memory pointed by _out_degrees dangles and possibly leaks?
         if (_structure.is_reverse())
-            _in_degrees = _in_degrees_tmp;
+            _in_degrees = _in_degrees_tmp;//memory pointed by _in_degrees dangles and possibly leaks?
+#endif
     }
 
     if (_prop.is_sort() && (!_directed_to_undirected || _prop.is_randomize())) {

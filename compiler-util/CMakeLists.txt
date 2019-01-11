@@ -2,7 +2,7 @@
 # - set build options -----------------------------------------------------------------------------
 
 set(CUB_LIBRARY ON) # if set to off, some test cases using CUB will not compile.
-set(RMM_LIBRARY ON) # if set to ON, gpu::allocate invokes RMM_ALLOC, if set to OFF, gpu::allocate invokes cuMalloc (which in turn, invokes cudaMalloc)
+set(RMM_LIBRARY OFF) # if set to ON, gpu::allocate invokes RMM_ALLOC, if set to OFF, gpu::allocate invokes cuMalloc (which in turn, invokes cudaMalloc)
 
 ###################################################################################################
 # - cmake modules ---------------------------------------------------------------------------------

@@ -141,11 +141,13 @@ template<typename T>
 void generate_randoms(T* pointer, size_t num_items = 1,
                      T min = T(0), T max = std::numeric_limits<T>::max());
 
+#if 0//not used, and implementation has bugs, should be deleted.
 template<typename T>
 T reduce(const T* input, size_t num_items);
 
 template<typename T>
 void excl_prefixsum(const T* input, size_t num_items, T* output);
+#endif
 
 template<typename T>
 void printArray(const T* host_input, size_t num_items);

@@ -1,5 +1,6 @@
 #include <Device/Util/Timer.cuh>
 #include <Operator++.cuh>
+#include <StandardAPI.hpp>
 
 namespace hornets_nest {
 namespace detail {
@@ -412,12 +413,12 @@ void forAllAdjUnions(HornetClass&          hornet,
     TM.start();
 
     // memory allocations host and device side
-    cuMalloc(hd_queue_info().d_edge_queue, 2*hornet.nE());
-    cuMalloc(hd_queue_info().d_queue_sizes, MAX_ADJ_UNIONS_BINS);
-    cuMemset0x00(hd_queue_info().d_queue_sizes, MAX_ADJ_UNIONS_BINS);
+    hornets_nest::gpu::allocate(hd_queue_info().d_edge_queue, 2*hornet.nE());
+    hornets_nest::gpu::allocate(hd_queue_info().d_queue_sizes, MAX_ADJ_UNIONS_BINS);
+    hornets_nest::gpu::memsetZero(hd_queue_info().d_queue_sizes, MAX_ADJ_UNIONS_BINS);
     unsigned long long *queue_sizes = (unsigned long long *)calloc(MAX_ADJ_UNIONS_BINS, sizeof(unsigned long long));
-    cuMalloc(hd_queue_info().d_queue_pos, MAX_ADJ_UNIONS_BINS+1);
-    cuMemset0x00(hd_queue_info().d_queue_pos, MAX_ADJ_UNIONS_BINS+1);
+    hornets_nest::gpu::allocate(hd_queue_info().d_queue_pos, MAX_ADJ_UNIONS_BINS+1);
+    hornets_nest::gpu::memsetZero(hd_queue_info().d_queue_pos, MAX_ADJ_UNIONS_BINS+1);
     unsigned long long *queue_pos = (unsigned long long *)calloc(MAX_ADJ_UNIONS_BINS+1, sizeof(unsigned long long));
 
     // figure out cutoffs/counts per bin
@@ -427,11 +428,11 @@ void forAllAdjUnions(HornetClass&          hornet,
         forAllEdgeVertexPairs(hornet, bin_edges {hd_queue_info, true, WORK_FACTOR}, load_balancing);
 
     // copy queue size info to from device to host
-    cuMemcpyToHost(hd_queue_info().d_queue_sizes, MAX_ADJ_UNIONS_BINS, queue_sizes);
+    hornets_nest::gpu::copyToHost(hd_queue_info().d_queue_sizes, MAX_ADJ_UNIONS_BINS, queue_sizes);
     // prefix sum over bin sizes
     std::partial_sum(queue_sizes, queue_sizes+MAX_ADJ_UNIONS_BINS, queue_pos+1);
     // transfer prefx results to device
-    cuMemcpyToDevice(queue_pos, MAX_ADJ_UNIONS_BINS+1, hd_queue_info().d_queue_pos);
+    hornets_nest::host::copyToDevice(queue_pos, MAX_ADJ_UNIONS_BINS+1, hd_queue_info().d_queue_pos);
     /* 
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS+1; i++)
         printf("queue=%d prefix sum: %llu\n", i, queue_pos[i]);
@@ -445,12 +446,6 @@ void forAllAdjUnions(HornetClass&          hornet,
     TM.stop();
     TM.print("queueing and binning:");
     TM.reset();
-    
-    /*
-    cuMemcpyToHost(hd_queue_info().d_queue_pos, MAX_ADJ_UNIONS_BINS+1, hd_queue_info().queue_pos);
-    for (auto i = 0; i < MAX_ADJ_UNIONS_BINS+1; i++)
-        printf("queue=%d prefix sum after: %llu\n", i, hd_queue_info().queue_pos[i]);
-    */
     
     const int BALANCED_THREADS_LOGMAX = 31-__builtin_clz(BLOCK_SIZE_OP2)+1; // assumes BLOCK_SIZE is int type
     int bin_index;
@@ -530,6 +525,8 @@ void forAllAdjUnions(HornetClass&          hornet,
         TM.print("imbalanced queue processing:");
         TM.reset();
     }
+
+    hornets_nest::gpu::free(hd_queue_info().d_queue_pos, hd_queue_info().d_queue_sizes, hd_queue_info().d_edge_queue);
 
     free(queue_sizes);
     free(queue_pos);

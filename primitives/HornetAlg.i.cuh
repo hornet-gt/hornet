@@ -34,6 +34,7 @@
  * </blockquote>}
  */
 #include <Device/Util/SafeCudaAPI.cuh>
+#include "StandardAPI.hpp"
 
 namespace hornets_nest {
 
@@ -43,7 +44,7 @@ StaticAlgorithm<HornetClass>::StaticAlgorithm(HornetClass& hornet) noexcept :
 
 template<typename HornetClass>
 StaticAlgorithm<HornetClass>::~StaticAlgorithm() noexcept {
-    cuFree(_d_ptr);
+    gpu::free(_d_ptr);
 }
 
 } // namespace hornets_nest

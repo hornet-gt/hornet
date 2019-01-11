@@ -185,12 +185,12 @@ CubSortByValue<T>::CubSortByValue(const int max_items) noexcept {
 template<typename T>
 void CubSortByValue<T>::initialize(const int max_items) noexcept {
     CubWrapper::initialize(max_items);
-    size_t temp_storage_bytes;
+    size_t temp_storage_bytes = 0;
     T* d_in = nullptr, *d_sorted = nullptr;
     cub::DeviceRadixSort::SortKeys(nullptr, temp_storage_bytes,
                                    d_in, d_sorted, _num_items,
                                    0, sizeof(T) * 8);
-    cuMalloc(_d_temp_storage, _temp_storage_bytes);
+    cuMalloc(_d_temp_storage, temp_storage_bytes);
 }
 
 //------------------------------------------------------------------------------
@@ -231,14 +231,14 @@ CubSortByKey<T, R>::CubSortByKey(const int max_items) noexcept  {
 template<typename T, typename R>
 void CubSortByKey<T, R>::initialize(const int max_items) noexcept {
     CubWrapper::initialize(max_items);
-    size_t temp_storage_bytes;
+    size_t temp_storage_bytes = 0;
     T* d_key = nullptr, *d_key_sorted = nullptr;
     R* d_data_in = nullptr, *d_data_out = nullptr;
     cub::DeviceRadixSort::SortPairs(nullptr, temp_storage_bytes,
                                     d_key, d_key_sorted,
                                     d_data_in, d_data_out,
                                     _num_items, 0, sizeof(T) * 8);
-    cuMalloc(_d_temp_storage, _temp_storage_bytes);
+    cuMalloc(_d_temp_storage, temp_storage_bytes);
 }
 
 //------------------------------------------------------------------------------
@@ -356,7 +356,7 @@ void CubSortPairs2<T, R>::initialize(
         cuMalloc(_d_in1_tmp, _num_items);
         cuMalloc(_d_in2_tmp, _num_items);
     }
-    size_t temp_storage_bytes;
+    size_t temp_storage_bytes = 0;
     T* d_in1 = nullptr;
     R* d_in2 = nullptr;
     if (sizeof(T) > sizeof(R)) {
@@ -369,7 +369,7 @@ void CubSortPairs2<T, R>::initialize(
                                         d_in2, _d_in2_tmp, d_in1, _d_in1_tmp,
                                         _num_items, 0, sizeof(R) * 8);
     }
-    cuMalloc(_d_temp_storage, _temp_storage_bytes);
+    cuMalloc(_d_temp_storage, temp_storage_bytes);
 }
 
 template<typename T, typename R>
@@ -490,7 +490,7 @@ void CubRunLengthEncode<T>::initialize(const int max_items) noexcept {
     cub::DeviceRunLengthEncode::Encode(nullptr, temp_storage_bytes,
                                        d_in, d_unique_out, d_counts_out,
                                        _d_num_runs_out, _num_items);
-    cuMalloc(_d_temp_storage, _temp_storage_bytes);
+    cuMalloc(_d_temp_storage, temp_storage_bytes);
 }
 
 //------------------------------------------------------------------------------
@@ -582,7 +582,7 @@ void CubExclusiveSum<T>::initialize(const int max_items) noexcept {
     T* d_in = nullptr, *d_out = nullptr;
     cub::DeviceScan::ExclusiveSum(nullptr, temp_storage_bytes,
                                   d_in, d_out, _num_items);
-    cuMalloc(_d_temp_storage, _temp_storage_bytes);
+    cuMalloc(_d_temp_storage, temp_storage_bytes);
 }
 
 //------------------------------------------------------------------------------
@@ -669,7 +669,7 @@ void CubSelectFlagged<T>::initialize(const int max_items) noexcept {
     cub::DeviceSelect::Flagged(nullptr, temp_storage_bytes, d_in,
                                d_flags, d_out, _d_num_selected_out,
                                _num_items);
-    cuMalloc(_d_temp_storage, _temp_storage_bytes);
+    cuMalloc(_d_temp_storage, temp_storage_bytes);
 }
 
 //------------------------------------------------------------------------------

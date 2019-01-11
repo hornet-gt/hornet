@@ -44,6 +44,8 @@
 
 #if defined(CUB_WRAPPER)
 
+#include "Host/Basic.hpp"//xlib::byte_t
+
 namespace xlib {
 
 class CubWrapper {
@@ -56,7 +58,7 @@ protected:
 
     void release(void) noexcept;
 
-    void*  _d_temp_storage     { nullptr };
+    byte_t*  _d_temp_storage     { nullptr };
     size_t _temp_storage_bytes { 0 };
     int    _num_items          { 0 };
 };
@@ -160,7 +162,7 @@ public:
     static void srun(const T* d_in, int num_items, T* d_sorted,
                      T d_in_max = std::numeric_limits<T>::max()) noexcept;
 private:
-    void* _d_temp_storage { nullptr };
+    byte_t* _d_temp_storage { nullptr };
 };
 
 //==============================================================================

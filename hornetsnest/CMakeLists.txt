@@ -1,37 +1,41 @@
-set(PROJECT "HornetAlg")
-project(${PROJECT} CXX)
+cmake_minimum_required(VERSION 3.8) #language level CUDA support was added in CMake 3.8
 
-cmake_minimum_required(VERSION 3.5)
-FIND_PACKAGE(CUDA REQUIRED)
+set(PROJECT "HornetAlg")
+project(${PROJECT} LANGUAGES CXX CUDA)
+
+include(../compiler-util/CMakeLists.txt)
 
 add_subdirectory(../hornet build)
 
+###################################################################################################
+# - include paths ---------------------------------------------------------------------------------
+
+include_directories(../hornet/include)
 include_directories(include)
 
-set(RMM_LIBRARY ON) #this is for hornets_nest, need to set RMM_LIBRARY to ON in hornet/CMakeList.txt as well to use RMM inside hornet
-include(../compiler-util/CMakeLists.txt)
-
-#-------------------------------------------------------------------------------
+###################################################################################################
+# - library targets -------------------------------------------------------------------------------
 
 file(GLOB_RECURSE CU_SRCS ${PROJECT_SOURCE_DIR}/src/*)
 file(GLOB_RECURSE CPP_SRCS ${PROJECT_SOURCE_DIR}/externals/xlib/src/*)
 
-cuda_add_library(hornetAlg ${CU_SRCS})
-#-------------------------------------------------------------------------------
+add_library(hornetAlg ${CU_SRCS})
 
-cuda_add_executable(bfs      test/BFSTest.cu)
-cuda_add_executable(bfs2     test/BFSTest2.cu)
-cuda_add_executable(brim     test/BrimTest.cu)
-cuda_add_executable(cc       test/CCTest.cu)
-cuda_add_executable(spmv     test/SpMVTest.cu)
-cuda_add_executable(sssp     test/SSSPTest.cu)
-cuda_add_executable(katz     test/KatzTest.cu)
-cuda_add_executable(dyn_katz test/KatzDynamicTest.cu)
-cuda_add_executable(triangle test/TriangleTest.cu)
-cuda_add_executable(triangle2 test/TriangleTest2.cu)
-cuda_add_executable(clus-coeff test/ClusCoeffTest.cu)
+###################################################################################################
+# - add executables -------------------------------------------------------------------------------
 
-cuda_add_executable(pr test/PageRankTest.cu)
+add_executable(bfs        test/BFSTest.cu)
+add_executable(bfs2       test/BFSTest2.cu)
+add_executable(brim       test/BrimTest.cu)
+add_executable(cc         test/CCTest.cu)
+add_executable(spmv       test/SpMVTest.cu)
+add_executable(sssp       test/SSSPTest.cu)
+add_executable(katz       test/KatzTest.cu)
+add_executable(dyn_katz   test/KatzDynamicTest.cu)
+add_executable(triangle   test/TriangleTest.cu)
+add_executable(triangle2  test/TriangleTest2.cu)
+add_executable(clus-coeff test/ClusCoeffTest.cu)
+add_executable(pr         test/PageRankTest.cu)
 
 target_link_libraries(bfs        hornetAlg hornet)
 target_link_libraries(bfs2       hornetAlg hornet)
@@ -45,3 +49,4 @@ target_link_libraries(triangle   hornetAlg hornet)
 target_link_libraries(triangle2  hornetAlg hornet)
 target_link_libraries(clus-coeff hornetAlg hornet)
 target_link_libraries(pr         hornetAlg hornet)
+

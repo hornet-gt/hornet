@@ -1,8 +1,8 @@
 ###################################################################################################
 # - set build options -----------------------------------------------------------------------------
 
-set(CUB_LIBRARY ON)
-set(RMM_LIBRARY ON)
+set(CUB_LIBRARY ON) # if set to off, some test cases using CUB will not compile.
+set(RMM_LIBRARY ON) # if set to ON, gpu::allocate invokes RMM_ALLOC, if set to OFF, gpu::allocate invokes cuMalloc (which in turn, invokes cudaMalloc)
 
 ###################################################################################################
 # - cmake modules ---------------------------------------------------------------------------------
@@ -10,13 +10,6 @@ set(RMM_LIBRARY ON)
 include(FeatureSummary)
 include(CheckIncludeFiles)
 include(CheckLibraryExists)
-
-include(ProcessorCount)
-ProcessorCount(NUM_HW_THREADS)
-
-if(NUM_HW_THREADS EQUAL 0)
-    message(FATAL_ERROR "Failed to set NUM_HW_THREADS")
-endif()
 
 ###################################################################################################
 # - compiler options ------------------------------------------------------------------------------
@@ -28,7 +21,7 @@ set(CMAKE_CXX_COMPILER $ENV{CXX})
 
 set(CMAKE_CUDA_STANDARD 14)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-set(CMAKE_CUDA_SEPARABLE_COMPILATION ON) # no other RAPIDS projects use this
+#set(CMAKE_CUDA_SEPARABLE_COMPILATION ON) # no other RAPIDS projects use this
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # if on, save output of compile commands to compile_command.json
 
@@ -69,7 +62,6 @@ if(OpenMP_CXX_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler=${OpenMP_CXX_FLAGS}")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-    add_compile_definitions(MAX_THREADS=${NUM_HW_THREADS})
 endif()
 
 ###################################################################################################
@@ -97,11 +89,6 @@ link_directories("${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES}") # CMAKE_CUDA_IMPLICI
 
 ###################################################################################################
 # - library targets -------------------------------------------------------------------------------
-
-if(RMM_LIBRARY)
-    add_library(rmm SHARED IMPORTED)
-    set_target_properties(rmm PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/../externals/rmm/build/librmm.so)
-endif()
 
 ###################################################################################################
 # - build options ---------------------------------------------------------------------------------

@@ -13,6 +13,11 @@ include_directories(include)
 ###################################################################################################
 # - library targets -------------------------------------------------------------------------------
 
+if(RMM_LIBRARY)
+    add_library(rmm SHARED IMPORTED)
+    set_target_properties(rmm PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/../externals/rmm/build/librmm.so)
+endif()
+
 file(GLOB_RECURSE CPP_SRCS ${PROJECT_SOURCE_DIR}/src/*.cpp)
 file(GLOB_RECURSE CU_SRCS  ${PROJECT_SOURCE_DIR}/src/*.cu)
 file(GLOB_RECURSE SCPP_SRCS ${PROJECT_SOURCE_DIR}/../xlib/src/*.cpp)

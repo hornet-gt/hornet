@@ -71,7 +71,7 @@ template<typename T>
 void copyToHostAsync(const T* device_input, size_t num_items, T* host_output);
 
 template<typename T>
-void copyFromHost(const T* host_input, size_t num_items, T* device_output);
+void copyFromHost(const T* host_input, size_t num_items, T* device_output);//this is redundant, better be removed.
 
 template<typename T>
 void memset(T* pointer, size_t num_items = 1, unsigned char mask = 0x00);

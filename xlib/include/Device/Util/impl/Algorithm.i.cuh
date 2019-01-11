@@ -35,6 +35,7 @@
  */
 #include "Device/Util/DeviceProperties.cuh"  //xlib::WARP_SIZE
 #include "Device/Util/SafeCudaAPI.cuh"       //cuMemcpyToHost
+#include "Device/Util/SafeCudaAPISync.cuh"       //cuMemcpyToHost
 #include "Host/Algorithm.hpp"                //xlib::equal_sorted
 #include "Host/Numeric.hpp"                  //xlib::is_power2
 

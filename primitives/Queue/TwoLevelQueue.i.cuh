@@ -75,8 +75,17 @@ template<typename T>
 HOST_DEVICE
 TwoLevelQueue<T>::~TwoLevelQueue() noexcept {
 #if !defined(__CUDA_ARCH__)
-    if (!_kernel_copy)
-        cuFree(_d_queue_ptrs.first, _d_queue_ptrs.second, _d_counters);
+    if (!_kernel_copy) {
+        if (_d_queue_ptrs.first != nullptr) {
+            cuFree(_d_queue_ptrs.first);
+        }
+
+        if (_d_queue_ptrs.second != nullptr) {
+            cuFree(_d_queue_ptrs.second);
+        }
+
+        cuFree(_d_counters);
+    }
 #endif
 }
 
@@ -98,8 +107,14 @@ void TwoLevelQueue<T>::initialize(size_t max_allocated_items) noexcept {
 
 template<typename T>
 void TwoLevelQueue<T>::_initialize() noexcept {
-    cuMalloc(_d_queue_ptrs.first, _max_allocated_items);
-    cuMalloc(_d_queue_ptrs.second, _max_allocated_items);
+    if (_max_allocated_items > 0) {
+        cuMalloc(_d_queue_ptrs.first, _max_allocated_items);
+        cuMalloc(_d_queue_ptrs.second, _max_allocated_items);
+    }
+    else {
+        assert(_d_queue_ptrs.first == nullptr );
+        assert(_d_queue_ptrs.second == nullptr );
+    }
     cuMalloc(_d_counters, 1);
     cuMemset0x00(_d_counters);
 }

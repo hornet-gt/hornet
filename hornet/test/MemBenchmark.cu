@@ -148,8 +148,6 @@ int main(void) {
     gpu::finalizeRMMPoolAllocation();
 #endif
 
-    cudaDeviceReset();//not sure this is really necessary, but if yes, this should be placed in every test.
-
     return ret;
 }
 

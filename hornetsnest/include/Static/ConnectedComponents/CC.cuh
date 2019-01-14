@@ -43,7 +43,7 @@
 namespace hornets_nest {
 
 using HornetGraph = gpu::Csr<EMPTY, EMPTY>;
-//using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
+// using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
 
 using color_t = int;
 
@@ -62,9 +62,7 @@ private:
     color_t*              d_colors    { nullptr };
     HostDeviceVar<bool>   hd_continue { true };
 
-    //load_balancing::BinarySearch load_balancing;
-    load_balancing::VertexBased1 load_balancing;
-    //load_balancing::ScanBased load_balancing;
+    load_balancing::BinarySearch load_balancing;
 };
 
 } // namespace hornets_nest

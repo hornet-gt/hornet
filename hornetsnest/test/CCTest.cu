@@ -6,11 +6,12 @@
 #include <Graph/GraphStd.hpp>
 #include <Util/CommandLineParam.hpp>
 
+
 int main(int argc, char* argv[]) {
     using namespace timer;
     using namespace hornets_nest;
 
-    graph::GraphStd<vid_t, eoff_t> graph;
+    graph::GraphStd<vid_t, eoff_t> graph(graph::structure_prop::UNDIRECTED);
     CommandLineParam cmd(graph, argc, argv);
 
     HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),

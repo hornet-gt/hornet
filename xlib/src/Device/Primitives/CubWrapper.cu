@@ -69,7 +69,7 @@ CubReduce<T>::CubReduce(const T* d_in, size_t num_items) noexcept :
     cuMalloc(_d_out, 1);
     cub::DeviceReduce::Sum(_d_temp_storage, _temp_storage_bytes,
                            _d_in, _d_out, _num_items);
-    SAFE_CALL( cudaMalloc(&_d_temp_storage, _temp_storage_bytes) )
+    cuMalloc(_d_temp_storage, _temp_storage_bytes);
 }
 
 template<typename T>
@@ -96,7 +96,7 @@ CubSegmentedReduce<T>::CubSegmentedReduce(int* d_offsets, const T* d_in,
     cub::DeviceSegmentedReduce::Sum(_d_temp_storage, _temp_storage_bytes,
                                     _d_in, _d_out, num_segments,
                                     _d_offsets, _d_offsets + 1);
-    SAFE_CALL( cudaMalloc(&_d_temp_storage, _temp_storage_bytes) )
+    cuMalloc(_d_temp_storage, _temp_storage_bytes);
     cuMalloc(d_out, num_segments);
 }
 
@@ -130,7 +130,7 @@ CubSpMV<T>::CubSpMV(T* d_value, int* d_row_offsets, int* d_column_indices,
                            _d_values, _d_row_offsets, _d_column_indices,
                            _d_vector_x, _d_vector_y,
                            _num_rows, _num_cols, _num_nonzeros);
-    SAFE_CALL( cudaMalloc(&_d_temp_storage, _temp_storage_bytes) )
+    cuMalloc(_d_temp_storage, _temp_storage_bytes);
 }
 /*
 template<typename T>
@@ -156,7 +156,7 @@ CubArgMax<T>::CubArgMax(const T* d_in, size_t num_items) noexcept :
     cub::DeviceReduce::ArgMax(_d_temp_storage, _temp_storage_bytes, _d_in,
                               static_cast<cub::KeyValuePair<int, T>*>(_d_out),
                               _num_items);
-    SAFE_CALL( cudaMalloc(&_d_temp_storage, _temp_storage_bytes) )
+    cuMalloc(_d_temp_storage, _temp_storage_bytes);
     _d_out = reinterpret_cast<cub::KeyValuePair<int, T>*>(d_tmp);
 }
 
@@ -185,12 +185,12 @@ CubSortByValue<T>::CubSortByValue(const int max_items) noexcept {
 template<typename T>
 void CubSortByValue<T>::initialize(const int max_items) noexcept {
     CubWrapper::initialize(max_items);
-    size_t temp_storage_bytes;
+    size_t temp_storage_bytes = 0;
     T* d_in = nullptr, *d_sorted = nullptr;
     cub::DeviceRadixSort::SortKeys(nullptr, temp_storage_bytes,
                                    d_in, d_sorted, _num_items,
                                    0, sizeof(T) * 8);
-    SAFE_CALL( cudaMalloc(&_d_temp_storage, temp_storage_bytes) )
+    cuMalloc(_d_temp_storage, temp_storage_bytes);
 }
 
 //------------------------------------------------------------------------------
@@ -231,14 +231,14 @@ CubSortByKey<T, R>::CubSortByKey(const int max_items) noexcept  {
 template<typename T, typename R>
 void CubSortByKey<T, R>::initialize(const int max_items) noexcept {
     CubWrapper::initialize(max_items);
-    size_t temp_storage_bytes;
+    size_t temp_storage_bytes = 0;
     T* d_key = nullptr, *d_key_sorted = nullptr;
     R* d_data_in = nullptr, *d_data_out = nullptr;
     cub::DeviceRadixSort::SortPairs(nullptr, temp_storage_bytes,
                                     d_key, d_key_sorted,
                                     d_data_in, d_data_out,
                                     _num_items, 0, sizeof(T) * 8);
-    SAFE_CALL( cudaMalloc(&_d_temp_storage, temp_storage_bytes) )
+    cuMalloc(_d_temp_storage, temp_storage_bytes);
 }
 
 //------------------------------------------------------------------------------
@@ -356,7 +356,7 @@ void CubSortPairs2<T, R>::initialize(
         cuMalloc(_d_in1_tmp, _num_items);
         cuMalloc(_d_in2_tmp, _num_items);
     }
-    size_t temp_storage_bytes;
+    size_t temp_storage_bytes = 0;
     T* d_in1 = nullptr;
     R* d_in2 = nullptr;
     if (sizeof(T) > sizeof(R)) {
@@ -369,7 +369,7 @@ void CubSortPairs2<T, R>::initialize(
                                         d_in2, _d_in2_tmp, d_in1, _d_in1_tmp,
                                         _num_items, 0, sizeof(R) * 8);
     }
-    SAFE_CALL( cudaMalloc(&_d_temp_storage, temp_storage_bytes) )
+    cuMalloc(_d_temp_storage, temp_storage_bytes);
 }
 
 template<typename T, typename R>
@@ -486,11 +486,11 @@ void CubRunLengthEncode<T>::initialize(const int max_items) noexcept {
     cuMalloc(_d_num_runs_out, 1);
     T* d_in = nullptr, *d_unique_out = nullptr;
     int* d_counts_out = nullptr;
-    size_t temp_storage_bytes;
+    size_t temp_storage_bytes = 0;
     cub::DeviceRunLengthEncode::Encode(nullptr, temp_storage_bytes,
                                        d_in, d_unique_out, d_counts_out,
                                        _d_num_runs_out, _num_items);
-    SAFE_CALL( cudaMalloc(&_d_temp_storage, temp_storage_bytes) )
+    cuMalloc(_d_temp_storage, temp_storage_bytes);
 }
 
 //------------------------------------------------------------------------------
@@ -523,7 +523,7 @@ template<typename T>
 int CubRunLengthEncode<T>::run(const T* d_in, const int num_items,
                                T* d_unique_out, int* d_counts_out) noexcept {
     int temp_num_items = num_items;
-    size_t temp_storage_bytes;
+    size_t temp_storage_bytes = 0;
     cub::DeviceRunLengthEncode::Encode(nullptr, temp_storage_bytes,
                                        d_in, d_unique_out, d_counts_out,
                                        _d_num_runs_out, temp_num_items);
@@ -578,11 +578,11 @@ CubExclusiveSum<T>::CubExclusiveSum(const int max_items) noexcept {
 template<typename T>
 void CubExclusiveSum<T>::initialize(const int max_items) noexcept {
     CubWrapper::initialize(max_items);
-    size_t temp_storage_bytes;
+    size_t temp_storage_bytes = 0;
     T* d_in = nullptr, *d_out = nullptr;
     cub::DeviceScan::ExclusiveSum(nullptr, temp_storage_bytes,
                                   d_in, d_out, _num_items);
-    SAFE_CALL( cudaMalloc(&_d_temp_storage, temp_storage_bytes) )
+    cuMalloc(_d_temp_storage, temp_storage_bytes);
 }
 
 //------------------------------------------------------------------------------
@@ -611,7 +611,7 @@ void CubExclusiveSum<T>::run(
         const int num_items,
         T* d_out) const noexcept {
     int temp_num_items = num_items;
-    size_t temp_storage_bytes;
+    size_t temp_storage_bytes = 0;
     cub::DeviceScan::ExclusiveSum(nullptr, temp_storage_bytes,
                                   d_in, d_out, temp_num_items);
     cub::DeviceScan::ExclusiveSum(_d_temp_storage, temp_storage_bytes,
@@ -662,14 +662,14 @@ template<typename T>
 void CubSelectFlagged<T>::initialize(const int max_items) noexcept {
     CubWrapper::initialize(max_items);
     cuMalloc(_d_num_selected_out, 1);
-    size_t temp_storage_bytes;
+    size_t temp_storage_bytes = 0;
     T* d_in = nullptr, *d_out = nullptr;
     bool* d_flags = nullptr;
 
     cub::DeviceSelect::Flagged(nullptr, temp_storage_bytes, d_in,
                                d_flags, d_out, _d_num_selected_out,
                                _num_items);
-    SAFE_CALL( cudaMalloc(&_d_temp_storage, temp_storage_bytes) )
+    cuMalloc(_d_temp_storage, temp_storage_bytes);
 }
 
 //------------------------------------------------------------------------------
@@ -696,7 +696,7 @@ template<typename T>
 int CubSelectFlagged<T>::run(const T* d_in, const int num_items,
                              const bool* d_flags, T* d_out) noexcept {
     int temp_num_items = num_items;
-    size_t temp_storage_bytes;
+    size_t temp_storage_bytes = 0;
     cub::DeviceSelect::Flagged(nullptr, temp_storage_bytes, d_in,
                                d_flags, d_out, _d_num_selected_out,
                                temp_num_items);
@@ -746,3 +746,4 @@ template class CubSelectFlagged<int>;
 } // namespace xlib
 
 #endif
+

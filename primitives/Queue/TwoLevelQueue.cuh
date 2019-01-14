@@ -46,7 +46,7 @@ namespace hornets_nest {
  */
 template<typename T>
 struct ptr2_t {
-    const T* first;
+    T* first;
     T*       second;
 
     ///@internal @brief swap the two pointers

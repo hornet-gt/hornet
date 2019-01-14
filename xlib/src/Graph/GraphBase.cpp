@@ -108,7 +108,7 @@ inline bool StructureProp::is_weighted() const noexcept {
 template<typename vid_t, typename eoff_t>
 inline GraphBase<vid_t, eoff_t>::
 GraphBase(vid_t nV, eoff_t nE, StructureProp structure) noexcept :
-        _nV(nV), _nE(nE), _structure(std::move(structure)) {}
+        _structure(std::move(structure)), _nV(nV), _nE(nE) {}
 
 template<typename vid_t, typename eoff_t>
 inline GraphBase<vid_t, eoff_t>::GraphBase(StructureProp structure) noexcept :

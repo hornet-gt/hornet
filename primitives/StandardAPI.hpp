@@ -36,14 +36,30 @@
  */
 #pragma once
 
+#include <limits>
+#include <type_traits>
+
 namespace hornets_nest {
 namespace gpu {
+
+#if defined(RMM_WRAPPER)
+__forceinline__
+void initializeRMMPoolAllocation(const size_t initPoolSize=0);//if initial pool size is set to 0, RMM currently assigns half the device memory
+
+__forceinline__
+void finalizeRMMPoolAllocation(void);
+#endif
 
 template<typename T>
 void allocate(T*& pointer, size_t num_items);
 
 template<typename T>
-void free(T* pointer);
+typename std::enable_if<std::is_pointer<T>::value>::type
+free(T& pointer);
+
+template<typename T, typename... TArgs>
+typename std::enable_if<std::is_pointer<T>::value>::type
+free(T& pointer, TArgs*... pointers);
 
 template<typename T>
 void copyToDevice(const T* device_input, size_t num_items, T* device_output);
@@ -52,7 +68,13 @@ template<typename T>
 void copyToHost(const T* device_input, size_t num_items, T* host_output);
 
 template<typename T>
-void copyFromHost(const T* host_input, size_t num_items, T* device_output);
+void copyToHostAsync(const T* device_input, size_t num_items, T* host_output);
+
+template<typename T>
+void copyFromHost(const T* host_input, size_t num_items, T* device_output);//this is redundant, better be removed.
+
+template<typename T>
+void memset(T* pointer, size_t num_items = 1, unsigned char mask = 0x00);
 
 template<typename T>
 void memsetZero(T* pointer, size_t num_items = 1);
@@ -83,19 +105,22 @@ template<typename T>
 void allocate(T*& pointer, size_t num_items);
 
 template<typename T>
-void allocateNotPageable(T*& pointer, size_t num_items);
+void allocatePageLocked(T*& pointer, size_t num_items);//invokes cudaMallocHost instead of new, cudaMallocHost allocates page-locked memory, should be freed using freePageLocked
 
 template<typename T>
 void free(T*& pointer);
 
 template<typename T>
-void freePageable(T*& pointer);
+void freePageLocked(T*& pointer);//invokes cudaFreeHost instead of delete
 
 template<typename T>
 void copyToHost(const T* host_input, size_t num_items, T* host_output);
 
 template<typename T>
 void copyToDevice(const T* host_input, size_t num_items, T* device_output);
+
+template<typename T>
+void copyToDeviceAsync(const T* host_input, size_t num_items, T* device_output);
 
 template<typename T>
 void copyToDevice(T host_value, T* device_output);
@@ -116,11 +141,13 @@ template<typename T>
 void generate_randoms(T* pointer, size_t num_items = 1,
                      T min = T(0), T max = std::numeric_limits<T>::max());
 
+#if 0//not used, and implementation has bugs, should be deleted.
 template<typename T>
 T reduce(const T* input, size_t num_items);
 
 template<typename T>
 void excl_prefixsum(const T* input, size_t num_items, T* output);
+#endif
 
 template<typename T>
 void printArray(const T* host_input, size_t num_items);

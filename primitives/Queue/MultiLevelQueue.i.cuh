@@ -42,10 +42,10 @@ template<typename T>
 MultiLevelQueue<T>::MultiLevelQueue(size_t max_allocated_items) noexcept :
                                      _level_sizes(32768),
                                      _max_allocated_items(max_allocated_items) {
-    cuMalloc(_d_multiqueue, max_allocated_items);
+    hornets_nest::gpu::allocate(_d_multiqueue, max_allocated_items);
     _d_queue_ptrs.first  = _d_multiqueue;
     _d_queue_ptrs.second = _d_multiqueue;
-    cuMalloc(_d_queue_counter, 1);
+    hornets_nest::gpu::allocate(_d_queue_counter, 1);
     cuMemcpyToDeviceAsync(0, _d_queue_counter);
     _level_sizes.push_back(0);
     _level_sizes.push_back(0);
@@ -53,7 +53,7 @@ MultiLevelQueue<T>::MultiLevelQueue(size_t max_allocated_items) noexcept :
 
 template<typename T>
 inline MultiLevelQueue<T>::~MultiLevelQueue() noexcept {
-    cuFree(_d_multiqueue, _d_queue_counter);
+    hornets_nest::gpu::allocate(_d_multiqueue, _d_queue_counter);
     delete[] _host_data;
 }
 

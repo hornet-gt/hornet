@@ -247,15 +247,16 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
     if (_prop.is_directed_by_degree()) {
         if (_prop.is_print())
             std::cout << "Creating degree-directed graph ..." << std::endl;
+        auto coo_edges_old = _coo_edges;
+        auto in_degrees_old = _in_degrees;
+        auto out_degrees_old = _out_degrees;
+        auto in_degrees_old_inaccessible = false;
         eoff_t counter = 0;
         vid_t u, v;
-        vid_t vid_small, vid_large;
         degree_t deg_u, deg_v;
         coo_t* coo_edges_tmp = new coo_t[_nE];
         degree_t* _out_degrees_tmp = new degree_t[_nV]();
         degree_t*  _in_degrees_tmp;
-        if (_structure.is_reverse())
-            _in_degrees_tmp = new degree_t[_nV]();
         for (eoff_t i=0; i<_nE; i++) {
             u = _coo_edges[i].first;
             v = _coo_edges[i].second;
@@ -268,19 +269,38 @@ void GraphStd<vid_t, eoff_t>::COOtoCSR() noexcept {
         _coo_edges = coo_edges_tmp;
         _nE = counter;
         
-        if (_structure.is_directed() && _structure.is_reverse()) {
-            for (eoff_t i = 0; i < _nE; i++) {
-                _out_degrees_tmp[_coo_edges[i].first]++;
-                _in_degrees_tmp[_coo_edges[i].second]++;
+        if (_structure.is_reverse()) {
+            _in_degrees_tmp = new degree_t[_nV]();
+            if (_structure.is_directed()) {
+                for (eoff_t i = 0; i < _nE; i++) {
+                    _out_degrees_tmp[_coo_edges[i].first]++;
+                    _in_degrees_tmp[_coo_edges[i].second]++;
+                }
             }
+            else {
+                for (eoff_t i = 0; i < _nE; i++)
+                    _out_degrees_tmp[_coo_edges[i].first]++;
+            }
+            _in_degrees = _in_degrees_tmp;
+            in_degrees_old_inaccessible = true;
         }
         else {
             for (eoff_t i = 0; i < _nE; i++)
                 _out_degrees_tmp[_coo_edges[i].first]++;
         }
         _out_degrees = _out_degrees_tmp;
-        if (_structure.is_reverse())
-            _in_degrees = _in_degrees_tmp;
+
+        delete[] coo_edges_old;
+
+        if (in_degrees_old == out_degrees_old) {/* this class is poorly designed, it is very non-intuitive to consider that _in_degrees and _out_degrees can point to a same memory block, if only one is necessary, another should be set to nullptr. */
+            delete[] out_degrees_old;
+        }
+        else {
+            delete[] out_degrees_old;
+            if (in_degrees_old_inaccessible == true) {
+                delete[] in_degrees_old;
+            }
+        }
     }
 
     if (_prop.is_sort() && (!_directed_to_undirected || _prop.is_randomize())) {
@@ -350,9 +370,6 @@ void GraphStd<vid_t, eoff_t>::print() const noexcept {
     std::cout << std::endl;
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-conversion"
-
 template<typename vid_t, typename eoff_t>
 void GraphStd<vid_t, eoff_t>::print_raw() const noexcept {
     xlib::printArray(_out_offsets, _nV + 1, "Out-Offsets  ");           //NOLINT
@@ -403,7 +420,6 @@ void GraphStd<vid_t, eoff_t>
     }
 }
 
-#pragma clang diagnostic pop
 #endif
 
 template<typename vid_t, typename eoff_t>

@@ -507,7 +507,7 @@ ceil_log_aux(T value) noexcept {
 template<unsigned BASE, typename T>
 HOST_DEVICE
 int log(T value) noexcept {
-    detail::log_aux<BASE>(value);
+    return detail::log_aux<BASE>(value);
 }
 
 template<unsigned BASE, typename T>
@@ -637,9 +637,9 @@ class WeightedRandomGeneratorAux {
 public:
     template<typename R>
     WeightedRandomGeneratorAux(const R* weights, size_t size) :
-            _size(size),
             _gen(static_cast<uint64_t>(
-                 std::chrono::system_clock::now().time_since_epoch().count())) {
+                 std::chrono::system_clock::now().time_since_epoch().count())),
+            _size(size) {
 
         _cumulative    = new T[size + 1];
         _cumulative[0] = 0;

@@ -64,8 +64,8 @@ void HORNET::deleteOOPEdgeBatch(BatchUpdate& batch_update) noexcept {
     //==========================================================================
 
     degree_t total_degree_old;      //get the total collected degree
-    cuMemcpyToHost(_d_degree_tmp + num_uniques, total_degree_old);
-    cuMemset0xFF(_d_flags, total_degree_old);
+    gpu::copyToHost(_d_degree_tmp + num_uniques, 1, &total_degree_old);
+    gpu::memsetOne(_d_flags, total_degree_old);
 
     deleteEdgesKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(batch_size), BLOCK_SIZE >>>
@@ -90,7 +90,7 @@ void HORNET::deleteOOPEdgeBatch(BatchUpdate& batch_update) noexcept {
     cu::printArray(_d_degree_new, num_uniques + 1, "_d_degree_new_prefix\n");
 #endif
     degree_t total_degree_new;                //get the total
-    cuMemcpyToHost(_d_degree_new + num_uniques, total_degree_new);
+    gpu::copyToHost(_d_degree_new + num_uniques, 1, &total_degree_new);
 
     //==========================================================================
     copySparseToContinuos(_d_degree_tmp, num_uniques + 1, total_degree_old,

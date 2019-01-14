@@ -35,7 +35,7 @@
  */
 #pragma once
 
-#include <Device/Util/SafeCudaAPI.cuh>  //cuMalloc
+#include "StandardAPI.hpp"
 #include <Host/Numeric.hpp>             //xlib::ceil_log
 #include <iterator>                     //std::distance
 
@@ -236,7 +236,7 @@ int BitTreeBase<block_t>::size() const noexcept {
 
 template<typename block_t>
 bool BitTreeBase<block_t>::full() const noexcept {
-    return _size == _num_blocks;
+    return _size == static_cast<size_t>(_num_blocks);
 }
 
 template<typename block_t>
@@ -291,7 +291,7 @@ BitTree<block_t, offset_t, true>
 ::BitTree(int block_items, int blockarray_items) noexcept :
                            BitTreeBase<block_t>(block_items, blockarray_items) {
     _h_ptr = new byte_t[_blockarray_bytes];
-    cuMalloc(_d_ptr, _blockarray_bytes);
+    gpu::allocate(_d_ptr, _blockarray_bytes);
 }
 
 template<typename block_t, typename offset_t>
@@ -306,7 +306,7 @@ BitTree<block_t, offset_t, true>
 
 template<typename block_t, typename offset_t>
 BitTree<block_t, offset_t, true>::~BitTree() noexcept {
-    cuFree(_d_ptr);
+    gpu::free(_d_ptr);
     delete[] _h_ptr;
 }
 

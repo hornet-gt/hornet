@@ -1,6 +1,4 @@
-#include <Device/Util/SafeCudaAPI.cuh>
-#include <Device/Util/SafeCudaAPISync.cuh>
-#include <Device/Util/SafeCudaAPIAsync.cuh>
+#include <StandardAPI.hpp>
 #include <Device/Primitives/SimpleKernels.cuh>
 #include <Device/Util/Timer.cuh>
 #include <cmath>
@@ -10,10 +8,11 @@
 #include <vector>
 
 using namespace timer;
+using namespace hornets_nest;
 using xlib::byte_t;
 using ttime_t = float;
 
-int main() {
+int exec(void) {
     size_t size = 1024;
     Timer<DEVICE> TM;
 
@@ -32,7 +31,7 @@ int main() {
         //======================================================================
         TM.start();
 
-        if (cudaMalloc(&d_array, size) != cudaSuccess)
+        if (cudaMalloc(&d_array, size) != cudaSuccess)//cudaMalloc instead of gpu::allocate to test return value, gpu::allocate calls std::exit() on error.
             break;
 
         TM.stop();
@@ -41,7 +40,7 @@ int main() {
         auto h_array = new byte_t[size];
         TM.start();
 
-        cuMemcpyToDevice(h_array, size, d_array);
+        host::copyToDevice(h_array, size, d_array);
 
         TM.stop();
         delete[] h_array;
@@ -49,7 +48,7 @@ int main() {
         //----------------------------------------------------------------------
         TM.start();
 
-        cudaMallocHost(&h_array_pinned, size);
+        host::allocatePageLocked(h_array_pinned, size);
 
         TM.stop();
 
@@ -57,33 +56,33 @@ int main() {
         //----------------------------------------------------------------------
         TM.start();
 
-        cuMemcpyToDeviceAsync(h_array_pinned, size, d_array);
+        host::copyToDeviceAsync(h_array_pinned, size, d_array);
 
         TM.stop();
-        cudaFreeHost(h_array_pinned);
+        host::freePageLocked(h_array_pinned);
         H2D_pinned_time.push_back(TM.duration());
         //----------------------------------------------------------------------
         TM.start();
 
-        cudaMemset(d_array, 0x00, size);
+        gpu::memsetZero(d_array, size);
 
         TM.stop();
         memset_time.push_back(TM.duration());
         //----------------------------------------------------------------------
         byte_t* d_array2;
-        if (cudaMalloc(&d_array2, size) == cudaSuccess) {
+        if (cudaMalloc(&d_array2, size) == cudaSuccess) {//cudaMalloc instead of gpu::allocate to test return value, gpu::allocate calls std::exit() on error.
             TM.start();
 
-            cudaMemcpy(d_array2, d_array, size, cudaMemcpyDeviceToDevice);
+            gpu::copyToDevice(d_array, size, d_array2);
 
             TM.stop();
             D2D_time.push_back(TM.duration());
-            cuFree(d_array2);
+            SAFE_CALL(cudaFree(d_array2));
         }
         else {
             D2D_time.push_back(std::nan(""));
         }
-        cuFree(d_array);
+        SAFE_CALL(cudaFree(d_array));
         //----------------------------------------------------------------------
         size *= 2;
     }
@@ -112,24 +111,43 @@ int main() {
     Timer<DEVICE> TM2(2);
 
     xlib::byte_t array[4 * xlib::MB];
-    cudaMalloc(&d_array, 4 * xlib::MB);
-    cudaMallocHost(&h_array_pinned, 4 * xlib::MB);
+    gpu::allocate(d_array, 4 * xlib::MB);
+    host::allocatePageLocked(h_array_pinned, 4 * xlib::MB);
 
     TM2.start();
 
-    cudaMemcpy(array, d_array, 4 * xlib::MB, cudaMemcpyDeviceToHost);
+    gpu::copyToHost(d_array, 4 * xlib::MB, array);
 
     TM2.stop();
     TM2.print("Stack");
 
     TM2.start();
 
-    cudaMemcpyAsync(h_array_pinned, d_array, 4 * xlib::MB,
-                    cudaMemcpyDeviceToHost);
+    gpu::copyToHostAsync(d_array, 4 * xlib::MB, h_array_pinned);
 
     TM2.stop();
     TM2.print("Pinned");
 
-    cudaFree(d_array);
-    cudaFreeHost(h_array_pinned);
+    gpu::free(d_array);
+    host::freePageLocked(h_array_pinned);
+
+    return 0;
 }
+
+int main(void) {
+    int ret = 0;
+#if defined(RMM_WRAPPER)
+    gpu::initializeRMMPoolAllocation();//update initPoolSize if you know your memory requirement and memory availability in your system, if initial pool size is set to 0 (default value), RMM currently assigns half the device memory.
+    {//scoping technique to make sure that gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+#endif
+
+    ret = exec();
+
+#if defined(RMM_WRAPPER)
+    }//scoping technique to make sure that gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+    gpu::finalizeRMMPoolAllocation();
+#endif
+
+    return ret;
+}
+

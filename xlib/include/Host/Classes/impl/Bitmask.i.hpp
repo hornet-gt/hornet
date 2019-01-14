@@ -39,8 +39,8 @@
 namespace xlib {
 
 inline Bitmask::Bitmask(size_t size) noexcept :
-                                _size(size),
-                                _num_word(xlib::ceil_div<32>(size)) {
+                                _num_word(xlib::ceil_div<32>(size)),
+                                _size(size) {
     try {
         _array = new unsigned[_num_word]();
     } catch (const std::bad_alloc&) {

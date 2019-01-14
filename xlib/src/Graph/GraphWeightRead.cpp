@@ -131,8 +131,6 @@ void GraphWeight<vid_t, eoff_t, weight_t>
 //------------------------------------------------------------------------------
 
 #if defined(__linux__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-conversion"
 
 template<typename vid_t, typename eoff_t, typename weight_t>
 void GraphWeight<vid_t, eoff_t, weight_t>
@@ -171,7 +169,6 @@ void GraphWeight<vid_t, eoff_t, weight_t>
         _out_degrees[i] = _out_offsets[i + 1] - _out_offsets[i - 1];
 }
 
-#pragma clang diagnostic pop
 #endif
 //------------------------------------------------------------------------------
 

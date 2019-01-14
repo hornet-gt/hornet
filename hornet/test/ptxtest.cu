@@ -4,6 +4,9 @@
 //#include "Device/CubWrapper.cuh"
 #include "Device/Util/SafeCudaAPI.cuh"
 #include "Device/Util/PrintExt.cuh"
+#include "StandardAPI.hpp"
+
+using namespace hornets_nest;
 
 struct __align__(16) SS {
      int a[2];
@@ -91,31 +94,38 @@ __global__ void segReduceTest() {
     printf("%f ", value);
 }
 
-int main() {
-    //ptxKernel3<<<1, 1>>>();
+int exec(void) {
     segReduceTest<<<1, 32>>>();
     cudaDeviceSynchronize();
     std::cout << std::endl;
+
     return 0;
-
-
+#if 0//Seunghwa Kang: this code does not execute and is not relevant to ptxtest, I may delete this sometime in the future.
     int* d_input, *d_output;
     int batch_size = 128;
     auto h_batch = new int[batch_size];
     std::fill(h_batch, h_batch + batch_size, 1);
-    cuMalloc(d_input, batch_size);
-    cuMalloc(d_output, batch_size);
-    cuMemset0x00(d_output, batch_size);
-    cuMemcpyToDevice(h_batch, batch_size, d_input);
-
-    //xlib::CubExclusiveSum<int> prefixsum(d_input, batch_size, d_output);
-    //prefixsum.run();
-    /*xlib::CubExclusiveSum<int> prefixsum(batch_size * 10);
-
-    segReduceTest<<<1, 32>>>();
-
-    prefixsum.run(d_input, batch_size, d_output);
-    CHECK_CUDA_ERROR
-
-    cu::printArray(d_output, batch_size);*/
+    gpu::allocate(d_input, batch_size);
+    gpu::allocate(d_output, batch_size);
+    gpu::memsetZero(d_output, batch_size);
+    host::copyToDevice(h_batch, batch_size, d_input);
+    gpu::free(d_output, d_input);
+#endif
 }
+int main() {
+    int ret = 0;
+#if defined(RMM_WRAPPER)
+    gpu::initializeRMMPoolAllocation();//update initPoolSize if you know your memory requirement and memory availability in your system, if initial pool size is set to 0 (default value), RMM currently assigns half the device memory.
+    {//scoping technique to make sure that gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+#endif
+
+    ret = exec();
+
+#if defined(RMM_WRAPPER)
+    }//scoping technique to make sure that gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+    gpu::finalizeRMMPoolAllocation();
+#endif
+
+    return ret;
+}
+

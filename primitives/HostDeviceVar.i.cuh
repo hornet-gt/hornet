@@ -35,16 +35,19 @@
  *
  * @file
  */
+
+#include "StandardAPI.hpp"
+
 namespace hornets_nest {
 
 template<typename T>
 HostDeviceVar<T>::HostDeviceVar() noexcept {
-    cuMalloc(_d_value_ptr, 1);
+    gpu::allocate(_d_value_ptr, 1);
 }
 
 template<typename T>
 HostDeviceVar<T>::HostDeviceVar(const T& value) noexcept : _value(value) {
-    cuMalloc(_d_value_ptr, 1);
+    gpu::allocate(_d_value_ptr, 1);
 }
 
 template<typename T>
@@ -61,7 +64,7 @@ HostDeviceVar<T>::HostDeviceVar(const HostDeviceVar& obj) noexcept :
 template<typename T>
 HostDeviceVar<T>::~HostDeviceVar() noexcept {
     if (_copy_count == 0)
-        cuFree(_d_value_ptr);
+        gpu::free(_d_value_ptr);
 }
 
 template<typename T>

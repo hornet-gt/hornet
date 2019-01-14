@@ -1,5 +1,6 @@
 #include <Device/Util/Timer.cuh>
 #include <Operator++.cuh>
+#include <StandardAPI.hpp>
 
 namespace hornets_nest {
 namespace detail {
@@ -363,7 +364,7 @@ namespace adj_unions {
             int binary_work_est = u_len*log_v;
             int intersect_work_est = u_len + v_len + log_u;
             //const int WORK_FACTOR = 9999; // force imbalanced-only
-            int BALANCED_WORK_LIMIT = BLOCK_SIZE_OP2*(1<<LOG_OFFSET_BALANCED-1);
+            //int BALANCED_WORK_LIMIT = BLOCK_SIZE_OP2*(1<<LOG_OFFSET_BALANCED-1);
             //int METHOD = ((WORK_FACTOR*intersect_work_est >= binary_work_est) || (intersect_work_est > BALANCED_WORK_LIMIT));
             int METHOD = ((WORK_FACTOR*intersect_work_est >= binary_work_est)); 
             if (!METHOD && u_len <= 1) {
@@ -412,12 +413,12 @@ void forAllAdjUnions(HornetClass&          hornet,
     TM.start();
 
     // memory allocations host and device side
-    cudaMalloc(&(hd_queue_info().d_edge_queue), 2*hornet.nE()*sizeof(vid_t));
-    cudaMalloc(&(hd_queue_info().d_queue_sizes), (MAX_ADJ_UNIONS_BINS)*sizeof(unsigned long long));
-    cudaMemset(hd_queue_info().d_queue_sizes, 0, MAX_ADJ_UNIONS_BINS*sizeof(unsigned long long));
+    hornets_nest::gpu::allocate(hd_queue_info().d_edge_queue, 2*hornet.nE());
+    hornets_nest::gpu::allocate(hd_queue_info().d_queue_sizes, MAX_ADJ_UNIONS_BINS);
+    hornets_nest::gpu::memsetZero(hd_queue_info().d_queue_sizes, MAX_ADJ_UNIONS_BINS);
     unsigned long long *queue_sizes = (unsigned long long *)calloc(MAX_ADJ_UNIONS_BINS, sizeof(unsigned long long));
-    cudaMalloc(&(hd_queue_info().d_queue_pos), (MAX_ADJ_UNIONS_BINS+1)*sizeof(unsigned long long));
-    cudaMemset(hd_queue_info().d_queue_pos, 0, (MAX_ADJ_UNIONS_BINS+1)*sizeof(unsigned long long));
+    hornets_nest::gpu::allocate(hd_queue_info().d_queue_pos, MAX_ADJ_UNIONS_BINS+1);
+    hornets_nest::gpu::memsetZero(hd_queue_info().d_queue_pos, MAX_ADJ_UNIONS_BINS+1);
     unsigned long long *queue_pos = (unsigned long long *)calloc(MAX_ADJ_UNIONS_BINS+1, sizeof(unsigned long long));
 
     // figure out cutoffs/counts per bin
@@ -427,11 +428,11 @@ void forAllAdjUnions(HornetClass&          hornet,
         forAllEdgeVertexPairs(hornet, bin_edges {hd_queue_info, true, WORK_FACTOR}, load_balancing);
 
     // copy queue size info to from device to host
-    cudaMemcpy(queue_sizes, hd_queue_info().d_queue_sizes, (MAX_ADJ_UNIONS_BINS)*sizeof(unsigned long long), cudaMemcpyDeviceToHost);
+    hornets_nest::gpu::copyToHost(hd_queue_info().d_queue_sizes, MAX_ADJ_UNIONS_BINS, queue_sizes);
     // prefix sum over bin sizes
     std::partial_sum(queue_sizes, queue_sizes+MAX_ADJ_UNIONS_BINS, queue_pos+1);
     // transfer prefx results to device
-    cudaMemcpy(hd_queue_info().d_queue_pos, queue_pos, (MAX_ADJ_UNIONS_BINS+1)*sizeof(unsigned long long), cudaMemcpyHostToDevice);
+    hornets_nest::host::copyToDevice(queue_pos, MAX_ADJ_UNIONS_BINS+1, hd_queue_info().d_queue_pos);
     /* 
     for (auto i = 0; i < MAX_ADJ_UNIONS_BINS+1; i++)
         printf("queue=%d prefix sum: %llu\n", i, queue_pos[i]);
@@ -445,12 +446,6 @@ void forAllAdjUnions(HornetClass&          hornet,
     TM.stop();
     TM.print("queueing and binning:");
     TM.reset();
-    
-    /*
-    cudaMemcpy(hd_queue_info().queue_pos, hd_queue_info().d_queue_pos, (MAX_ADJ_UNIONS_BINS+1)*sizeof(unsigned long long), cudaMemcpyDeviceToHost);
-    for (auto i = 0; i < MAX_ADJ_UNIONS_BINS+1; i++)
-        printf("queue=%d prefix sum after: %llu\n", i, hd_queue_info().queue_pos[i]);
-    */
     
     const int BALANCED_THREADS_LOGMAX = 31-__builtin_clz(BLOCK_SIZE_OP2)+1; // assumes BLOCK_SIZE is int type
     int bin_index;
@@ -468,7 +463,7 @@ void forAllAdjUnions(HornetClass&          hornet,
         size = end_index - start_index;
         if (size) {
             threads_per = 1 << (threads_log-1); 
-            printf("threads_per=%d, size=%d\n", threads_per, size);
+            printf("threads_per=%u, size=%llu\n", threads_per, size);
             TM.start();
             forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_edge_queue, start_index, end_index, op, threads_per, 0);
             TM.stop();
@@ -484,7 +479,7 @@ void forAllAdjUnions(HornetClass&          hornet,
     size = end_index - start_index;
     if (size) {
         threads_per = 1 << (threads_log-1); 
-        printf("threads_per=%d, size=%d\n", threads_per, size);
+        printf("threads_per=%u, size=%llu\n", threads_per, size);
         TM.start();
         forAllEdgesAdjUnionBalanced(hornet, hd_queue_info().d_edge_queue, start_index, end_index, op, threads_per, 0);
         TM.stop();
@@ -504,7 +499,7 @@ void forAllAdjUnions(HornetClass&          hornet,
         size = end_index - start_index;
         if (size) {
             threads_per = 1 << (threads_log-1); 
-            printf("threads_per=%d, size=%d\n", threads_per, size);
+            printf("threads_per=%u, size=%llu\n", threads_per, size);
             //printf("bin_index=%d, start_index=%d, end_index=%d\n", bin_index, start_index, end_index);
             TM.start();
             forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_edge_queue, start_index, end_index, op, threads_per, 1);
@@ -523,13 +518,15 @@ void forAllAdjUnions(HornetClass&          hornet,
         //printf("(start_index, end_index): %d, %d\n", start_index, end_index);
         //printf("threads_log, bin_index: %d, %d\n", threads_log, bin_index);
         threads_per = 1 << (threads_log-1); 
-        printf("threads_per: %d, size: %d\n", threads_per, size);
+        printf("threads_per: %u, size: %llu\n", threads_per, size);
         TM.start();
         forAllEdgesAdjUnionImbalanced(hornet, hd_queue_info().d_edge_queue, start_index, end_index, op, threads_per, 1);
         TM.stop();
         TM.print("imbalanced queue processing:");
         TM.reset();
     }
+
+    hornets_nest::gpu::free(hd_queue_info().d_queue_pos, hd_queue_info().d_queue_sizes, hd_queue_info().d_edge_queue);
 
     free(queue_sizes);
     free(queue_pos);

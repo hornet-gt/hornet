@@ -37,6 +37,7 @@
 #include <Device/Util/PTX.cuh>              //xlib::__msb
 #include <Device/Util/SafeCudaAPI.cuh>      //cuMemcpyToDeviceAsync
 #include <BasicTypes.hpp>
+#include "StandardAPI.hpp"
 
 namespace hornets_nest {
 
@@ -75,8 +76,17 @@ template<typename T>
 HOST_DEVICE
 TwoLevelQueue<T>::~TwoLevelQueue() noexcept {
 #if !defined(__CUDA_ARCH__)
-    if (!_kernel_copy)
-        cuFree(_d_queue_ptrs.first, _d_queue_ptrs.second, _d_counters);
+    if (!_kernel_copy) {
+        if (_d_queue_ptrs.first != nullptr) {
+            gpu::free(_d_queue_ptrs.first);
+        }
+
+        if (_d_queue_ptrs.second != nullptr) {
+            gpu::free(_d_queue_ptrs.second);
+        }
+
+        gpu::free(_d_counters);
+    }
 #endif
 }
 
@@ -98,9 +108,15 @@ void TwoLevelQueue<T>::initialize(size_t max_allocated_items) noexcept {
 
 template<typename T>
 void TwoLevelQueue<T>::_initialize() noexcept {
-    cuMalloc(_d_queue_ptrs.first, _max_allocated_items);
-    cuMalloc(_d_queue_ptrs.second, _max_allocated_items);
-    cuMalloc(_d_counters, 1);
+    if (_max_allocated_items > 0) {
+        gpu::allocate(_d_queue_ptrs.first, _max_allocated_items);
+        gpu::allocate(_d_queue_ptrs.second, _max_allocated_items);
+    }
+    else {
+        assert(_d_queue_ptrs.first == nullptr );
+        assert(_d_queue_ptrs.second == nullptr );
+    }
+    gpu::allocate(_d_counters, 1);
     cuMemset0x00(_d_counters);
 }
 

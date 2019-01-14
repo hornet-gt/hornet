@@ -137,7 +137,7 @@ void QueueBase<T>::print() const noexcept {
     else {
         for (auto i = _left; i < _size; i++)
             std::cout << _array[i] << ' ';
-        for (auto i = 0; i < _right; i++)
+        for (size_t i = 0; i < _right; i++)
             std::cout << _array[i] << ' ';
     }
     std::cout << std::endl;

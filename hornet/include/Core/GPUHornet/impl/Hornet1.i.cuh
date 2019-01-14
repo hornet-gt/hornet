@@ -33,6 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
+#include "StandardAPI.hpp"
 #include <Device/Util/Timer.cuh>        //timer::Timer
 #include <cstring>                      //std::memcpy
 
@@ -64,15 +65,15 @@ HORNET::Hornet(const HornetInit& hornet_init,
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 HORNET::~Hornet() noexcept {
-    cuFree(_d_csr_offsets, _d_degrees);
+    gpu::free(_d_csr_offsets, _d_degrees);
     delete[] _csr_offsets;
     delete[] _csr_edges;
-    cuFree(_d_batch_src, _d_batch_dst, _d_tmp_sort_src, _d_tmp_sort_dst,
+    gpu::free(_d_batch_src, _d_batch_dst, _d_tmp_sort_src, _d_tmp_sort_dst,
             _d_counts, _d_unique, _d_degree_tmp, _d_flags);
-    cuFree(_d_locations, _d_batch_offset, _d_counter,
+    gpu::free(_d_locations, _d_batch_offset, _d_counter,
             _d_queue_new_degree, _d_queue_new_ptr, _d_queue_old_ptr,
             _d_queue_old_degree, _d_queue_id, _d_queue_size);
-    cuFreeHost(_h_queue_new_ptr, _h_queue_new_degree, _h_queue_old_ptr,
+    host::freePageLocked(_h_queue_new_ptr, _h_queue_new_degree, _h_queue_old_ptr,
                _h_queue_old_degree);
 }
 
@@ -110,7 +111,7 @@ void HORNET::initialize() noexcept {
             ptrs_array[i] = nullptr;
             continue;
         }*/
-        if (degree >= EDGES_PER_BLOCKARRAY)
+        if (static_cast<size_t>(degree) >= EDGES_PER_BLOCKARRAY)
             ERROR("degree >= EDGES_PER_BLOCKARRAY, (", degree, ")")
 
         const auto& mem_data = _mem_manager.insert(degree);
@@ -122,8 +123,7 @@ void HORNET::initialize() noexcept {
 
         if (FORCE_SOA || !xlib::IsVectorizable<vid_t, EdgeTypes...>::value ||
                 sizeof...(EdgeTypes) == 0) {
-            #pragma unroll
-            for (int j = 0; j < NUM_ETYPES; j++) {
+            for (size_t j = 0; j < NUM_ETYPES; j++) {
                 size_t    num_bytes = degree * ETYPE_SIZES[j];
                 size_t offset_bytes = offset * ETYPE_SIZES[j];
                 std::memcpy(h_blockarray + PITCH<EdgeTypes...> * j,
@@ -139,7 +139,7 @@ void HORNET::initialize() noexcept {
     int num_blockarrays = _mem_manager.num_blockarrays();
     for (int i = 0; i < num_blockarrays; i++) {
         const auto& mem_data = _mem_manager.get_blockarray_ptr(i);
-        cuMemcpyToDevice(mem_data.first, BLOCKARRAY_SIZE, mem_data.second);
+        host::copyToDevice(mem_data.first, BLOCKARRAY_SIZE, mem_data.second);
     }
     //--------------------------------------------------------------------------
     ////////////////////////
@@ -159,8 +159,8 @@ void HORNET::initialize() noexcept {
     //_mem_manager.free_host_ptr();
     build_device_degrees();
 
-    cuMalloc(_d_csr_offsets, _nV + 1);
-    cuMemcpyToDevice(csr_offsets, _nV + 1, _d_csr_offsets);
+    gpu::allocate(_d_csr_offsets, _nV + 1);
+    host::copyToDevice(csr_offsets, _nV + 1, _d_csr_offsets);
 }
 
 // TO IMPROVE !!!!
@@ -208,8 +208,8 @@ HORNET::edge_field() noexcept {
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 const eoff_t* HORNET::device_csr_offsets() const noexcept {
     /*if (_d_csr_offsets == nullptr) {
-        cuMalloc(_d_csr_offsets, _nV + 1);
-        cuMemcpyToDevice(csr_offsets(), _nV + 1, _d_csr_offsets);
+        gpu::allocate(_d_csr_offsets, _nV + 1);
+        host::copyToDevice(csr_offsets(), _nV + 1, _d_csr_offsets);
     }*/
     return _d_csr_offsets;
 }

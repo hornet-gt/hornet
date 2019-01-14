@@ -135,17 +135,16 @@ reduce_arg(const T* __restrict__ d_in, int num_items, const SeletOp& select_op,
             };
     ULL *d_out;
     int2 h_out;
-    SAFE_CALL( cudaMalloc(&d_out, sizeof(ULL)) )
-    SAFE_CALL( cudaMemcpy(d_out, &init_value, sizeof(ULL),
-                          cudaMemcpyHostToDevice))
+    cuMalloc(d_out,1);
+    cuMemcpyToDevice(&init_value, 1, d_out);
 
     device_reduce::kernel::reduce_arg<UNROLL_STEPS, R>
         <<< xlib::ceil_div<BLOCK_SIZE * THREAD_ITEMS>(num_items), BLOCK_SIZE >>>
        (const_cast<T*>(d_in), num_items, thread_op, warp_op, select_op, d_out,
         reinterpret_cast<const R&>(init_value));
 
-    SAFE_CALL( cudaMemcpy(&h_out, d_out, sizeof(ULL), cudaMemcpyDeviceToHost) )
-    SAFE_CALL( cudaFree(d_out) )
+    cuMemcpyToHost(d_out, 1, static_cast<R*>(&h_out));
+    cuFree(d_out);
     return std::pair<R, int>(reinterpret_cast<R&>(h_out.x), h_out.y);
 }
 
@@ -300,15 +299,15 @@ R apply(const T* __restrict__ d_in,
     const unsigned THREAD_ITEMS = UNROLL_STEPS * 2 * RATIO;
 
     R h_out, *d_out;
-    SAFE_CALL( cudaMalloc(&d_out, sizeof(R)) )
-    SAFE_CALL(cudaMemcpy(d_out, &init_value, sizeof(R), cudaMemcpyHostToDevice))
+    cuMalloc(d_out, 1);
+    cuMemcpyToDevice(&init_value, 1, d_out);
 
     device_reduce::kernel::reduceGlobal<UNROLL_STEPS>
         <<< xlib::ceil_div<BLOCK_SIZE * THREAD_ITEMS>(num_items), BLOCK_SIZE >>>
        (const_cast<T*>(d_in), num_items, thread_op, warp_op, d_out, zero_value);
 
-    SAFE_CALL( cudaMemcpy(&h_out, d_out, sizeof(R), cudaMemcpyDeviceToHost) )
-    SAFE_CALL( cudaFree(d_out) )
+    cuMemcpyToHost(d_out, 1, &h_out);
+    cuFree(d_out);
     return h_out;
 }
 
@@ -322,15 +321,15 @@ T max(const T* __restrict__ d_in, int num_items,
     const unsigned THREAD_ITEMS = UNROLL_STEPS * 2 * RATIO;
 
     R h_out, *d_out;
-    SAFE_CALL( cudaMalloc(&d_out, sizeof(R)) )
-    SAFE_CALL(cudaMemcpy(d_out, &init_value, sizeof(R), cudaMemcpyHostToDevice))
+    cuMalloc(d_out, 1)
+    cuMemcpyToDevice(&init_value, 1, d_out);
 
     device_reduce::kernel::max<UNROLL_STEPS>
         <<< xlib::ceil_div<BLOCK_SIZE * THREAD_ITEMS>(num_items), BLOCK_SIZE >>>
         (const_cast<T*>(d_in), num_items, d_out, zero_value);
 
-    SAFE_CALL( cudaMemcpy(&h_out, d_out, sizeof(R), cudaMemcpyDeviceToHost) )
-    SAFE_CALL( cudaFree(d_out) )
+    cuMemcpyToHost(d_out, 1, &h_out);
+    cuFree(d_out);
     return h_out;
 }
 
@@ -354,17 +353,17 @@ T add(const T* __restrict__ d_in, int num_items, const T& zero_value = T()) {
     const unsigned THREAD_ITEMS = UNROLL_STEPS * RATIO;
 
     R h_out, *d_out;
-    SAFE_CALL( cudaMalloc(&d_out, sizeof(R)) )
+    cuMalloc(d_out, 1);
     const auto value = R(0);
-    SAFE_CALL( cudaMemcpy(d_out, &value, sizeof(R), cudaMemcpyHostToDevice) )
+    cuMemcpyToDevice(&value, 1, d_out);
 
     device_reduce::kernel::add<UNROLL_STEPS>
         <<< xlib::ceil_div<BLOCK_SIZE * THREAD_ITEMS>(num_items), BLOCK_SIZE >>>
         (const_cast<T*>(d_in), num_items, d_out, zero_value);
     CHECK_CUDA_ERROR
 
-    SAFE_CALL( cudaMemcpy(&h_out, d_out, sizeof(R), cudaMemcpyDeviceToHost) )
-    SAFE_CALL( cudaFree(d_out) )
+    cuMemcpyToHost(d_out, 1, &h_out);
+    cuFree(d_out);
     return h_out;
 }
 

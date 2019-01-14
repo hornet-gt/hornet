@@ -33,6 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
+#include "StandardAPI.hpp"
 #include <Device/Util/Timer.cuh>   //timer::Timer
 #include <Device/Primitives/CubWrapper.cuh>
 //#include "Core/GPUHornet/impl/HornetKernels.cuh"
@@ -63,7 +64,7 @@ CSR::Csr(const HornetInit& hornet_init,
 
 template<typename... VertexTypes, typename... EdgeTypes>
 CSR::~Csr() noexcept {
-    cuFree(_d_csr_offsets, _d_degrees);
+    gpu::free(_d_csr_offsets, _d_degrees);
 }
 
 template<typename... VertexTypes, typename... EdgeTypes>
@@ -106,8 +107,8 @@ void CSR::initialize() noexcept {
 
     build_device_degrees();
 
-    cuMalloc(_d_csr_offsets, _nV + 1);
-    cuMemcpyToDevice(csr_offsets, _nV + 1, _d_csr_offsets);
+    gpu::allocate(_d_csr_offsets, _nV + 1);
+    host::copyToDevice(csr_offsets, _nV + 1, _d_csr_offsets);
 }
 
 // TO IMPROVE !!!!
@@ -155,8 +156,8 @@ CSR::edge_field() noexcept {
 template<typename... VertexTypes, typename... EdgeTypes>
 const eoff_t* CSR::device_csr_offsets() const noexcept {
     /*if (_d_csr_offsets == nullptr) {
-        cuMalloc(_d_csr_offsets, _nV + 1);
-        cuMemcpyToDevice(csr_offsets(), _nV + 1, _d_csr_offsets);
+        gpu::allocate(_d_csr_offsets, _nV + 1);
+        host::copyToDevice(csr_offsets(), _nV + 1, _d_csr_offsets);
     }*/
     return _d_csr_offsets;
 }
@@ -183,7 +184,7 @@ void CSR::print() noexcept {
 
 template<typename... VertexTypes, typename... EdgeTypes>
 void CSR::build_device_degrees() noexcept {
-    cuMalloc(_d_degrees, _nV);
+    gpu::allocate(_d_degrees, _nV);
     buildDegreeKernel <<< xlib::ceil_div(_nV, 256), 256 >>>
         (device_side(), _d_degrees);
 }

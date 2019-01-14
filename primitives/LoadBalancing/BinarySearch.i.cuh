@@ -34,6 +34,7 @@
  * </blockquote>}
  */
 #include "BinarySearchKernel.cuh"
+#include "StandardAPI.hpp"
 #include <Device/Primitives/CubWrapper.cuh>  //xlib::CubExclusiveSum
 #include <Device/Util/DeviceProperties.cuh>  //xlib::SMemPerBlock
 
@@ -46,12 +47,12 @@ BinarySearch::BinarySearch(const HornetClass& hornet,
                                 _work_size(work_factor * hornet.nV()) {
     static_assert(IsHornet<HornetClass>::value,
                  "BinarySearch: paramenter is not an instance of Hornet Class");
-    cuMalloc(_d_work, _work_size);
+    hornets_nest::gpu::allocate(_d_work, _work_size);
     prefixsum.initialize(_work_size);
 }
 
 inline BinarySearch::~BinarySearch() noexcept {
-    cuFree(_d_work);
+    hornets_nest::gpu::free(_d_work);
 }
 
 template<typename HornetClass, typename Operator>

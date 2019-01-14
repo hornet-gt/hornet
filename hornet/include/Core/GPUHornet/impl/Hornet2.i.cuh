@@ -33,6 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
+#include "StandardAPI.hpp"
 #include <Graph/GraphBase.hpp>               //graph::StructureProp
 #include "HornetKernels.cuh"
 #include <Device/Primitives/CubWrapper.cuh> //xlib::CubSortByKey
@@ -58,16 +59,18 @@ void HORNET::transpose() noexcept {
 
     eoff_t* d_csr_offsets, *d_counts_out;
     vid_t*  d_coo_src, *d_coo_dst, *d_coo_src_out, *d_coo_dst_out,*d_unique_out;
-    cuMalloc(d_csr_offsets, _nV + 1);
-    cuMalloc(d_coo_src, _nE);
-    cuMalloc(d_coo_dst, _nE);
-    cuMalloc(d_coo_src_out, _nE);
-    cuMalloc(d_coo_dst_out, _nE);
-    cuMalloc(d_counts_out, _nV + 1);
-    cuMalloc(d_unique_out, _nV);
-    cuMemcpyToDevice(_csr_offsets, _nV + 1, d_csr_offsets);
-    cuMemcpyToDevice(_csr_edges, _nE, d_coo_dst);
-    cuMemcpyToDevice(0, d_counts_out + _nV);
+
+    gpu::allocate(d_csr_offsets, _nV + 1);
+    gpu::allocate(d_coo_src, _nE);
+    gpu::allocate(d_coo_dst, _nE);
+    gpu::allocate(d_coo_src_out, _nE);
+    gpu::allocate(d_coo_dst_out, _nE);
+    gpu::allocate(d_counts_out, _nV + 1);
+    gpu::allocate(d_unique_out, _nV);
+
+    host::copyToDevice(_csr_offsets, _nV + 1, d_csr_offsets);
+    host::copyToDevice(_csr_edges, _nE, d_coo_dst);
+    host::copyToDevice(0, d_counts_out + _nV);
 
     CSRtoCOOKernel<BLOCK_SIZE>
         <<< xlib::ceil_div(_nV, BLOCK_SIZE), BLOCK_SIZE >>>
@@ -82,11 +85,12 @@ void HORNET::transpose() noexcept {
 
     _csr_offsets = new eoff_t[_nV + 1];
     _csr_edges   = new vid_t[_nV + 1];
-    cuMemcpyToHost(d_counts_out, _nV + 1, const_cast<eoff_t*>(_csr_offsets));
-    cuMemcpyToHost(d_coo_src_out, _nE, const_cast<vid_t*>(_csr_edges));
+    gpu::copyToHost(d_counts_out, _nV + 1, const_cast<eoff_t*>(_csr_offsets));
+    gpu::copyToHost(d_coo_src_out, _nE, const_cast<vid_t*>(_csr_edges));
     _internal_csr_data = true;
-    cuFree(d_coo_dst, d_coo_src, d_counts_out, d_unique_out,
-           d_coo_src_out, d_counts_out);
+
+    gpu::free(d_unique_out, d_counts_out, d_coo_dst_out, d_coo_src_out, d_coo_dst, d_coo_src, d_csr_offsets);
+
     initialize();
 }
 
@@ -98,7 +102,7 @@ void HORNET::check_sorted_adjs() const noexcept {
 
 template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::build_device_degrees() noexcept {
-    cuMalloc(_d_degrees, _nV);
+    gpu::allocate(_d_degrees, _nV);
     buildDegreeKernel <<< xlib::ceil_div(_nV, 256), 256 >>>
         (device_side(), _d_degrees);
 }
@@ -132,7 +136,7 @@ void HORNET::convert_to_csr(eoff_t* csr_offsets, vid_t* csr_edges)
     auto d_vertex_basic_ptr = reinterpret_cast<pair_t*>(_d_vertices);
 
     auto h_vertex_basic_ptr = new pair_t[_nV];
-    cuMemcpyToHost(d_vertex_basic_ptr, _nV, h_vertex_basic_ptr);
+    gpu::copyToHost(d_vertex_basic_ptr, _nV, h_vertex_basic_ptr);
 
     csr_offsets[0] = 0;
     for (vid_t i = 1; i <= _nV; i++)

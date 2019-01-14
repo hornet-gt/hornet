@@ -35,7 +35,7 @@
  * </blockquote>}
  */
 #include "Kernels/BatchCopyKernels.cuh"
-#include <Device/Util/SafeCudaAPI.cuh>
+#include "StandardAPI.hpp"
 //#define DEBUG_FIXINTERNAL
 
 namespace hornets_nest {
@@ -87,33 +87,22 @@ template<typename... VertexTypes, typename... EdgeTypes, bool FORCE_SOA>
 void HORNET::allocateInPlaceUpdate(const size_t max_batch_size) noexcept {
     //simple resizing when requested memory is greater than currently owned
     if (max_batch_size > _max_batch_size) {
-        cuFree(_d_locations);
-        cuFree(_d_batch_offset);
-        cuFree(_d_counter);
-        cuFree(_d_queue_new_degree);
-        cuFree(_d_queue_new_ptr);
-        cuFree(_d_queue_old_ptr);
-        cuFree(_d_queue_old_degree);
-        cuFree(_d_queue_id);
-        cuFree(_d_queue_size);
-        cuFreeHost(_h_queue_new_ptr);
-        cuFreeHost(_h_queue_new_degree);
-        cuFreeHost(_h_queue_old_ptr);
-        cuFreeHost(_h_queue_old_degree);
+        gpu::free(_d_locations, _d_batch_offset, _d_counter, _d_queue_new_degree, _d_queue_new_ptr, _d_queue_old_ptr, _d_queue_old_degree, _d_queue_id, _d_queue_size);
+        host::freePageLocked(_h_queue_new_ptr, _h_queue_new_degree, _h_queue_old_ptr, _h_queue_old_degree);
 
-        cuMalloc(_d_locations, max_batch_size);
-        cuMalloc(_d_batch_offset, max_batch_size + 1);
-        cuMalloc(_d_counter,      max_batch_size + 1);
-        cuMalloc(_d_queue_new_degree, max_batch_size + 1);
-        cuMalloc(_d_queue_new_ptr,    max_batch_size);
-        cuMalloc(_d_queue_old_ptr,    max_batch_size);
-        cuMalloc(_d_queue_old_degree, max_batch_size + 1);
-        cuMalloc(_d_queue_id,         max_batch_size);
-        cuMalloc(_d_queue_size, 1);
-        cuMallocHost(_h_queue_new_ptr,    max_batch_size);
-        cuMallocHost(_h_queue_new_degree, max_batch_size);
-        cuMallocHost(_h_queue_old_ptr,    max_batch_size);
-        cuMallocHost(_h_queue_old_degree, max_batch_size + 1);
+        gpu::allocate(_d_locations, max_batch_size);
+        gpu::allocate(_d_batch_offset, max_batch_size + 1);
+        gpu::allocate(_d_counter,      max_batch_size + 1);
+        gpu::allocate(_d_queue_new_degree, max_batch_size + 1);
+        gpu::allocate(_d_queue_new_ptr,    max_batch_size);
+        gpu::allocate(_d_queue_old_ptr,    max_batch_size);
+        gpu::allocate(_d_queue_old_degree, max_batch_size + 1);
+        gpu::allocate(_d_queue_id,         max_batch_size);
+        gpu::allocate(_d_queue_size, 1);
+        host::allocatePageLocked(_h_queue_new_ptr,    max_batch_size);
+        host::allocatePageLocked(_h_queue_new_degree, max_batch_size);
+        host::allocatePageLocked(_h_queue_old_ptr,    max_batch_size);
+        host::allocatePageLocked(_h_queue_old_degree, max_batch_size + 1);
     }
     //_max_batch_size is set to max_batch_size by calling function
 }
@@ -128,23 +117,16 @@ void HORNET::allocatePrepocessing(const size_t max_batch_size) noexcept {
 
     if (max_batch_size > _max_batch_size) {
 
-        cuFree(_d_batch_src);
-        cuFree(_d_batch_dst);
-        cuFree(_d_tmp_sort_src);
-        cuFree(_d_tmp_sort_dst);
-        cuFree(_d_counts);
-        cuFree(_d_unique);
-        cuFree(_d_degree_tmp);
-        cuFree(_d_flags);
+        gpu::free(_d_batch_src, _d_batch_dst, _d_tmp_sort_src, _d_tmp_sort_dst, _d_counts, _d_unique, _d_degree_tmp, _d_flags);
 
-        cuMalloc(_d_batch_src,    max_batch_size);
-        cuMalloc(_d_batch_dst,    max_batch_size);
-        cuMalloc(_d_tmp_sort_src, max_batch_size);
-        cuMalloc(_d_tmp_sort_dst, max_batch_size);
-        cuMalloc(_d_counts,       max_batch_size + 1);
-        cuMalloc(_d_unique,       max_batch_size);
-        cuMalloc(_d_degree_tmp,   max_batch_size + 1);
-        cuMalloc(_d_flags,        max_batch_size);
+        hornets_nest::gpu::allocate(_d_batch_src,    max_batch_size);
+        hornets_nest::gpu::allocate(_d_batch_dst,    max_batch_size);
+        hornets_nest::gpu::allocate(_d_tmp_sort_src, max_batch_size);
+        hornets_nest::gpu::allocate(_d_tmp_sort_dst, max_batch_size);
+        hornets_nest::gpu::allocate(_d_counts,       max_batch_size + 1);
+        hornets_nest::gpu::allocate(_d_unique,       max_batch_size);
+        hornets_nest::gpu::allocate(_d_degree_tmp,   max_batch_size + 1);
+        hornets_nest::gpu::allocate(_d_flags,        max_batch_size);
     }
 }
 

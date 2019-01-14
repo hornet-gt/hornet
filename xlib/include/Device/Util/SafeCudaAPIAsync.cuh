@@ -146,6 +146,7 @@ void cuMemset0x00AsyncAux(const char* file, int line, const char* func_name,
                             stream);
 }
 
+#if 0//asynchronous functions should have Async in their function name, these functions either conflict with synchrnous versions (if both SafeCudaAPIAsync.cuh and SafeCudaAPISync.cuh are included) or can unintentionally bind to synchronous or asynchronous versions based on included header files
 template<typename T>
 void cuMemset0x00Aux(const char* file, int line, const char* func_name,
                      T& symbol, cudaStream_t stream = 0) noexcept {
@@ -217,6 +218,7 @@ void cuMemsetAux(const char* file, int line, const char* func_name,
     cuMemsetAsyncGenericAux(file, line, func_name, symbol_address, SIZE, mask,
                             stream);
 }
+#endif
 
 //==============================================================================
 //////////////////

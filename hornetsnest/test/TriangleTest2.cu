@@ -4,6 +4,7 @@
  */
 
 #include "HornetAlg.hpp"
+#include <StandardAPI.hpp>
 #include <Core/GPUCsr/Csr.cuh>
 #include <Core/GPUHornet/Hornet.cuh>
 #include <Graph/GraphStd.hpp>
@@ -22,7 +23,7 @@ using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
 int hostSingleIntersection (const vid_t ai, const degree_t alen, const vid_t * a,
                             const vid_t bi, const degree_t blen, const vid_t * b){
 
-    int32_t ka = 0, kb = 0;
+    //int32_t ka = 0, kb = 0;
      int32_t out = 0;
 
 
@@ -50,7 +51,7 @@ int hostSingleIntersection (const vid_t ai, const degree_t alen, const vid_t * a
 void hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
     const vid_t * ind, int64_t* allTriangles)
 {
-    int32_t edge=0;
+    //int32_t edge=0;
     int64_t sum=0;
     for (vid_t src = 0; src < nv; src++)
     {
@@ -69,7 +70,7 @@ void hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
 }
 
 
-int main(int argc, char* argv[]) {
+int exec(int argc, char* argv[]) {
     int deviceCount = 0;
     cudaGetDeviceCount(&deviceCount);      
     std::cout << "Number of devices: " << deviceCount << std::endl; 
@@ -120,3 +121,21 @@ int main(int argc, char* argv[]) {
     */
     return 0;
 }
+
+int main(int argc, char* argv[]) {
+    int ret = 0;
+#if defined(RMM_WRAPPER)
+    hornets_nest::gpu::initializeRMMPoolAllocation();//update initPoolSize if you know your memory requirement and memory availability in your system, if initial pool size is set to 0 (default value), RMM currently assigns half the device memory.
+    {//scoping technique to make sure that hornets_nest::gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+#endif
+
+    ret = exec(argc, argv);
+
+#if defined(RMM_WRAPPER)
+    }//scoping technique to make sure that hornets_nest::gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+    hornets_nest::gpu::finalizeRMMPoolAllocation();
+#endif
+
+    return ret;
+}
+

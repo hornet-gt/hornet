@@ -247,9 +247,9 @@ template<typename block_t, typename offset_t, bool DEVICE>
 int MEMORY_MANAGER::find_bin(degree_t degree) const noexcept {
     const unsigned LOG_EDGES_PER_BLOCK = xlib::Log2<MIN_EDGES_PER_BLOCK>::value;
     return PREFER_FASTER_UPDATE ?
-        (degree < MIN_EDGES_PER_BLOCK ? 0 :
+        (static_cast<size_t>(degree) < MIN_EDGES_PER_BLOCK ? 0 :
              xlib::ceil_log2(degree + 1) - LOG_EDGES_PER_BLOCK) :
-        (degree <= MIN_EDGES_PER_BLOCK ? 0 :
+        (static_cast<size_t>(degree) <= MIN_EDGES_PER_BLOCK ? 0 :
             xlib::ceil_log2(degree) - LOG_EDGES_PER_BLOCK);
 }
 

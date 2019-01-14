@@ -53,20 +53,20 @@ void HORNET::copyBatchUpdateData(
         size_t * const batch_size) noexcept {
     size_t b_size = batch_update.original_size();
     if (batch_update.type() == BatchType::HOST) {
-        cuMemcpyToDevice(batch_update.original_src_ptr(), b_size,
+        host::copyToDevice(batch_update.original_src_ptr(), b_size,
                          d_batch_src);
-        cuMemcpyToDevice(batch_update.original_dst_ptr(), b_size,
+        host::copyToDevice(batch_update.original_dst_ptr(), b_size,
                          d_batch_dst);
     } else {
-        cuMemcpyDevToDev(batch_update.original_src_ptr(), b_size,
+        gpu::copyToDevice(batch_update.original_src_ptr(), b_size,
                          d_batch_src);
-        cuMemcpyDevToDev(batch_update.original_dst_ptr(), b_size,
+        gpu::copyToDevice(batch_update.original_dst_ptr(), b_size,
                          d_batch_dst);
     }
     if (batch_prop & batch_property::GEN_INVERSE) {
-        cuMemcpyDevToDev(d_batch_src, b_size,
+        gpu::copyToDevice(d_batch_src, b_size,
                                d_batch_dst + b_size);
-        cuMemcpyDevToDev(d_batch_dst, b_size,
+        gpu::copyToDevice(d_batch_dst, b_size,
                                d_batch_src + b_size);
         b_size *= 2;
     }
@@ -133,11 +133,11 @@ void HORNET::remove_cross_duplicates(
         size_t * const batch_size) noexcept {
     const unsigned BLOCK_SIZE = 128;
     size_t b_size = *batch_size;
-    cuMemset(_d_flags, b_size, 0x01);
+    gpu::memset(_d_flags, b_size, 0x01);
 
     int num_uniques = cub_runlength.run(d_batch_src, b_size,
                                         _d_unique, _d_counts);
-    cuMemcpyDevToDev(_d_counts, num_uniques + 1, _d_batch_offset);
+    gpu::copyToDevice(_d_counts, num_uniques + 1, _d_batch_offset);
     cub_prefixsum.run(_d_batch_offset, num_uniques + 1);
 
     vertexDegreeKernel
@@ -152,7 +152,7 @@ void HORNET::remove_cross_duplicates(
 #endif
 
     degree_t degree_tmp_sum;
-    cuMemcpyToHost(_d_degree_tmp + num_uniques, degree_tmp_sum);
+    gpu::copyToHost(_d_degree_tmp + num_uniques, 1, &degree_tmp_sum);
 
     if (degree_tmp_sum == 0) {
         return;
@@ -223,21 +223,21 @@ int HORNET::batch_preprocessing(BatchUpdate& batch_update, bool is_insert)
     size_t batch_size = batch_update.original_size();
 
     if (batch_update.type() == BatchType::HOST) {
-        cuMemcpyToDevice(batch_update.original_src_ptr(), batch_size,
+        host::copyToDevice(batch_update.original_src_ptr(), batch_size,
                          _d_batch_src);
-        cuMemcpyToDevice(batch_update.original_dst_ptr(), batch_size,
+        host::copyToDevice(batch_update.original_dst_ptr(), batch_size,
                          _d_batch_dst);
     }
     else {
-        cuMemcpyDevToDev(batch_update.original_src_ptr(), batch_size,
+        gpu::copyToDevice(batch_update.original_src_ptr(), batch_size,
                          _d_batch_src);
-        cuMemcpyDevToDev(batch_update.original_dst_ptr(), batch_size,
+        gpu::copyToDevice(batch_update.original_dst_ptr(), batch_size,
                          _d_batch_dst);
     }
     if (_batch_prop & GEN_INVERSE) {
-        cuMemcpyDevToDev(_d_batch_src, batch_size,
+        gpu::copyToDevice(_d_batch_src, batch_size,
                                _d_batch_dst + batch_size);
-        cuMemcpyDevToDev(_d_batch_dst, batch_size,
+        gpu::copyToDevice(_d_batch_dst, batch_size,
                                _d_batch_src + batch_size);
         batch_size *= 2;
     }
@@ -355,7 +355,7 @@ void HORNET::build_batch_csr(
     batch_update.set_csr(_d_unique, _d_counts, num_uniques);
 
     if (batch_prop == batch_property::CSR_WIDE) {
-        cuMemset0x00(_d_wide_csr, _nV + 1);
+        gpu::memsetZero(_d_wide_csr, _nV + 1);
         scatterDegreeKernel
             <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
             (_d_unique, _d_counts, num_uniques, _d_wide_csr);
@@ -374,7 +374,7 @@ void HORNET::fixInternalRepresentation(int num_uniques, bool is_insert,
         return;
     }
     const unsigned BLOCK_SIZE = 128;
-    cuMemset0x00(_d_queue_size);
+    gpu::memsetZero(_d_queue_size);
 
     buildQueueKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(num_uniques), BLOCK_SIZE >>>
@@ -385,7 +385,7 @@ void HORNET::fixInternalRepresentation(int num_uniques, bool is_insert,
     CHECK_CUDA_ERROR
 
     int h_num_realloc;
-    cuMemcpyToHost(_d_queue_size, h_num_realloc);
+    gpu::copyToHost(_d_queue_size, 1, &h_num_realloc);
 
 #if defined(DEBUG_FIXINTERNAL)
     std::cout << "h_num_realloc: " << h_num_realloc <<std::endl;
@@ -395,9 +395,9 @@ void HORNET::fixInternalRepresentation(int num_uniques, bool is_insert,
     // FIX HORNET INTERNAL REPRESENTATION //
     ////////////////////////////////////////
     if (h_num_realloc > 0) {
-        cuMemcpyToHost(_d_queue_new_degree, h_num_realloc, _h_queue_new_degree);
-        cuMemcpyToHost(_d_queue_old_ptr, h_num_realloc, _h_queue_old_ptr);
-        cuMemcpyToHost(_d_queue_old_degree, h_num_realloc, _h_queue_old_degree);
+        gpu::copyToHost(_d_queue_new_degree, h_num_realloc, _h_queue_new_degree);
+        gpu::copyToHost(_d_queue_old_ptr, h_num_realloc, _h_queue_old_ptr);
+        gpu::copyToHost(_d_queue_old_degree, h_num_realloc, _h_queue_old_degree);
 
     #if defined(DEBUG_INSERT)
         xlib::gpu::printArray(_d_queue_id, h_num_realloc, "realloc ids:\n");
@@ -406,7 +406,7 @@ void HORNET::fixInternalRepresentation(int num_uniques, bool is_insert,
             auto     new_degree = _h_queue_new_degree[i];
             _h_queue_new_ptr[i] = _mem_manager.insert(new_degree).second;
         }
-        cuMemcpyToDevice(_h_queue_new_ptr, h_num_realloc, _d_queue_new_ptr);
+        host::copyToDevice(_h_queue_new_ptr, h_num_realloc, _d_queue_new_ptr);
 
         //----------------------------------------------------------------------
         // update data structures
@@ -429,7 +429,7 @@ void HORNET::fixInternalRepresentation(int num_uniques, bool is_insert,
         cub_prefixsum.run(d_prefixsum, h_num_realloc + 1);
 
         degree_t prefixsum_total;                //get the total
-        cuMemcpyToHost(d_prefixsum + prefixsum_size, prefixsum_total);
+        gpu::copyToHost(d_prefixsum + prefixsum_size, 1, &prefixsum_total);
 
         if (prefixsum_total > 0) {
             copySparseToSparse(d_prefixsum, prefixsum_size + 1, prefixsum_total,

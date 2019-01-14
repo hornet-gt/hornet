@@ -32,12 +32,12 @@ void KTruss::setInitParameters(int tsp, int nbl, int shifter,
 }
 
 void KTruss::init(){
-    cuMalloc(hd_data().is_active,            hornet.nV());
-    cuMalloc(hd_data().offset_array,         hornet.nV() + 1);
-    cuMalloc(hd_data().triangles_per_vertex, hornet.nV());
-    cuMalloc(hd_data().triangles_per_edge,   hornet.nE());
-    cuMalloc(hd_data().src,                  hornet.nE());
-    cuMalloc(hd_data().dst,                  hornet.nE());
+    gpu::allocate(hd_data().is_active,            hornet.nV());
+    gpu::allocate(hd_data().offset_array,         hornet.nV() + 1);
+    gpu::allocate(hd_data().triangles_per_vertex, hornet.nV());
+    gpu::allocate(hd_data().triangles_per_edge,   hornet.nE());
+    gpu::allocate(hd_data().src,                  hornet.nE());
+    gpu::allocate(hd_data().dst,                  hornet.nE());
     reset();
 }
 

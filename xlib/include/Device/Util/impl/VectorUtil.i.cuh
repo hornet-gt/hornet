@@ -742,7 +742,7 @@ HOST_DEVICE bool operator<= (const char4& A, const char4& B) {
 }
 
 HOST_DEVICE bool operator>= (const char4& A, const char4& B) {
-    return A.x >= B.x && A.y >= B.y & A.z >= B.z & A.w >= B.w;
+    return A.x >= B.x && A.y >= B.y && A.z >= B.z && A.w >= B.w;
 }
 
 HOST_DEVICE bool operator> (const char4& A, const char4& B) {
@@ -772,7 +772,7 @@ HOST_DEVICE bool operator<= (const uchar4& A, const uchar4& B) {
 }
 
 HOST_DEVICE bool operator>= (const uchar4& A, const uchar4& B) {
-    return A.x >= B.x && A.y >= B.y & A.z >= B.z & A.w >= B.w;
+    return A.x >= B.x && A.y >= B.y && A.z >= B.z && A.w >= B.w;
 }
 
 HOST_DEVICE bool operator> (const uchar4& A, const uchar4& B) {
@@ -802,7 +802,7 @@ HOST_DEVICE bool operator<= (const short4& A, const short4& B) {
 }
 
 HOST_DEVICE bool operator>= (const short4& A, const short4& B) {
-    return A.x >= B.x && A.y >= B.y & A.z >= B.z & A.w >= B.w;
+    return A.x >= B.x && A.y >= B.y && A.z >= B.z && A.w >= B.w;
 }
 
 HOST_DEVICE bool operator> (const short4& A, const short4& B) {
@@ -832,7 +832,7 @@ HOST_DEVICE bool operator<= (const ushort4& A, const ushort4& B) {
 }
 
 HOST_DEVICE bool operator>= (const ushort4& A, const ushort4& B) {
-    return A.x >= B.x && A.y >= B.y & A.z >= B.z & A.w >= B.w;
+    return A.x >= B.x && A.y >= B.y && A.z >= B.z && A.w >= B.w;
 }
 
 HOST_DEVICE bool operator> (const ushort4& A, const ushort4& B) {
@@ -862,7 +862,7 @@ HOST_DEVICE bool operator<= (const int4& A, const int4& B) {
 }
 
 HOST_DEVICE bool operator>= (const int4& A, const int4& B) {
-    return A.x >= B.x && A.y >= B.y & A.z >= B.z & A.w >= B.w;
+    return A.x >= B.x && A.y >= B.y && A.z >= B.z && A.w >= B.w;
 }
 
 HOST_DEVICE bool operator> (const int4& A, const int4& B) {
@@ -892,7 +892,7 @@ HOST_DEVICE bool operator<= (const uint4& A, const uint4& B) {
 }
 
 HOST_DEVICE bool operator>= (const uint4& A, const uint4& B) {
-    return A.x >= B.x && A.y >= B.y & A.z >= B.z & A.w >= B.w;
+    return A.x >= B.x && A.y >= B.y && A.z >= B.z && A.w >= B.w;
 }
 
 HOST_DEVICE bool operator> (const uint4& A, const uint4& B) {
@@ -922,7 +922,7 @@ HOST_DEVICE bool operator<= (const float4& A, const float4& B) {
 }
 
 HOST_DEVICE bool operator>= (const float4& A, const float4& B) {
-    return A.x >= B.x && A.y >= B.y & A.z >= B.z & A.w >= B.w;
+    return A.x >= B.x && A.y >= B.y && A.z >= B.z && A.w >= B.w;
 }
 
 HOST_DEVICE bool operator> (const float4& A, const float4& B) {

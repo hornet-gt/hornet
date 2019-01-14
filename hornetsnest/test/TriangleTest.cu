@@ -4,6 +4,7 @@
 #include <cstdlib>
 
 #include "Static/TriangleCounting/triangle.cuh"
+#include <StandardAPI.hpp>
 #include <Device/Util/Timer.cuh>
 
 #include <Graph/GraphStd.hpp>
@@ -90,7 +91,7 @@ void testTriangleCountingConfigurations(HornetGraph& hornet, vid_t nv,degree_t n
                         int nbl=sps/tsp;
 
                         running_time[q] = time;
-                        printf("### %d %d %d %d %d \t\t %ld \t %f\n", blocks,sps, tsp, nbl, shifter,sumDevice, time);
+                        printf("### %d %d %d %d %d \t\t %u \t %f\n", blocks,sps, tsp, nbl, shifter, sumDevice, time);
                         average += time;
                     }
                     average = average/10;
@@ -110,10 +111,73 @@ void testTriangleCountingConfigurations(HornetGraph& hornet, vid_t nv,degree_t n
     cout << nv << ", " << ne << ", "<< minTime << ", " << minTimeHornet<< endl;
 }
 
-int* hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
-    const vid_t * ind, int64_t* allTriangles);
+// CPU Version - assume sorted index lists. 
+int hostSingleIntersection (const vid_t ai, const degree_t alen, const vid_t * a,
+                            const vid_t bi, const degree_t blen, const vid_t * b){
 
-int main(const int argc, char *argv[]){
+    //int32_t ka = 0, kb = 0;
+     int32_t out = 0;
+
+
+    if (!alen || !blen || a[alen-1] < b[0] || b[blen-1] < a[0])
+    return 0;
+
+    const vid_t *aptr=a, *aend=a+alen;
+    const vid_t *bptr=b, *bend=b+blen;
+
+    while(aptr< aend && bptr<bend){
+        if(*aptr==*bptr){
+            aptr++, bptr++, out++;
+        }
+        else if(*aptr<*bptr){
+            aptr++;
+        }
+        else {
+            bptr++;
+        }
+      }  
+  
+    return out;
+}
+
+int* hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
+    const vid_t * ind, int64_t* allTriangles)
+{
+    //int32_t edge=0;
+    int64_t sum=0;
+    int count = 0;
+    int *histogram = new int[27]();
+    degree_t maxd = 0;
+    for (vid_t src = 0; src < nv; src++)
+    {
+        degree_t srcLen=off[src+1]-off[src];
+        for(int iter=off[src]; iter<off[src+1]; iter++)
+        {
+            vid_t dest=ind[iter];
+            degree_t destLen=off[dest+1]-off[dest];
+            if (destLen+srcLen > maxd) maxd = destLen+srcLen;
+            size_t diff = abs(destLen+srcLen);
+            if (diff > 2600) diff = 2600;
+            histogram[diff/100] ++;
+            if((destLen < srcLen - 1380) || destLen > srcLen + 1380) {
+                count ++;
+            }
+            //int64_t tris= hostSingleIntersection (src, srcLen, ind+off[src],
+            //                                        dest, destLen, ind+off[dest]);
+            //sum+=tris;
+        }
+    }    
+    printf("max: %d\n", maxd);
+    for(int i=0; i<27; i++) 
+        printf("histogram %d: %d\n", i, histogram[i]);
+
+    *allTriangles=sum;
+    printf("count number %d for distance bigger than\n", count);
+    printf("Sequential number of triangles %ld\n",sum);
+    return histogram;
+}
+
+int exec(const int argc, char *argv[]){
  
     using namespace graph::structure_prop;
     using namespace graph::parsing_prop;
@@ -147,73 +211,20 @@ int main(const int argc, char *argv[]){
     return 0;
 }
 
+int main(int argc, char* argv[]) {
+    int ret = 0;
+#if defined(RMM_WRAPPER)
+    hornets_nest::gpu::initializeRMMPoolAllocation();//update initPoolSize if you know your memory requirement and memory availability in your system, if initial pool size is set to 0 (default value), RMM currently assigns half the device memory.
+    {//scoping technique to make sure that hornets_nest::gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+#endif
 
+    ret = exec(argc, argv);
 
+#if defined(RMM_WRAPPER)
+    }//scoping technique to make sure that hornets_nest::gpu::finalizeRMMPoolAllocation is called after freeing all RMM allocations.
+    hornets_nest::gpu::finalizeRMMPoolAllocation();
+#endif
 
-
-
-// CPU Version - assume sorted index lists. 
-int hostSingleIntersection (const vid_t ai, const degree_t alen, const vid_t * a,
-                            const vid_t bi, const degree_t blen, const vid_t * b){
-
-    int32_t ka = 0, kb = 0;
-     int32_t out = 0;
-
-
-    if (!alen || !blen || a[alen-1] < b[0] || b[blen-1] < a[0])
-    return 0;
-
-    const vid_t *aptr=a, *aend=a+alen;
-    const vid_t *bptr=b, *bend=b+blen;
-
-    while(aptr< aend && bptr<bend){
-        if(*aptr==*bptr){
-            aptr++, bptr++, out++;
-        }
-        else if(*aptr<*bptr){
-            aptr++;
-        }
-        else {
-            bptr++;
-        }
-      }  
-  
-    return out;
+    return ret;
 }
 
-int* hostCountTriangles (const vid_t nv, const vid_t ne, const eoff_t * off,
-    const vid_t * ind, int64_t* allTriangles)
-{
-    int32_t edge=0;
-    int64_t sum=0;
-    int count = 0;
-    int *histogram = new int[27]();
-    degree_t maxd = 0;
-    for (vid_t src = 0; src < nv; src++)
-    {
-        degree_t srcLen=off[src+1]-off[src];
-        for(int iter=off[src]; iter<off[src+1]; iter++)
-        {
-            vid_t dest=ind[iter];
-            degree_t destLen=off[dest+1]-off[dest];
-            if (destLen+srcLen > maxd) maxd = destLen+srcLen;
-            size_t diff = abs(destLen+srcLen);
-            if (diff > 2600) diff = 2600;
-            histogram[diff/100] ++;
-            if((destLen < srcLen - 1380) || destLen > srcLen + 1380) {
-                count ++;
-            }
-            //int64_t tris= hostSingleIntersection (src, srcLen, ind+off[src],
-            //                                        dest, destLen, ind+off[dest]);
-            //sum+=tris;
-        }
-    }    
-    printf("max: %d\n", maxd);
-    for(int i=0; i<27; i++) 
-        printf("histogram %d: %d\n", i, histogram[i]);
-
-    *allTriangles=sum;
-    printf("count number %d for distance bigger than\n", count);
-    printf("Sequential number of triangles %ld\n",sum);
-    return histogram;
-}

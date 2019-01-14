@@ -207,8 +207,6 @@ void GraphStd<vid_t, eoff_t>::readMPG(std::ifstream&, bool) {
 //------------------------------------------------------------------------------
 
 #if defined(__linux__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-conversion"
 
 template<typename vid_t, typename eoff_t>
 void GraphStd<vid_t, eoff_t>::readBinary(const char* filename, bool print) {
@@ -246,7 +244,6 @@ void GraphStd<vid_t, eoff_t>::readBinary(const char* filename, bool print) {
     std::cout << std::endl;
 }
 
-#pragma clang diagnostic pop
 #endif
 //------------------------------------------------------------------------------
 

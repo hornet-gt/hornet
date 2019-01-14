@@ -37,22 +37,87 @@
 #pragma once
 
 #include <Device/Util/Algorithm.cuh>
+#include <Device/Util/PrintExt.cuh>
 #include <Device/Util/SafeCudaAPI.cuh>
+#include <Device/Util/SafeCudaAPIAsync.cuh>
 #include <Device/Primitives/CubWrapper.cuh>
+#if defined(RMM_WRAPPER)
+#include <rmm.h>
+#endif
 #include <omp.h>
 #include <cstring>
 
 namespace hornets_nest {
 namespace gpu {
 
+#if defined(RMM_WRAPPER)
+//it may be better to move this inside a cpp file (similar to xlib::detail::cudaErrorHandler) if there is an appropriate place.
+#define RMM_ERROR_HANDLER(caller_name, callee_name, result) do {                                                   \
+    std::cerr << xlib::Color::FG_RED << "\nRMM error\n" << xlib::Color::FG_DEFAULT          \
+        << xlib::Emph::SET_UNDERLINE << __FILE__                                            \
+        << xlib::Emph::SET_RESET  << "(" << __LINE__ << ")"                                 \
+        << " [ "                                                                            \
+        << xlib::Color::FG_L_CYAN << (caller_name) << xlib::Color::FG_DEFAULT \
+        << " ] : " << callee_name                                                              \
+        << " -> " << rmmGetErrorString(result)                                              \
+        << "(" << static_cast<int>(result) << ")\n";                                        \
+    assert(false);                                                                          \
+    std::atexit(reinterpret_cast<void(*)()>(cudaDeviceReset));                              \
+    std::exit(EXIT_FAILURE);                                                                \
+} while (0)
+
+void initializeRMMPoolAllocation(const size_t initPoolSize) {
+    rmmOptions_t options;
+    options.allocation_mode = PoolAllocation;
+    options.initial_pool_size = initPoolSize;
+    auto result = rmmInitialize(&options);
+    if (result != RMM_SUCCESS) {
+        RMM_ERROR_HANDLER("hornets_nest::gpu::initializeRMMPoolAllocation", "rmmInitialize", result);
+    }
+}
+
+void finalizeRMMPoolAllocation(void) {
+    auto result = rmmFinalize();
+    if (result != RMM_SUCCESS) {
+        RMM_ERROR_HANDLER("hornets_nest::gpu::finalizeRMMPoolAllocation", "rmmFinalize", result);
+    }
+}
+#endif
+
 template<typename T>
 void allocate(T*& pointer, size_t num_items) {
+#if defined(RMM_WRAPPER)
+    auto result = RMM_ALLOC(&pointer, num_items * sizeof(T), 0);//by default, use the default stream
+    if (result != RMM_SUCCESS) {
+        RMM_ERROR_HANDLER("hornets_nest::gpu::allocate", "rmmAlloc", result);
+    }
+#else
     cuMalloc(pointer, num_items);
+#endif
 }
 
 template<typename T>
-void free(T* pointer) {
+typename std::enable_if<std::is_pointer<T>::value>::type
+free(T& pointer) {
+#if defined(RMM_WRAPPER)
+    auto result = RMM_FREE(pointer, 0);//by default, use the default stream
+    if (result != RMM_SUCCESS) {
+        RMM_ERROR_HANDLER("hornets_nest::gpu::free", "rmmFree", result);
+    }
+#else
     cuFree(pointer);
+#endif
+}
+
+template<typename T, typename... TArgs>
+typename std::enable_if<std::is_pointer<T>::value>::type
+free(T& pointer, TArgs*... pointers) {
+#if defined(RMM_WRAPPER)
+    hornets_nest::gpu::free(pointer);
+    hornets_nest::gpu::free(pointers...);
+#else
+    cuFree(pointer, pointers...);
+#endif
 }
 
 template<typename T>
@@ -63,6 +128,11 @@ void copyToDevice(const T* device_input, size_t num_items, T* device_output) {
 template<typename T>
 void copyToHost(const T* device_input, size_t num_items, T* host_output) {
     cuMemcpyToHost(device_input, num_items, host_output);
+}
+
+template<typename T>
+void copyToHostAsync(const T* device_input, size_t num_items, T* host_output) {
+    cuMemcpyToHostAsync(device_input, num_items, host_output);
 }
 
 template<typename T>
@@ -84,6 +154,11 @@ template<typename T>
 void copyDeviceToHost(const T* source, T& value) {
     cuMemcpyToHost(source, value);
 }*/
+
+template<typename T>
+void memset(T* pointer, size_t num_items, unsigned char mask) {
+    cuMemset(pointer, num_items, mask);
+}
 
 template<typename T>
 void memsetZero(T* pointer, size_t num_items) {
@@ -130,8 +205,23 @@ void allocate(T*& pointer, size_t num_items) {
 }
 
 template<typename T>
+void allocatePageLocked(T*& pointer, size_t num_items) {
+    cuMallocHost(pointer, num_items);
+}
+
+template<typename T>
 void free(T*& pointer) {
     delete[] pointer;
+}
+
+template<typename T>
+void freePageLocked(T*& pointer) {
+    cuFreeHost(pointer);
+}
+
+template<typename... TArgs>
+void freePageLocked(TArgs*... pointers) {
+    cuFreeHost(pointers...);
 }
 
 template<typename T>
@@ -142,6 +232,11 @@ void copyToHost(const T* host_input, size_t num_items, T* host_output) {
 template<typename T>
 void copyToDevice(const T* host_input, size_t num_items, T* device_output) {
     cuMemcpyToDevice(host_input, num_items, device_output);
+}
+
+template<typename T>
+void copyToDeviceAsync(const T* host_input, size_t num_items, T* device_output) {
+    cuMemcpyToDeviceAsync(host_input, num_items, device_output);
 }
 
 template<typename T>
@@ -179,6 +274,7 @@ void generate_randoms(T* pointer, size_t num_items, T min, T max) {
                   [&](){ return distrib(engine); } );
 }
 
+#if 0//not used, the implementation has bugs (e.g. 1) MAX_THREADS is set to the number of HW threads in the machine this code is originally compiled, if the binary is executed in another machine with more HW threads, this code will break, 2) T result is used before initialized, 3) std::accumulate should take th_result as an input argument, not input.
 template<typename T>
 T reduce(const T* input, size_t num_items) {
     T th_result[MAX_THREADS];
@@ -219,6 +315,7 @@ void excl_prefixsum(const T* input, size_t num_items, T* output) {
         }
     }
 }
+#endif
 
 template<typename T>
 void printArray(const T* host_input, size_t num_items) {

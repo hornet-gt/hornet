@@ -43,8 +43,8 @@ template<typename vid_t, typename eoff_t, typename weight_t>
 Brim<vid_t, eoff_t, weight_t>
 ::Brim(const GraphWeight<vid_t, eoff_t, weight_t>& graph) noexcept :
                                             _graph(graph),
-                                            _queue(_graph.nV()),
-                                            _in_queue(_graph.nV()) {
+                                            _in_queue(_graph.nV()),
+                                            _queue(_graph.nV()) {
     _potentials = new potential_t[_graph.nV()];
     _counters   = new potential_t[_graph.nV()];
     reset();

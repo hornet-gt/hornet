@@ -12,10 +12,9 @@ The document is organized as follows:
 * [Code Documentation](#code-documentation)
 * [Notes](#notes)
 * [Reporting bugs and contributing](#reporting-bugs-and-contributing)
-* [Hornet Developers](#hornet-developers)
 * [Publications](#publications)
 * [Hornet Developers](#hornet-developers)
-* [License](#licence)
+* [License](#license)
 
 ### Requirements ###
 

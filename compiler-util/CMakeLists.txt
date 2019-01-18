@@ -46,11 +46,15 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 if(CUB_LIBRARY)
-    add_compile_definitions(CUB_WRAPPER)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DCUB_WRAPPER")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCUB_WRAPPER")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -DCUB_WRAPPER")
 endif()
 
 if(RMM_LIBRARY)
-    add_compile_definitions(RMM_WRAPPER)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DRMM_WRAPPER")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRMM_WRAPPER")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -DRMM_WRAPPER")
 endif()
 
 ###################################################################################################

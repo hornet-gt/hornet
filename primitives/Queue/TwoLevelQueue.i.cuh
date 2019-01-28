@@ -200,6 +200,23 @@ int TwoLevelQueue<T>::size() const noexcept {
 }
 
 template<typename T>
+int TwoLevelQueue<T>::size_sync_in() const noexcept {
+    int2 temp;
+    cuMemcpyToHost(_d_counters,temp);
+    return temp.x;
+}
+
+
+template<typename T>
+int TwoLevelQueue<T>::size_sync_out() const noexcept {
+    int2 temp;
+    cuMemcpyToHost(_d_counters,temp);
+
+    // printf ("(x, y)=(%d, %d)\n",temp.x, temp.y);
+    return temp.y;
+}
+
+template<typename T>
 int TwoLevelQueue<T>::output_size() const noexcept {
     return _h_counters.y;
 }

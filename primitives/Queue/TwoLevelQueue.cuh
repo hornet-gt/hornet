@@ -137,6 +137,10 @@ public:
      */
     int size() const noexcept;
 
+    int size_sync_in()  const noexcept;
+    int size_sync_out() const noexcept;
+
+
     /**
      * @warning the method is NOT sycnhronized
      */

@@ -25,8 +25,12 @@ int exec(int argc, char* argv[]) {
     BfsTopDown2 bfs_top_down(hornet_graph);
  
 	vid_t root = graph.max_out_degree_id();
+
 	if (argc==3)
 	  root = atoi(argv[2]);
+
+    std::cout << "My root is " << root << std::endl;
+
 
     bfs_top_down.set_parameters(root);
  
@@ -39,6 +43,8 @@ int exec(int argc, char* argv[]) {
     TM.stop();
     cudaProfilerStop();
     TM.print("TopDown2");
+
+    std::cout << "Number of levels is : " << bfs_top_down.getLevels() << std::endl;
 
     auto is_correct = bfs_top_down.validate();
     std::cout << (is_correct ? "\nCorrect <>\n\n" : "\n! Not Correct\n\n");

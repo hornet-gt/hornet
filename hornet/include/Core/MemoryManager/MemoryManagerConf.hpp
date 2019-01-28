@@ -54,7 +54,7 @@ const size_t MIN_EDGES_PER_BLOCK = 1;
  * @brief number of edges for a **BlockArray**
  * @remark `EDGES_PER_BLOCKARRAY` must be a power of two
  */
-const size_t EDGES_PER_BLOCKARRAY = 1 << 18;
+const size_t EDGES_PER_BLOCKARRAY = 1 << 23;
 
 ///@brief Eanble B+Tree container for BitTree
 //#define B_PLUS_TREE

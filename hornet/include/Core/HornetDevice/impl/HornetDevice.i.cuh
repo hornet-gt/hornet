@@ -2,7 +2,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date August, 2017
+ * @date September, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 Hornet. All rights reserved.
@@ -32,38 +32,58 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
- *
- * @file
  */
-#pragma once
+namespace hornet {
 
-#include "BasicTypes.hpp"       //vert_t
-#include <Graph/GraphStd.hpp>   //GraphStd
+#define HORNET_DEVICE HornetDevice<TypeList<VertexMetaTypes...>,\
+                                   TypeList<EdgeMetaTypes...>,\
+                                   vid_t,\
+                                   degree_t>
 
-namespace hornets_nest {
+template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
+    typename vid_t, typename degree_t>
+HORNET_DEVICE::
+HornetDevice(
+    vid_t nV,
+    degree_t nE,
+    SoAPtr<degree_t, xlib::byte_t*, degree_t, degree_t, VertexMetaTypes...>& vertex_data) noexcept :
+    _nV(nV), _nE(nE), _vertex_data(vertex_data) {}
 
-namespace detail {
-    enum class BatchGenEnum { WEIGHTED = 1, PRINT = 2, UNIQUE = 4 };
-} // namespace detail
-
-class BatchGenProperty : public xlib::PropertyClass<detail::BatchGenEnum,
-                                                     BatchGenProperty> {
-public:
-    explicit BatchGenProperty() noexcept = default;
-    explicit BatchGenProperty(const detail::BatchGenEnum& obj) noexcept;
-};
-
-namespace batch_gen_property {
-    const BatchGenProperty WEIGHTED (detail::BatchGenEnum::WEIGHTED);
-    const BatchGenProperty PRINT    (detail::BatchGenEnum::PRINT);
-    const BatchGenProperty UNIQUE   (detail::BatchGenEnum::UNIQUE);
+template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
+    typename vid_t, typename degree_t>
+HOST_DEVICE
+vid_t
+HORNET_DEVICE::
+nV() noexcept {
+    return _nV;
 }
 
-enum class BatchGenType { INSERT, REMOVE };
+template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
+    typename vid_t, typename degree_t>
+HOST_DEVICE
+degree_t
+HORNET_DEVICE::
+nE() noexcept {
+    return _nE;
+}
 
-void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
-                   vert_t* batch_src, vert_t* batch_dest,
-                   const BatchGenType& batch_type,
-                   const BatchGenProperty& prop = BatchGenProperty());
+template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
+    typename vid_t, typename degree_t>
+HOST_DEVICE
+HORNET_DEVICE::VertexT
+HORNET_DEVICE::
+vertex(const vid_t index) noexcept {
+    return VertexT(*this, index);
+}
 
+template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
+    typename vid_t, typename degree_t>
+HOST_DEVICE
+SoAPtr<degree_t, xlib::byte_t*, degree_t, degree_t, VertexMetaTypes...>
+HORNET_DEVICE::
+get_vertex_data(void) noexcept {
+    return _vertex_data;
+}
+
+#undef HORNETDEVICE
 } // namespace hornets_nest

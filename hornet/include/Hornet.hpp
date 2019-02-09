@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Core/GPUHornet/Hornet.cuh"
-#include "Core/GPUHornet/BatchUpdate.cuh"
+#include "Core/Hornet.cuh"
+#include "Core/Conf/Common.cuh"
+#include "Core/BatchUpdate/BatchUpdate.cuh"
 #include <Graph/GraphStd.hpp>
 #include <Graph/BFS.hpp>
 #include <Device/Util/Algorithm.cuh>

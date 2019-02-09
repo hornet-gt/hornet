@@ -1,6 +1,5 @@
-#include "Hornet.hpp"
+//#include "Hornet.hpp"
 #include "StandardAPI.hpp"
-#include "Core/GPUHornet/BatchUpdate.cuh"
 #include "Util/BatchFunctions.hpp"
 #include <Host/FileUtil.hpp>            //xlib::extract_filepath_noextension
 #include <Device/Util/CudaUtil.cuh>          //xlib::deviceInfo
@@ -11,15 +10,16 @@
 //nvprof --profile-from-start off --log-file log.txt --print-gpu-trace
 
 using namespace hornets_nest;
-using namespace timer;
+//using namespace timer;
 using namespace std::string_literals;
 
-using HornetGPU = hornets_nest::gpu::Hornet<EMPTY, EMPTY>;
+//using HornetGPU = hornets_nest::gpu::Hornet<EMPTY, EMPTY>;
 
 /**
  * @brief Example tester for Hornet
  */
 int exec(int argc, char* argv[]) {
+    /*
     using namespace graph::structure_prop;
     using namespace graph::parsing_prop;
     xlib::device_info();
@@ -89,6 +89,7 @@ int exec(int argc, char* argv[]) {
     }
     delete[] weights;
 
+    */
     return 0;
 }
 

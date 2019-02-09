@@ -2,7 +2,7 @@
 
 #include <Host/Metaprogramming.hpp>                 //xlib::SelectType
 #include <Device/Util/VectorUtil.cuh>               //xlib::Make2Str
-#include "Core/MemoryManager/MemoryManagerConf.hpp" //EDGES_PER_BLOCKARRAY
+//#include "Core/MemoryManager/MemoryManagerConf.hpp" //EDGES_PER_BLOCKARRAY
 #include <tuple>                                    //std::tuple
 
 namespace hornets_nest {
@@ -11,7 +11,7 @@ namespace hornets_nest {
  * @brief vertex id type
  * @remark `id_t` must be *integral* type
  */
-using vid_t = int;
+using vert_t = int;
 
 /**
  * @brief offset type
@@ -23,9 +23,9 @@ using eoff_t = int;
 //==============================================================================
 
 using xlib::byte_t;
-using degree_t = vid_t;
+using degree_t = vert_t;
 using   off2_t = typename xlib::Make2Str<eoff_t>::type;
-using   vid2_t = typename xlib::Make2Str<vid_t>::type;
+using   vid2_t = typename xlib::Make2Str<vert_t>::type;
 //susing idpair_t = vid2_t;
 
 /**
@@ -46,9 +46,9 @@ using IndexT = typename std::conditional<(INDEX >= NUM_TYPES), EnableT,
                typename xlib::SelectType<(INDEX < NUM_TYPES ? INDEX : 0)>::type
                >::type;
 
-template<typename... EdgeTypes>
-const size_t PITCH = EDGES_PER_BLOCKARRAY *
-                     xlib::MaxSize<vid_t, EdgeTypes...>::value;
+//template<typename... EdgeTypes>
+//const size_t PITCH = EDGES_PER_BLOCKARRAY *
+//                     xlib::MaxSize<vert_t, EdgeTypes...>::value;
 
 namespace gpu {
     template<typename, typename, bool = false>

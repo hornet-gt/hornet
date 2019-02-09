@@ -2,7 +2,7 @@
  * @author Federico Busato                                                  <br>
  *         Univerity of Verona, Dept. of Computer Science                   <br>
  *         federico.busato@univr.it
- * @date August, 2017
+ * @date September, 2017
  * @version v2
  *
  * @copyright Copyright © 2017 Hornet. All rights reserved.
@@ -32,38 +32,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
- *
- * @file
  */
 #pragma once
 
-#include "BasicTypes.hpp"       //vert_t
-#include <Graph/GraphStd.hpp>   //GraphStd
+namespace hornet {
 
-namespace hornets_nest {
+using VID_T = int;
+using DEGREE_T = int;
 
-namespace detail {
-    enum class BatchGenEnum { WEIGHTED = 1, PRINT = 2, UNIQUE = 4 };
-} // namespace detail
-
-class BatchGenProperty : public xlib::PropertyClass<detail::BatchGenEnum,
-                                                     BatchGenProperty> {
-public:
-    explicit BatchGenProperty() noexcept = default;
-    explicit BatchGenProperty(const detail::BatchGenEnum& obj) noexcept;
-};
-
-namespace batch_gen_property {
-    const BatchGenProperty WEIGHTED (detail::BatchGenEnum::WEIGHTED);
-    const BatchGenProperty PRINT    (detail::BatchGenEnum::PRINT);
-    const BatchGenProperty UNIQUE   (detail::BatchGenEnum::UNIQUE);
 }
-
-enum class BatchGenType { INSERT, REMOVE };
-
-void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
-                   vert_t* batch_src, vert_t* batch_dest,
-                   const BatchGenType& batch_type,
-                   const BatchGenProperty& prop = BatchGenProperty());
-
-} // namespace hornets_nest

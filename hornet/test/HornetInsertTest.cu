@@ -1,5 +1,5 @@
 #include "Hornet.hpp"
-#include "Core/GPUHornet/BatchUpdate.cuh"
+#include "StandardAPI.hpp"
 #include "Util/BatchFunctions.hpp"
 #include <Host/FileUtil.hpp>            //xlib::extract_filepath_noextension
 #include <Device/Util/CudaUtil.cuh>     //xlib::deviceInfo
@@ -8,12 +8,15 @@
 #include <random>                       //std::mt19937_64
 #include <cuda_profiler_api.h>
 
-using namespace hornets_nest;
+//using namespace hornets_nest;
 using namespace timer;
 using namespace std::string_literals;
-using namespace gpu::batch_property;
 
-using HornetGPU = hornets_nest::gpu::Hornet<EMPTY, EMPTY>;
+using vert_t = int;
+using HornetGPU = hornet::gpu::Hornet<vert_t>;
+using UpdatePtr = hornet::BatchUpdatePtr<vert_t>;
+using Update = hornet::gpu::BatchUpdate<vert_t>;
+using Init = hornet::HornetInit<vert_t>;
 
 /**
  * @brief Example tester for Hornet
@@ -23,35 +26,35 @@ int exec(int argc, char* argv[]) {
     using namespace graph::parsing_prop;
     xlib::device_info();
 
-    graph::GraphStd<vid_t, eoff_t> graph;
+    graph::GraphStd<vert_t, vert_t> graph;
     graph.read(argv[1]);
     //--------------------------------------------------------------------------
-    HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
+    Init hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
                            graph.csr_out_edges());
 
     HornetGPU hornet_gpu(hornet_init);
     std::cout << "------------------------------------------------" <<std::endl;
-    using namespace batch_gen_property;
+    using namespace hornets_nest::batch_gen_property;
+    using namespace hornets_nest::host;
 
-    vid_t* batch_src, *batch_dst;
+    vert_t* batch_src, *batch_dst;
     int batch_size = std::stoi(argv[2]);
 
-    host::allocatePageLocked(batch_src, batch_size);
-    host::allocatePageLocked(batch_dst, batch_size);
+    allocatePageLocked(batch_src, batch_size);
+    allocatePageLocked(batch_dst, batch_size);
 
     generateBatch(graph,
             batch_size, batch_src, batch_dst,
-            BatchGenType::INSERT);
+            hornets_nest::BatchGenType::INSERT);
+    UpdatePtr ptr(batch_size, batch_src, batch_dst);
 
-    gpu::BatchUpdate batch_update(batch_src, batch_dst, batch_size);
-
-    hornet_gpu.reserveBatchOpResource(batch_size);
+    Update batch_update(ptr);
 
     printf("ne: %d\n", hornet_gpu.nE());
     std::cout<<"=======\n";
     Timer<DEVICE> TM(3);
     TM.start();
-    hornet_gpu.insertEdgeBatch(batch_update);
+    hornet_gpu.insert(batch_update);
 
     TM.stop();
 
@@ -59,7 +62,7 @@ int exec(int argc, char* argv[]) {
     std::cout<<"=======\n";
     TM.print("Insertion " + std::to_string(batch_size) + ":  ");
 
-    host::freePageLocked(batch_dst, batch_src);
+    freePageLocked(batch_dst, batch_src);
 
     return 0;
 }

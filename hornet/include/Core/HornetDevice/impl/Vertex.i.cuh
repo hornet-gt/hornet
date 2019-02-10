@@ -136,5 +136,14 @@ set_degree(degree_t new_degree) const {
     _data.template get<0>() = new_degree;
 }
 
+template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
+    typename vid_t, typename degree_t>
+HOST_DEVICE
+vid_t*
+VERTEX::
+neighbor_ptr(void) const {
+    return reinterpret_cast<vid_t*>(edge_block_ptr()) + vertex_offset();
+}
+
 #undef VERTEX
 }

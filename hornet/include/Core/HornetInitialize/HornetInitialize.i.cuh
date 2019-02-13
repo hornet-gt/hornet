@@ -110,7 +110,6 @@ initialize(HornetInit<
         if (search != h_blocks.end()) {
             e_ptr = CSoAPtr<vid_t, EdgeMetaTypes...>(search->second.get_blockarray_ptr(), device_ad.edges_per_block);
         } else {
-            e_ptr = CSoAPtr<vid_t, EdgeMetaTypes...>(search->second.get_blockarray_ptr(), device_ad.edges_per_block);
             HostBlockArray new_block_array(
                     1<<xlib::ceil_log2(degree),
                     device_ad.edges_per_block);

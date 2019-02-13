@@ -70,15 +70,15 @@ public:
             const degree_t* csr_offsets,
             const vid_t*    csr_edges) noexcept;
 
-    void insertEdgeData(EdgeMetaTypes const * const... edge_meta_data) noexcept;
+    void insertEdgeData(EdgeMetaTypes const *... edge_meta_data) noexcept;
 
     template <unsigned N>
-    void insertEdgeData(typename xlib::SelectType<N, EdgeMetaTypes const * const...>::type edge_meta_data) noexcept;
+    void insertEdgeData(typename xlib::SelectType<N, EdgeMetaTypes const *...>::type edge_meta_data) noexcept;
 
-    void insertVertexData(VertexMetaTypes const * const... vertex_meta_data) noexcept;
+    void insertVertexData(VertexMetaTypes const *... vertex_meta_data) noexcept;
 
     template <unsigned N>
-    void insertVertexData(typename xlib::SelectType<N, VertexMetaTypes const * const...>::type vertex_meta_data) noexcept;
+    void insertVertexData(typename xlib::SelectType<N, VertexMetaTypes const *...>::type vertex_meta_data) noexcept;
 
     vid_t nV() const noexcept;
 

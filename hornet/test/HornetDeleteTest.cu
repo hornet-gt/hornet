@@ -12,7 +12,8 @@ using namespace std::string_literals;
 
 using vert_t = int;
 using HornetGPU = hornet::gpu::Hornet<vert_t>;
-using UpdatePtr = hornet::BatchUpdatePtr<vert_t>;
+//using UpdatePtr = hornet::BatchUpdatePtr<vert_t>;
+using UpdatePtr = hornet::BatchUpdatePtr<vert_t, hornet::EMPTY, hornet::DeviceType::HOST>;
 using Update = hornet::gpu::BatchUpdate<vert_t>;
 using Init = hornet::HornetInit<vert_t>;
 

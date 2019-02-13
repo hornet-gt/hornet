@@ -88,8 +88,9 @@ private:
 
     xlib::CubExclusiveSum<int> prefixsum;
 
-    int* _d_work { nullptr };
-    const size_t _work_size;
+    //int* _d_work { nullptr };
+    thrust::device_vector<int> d_work;
+    //const size_t _work_size;
 };
 
 } // namespace load_balancing

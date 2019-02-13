@@ -106,8 +106,15 @@ public:
                       TypeList<VertexMetaTypes...>,\
                       TypeList<EdgeMetaTypes...>,\
                       degree_t>
-
 }
+
+
+template<typename>
+class IsHornet : public std::false_type {};
+
+template<typename V, typename VM, typename EM, typename D>
+class IsHornet<gpu::Hornet<V, VM, EM, D>> : public std::true_type {};
+
 }
 
 #include "Core/HornetInitialize/HornetInitialize.i.cuh"

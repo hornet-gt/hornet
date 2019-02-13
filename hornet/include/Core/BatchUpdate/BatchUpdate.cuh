@@ -68,8 +68,8 @@ namespace hornet {
 
 template <
          typename, typename = EMPTY,
-         typename = int,
-         DeviceType = DeviceType::DEVICE>
+         DeviceType = DeviceType::DEVICE,
+         typename = int>
          class BatchUpdatePtr;
 
 template <typename... EdgeMetaTypes,
@@ -78,7 +78,7 @@ template <typename... EdgeMetaTypes,
 class BatchUpdatePtr<
     vid_t,
     TypeList<EdgeMetaTypes...>,
-    degree_t, device_t> {
+    device_t, degree_t> {
 
     degree_t                       _nE        { 0 };
 
@@ -180,10 +180,10 @@ class BatchUpdate<
     using VertexAccessT = SoAPtr<degree_t, xlib::byte_t*, degree_t, degree_t>;
 
     template <DeviceType device_t>
-    BatchUpdate(BatchUpdatePtr<vid_t, TypeList<EdgeMetaTypes...>, degree_t, device_t> ptr) noexcept;
+    BatchUpdate(BatchUpdatePtr<vid_t, TypeList<EdgeMetaTypes...>, device_t, degree_t> ptr) noexcept;
 
     template <DeviceType device_t>
-    void reset(BatchUpdatePtr<vid_t, TypeList<EdgeMetaTypes...>, degree_t, device_t> ptr) noexcept;
+    void reset(BatchUpdatePtr<vid_t, TypeList<EdgeMetaTypes...>, device_t, degree_t> ptr) noexcept;
 
     void sort(void) noexcept;
 

@@ -225,6 +225,7 @@ struct DeviceCopy {
             T * const dst,
             const DeviceType dst_device_type,
             const int num_items) {
+        if (src == nullptr) { return; }
         if ((src_device_type == DeviceType::DEVICE) &&
                 (dst_device_type == DeviceType::DEVICE)) {
             cuMemcpyDevToDev(src, num_items, dst);

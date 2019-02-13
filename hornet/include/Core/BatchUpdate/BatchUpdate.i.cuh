@@ -44,8 +44,7 @@ void print_vec(thrust::device_vector<T>& vec) {
 namespace hornet {
 
 #define BATCH_UPDATE_PTR BatchUpdatePtr<vid_t, TypeList<EdgeMetaTypes...>,\
-                               degree_t,\
-                               device_t>
+                               device_t, degree_t>
 
 template <typename... EdgeMetaTypes,
     typename vid_t, typename degree_t,
@@ -100,7 +99,7 @@ template <typename... EdgeMetaTypes,
     typename vid_t, typename degree_t>
 template <DeviceType device_t>
 BATCH_UPDATE::
-BatchUpdate(BatchUpdatePtr<vid_t, TypeList<EdgeMetaTypes...>, degree_t, device_t> ptr) noexcept {
+BatchUpdate(BatchUpdatePtr<vid_t, TypeList<EdgeMetaTypes...>, device_t, degree_t> ptr) noexcept {
     reset(ptr);
 }
 
@@ -109,7 +108,7 @@ template <typename... EdgeMetaTypes,
 template <DeviceType device_t>
 void
 BATCH_UPDATE::
-reset(BatchUpdatePtr<vid_t, TypeList<EdgeMetaTypes...>, degree_t, device_t> ptr) noexcept {
+reset(BatchUpdatePtr<vid_t, TypeList<EdgeMetaTypes...>, device_t, degree_t> ptr) noexcept {
     _nE = ptr.nE();
     _edge[0].resize(_nE);
     _edge[1].resize(_nE);

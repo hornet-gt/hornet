@@ -58,7 +58,7 @@ template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
     typename vid_t, typename degree_t>
 inline void
 HORNET_INIT::
-insertEdgeData(EdgeMetaTypes const * const... edge_meta_data) noexcept {
+insertEdgeData(EdgeMetaTypes const *... edge_meta_data) noexcept {
     SoAPtr<vid_t const, EdgeMetaTypes const...> e_m(_edge_data.template get<0>(), edge_meta_data...);
     _edge_data = e_m;
 }
@@ -68,7 +68,7 @@ template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
 template <unsigned N>
 inline void
 HORNET_INIT::
-insertEdgeData(typename xlib::SelectType<N, EdgeMetaTypes const * const...>::type edge_meta_data) noexcept {
+insertEdgeData(typename xlib::SelectType<N, EdgeMetaTypes const *...>::type edge_meta_data) noexcept {
     _edge_data.template set<N+1>(edge_meta_data);
 }
 
@@ -76,7 +76,7 @@ template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
     typename vid_t, typename degree_t>
 inline void
 HORNET_INIT::
-insertVertexData(VertexMetaTypes const * const... vertex_meta_data) noexcept {
+insertVertexData(VertexMetaTypes const *... vertex_meta_data) noexcept {
     SoAPtr<degree_t const, VertexMetaTypes const...> v_m(_vertex_data.template get<0>(), vertex_meta_data...);
     _vertex_data = v_m;
 }
@@ -86,7 +86,7 @@ template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
 template <unsigned N>
 inline void
 HORNET_INIT::
-insertVertexData(typename xlib::SelectType<N, VertexMetaTypes const * const...>::type vertex_meta_data) noexcept {
+insertVertexData(typename xlib::SelectType<N, VertexMetaTypes const *...>::type vertex_meta_data) noexcept {
     _vertex_data.template set<N+1>(vertex_meta_data);
 }
 

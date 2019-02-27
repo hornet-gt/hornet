@@ -1,4 +1,5 @@
-#pragma once
+#ifndef HORNET_HPP
+#define HORNET_HPP
 
 #include "Core/Hornet.cuh"
 #include "Core/Conf/Common.cuh"
@@ -9,3 +10,5 @@
 #include <Host/Classes/Timer.hpp>
 #include <Device/Util/Timer.cuh>
 #include "Util/CommandLineParam.hpp"
+
+#endif

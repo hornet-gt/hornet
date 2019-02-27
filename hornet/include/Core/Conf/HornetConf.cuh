@@ -33,7 +33,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#pragma once
+#ifndef HORNET_CONF_CUH
+#define HORNET_CONF_CUH
 
 namespace hornet {
 
@@ -41,3 +42,4 @@ using VID_T = int;
 using DEGREE_T = int;
 
 }
+#endif

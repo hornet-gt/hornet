@@ -33,7 +33,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#pragma once
+#ifndef HORNET_DEVICE_CUH
+#define HORNET_DEVICE_CUH
 
 #include "../Conf/HornetConf.cuh"
 #include "../SoA/SoAPtr.cuh"
@@ -88,3 +89,4 @@ class HornetDevice<
 }
 
 #include "impl/HornetDevice.i.cuh"
+#endif

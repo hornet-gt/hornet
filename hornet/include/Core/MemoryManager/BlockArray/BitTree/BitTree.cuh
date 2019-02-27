@@ -37,7 +37,8 @@
  *
  * @file
  */
-#pragma once
+#ifndef BITTREE_CUH
+#define BITTREE_CUH
 
 //#include "BasicTypes.hpp"                           //xlib::byte
 #include <Host/Metaprogramming.hpp>                 //xlib::GeometricSerie
@@ -55,6 +56,7 @@ namespace hornet {
  * @remark 1 means *block* available, 0 *block* used
  */
 //TODO : Templatize with degree_t
+template <typename degree_t>
 class BitTree {
 public:
     /**
@@ -69,7 +71,7 @@ public:
      *                          single *BlockArray*
      * @pre BLOCK_ITEMS \f$\le\f$ BLOCKARRAY_ITEMS
      */
-    BitTree(int block_items, int blockarray_items) noexcept;
+    BitTree(degree_t block_items, degree_t blockarray_items) noexcept;
 
     ~BitTree(void);
 
@@ -105,15 +107,15 @@ public:
      * @return pointers to the *BlockArray*
      *         < `host_block_ptr`, `device_block_ptr` >
      */
-    int insert() noexcept;
+    degree_t insert() noexcept;
 
-    void remove(int diff) noexcept;
+    void remove(degree_t diff) noexcept;
 
     /**
      * @brief Size of the *BitTree*
      * @return number of used blocks within the *BlockArray*
      */
-    int size() const noexcept;
+    degree_t size() const noexcept;
 
     /**
      * @brief Check if the *BitTree* is full
@@ -131,32 +133,33 @@ public:
      */
     void statistics() const noexcept;
 
-    int get_log_block_items() const noexcept;
+    degree_t get_log_block_items() const noexcept;
 
     //--------------------------------------------------------------------------
 private:
     using word_t = unsigned;
     static const unsigned   WORD_SIZE = sizeof(word_t) * 8;
 
-    const int _block_items	    { 0 };
-    const int _log_block_items	{ 0 };
-    const int _blockarray_items	{ 0 };
-    const int _num_blocks	    { 0 };
-    const int _num_levels	    { 0 };
-    const int _internal_bits	{ 0 };
-    const int _internal_words	{ 0 };
-    const int _external_words	{ 0 };
-    const int _num_words	    { 0 };
-    const int _total_bits	    { 0 };
+    const degree_t _block_items	    { 0 };
+    const degree_t _log_block_items	{ 0 };
+    const degree_t _blockarray_items	{ 0 };
+    const degree_t _num_blocks	    { 0 };
+    const degree_t _num_levels	    { 0 };
+    const degree_t _internal_bits	{ 0 };
+    const degree_t _internal_words	{ 0 };
+    const degree_t _external_words	{ 0 };
+    const degree_t _num_words	    { 0 };
+    const degree_t _total_bits	    { 0 };
 
     word_t* _array      { nullptr };
     word_t* _last_level { nullptr };
     long  _size       { 0 };
 
     template<typename Lambda>
-    void parent_traverse(int index, const Lambda& lambda) noexcept;
+    void parent_traverse(degree_t index, const Lambda& lambda) noexcept;
 };
 
 }
 
 #include "BitTree.i.cuh"
+#endif

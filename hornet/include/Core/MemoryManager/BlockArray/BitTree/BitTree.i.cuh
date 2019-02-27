@@ -33,15 +33,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#pragma once
+#ifndef BITTREE_I_CUH
+#define BITTREE_I_CUH
 
 #include <Host/Numeric.hpp>             //xlib::ceil_log
 #include <iterator>                     //std::distance
 
 namespace hornet {
 
-BitTree::
-BitTree(int block_items, int blockarray_items) noexcept :
+#define BITREE BitTree<degree_t>
+
+template <typename degree_t>
+BITREE::
+BitTree(degree_t block_items, degree_t blockarray_items) noexcept :
         _block_items(block_items),
         _log_block_items(xlib::log2(block_items)),
         _blockarray_items(blockarray_items),
@@ -64,13 +68,15 @@ BitTree(int block_items, int blockarray_items) noexcept :
     std::fill(_array, _array + _num_words, EMPTY);
 }
 
-BitTree::
+template <typename degree_t>
+BITREE::
 ~BitTree(void) {
     delete[] _array;
 }
 
-BitTree::
-BitTree(BitTree&& obj) noexcept :
+template <typename degree_t>
+BITREE::
+BitTree(BITREE&& obj) noexcept :
                     _block_items(obj._block_items),
                     _log_block_items(obj._log_block_items),
                     _blockarray_items(obj._blockarray_items),
@@ -90,8 +96,9 @@ BitTree(BitTree&& obj) noexcept :
     obj._size       = 0;
 }
 
-BitTree::
-BitTree(const BitTree& obj) noexcept :
+template <typename degree_t>
+BITREE::
+BitTree(const BITREE& obj) noexcept :
                     _block_items(obj._block_items),
                     _log_block_items(obj._log_block_items),
                     _blockarray_items(obj._blockarray_items),
@@ -108,8 +115,9 @@ BitTree(const BitTree& obj) noexcept :
     std::copy(obj._array, obj._array + _num_words, _array);
 }
 
-BitTree&
-BitTree::
+template <typename degree_t>
+BITREE&
+BITREE::
 operator=(BitTree&& obj) noexcept {
     assert( (_block_items == obj._block_items) &&
             (_blockarray_items == obj._blockarray_items) );
@@ -124,8 +132,9 @@ operator=(BitTree&& obj) noexcept {
     return *this;
 }
 
-BitTree&
-BitTree::
+template <typename degree_t>
+BITREE&
+BITREE::
 operator=(const BitTree& obj) noexcept {
     assert( (_block_items == obj._block_items) &&
             (_blockarray_items == obj._blockarray_items) );
@@ -136,16 +145,17 @@ operator=(const BitTree& obj) noexcept {
 
 //------------------------------------------------------------------------------
 
-int
-BitTree::
+template <typename degree_t>
+degree_t
+BITREE::
 insert() noexcept {
     assert(_size < _num_blocks && "tree is full");
     _size++;
     //find the first empty location
-    int index = 0;
-    for (int i = 0; i < _num_levels - 1; i++) {
+    degree_t index = 0;
+    for (degree_t i = 0; i < _num_levels - 1; i++) {
         assert(index < _total_bits && _array[index / WORD_SIZE] != 0);
-        int pos = __builtin_ctz(_array[index / WORD_SIZE]);
+        degree_t pos = __builtin_ctz(_array[index / WORD_SIZE]);
         index   = (index + pos + 1) * WORD_SIZE;
     }
     assert(index < _total_bits && _array[index / WORD_SIZE] != 0);
@@ -154,40 +164,42 @@ insert() noexcept {
 
     xlib::delete_bit(_array, index);
     if (_array[index / WORD_SIZE] == 0) {
-        const auto& lambda = [&](int index) {
+        const auto& lambda = [&](degree_t index) {
                                           xlib::delete_bit(_array, index);
                                           return _array[index / WORD_SIZE] != 0;
                                         };
         parent_traverse(index, lambda);
     }
-    int block_index = index - _internal_bits;
+    degree_t block_index = index - _internal_bits;
     assert(block_index >= 0 && block_index < _blockarray_items);
     return block_index;
 }
 
 //------------------------------------------------------------------------------
+template <typename degree_t>
 void
-BitTree::
-remove(int diff) noexcept {
+BITREE::
+remove(degree_t diff) noexcept {
     unsigned _diff = diff;
     assert(_size != 0 && "tree is empty");
     _size--;
-    int p_index = _diff >> _log_block_items;   // diff / block_items
+    degree_t p_index = _diff >> _log_block_items;   // diff / block_items
     assert(p_index < _external_words * sizeof(word_t) * 8u);
     assert(xlib::read_bit(_last_level, p_index) == 0 && "not found");
     xlib::write_bit(_last_level, p_index);
     p_index += _internal_bits;
 
-    parent_traverse(p_index, [&](int index) {
+    parent_traverse(p_index, [&](degree_t index) {
                                 bool ret = _array[index / WORD_SIZE] != 0;
                                 xlib::write_bit(_array, index);
                                 return ret;
                             });
 }
 
+template <typename degree_t>
 template<typename Lambda>
-void BitTree::
-parent_traverse(int index, const Lambda& lambda) noexcept {
+void BITREE::
+parent_traverse(degree_t index, const Lambda& lambda) noexcept {
     index /= WORD_SIZE;
     while (index != 0) {
         index--;
@@ -197,32 +209,35 @@ parent_traverse(int index, const Lambda& lambda) noexcept {
     }
 }
 
-int
-BitTree::
+template <typename degree_t>
+degree_t
+BITREE::
 size() const noexcept {
     return _size;
 }
 
+template <typename degree_t>
 bool
-BitTree::
+BITREE::
 full() const noexcept {
     return _size == _num_blocks;
 }
 
+template <typename degree_t>
 void
-BitTree::
+BITREE::
 print() const noexcept {
-    const int ROW_SIZE = 64;
-    int          count = WORD_SIZE;
+    const degree_t ROW_SIZE = 64;
+    degree_t          count = WORD_SIZE;
     auto       tmp_ptr = _array;
     std::cout << "BitTree:\n";
 
-    for (int i = 0; i < _num_levels - 1; i++) {
+    for (degree_t i = 0; i < _num_levels - 1; i++) {
         std::cout << "\nlevel " << i << " :\n";
         assert(count < ROW_SIZE || count % ROW_SIZE == 0);
 
-        int size = std::min(count, ROW_SIZE);
-        for (int j = 0; j < count; j += ROW_SIZE) {
+        degree_t size = std::min(count, ROW_SIZE);
+        for (degree_t j = 0; j < count; j += ROW_SIZE) {
             xlib::printBits(tmp_ptr, size);
             tmp_ptr += size / WORD_SIZE;
             if (tmp_ptr >= _array + _num_words)
@@ -235,8 +250,9 @@ print() const noexcept {
     std::cout << std::endl;
 }
 
+template <typename degree_t>
 void
-BitTree::
+BITREE::
 statistics() const noexcept {
     std::cout << "\nBitTree Statistics:\n"
               << "\n     BLOCK_ITEMS: " << _block_items
@@ -255,8 +271,9 @@ statistics() const noexcept {
               << "\n       NUM_WORDS: " << _num_words << "\n\n";
 }
 
-int
-BitTree::
+template <typename degree_t>
+degree_t
+BITREE::
 get_log_block_items() const noexcept {
     return _log_block_items;
 }
@@ -264,3 +281,4 @@ get_log_block_items() const noexcept {
 //==============================================================================
 
 }
+#endif

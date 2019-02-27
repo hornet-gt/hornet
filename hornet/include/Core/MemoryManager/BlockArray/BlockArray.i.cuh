@@ -35,71 +35,71 @@
  */
 namespace hornet {
 
-#define BLOCK_ARRAY BlockArray<TypeList<Ts...>, device_t>
+#define BLOCK_ARRAY BlockArray<TypeList<Ts...>, device_t, degree_t>
 #define B_A_MANAGER BlockArrayManager<TypeList<Ts...>, device_t, degree_t>
 
-template<typename... Ts, DeviceType device_t>
+template<typename... Ts, DeviceType device_t, typename degree_t>
 BLOCK_ARRAY::
 BlockArray(const int block_items, const int blockarray_items) noexcept :
 _edge_data(blockarray_items), _bit_tree(block_items, blockarray_items) {
 }
 
-template<typename... Ts, DeviceType device_t>
+template<typename... Ts, DeviceType device_t, typename degree_t>
 BLOCK_ARRAY::
-BlockArray(const BlockArray<TypeList<Ts...>, device_t>& other) noexcept :
+BlockArray(const BLOCK_ARRAY& other) noexcept :
 _edge_data(other._edge_data), _bit_tree(other._bit_tree) {
 }
 
-template<typename... Ts, DeviceType device_t>
+template<typename... Ts, DeviceType device_t, typename degree_t>
 BLOCK_ARRAY::
-BlockArray(BlockArray<TypeList<Ts...>, device_t>&& other) noexcept :
+BlockArray(BLOCK_ARRAY&& other) noexcept :
 _edge_data(std::move(other._edge_data)), _bit_tree(std::move(other._bit_tree)) {
 }
 
 
-template<typename... Ts, DeviceType device_t>
+template<typename... Ts, DeviceType device_t, typename degree_t>
 xlib::byte_t *
 BLOCK_ARRAY::
 get_blockarray_ptr(void) noexcept {
     return reinterpret_cast<xlib::byte_t *>(_edge_data.get_soa_ptr().template get<0>());
 }
 
-template<typename... Ts, DeviceType device_t>
+template<typename... Ts, DeviceType device_t, typename degree_t>
 int
 BLOCK_ARRAY::
 insert(void) noexcept {
     return _bit_tree.insert()<<_bit_tree.get_log_block_items();
 }
 
-template<typename... Ts, DeviceType device_t>
+template<typename... Ts, DeviceType device_t, typename degree_t>
 void
 BLOCK_ARRAY::
 remove(int offset) noexcept {
     _bit_tree.remove(offset);
 }
 
-template<typename... Ts, DeviceType device_t>
+template<typename... Ts, DeviceType device_t, typename degree_t>
 int
 BLOCK_ARRAY::
 capacity(void) noexcept {
     return _edge_data.get_num_items();
 }
 
-template<typename... Ts, DeviceType device_t>
+template<typename... Ts, DeviceType device_t, typename degree_t>
 size_t
 BLOCK_ARRAY::
 mem_size(void) noexcept {
     return xlib::SizeSum<Ts...>::value * capacity();
 }
 
-template<typename... Ts, DeviceType device_t>
+template<typename... Ts, DeviceType device_t, typename degree_t>
 bool
 BLOCK_ARRAY::
 full(void) noexcept {
     return _bit_tree.full();
 }
 
-template<typename... Ts, DeviceType device_t>
+template<typename... Ts, DeviceType device_t, typename degree_t>
 CSoAData<TypeList<Ts...>, device_t>&
 BLOCK_ARRAY::
 get_soa_data(void) noexcept {
@@ -148,7 +148,7 @@ insert(const degree_t requested_degree) noexcept {
         }
     }
     _largest_eb_size = std::max(1<<xlib::ceil_log2(requested_degree), _largest_eb_size);
-    BlockArray<TypeList<Ts...>, device_t> new_block_array(
+    BLOCK_ARRAY new_block_array(
             1<<xlib::ceil_log2(requested_degree),
             std::max(1<<xlib::ceil_log2(requested_degree),
             _MaxEdgesPerBlockArray));

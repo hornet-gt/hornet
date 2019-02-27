@@ -33,7 +33,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#pragma once
+#ifndef HORNET_CUH
+#define HORNET_CUH
+
 #include "Conf/Common.cuh"
 #include "Conf/HornetConf.cuh"
 #include "HornetDevice/HornetDevice.cuh"
@@ -67,6 +69,10 @@ public:
 
     using HostBlockArray = hornet::BlockArray<TypeList<vid_t, EdgeMetaTypes...>, DeviceType::HOST>;
 
+    using VertexType = vid_t;
+
+    using DegreeType = degree_t;
+
 private:
 
     static int _instance_count;
@@ -83,8 +89,6 @@ private:
 
     void initialize(HInitT& h_init) noexcept;
 
-    HornetDeviceT device(void);
-
     void reallocate_vertices(gpu::BatchUpdate<vid_t, TypeList<EdgeMetaTypes...>, degree_t>& batch, const bool is_insert);
 
     void appendBatchEdges(gpu::BatchUpdate<vid_t, TypeList<EdgeMetaTypes...>, degree_t>& batch);
@@ -99,7 +103,11 @@ public:
 
     void print(void);
 
-    degree_t nE(void) noexcept;
+    degree_t nV(void) const noexcept;
+
+    degree_t nE(void) const noexcept;
+
+    HornetDeviceT device(void) noexcept;
 };
 
 #define HORNET Hornet<vid_t,\
@@ -119,3 +127,5 @@ class IsHornet<gpu::Hornet<V, VM, EM, D>> : public std::true_type {};
 
 #include "Core/HornetInitialize/HornetInitialize.i.cuh"
 #include "Core/HornetOperations/HornetInsert.i.cuh"
+
+#endif

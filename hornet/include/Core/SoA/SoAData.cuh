@@ -33,7 +33,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#pragma once
+#ifndef SOADATA_CUH
+#define SOADATA_CUH
+
 #include "../Conf/Common.cuh"
 #include "SoAPtr.cuh"
 #include <Device/Util/SafeCudaAPI.cuh>  //cuMalloc
@@ -145,3 +147,4 @@ void print(CSoAData<TypeList<Ts...>, DeviceType::DEVICE>& data);
 }
 
 #include "impl/SoAData.i.cuh"
+#endif

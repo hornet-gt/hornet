@@ -33,7 +33,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#pragma once
+#ifndef SOAPTR_CUH
+#define SOAPTR_CUH
+
 #include "Host/Metaprogramming.hpp"
 //#include "BasicTypes.hpp"   //xlib::byte_t
 
@@ -233,3 +235,4 @@ private:
 }//namespace hornet
 
 #include "impl/SoAPtr.i.cuh"
+#endif

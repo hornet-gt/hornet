@@ -33,7 +33,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#pragma once
+#ifndef BATCHUPDATE_CUH
+#define BATCHUPDATE_CUH
 #include "../Conf/HornetConf.cuh"
 #include "../Conf/Common.cuh"
 #include "../HornetDevice/HornetDevice.cuh"
@@ -260,3 +261,4 @@ class BatchUpdate<
 }
 
 #include "BatchUpdate.i.cuh"
+#endif

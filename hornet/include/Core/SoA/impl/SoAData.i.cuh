@@ -41,8 +41,10 @@ namespace hornet {
 // Device Specialized De/Allocation //
 //////////////////////////////////////
 
+//Avoiding specialization for hornetsnest
 template<DeviceType device_t>
-xlib::byte_t* allocate(const int num_bytes) {
+xlib::byte_t* allocate(const typename std::enable_if<(device_t == DeviceType::DEVICE), int>::type
+        num_bytes) {
     xlib::byte_t* ptr = nullptr;
     if (num_bytes > 0) {
         cuMalloc(ptr, num_bytes);
@@ -51,14 +53,16 @@ xlib::byte_t* allocate(const int num_bytes) {
 }
 
 template<DeviceType device_t>
-void deallocate(xlib::byte_t* ptr) {
+void deallocate(typename std::enable_if<(device_t == DeviceType::DEVICE), xlib::byte_t>::type *
+        ptr) {
     if (ptr != nullptr) {
         cuFree(ptr);
     }
 }
 
-template<>
-xlib::byte_t* allocate<DeviceType::HOST>(const int num_bytes) {
+template<DeviceType device_t>
+xlib::byte_t* allocate(const typename std::enable_if<(device_t == DeviceType::HOST), int>::type
+        num_bytes) {
     xlib::byte_t* ptr = nullptr;
     if (num_bytes > 0) {
         ptr = new xlib::byte_t[num_bytes];
@@ -66,8 +70,9 @@ xlib::byte_t* allocate<DeviceType::HOST>(const int num_bytes) {
     return ptr;
 }
 
-template<>
-void deallocate<DeviceType::HOST>(xlib::byte_t* ptr) {
+template<DeviceType device_t>
+void deallocate(typename std::enable_if<(device_t == DeviceType::HOST), xlib::byte_t>::type *
+ ptr) {
     if (ptr != nullptr) {
         delete[] ptr;
     }

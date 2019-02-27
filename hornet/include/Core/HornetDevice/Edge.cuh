@@ -33,7 +33,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#pragma once
+#ifndef EDGE_CUH
+#define EDGE_CUH
 
 #include "../Conf/HornetConf.cuh"
 #include <type_traits>
@@ -119,3 +120,4 @@ class Edge<
 
 }
 #include "impl/Edge.i.cuh"
+#endif

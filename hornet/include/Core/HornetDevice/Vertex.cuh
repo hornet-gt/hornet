@@ -33,7 +33,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#pragma once
+#ifndef VERTEX_CUH
+#define VERTEX_CUH
 
 #include "../Conf/MemoryManagerConf.cuh"
 #include "../Conf/HornetConf.cuh"
@@ -122,3 +123,4 @@ class Vertex<
 
 }
 #include "impl/Vertex.i.cuh"
+#endif

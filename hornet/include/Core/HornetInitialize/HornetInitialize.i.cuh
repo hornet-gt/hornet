@@ -157,7 +157,15 @@ template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
     typename vid_t, typename degree_t>
 degree_t
 HORNET::
-nE(void) noexcept {
+nV(void) const noexcept {
+    return _nV;
+}
+
+template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
+    typename vid_t, typename degree_t>
+degree_t
+HORNET::
+nE(void) const noexcept {
     return _nE;
 }
 

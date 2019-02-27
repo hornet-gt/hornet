@@ -5,7 +5,7 @@ template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
     typename vid_t, typename degree_t>
 HORNET::HornetDeviceT
 HORNET::
-device(void) {
+device(void) noexcept {
     return HornetDeviceT(_nV, _nE, _vertex_data.get_soa_ptr());
 }
 

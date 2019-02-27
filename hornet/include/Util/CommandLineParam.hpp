@@ -36,7 +36,8 @@
  *
  * @file
  */
-#pragma once
+#ifndef COMMANDLINEPARAM_HPP
+#define COMMANDLINEPARAM_HPP
 
 #include <Graph/GraphStd.hpp>     //graph::GraphStd
 
@@ -49,3 +50,4 @@ struct CommandLineParam {
 };
 
 } // namespace hornets_nest
+#endif

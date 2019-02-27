@@ -35,7 +35,9 @@
  *
  * @file
  */
-#pragma once
+#ifndef HORNET_INIT_CUH
+#define HORNET_INIT_CUH
+
 #include "../Conf/HornetConf.cuh"
 
 /**
@@ -97,3 +99,4 @@ public:
 } // namespace hornet
 
 #include "HornetInit.i.cuh"
+#endif

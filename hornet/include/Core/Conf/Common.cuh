@@ -33,7 +33,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#pragma once
+#ifndef COMMON_CUH
+#define COMMON_CUH
 #include <tuple>
 
 namespace hornet {
@@ -46,3 +47,4 @@ using EMPTY = std::tuple<>;
 enum class DeviceType {DEVICE = 0, HOST = 1};
 
 }
+#endif

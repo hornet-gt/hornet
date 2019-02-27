@@ -35,7 +35,8 @@
  *
  * @file
  */
-#pragma once
+#ifndef BATCHFUNCTIONS_HPP
+#define BATCHFUNCTIONS_HPP
 
 #include "BasicTypes.hpp"       //vert_t
 #include <Graph/GraphStd.hpp>   //GraphStd
@@ -67,3 +68,4 @@ void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
                    const BatchGenProperty& prop = BatchGenProperty());
 
 } // namespace hornets_nest
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BASICTYPES_HPP
+#define BASICTYPES_HPP
 
 #include <Host/Metaprogramming.hpp>                 //xlib::SelectType
 #include <Device/Util/VectorUtil.cuh>               //xlib::Make2Str
@@ -70,3 +71,4 @@ template<typename T, typename R>
 class IsHornet<gpu::Csr<T, R>> : public std::true_type {};
 
 } // namespace hornets_nest
+#endif

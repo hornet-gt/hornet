@@ -33,10 +33,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#pragma once
+#ifndef MEMORY_MANAGER_HPP
+#define MEMORY_MANAGER_HPP
 #include "BlockArray/BlockArray.cuh"
 
 namespace hornet {
 
 
 }
+#endif

@@ -33,7 +33,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#pragma once
+#ifndef MEMORY_MANAGER_CONF_CUH
+#define MEMORY_MANAGER_CONF_CUH
 
 namespace hornet {
 
@@ -42,3 +43,4 @@ const long MIN_EDGES_PER_BLOCK = 1;
 const long EDGES_PER_BLOCKARRAY = 1 << 23;
 
 }
+#endif

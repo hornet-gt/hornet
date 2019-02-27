@@ -33,7 +33,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#pragma once
+#ifndef BLOCK_ARRAY_CUH
+#define BLOCK_ARRAY_CUH
+
 #include "BitTree/BitTree.cuh"
 #include "../../Conf/MemoryManagerConf.cuh" //EDGES_PER_BLOCKARRAY
 #include "../../SoA/SoAData.cuh"
@@ -43,23 +45,23 @@
 
 namespace hornet {
 
-template <typename, DeviceType = DeviceType::DEVICE> class BlockArray;
+template <typename, DeviceType = DeviceType::DEVICE, typename = int> class BlockArray;
 template <typename, DeviceType, typename> class BlockArrayManager;
 
-template<typename... Ts, DeviceType device_t>
-class BlockArray<TypeList<Ts...>, device_t> {
+template<typename... Ts, DeviceType device_t, typename degree_t>
+class BlockArray<TypeList<Ts...>, device_t, degree_t> {
 
-    template <typename, DeviceType> friend class BlockArray;
+    template <typename, DeviceType, typename> friend class BlockArray;
 
     CSoAData<TypeList<Ts...>, device_t> _edge_data;
-    BitTree                             _bit_tree;
+    BitTree<degree_t>                   _bit_tree;
 
     public:
     BlockArray(const int block_items, const int blockarray_items) noexcept;
 
-    BlockArray(const BlockArray<TypeList<Ts...>, device_t>& other) noexcept;
+    BlockArray(const BlockArray<TypeList<Ts...>, device_t, degree_t>& other) noexcept;
 
-    BlockArray(BlockArray<TypeList<Ts...>, device_t>&& other) noexcept;
+    BlockArray(BlockArray<TypeList<Ts...>, device_t, degree_t>&& other) noexcept;
 
     ~BlockArray(void) noexcept = default;
 
@@ -96,7 +98,7 @@ class BlockArrayManager<TypeList<Ts...>, device_t, degree_t> {
     std::array<
         std::unordered_map<
             xlib::byte_t*,
-            BlockArray<TypeList<Ts...>, device_t>>,
+            BlockArray<TypeList<Ts...>, device_t, degree_t>>,
     LOG_DEGREE> _ba_map;
 
     public:
@@ -121,3 +123,4 @@ class BlockArrayManager<TypeList<Ts...>, device_t, degree_t> {
 }
 
 #include "BlockArray.i.cuh"
+#endif

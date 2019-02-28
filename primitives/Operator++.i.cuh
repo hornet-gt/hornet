@@ -36,7 +36,7 @@ __global__ void forAllVertexPairsKernel(HornetDevice hornet, T* __restrict__ arr
     }
 }
 
-template<typename HornetDevice, typename T, typename Operator>
+template<typename HornetDevice, typename T, typename Operator, typename vid_t>
 __global__ void forAllEdgesAdjUnionSequentialKernel(HornetDevice hornet, T* __restrict__ array, unsigned long long size, Operator op, int flag) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
@@ -55,6 +55,7 @@ __global__ void forAllEdgesAdjUnionSequentialKernel(HornetDevice hornet, T* __re
 
 namespace adj_union {
     
+    template <typename vid_t>
     __device__ __forceinline__
     void bSearchPath(vid_t* u, vid_t *v, int u_len, int v_len, 
                      vid_t low_vi, vid_t low_ui, 
@@ -93,7 +94,7 @@ namespace adj_union {
     }
 }
 
-template<typename HornetDevice, typename T, typename Operator>
+template<typename HornetDevice, typename T, typename Operator, typename vid_t>
 __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __restrict__ array, unsigned long long start, unsigned long long end, unsigned long long threads_per_union, int flag, Operator op) {
 
     using namespace adj_union;
@@ -201,7 +202,7 @@ __global__ void forAllEdgesAdjUnionBalancedKernel(HornetDevice hornet, T* __rest
     }
 }
 
-template<typename HornetDevice, typename T, typename Operator>
+template<typename HornetDevice, typename T, typename Operator, typename vid_t>
 __global__ void forAllEdgesAdjUnionImbalancedKernel(HornetDevice hornet, T* __restrict__ array, unsigned long long start, unsigned long long end, unsigned long long threads_per_union, int flag, Operator op) {
 
     using namespace adj_union;
@@ -248,7 +249,7 @@ __global__ void forAllEdgesAdjUnionImbalancedKernel(HornetDevice hornet, T* __re
     }
 }
 
-template<typename Operator>
+template<typename Operator, typename vid_t>
 __global__ void forAllnumVKernel(vid_t d_nV, Operator op) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
@@ -266,7 +267,7 @@ __global__ void forAllnumEKernel(eoff_t d_nE, Operator op) {
         op(i);
 }
 
-template<typename HornetDevice, typename Operator>
+template<typename HornetDevice, typename Operator, typename vid_t>
 __global__ void forAllVerticesKernel(HornetDevice hornet,
                                      Operator     op) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -278,7 +279,7 @@ __global__ void forAllVerticesKernel(HornetDevice hornet,
     }
 }
 
-template<typename HornetDevice, typename Operator>
+template<typename HornetDevice, typename Operator, typename vid_t>
 __global__
 void forAllVerticesKernel(HornetDevice              hornet,
                           const vid_t* __restrict__ vertices_array,
@@ -293,7 +294,7 @@ void forAllVerticesKernel(HornetDevice              hornet,
     }
 }
 
-template<typename HornetDevice, typename Operator>
+template<typename HornetDevice, typename Operator, typename vid_t>
 __global__
 void forAllEdgesKernel(HornetDevice               hornet,
                        const vid_t* __restrict__   d_src,
@@ -341,14 +342,16 @@ void forAllEdgesKernel(const eoff_t* __restrict__ csr_offsets,
 #define LOG_OFFSET_BALANCED 3
 #define LOG_OFFSET_IMBALANCED 2
 namespace adj_unions {
+    template <typename vid_t>
     struct queue_info {
         unsigned long long *d_queue_sizes;
         vid_t *d_edge_queue; // both balanced and imbalanced cases
         unsigned long long *d_queue_pos;
     };
 
+    template <typename vid_t>
     struct bin_edges {
-        HostDeviceVar<queue_info> d_queue_info;
+        HostDeviceVar<queue_info<vid_t>> d_queue_info;
         bool countOnly;
         const int WORK_FACTOR;
         int total_work, bin_index;
@@ -404,8 +407,9 @@ void forAllAdjUnions(HornetClass&          hornet,
                      const Operator&       op,
                      const int WORK_FACTOR)
 {
+#if 0
     using namespace adj_unions;
-    HostDeviceVar<queue_info> hd_queue_info;
+    HostDeviceVar<queue_info<typename HornetClass::VertexType>> hd_queue_info;
 
     load_balancing::VertexBased1 load_balancing ( hornet );
 
@@ -530,11 +534,12 @@ void forAllAdjUnions(HornetClass&          hornet,
 
     free(queue_sizes);
     free(queue_pos);
+#endif
 }
 
 
 template<typename HornetClass, typename Operator>
-void forAllEdgesAdjUnionSequential(HornetClass &hornet, vid_t* queue, const unsigned long long size, const Operator &op, int flag) {
+void forAllEdgesAdjUnionSequential(HornetClass &hornet, typename HornetClass::VertexType* queue, const unsigned long long size, const Operator &op, int flag) {
     if (size == 0)
         return;
     detail::forAllEdgesAdjUnionSequentialKernel
@@ -544,7 +549,7 @@ void forAllEdgesAdjUnionSequential(HornetClass &hornet, vid_t* queue, const unsi
 }
 
 template<typename HornetClass, typename Operator>
-void forAllEdgesAdjUnionBalanced(HornetClass &hornet, vid_t* queue, const unsigned long long start, const unsigned long long end, const Operator &op, unsigned long long threads_per_union, int flag) {
+void forAllEdgesAdjUnionBalanced(HornetClass &hornet, typename HornetClass::VertexType* queue, const unsigned long long start, const unsigned long long end, const Operator &op, unsigned long long threads_per_union, int flag) {
     //printf("queue size: %llu\n", size);
     unsigned long long size = end - start; // end is exclusive
     auto grid_size = size*threads_per_union;
@@ -563,7 +568,7 @@ void forAllEdgesAdjUnionBalanced(HornetClass &hornet, vid_t* queue, const unsign
 }
 
 template<typename HornetClass, typename Operator>
-void forAllEdgesAdjUnionImbalanced(HornetClass &hornet, vid_t* queue, const unsigned long long start, const unsigned long long end, const Operator &op, unsigned long long threads_per_union, int flag) {
+void forAllEdgesAdjUnionImbalanced(HornetClass &hornet, typename HornetClass::VertexType* queue, const unsigned long long start, const unsigned long long end, const Operator &op, unsigned long long threads_per_union, int flag) {
     //printf("queue size: %llu\n", size);
     unsigned long long size = end - start; // end is exclusive
     auto grid_size = size*threads_per_union;
@@ -666,7 +671,7 @@ void forAllEdgeVertexPairs(HornetClass&         hornet,
 
 template<typename HornetClass, typename Operator, typename T>
 void forAllVertices(HornetClass&    hornet,
-                    const vid_t*    vertex_array,
+                    const typename HornetClass::VertexType*    vertex_array,
                     int             size,
                     const Operator& op) {
     detail::forAllVerticesKernel
@@ -677,7 +682,7 @@ void forAllVertices(HornetClass&    hornet,
 
 template<typename HornetClass, typename Operator>
 void forAllVertices(HornetClass&                hornet,
-                    const TwoLevelQueue<vid_t>& queue,
+                    const TwoLevelQueue<typename HornetClass::VertexType>& queue,
                     const Operator&             op) {
     auto size = queue.size();
     if (size == 0) { return; }
@@ -689,7 +694,7 @@ void forAllVertices(HornetClass&                hornet,
 
 template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&    hornet,
-                 const vid_t*    vertex_array,
+                 const typename HornetClass::VertexType*    vertex_array,
                  int             size,
                  const Operator& op,
                  const LoadBalancing& load_balancing) {
@@ -698,7 +703,7 @@ void forAllEdges(HornetClass&    hornet,
 /*
 template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass& hornet,
-                 const TwoLevelQueue<vid_t>& queue,
+                 const TwoLevelQueue<typename HornetClass::VertexType>& queue,
                  const Operator& op, const LoadBalancing& load_balancing) {
     load_balancing.apply(hornet, queue.device_input_ptr(),
                         queue.size(), op);
@@ -707,21 +712,21 @@ void forAllEdges(HornetClass& hornet,
 
 template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&                hornet,
-                 const TwoLevelQueue<vid_t>& queue,
+                 const TwoLevelQueue<typename HornetClass::VertexType>& queue,
                  const Operator&             op,
                  const LoadBalancing&        load_balancing) {
     load_balancing.apply(hornet, queue.device_input_ptr(), queue.size(), op);
 }
 
-template<typename HornetClass, typename Operator>
-void forAllEdges(HornetClass& hornet,
-                 const BatchUpdate& batch_update,
-                 const Operator& op) {
-    auto size = batch_update.size();
-    detail::forAllEdgesKernel
-        <<< xlib::ceil_div<BLOCK_SIZE_OP2>(size), BLOCK_SIZE_OP2 >>>
-        (hornet.device_side(), batch_update.src_ptr(), batch_update.dst_ptr(), size, op);
-    CHECK_CUDA_ERROR
-}
+//template<typename HornetClass, typename Operator>
+//void forAllEdges(HornetClass& hornet,
+//                 const BatchUpdate& batch_update,
+//                 const Operator& op) {
+//    auto size = batch_update.size();
+//    detail::forAllEdgesKernel
+//        <<< xlib::ceil_div<BLOCK_SIZE_OP2>(size), BLOCK_SIZE_OP2 >>>
+//        (hornet.device_side(), batch_update.src_ptr(), batch_update.dst_ptr(), size, op);
+//    CHECK_CUDA_ERROR
+//}
 
 } // namespace hornets_nest

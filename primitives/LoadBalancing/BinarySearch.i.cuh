@@ -42,7 +42,7 @@ namespace hornets_nest {
 namespace load_balancing {
 
 template<typename HornetClass>
-BinarySearch::BinarySearch(const HornetClass& hornet,
+BinarySearch::BinarySearch(HornetClass& hornet,
                            const float work_factor) noexcept {
     //static_assert(IsHornet<HornetClass>::value,
     //             "BinarySearch: parameter is not an instance of Hornet Class");
@@ -51,12 +51,12 @@ BinarySearch::BinarySearch(const HornetClass& hornet,
 }
 
 inline BinarySearch::~BinarySearch() noexcept {
-    hornets_nest::gpu::free(_d_work);
+    //hornets_nest::gpu::free(_d_work);
 }
 
-template<typename HornetClass, typename Operator>
-void BinarySearch::apply(const HornetClass& hornet,
-                         const vid_t*       d_input,
+template<typename HornetClass, typename Operator, typename vid_t>
+void BinarySearch::apply(HornetClass& hornet,
+                         const vid_t *      d_input,
                          int                num_vertices,
                          const Operator&    op) const noexcept {
     //static_assert(IsHornet<HornetClass>::value,
@@ -71,11 +71,11 @@ void BinarySearch::apply(const HornetClass& hornet,
     if (d_input != nullptr) {
     kernel::computeWorkKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
-        (hornet.device_side(), d_input, num_vertices, _d_work);
+        (hornet.device(), d_input, num_vertices, d_work.data().get());
     } else {
     kernel::computeWorkKernel
         <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices), BLOCK_SIZE >>>
-        (hornet.device_side(), num_vertices, _d_work);
+        (hornet.device(), num_vertices, d_work.data().get());
     }
     CHECK_CUDA_ERROR
 
@@ -90,12 +90,12 @@ void BinarySearch::apply(const HornetClass& hornet,
         return;
     kernel::binarySearchKernel<BLOCK_SIZE>
         <<< grid_size, BLOCK_SIZE, DYN_SMEM_SIZE >>>
-        (hornet.device_side(), d_input, _d_work, num_vertices + 1, op);
+        (hornet.device(), d_input, d_work.data().get(), num_vertices + 1, op);
     CHECK_CUDA_ERROR
 }
 
 template<typename HornetClass, typename Operator>
-void BinarySearch::apply(const HornetClass& hornet, const Operator& op)
+void BinarySearch::apply(HornetClass& hornet, const Operator& op)
                          const noexcept {
     apply(hornet, nullptr, hornet.nV(), op);
 }

@@ -43,9 +43,6 @@
  */
 namespace hornets_nest {
 
-#define OPERATOR template<typename Vertex = void, typename Edge = void>        \
-                 __device__ __forceinline__                                    \
-                 void operator()
 /**
  * @brief Abstract class for Hornet static algorithms
  * @remark the user must extend this class to be full compliant with the
@@ -55,7 +52,7 @@ template<typename HornetClass>
 class StaticAlgorithm {
 public:
     /**
-     * @brief Default costructor
+     * @brief Default constructor
      * @param[in] hornet Hornet instance on which the algorithm is run
      * @remark the Hornet instance reference can be used in also methods
      *          throws `hornet` field
@@ -82,7 +79,7 @@ public:
      * @remark the user must implements this method to reset the instaance of
      *         algorithm to the initial state. After this method call the
      *         the algorithm instance is ready for the next execution
-     * @remark the method should be called in the costructor
+     * @remark the method should be called in the constructor
      */
     virtual void reset() = 0;
 
@@ -112,7 +109,7 @@ public:
      * @tparam T type of the algorithm-dependent data (deduced)
      * @param[in] data host-side algorithm-dependent data
      * @return device pointer to the algorithm-dependent data
-     * @remark the user must call this method in the costructor to enable
+     * @remark the user must call this method in the constructor to enable
      *         the `syncDeviceWithHost()` and `syncHostWithDevice()` methods
      */
     //template<typename T>
@@ -137,6 +134,9 @@ public:
      *         device
      */
     //virtual void syncHostWithDevice() noexcept final;
+
+    using VertexType = typename HornetClass::VertexType;
+    using DegreeType = typename HornetClass::DegreeType;
 
 protected:
     //the algorithm may change the data structure

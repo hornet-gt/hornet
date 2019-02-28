@@ -44,7 +44,7 @@ namespace hornets_nest {
 namespace load_balancing {
 namespace kernel {
 
-template<typename HornetDevice>
+template<typename HornetDevice, typename vid_t>
 __global__
 void computeWorkKernel(HornetDevice              hornet,
                        const vid_t* __restrict__ d_input,
@@ -70,7 +70,7 @@ void computeWorkKernel(HornetDevice              hornet,
 }
 
 template<unsigned BLOCK_SIZE,
-         typename HornetDevice, typename Operator>
+         typename HornetDevice, typename Operator, typename vid_t>
 __global__
 void binarySearchKernel(HornetDevice              hornet,
                         const vid_t* __restrict__ d_input,

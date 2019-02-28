@@ -36,7 +36,8 @@
 #include <Device/Util/PrintExt.cuh>         //xlib::gpu::printArray
 #include <Device/Util/PTX.cuh>              //xlib::__msb
 #include <Device/Util/SafeCudaAPI.cuh>      //cuMemcpyToDeviceAsync
-#include <BasicTypes.hpp>
+//#include <BasicTypes.hpp>
+#include <Core/Hornet.cuh>
 #include "StandardAPI.hpp"
 
 namespace hornets_nest {
@@ -52,7 +53,7 @@ template<typename HornetClass>
 TwoLevelQueue<T>::TwoLevelQueue(const HornetClass& hornet,
                                 const float work_factor) noexcept :
                               _max_allocated_items(hornet.nV() * work_factor) {
-    static_assert(IsHornet<HornetClass>::value,
+    static_assert(hornet::IsHornet<HornetClass>::value,
                  "TwoLevelQueue paramenter is not an instance of Hornet Class");
     _initialize();
 }
@@ -95,7 +96,7 @@ template<typename HornetClass>
 void TwoLevelQueue<T>::initialize(const HornetClass& hornet,
                                  const float work_factor) noexcept {
     _max_allocated_items = hornet.nV() * work_factor;
-    static_assert(IsHornet<HornetClass>::value,
+    static_assert(hornet::IsHornet<HornetClass>::value,
                  "TwoLevelQueue paramenter is not an instance of Hornet Class");
     _initialize();
 }

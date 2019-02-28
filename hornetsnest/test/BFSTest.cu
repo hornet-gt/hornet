@@ -8,11 +8,14 @@
 #include <Util/CommandLineParam.hpp>
 #include <cuda_profiler_api.h> //--profile-from-start off
 
+using vert_t = int;
+using eoff_t = int;
+
 int exec(int argc, char* argv[]) {
     using namespace timer;
     using namespace hornets_nest;
 
-    graph::GraphStd<vid_t, eoff_t> graph;
+    graph::GraphStd<vert_t, eoff_t> graph;
     CommandLineParam cmd(graph, argc, argv,false);
 
 
@@ -23,7 +26,7 @@ int exec(int argc, char* argv[]) {
 
     BfsTopDown bfs_top_down(hornet_graph);
 
-    vid_t root = graph.max_out_degree_id();
+    vert_t root = graph.max_out_degree_id();
     if (argc==3)
         root = atoi(argv[2]);
 

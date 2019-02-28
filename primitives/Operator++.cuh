@@ -40,13 +40,11 @@
 
 #include "Queue/TwoLevelQueue.cuh"
 #include "HostDeviceVar.cuh"
-#include "LoadBalancing/VertexBased.cuh"
+//#include "LoadBalancing/VertexBased.cuh"
 #include <BasicTypes.hpp>
-#include <Core/GPUHornet/BatchUpdate.cuh>
+//#include <Core/BatchUpdate/BatchUpdate.cuh>
 
 namespace hornets_nest {
-//using hornets_nest::vid_t;
-//using hornets_nest::eoff_t;
 
 ///////////////
 // C++11 API //
@@ -55,6 +53,10 @@ namespace hornets_nest {
  * @brief Block size for all kernels associeted to operators
  */
 const int BLOCK_SIZE_OP2 = 256;
+
+#define OPERATOR template<typename Vertex = void, typename Edge = void>        \
+                 __device__ __forceinline__                                    \
+                 void operator()
 
 /**
  * @brief apply the `Operator` a fixed number of times
@@ -142,26 +144,26 @@ void forAllEdgeVertexPairs(HornetClass&         hornet,
 
 template<typename HornetClass, typename Operator>
 void forAllVertices(HornetClass&    hornet,
-                    const vid_t*    vertex_array,
+                    const typename HornetClass::VertexType *    vertex_array,
                     int             size,
                     const Operator& op);
 
 template<typename HornetClass, typename Operator>
 void forAllVertices(HornetClass&                hornet,
-                    const TwoLevelQueue<vid_t>& queue,
+                    const TwoLevelQueue<typename HornetClass::VertexType >& queue,
                     const Operator&             op);
 
 //------------------------------------------------------------------------------
 
 template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&         hornet,
-                 const vid_t*         vertex_array,
+                 const typename HornetClass::VertexType *         vertex_array,
                  int                  size,
                  const Operator&      op);
 
 template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&         hornet,
-                 const vid_t*         vertex_array,
+                 const typename HornetClass::VertexType *         vertex_array,
                  int                  size,
                  const Operator&      op,
                  const LoadBalancing& load_balancing);
@@ -178,12 +180,12 @@ void forAllAdjUnions(HornetClass&         hornet,
                      const int WORK_FACTOR=1);
 
 template<typename HornetClass, typename Operator>
-void forAllEdgesAdjUnionSequential(HornetClass &hornet, vid_t* queue, const unsigned long long size, const Operator &op, int flag);
+void forAllEdgesAdjUnionSequential(HornetClass &hornet, typename HornetClass::VertexType * queue, const unsigned long long size, const Operator &op, int flag);
 template<typename HornetClass, typename Operator>
-void forAllEdgesAdjUnionBalanced(HornetClass &hornet, vid_t* queue, const unsigned long long start, const unsigned long long end, const Operator &op, unsigned long long threads_per_union, int flag);
+void forAllEdgesAdjUnionBalanced(HornetClass &hornet, typename HornetClass::VertexType * queue, const unsigned long long start, const unsigned long long end, const Operator &op, unsigned long long threads_per_union, int flag);
 
 template<typename HornetClass, typename Operator>
-void forAllEdgesAdjUnionImbalanced(HornetClass &hornet, vid_t* queue, const unsigned long long start, const unsigned long long end, const Operator &op, unsigned long long threads_per_union, int flag);
+void forAllEdgesAdjUnionImbalanced(HornetClass &hornet, typename HornetClass::VertexType * queue, const unsigned long long start, const unsigned long long end, const Operator &op, unsigned long long threads_per_union, int flag);
 
 /**
  * @brief apply the `Operator` to all vertices in the graph
@@ -197,34 +199,34 @@ void forAllEdgesAdjUnionImbalanced(HornetClass &hornet, vid_t* queue, const unsi
  */
 template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&                hornet,
-                 const TwoLevelQueue<vid_t>& queue,
+                 const TwoLevelQueue<typename HornetClass::VertexType >& queue,
                  const Operator&             op);
 /*
 template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&                hornet,
-                 const TwoLevelQueue<vid_t>& queue,
+                 const TwoLevelQueue<HornetClass::VertexType >& queue,
                  const Operator&             op,
                  const LoadBalancing&        load_balancing);
 */
 template<typename HornetClass, typename Operator, typename LoadBalancing>
 void forAllEdges(HornetClass&                hornet,
-                 const TwoLevelQueue<vid_t>& queue,
+                 const TwoLevelQueue<typename HornetClass::VertexType >& queue,
                  const Operator&             op,
                  const LoadBalancing&        load_balancing);
 
 //==============================================================================
 
-using BatchUpdate = gpu::BatchUpdate;
-
-template<typename HornetClass, typename Operator>
-void forAllEdges(HornetClass& hornet,
-                 const BatchUpdate& batch_update,
-                 const Operator& op);
-
-template<typename HornetClass, typename Operator>
-void forAllVertices(HornetClass& hornet,
-                    const BatchUpdate& batch_update,
-                    const Operator& op);
+//using BatchUpdate = hornet::BatchUpdate;
+//
+//template<typename HornetClass, typename Operator>
+//void forAllEdges(HornetClass& hornet,
+//                 const BatchUpdate& batch_update,
+//                 const Operator& op);
+//
+//template<typename HornetClass, typename Operator>
+//void forAllVertices(HornetClass& hornet,
+//                    const BatchUpdate& batch_update,
+//                    const Operator& op);
 
 } // namespace hornets_nest
 

@@ -5,46 +5,51 @@ project(${PROJECT} LANGUAGES CXX CUDA)
 
 include(../compiler-util/CMakeLists.txt)
 
-add_subdirectory(../hornet build)
+#add_subdirectory(../hornet build)
 
 ###################################################################################################
 # - include paths ---------------------------------------------------------------------------------
 
 include_directories(../hornet/include)
 include_directories(include)
+include_directories(../primitives)
 
 ###################################################################################################
 # - library targets -------------------------------------------------------------------------------
 
-file(GLOB_RECURSE CU_SRCS ${PROJECT_SOURCE_DIR}/src/*)
-file(GLOB_RECURSE CPP_SRCS ${PROJECT_SOURCE_DIR}/externals/xlib/src/*)
+file(GLOB_RECURSE DUMMY ${PROJECT_SOURCE_DIR}/src/Static/Dummy/Dummy.cu)
+file(GLOB_RECURSE BFS_SRCS ${PROJECT_SOURCE_DIR}/src/Static/BreadthFirstSearch/TopDown.cu)
+file(GLOB_RECURSE X_SRCS   ${PROJECT_SOURCE_DIR}/../xlib/src/*)
+file(GLOB_RECURSE H_SRCS   ${PROJECT_SOURCE_DIR}/../hornet/src/*)
 
-add_library(hornetAlg ${CU_SRCS})
+add_library(hornetAlg ${X_SRCS} ${H_SRCS} ${DUMMY} ${BFS_SRCS})
 
 ###################################################################################################
 # - add executables -------------------------------------------------------------------------------
 
-add_executable(bfs        test/BFSTest.cu)
-add_executable(bfs2       test/BFSTest2.cu)
-add_executable(con-comp   test/CCTest.cu)
-add_executable(spmv       test/SpMVTest.cu)
+add_executable(p           test/DummyTest.cu)
+add_executable(bfs         test/BFSTest.cu)
+#add_executable(bfs2       test/BFSTest2.cu)
+#add_executable(con-comp   test/CCTest.cu)
+#add_executable(spmv       test/SpMVTest.cu)
 add_executable(sssp       test/SSSPTest.cu)
-add_executable(katz       test/KatzTest.cu)
-add_executable(dyn-katz   test/KatzDynamicTest.cu)
-add_executable(triangle   test/TriangleTest.cu)
-add_executable(triangle2  test/TriangleTest2.cu)
-add_executable(clus-coeff test/ClusCoeffTest.cu)
-add_executable(pr         test/PageRankTest.cu)
+#add_executable(katz       test/KatzTest.cu)
+#add_executable(dyn-katz   test/KatzDynamicTest.cu)
+#add_executable(triangle   test/TriangleTest.cu)
+#add_executable(triangle2  test/TriangleTest2.cu)
+#add_executable(clus-coeff test/ClusCoeffTest.cu)
+#add_executable(pr         test/PageRankTest.cu)
 
-target_link_libraries(bfs        hornetAlg hornet)
-target_link_libraries(bfs2       hornetAlg hornet)
-target_link_libraries(con-comp   hornetAlg hornet)
-target_link_libraries(spmv       hornetAlg hornet)
+target_link_libraries(p           hornetAlg )
+target_link_libraries(bfs         hornetAlg)
+#target_link_libraries(bfs2       hornetAlg hornet)
+#target_link_libraries(con-comp   hornetAlg hornet)
+#target_link_libraries(spmv       hornetAlg hornet)
 target_link_libraries(sssp       hornetAlg hornet)
-target_link_libraries(katz       hornetAlg hornet)
-target_link_libraries(dyn-katz   hornetAlg hornet)
-target_link_libraries(triangle   hornetAlg hornet)
-target_link_libraries(triangle2  hornetAlg hornet)
-target_link_libraries(clus-coeff hornetAlg hornet)
-target_link_libraries(pr         hornetAlg hornet)
+#target_link_libraries(katz       hornetAlg hornet)
+#target_link_libraries(dyn-katz   hornetAlg hornet)
+#target_link_libraries(triangle   hornetAlg hornet)
+#target_link_libraries(triangle2  hornetAlg hornet)
+#target_link_libraries(clus-coeff hornetAlg hornet)
+#target_link_libraries(pr         hornetAlg hornet)
 

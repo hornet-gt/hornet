@@ -2,6 +2,7 @@
 #define HORNET_HPP
 
 #include "Core/Hornet.cuh"
+#include "Core/HornetStatic.cuh"
 #include "Core/Conf/Common.cuh"
 #include "Core/BatchUpdate/BatchUpdate.cuh"
 #include <Graph/GraphStd.hpp>

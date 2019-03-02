@@ -14,4 +14,17 @@ namespace hornets_nest {
 
     bool Dummy::validate() {return true;}
 
+    DummyStatic::DummyStatic(HornetStaticGraph& h) :
+        StaticAlgorithm(h) {}
+
+    DummyStatic::~DummyStatic() {}
+
+    void DummyStatic::reset() {}
+
+    void DummyStatic::run() {}
+
+    void DummyStatic::release() {}
+
+    bool DummyStatic::validate() {return true;}
+
 }

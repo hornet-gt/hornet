@@ -35,6 +35,7 @@ add_executable(triangle   test/TriangleTest.cu)
 add_executable(triangle2  test/TriangleTest2.cu)
 add_executable(clus-coeff test/ClusCoeffTest.cu)
 add_executable(pr         test/PageRankTest.cu)
+add_executable(bc         test/BCTest.cu)
 
 target_link_libraries(bfs        hornetAlg hornet)
 target_link_libraries(bfs2       hornetAlg hornet)
@@ -47,4 +48,5 @@ target_link_libraries(triangle   hornetAlg hornet)
 target_link_libraries(triangle2  hornetAlg hornet)
 target_link_libraries(clus-coeff hornetAlg hornet)
 target_link_libraries(pr         hornetAlg hornet)
+target_link_libraries(bc         hornetAlg hornet)
 

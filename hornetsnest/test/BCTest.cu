@@ -20,7 +20,8 @@ int exec(int argc, char* argv[]) {
     using namespace hornets_nest;
 
     // GraphStd<vid_t, eoff_t> graph(UNDIRECTED);
-    graph::GraphStd<vid_t, eoff_t> graph(UNDIRECTED);
+    // graph::GraphStd<vid_t, eoff_t> graph(UNDIRECTED);
+    graph::GraphStd<vid_t, eoff_t> graph;
     CommandLineParam cmd(graph, argc, argv,false);
     Timer<DEVICE> TM;
 
@@ -47,7 +48,7 @@ int exec(int argc, char* argv[]) {
 
     TM.stop();cudaProfilerStop();
     TM.print("BCCentrality");
-
+#if 0
     // auto is_correct = bc.validate();
     // std::cout << (is_correct ? "\nCorrect <>\n\n" : "\n! Not Correct\n\n");
     // return !is_correct;
@@ -68,13 +69,13 @@ int exec(int argc, char* argv[]) {
     abc.reset();
 
     cudaProfilerStart();TM.start();
-    abc.run();
+    // abc.run();
     TM.stop();cudaProfilerStop();
     TM.print("Approximate BCCentrality");
 
 
     delete[] roots;
-
+#endif
     return 0;
 }
 

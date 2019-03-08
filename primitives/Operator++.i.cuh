@@ -664,7 +664,7 @@ void forAllEdgeVertexPairs(HornetClass&         hornet,
 
 //==============================================================================
 
-template<typename HornetClass, typename Operator, typename T>
+template<typename HornetClass, typename Operator>
 void forAllVertices(HornetClass&    hornet,
                     const vid_t*    vertex_array,
                     int             size,

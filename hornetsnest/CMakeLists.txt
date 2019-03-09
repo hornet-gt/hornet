@@ -17,6 +17,7 @@ include_directories(include)
 # - library targets -------------------------------------------------------------------------------
 
 file(GLOB_RECURSE CU_SRCS ${PROJECT_SOURCE_DIR}/src/*)
+list(REMOVE_ITEM CU_SRCS ${PROJECT_SOURCE_DIR}/src/Dynamic/KatzCentrality/Katz.cu)
 file(GLOB_RECURSE CPP_SRCS ${PROJECT_SOURCE_DIR}/externals/xlib/src/*)
 
 add_library(hornetAlg ${CU_SRCS})
@@ -36,6 +37,7 @@ add_executable(triangle2  test/TriangleTest2.cu)
 add_executable(clus-coeff test/ClusCoeffTest.cu)
 add_executable(pr         test/PageRankTest.cu)
 add_executable(bc         test/BCTest.cu)
+add_executable(kcore      test/KCoreTest.cu)
 
 target_link_libraries(bfs        hornetAlg hornet)
 target_link_libraries(bfs2       hornetAlg hornet)
@@ -49,4 +51,4 @@ target_link_libraries(triangle2  hornetAlg hornet)
 target_link_libraries(clus-coeff hornetAlg hornet)
 target_link_libraries(pr         hornetAlg hornet)
 target_link_libraries(bc         hornetAlg hornet)
-
+target_link_libraries(kcore      hornetAlg hornet)

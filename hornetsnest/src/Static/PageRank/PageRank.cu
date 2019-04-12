@@ -42,7 +42,7 @@
 namespace hornets_nest {
 
 
-StaticPageRank::StaticPageRank(HornetGPU& hornet,
+StaticPageRank::StaticPageRank(HornetGraph& hornet,
 	            	int  iteration_max,
 	            	pr_t     threshold,
 	            	pr_t          damp,

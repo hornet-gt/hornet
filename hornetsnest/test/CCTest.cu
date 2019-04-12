@@ -24,6 +24,7 @@ int exec(int argc, char* argv[]) {
     TM.start();
 
     cc_multistep.run();
+    printf("stuff\n" );
 
     TM.stop();
     TM.print("CC");

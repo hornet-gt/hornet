@@ -34,7 +34,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * </blockquote>}
  */
-#include <Core/GPUHornet/Hornet.cuh>
+
+ #include "HornetAlg.hpp"
 
 #include "Static/BetweennessCentrality/bc.cuh"
 #include "Static/BetweennessCentrality/approximate_bc.cuh"

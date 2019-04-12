@@ -22,7 +22,7 @@ int exec(int argc, char* argv[]) {
 
     HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
                            graph.csr_out_edges());
-    HornetGPU hornet_graph(hornet_init);
+    HornetGraph hornet_graph(hornet_init);
 
     StaticPageRank page_rank(hornet_graph, 50, 0.001, 0.85, false);
 
@@ -41,7 +41,7 @@ int exec(int argc, char* argv[]) {
 
     HornetInit hornet_init_undir(graphUnDir.nV(), graphUnDir.nE(), graphUnDir.csr_out_offsets(),
                            graphUnDir.csr_out_edges());
-    HornetGPU hornet_graph_undir(hornet_init_undir);
+    HornetGraph hornet_graph_undir(hornet_init_undir);
 
     StaticPageRank page_rank_undir(hornet_graph_undir, 50, 0.001,0.85,true);
 

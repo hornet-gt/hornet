@@ -267,13 +267,13 @@ __global__ void forAllnumEKernel(eoff_t d_nE, Operator op) {
         op(i);
 }
 
-template<typename HornetDevice, typename Operator, typename vid_t>
+template<typename HornetDevice, typename Operator>
 __global__ void forAllVerticesKernel(HornetDevice hornet,
                                      Operator     op) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = gridDim.x * blockDim.x;
 
-    for (vid_t i = id; i < hornet.nV(); i += stride) {
+    for (int i = id; i < hornet.nV(); i += stride) {
         auto vertex = hornet.vertex(i);
         op(vertex);
     }
@@ -646,7 +646,7 @@ template<typename HornetClass, typename Operator>
 void forAllVertices(HornetClass& hornet, const Operator& op) {
     detail::forAllVerticesKernel
         <<< xlib::ceil_div<BLOCK_SIZE_OP2>(hornet.nV()), BLOCK_SIZE_OP2 >>>
-        (hornet.device_side(), op);
+        (hornet.device(), op);
     CHECK_CUDA_ERROR
 }
 

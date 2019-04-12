@@ -61,8 +61,8 @@ void BinarySearch::apply(HornetClass& hornet,
                          const Operator&    op) const noexcept {
     //static_assert(IsHornet<HornetClass>::value,
     //             "BinarySearch: paramenter is not an instance of Hornet Class");
-    d_work.resize(num_vertices + 1);
-    prefixsum.resize(num_vertices + 1);
+    d_work.resize(num_vertices);
+    prefixsum.resize(num_vertices);
     int ITEMS_PER_BLOCK = xlib::DeviceProperty
                           ::smem_per_block<vid_t>(BLOCK_SIZE);
     const auto DYN_SMEM_SIZE = ITEMS_PER_BLOCK * sizeof(vid_t);
@@ -79,7 +79,7 @@ void BinarySearch::apply(HornetClass& hornet,
     }
     CHECK_CUDA_ERROR
 
-    prefixsum.run(d_work.data().get(), num_vertices + 1);
+    prefixsum.run(d_work.data().get(), num_vertices);
     CHECK_CUDA_ERROR
 
     int total_work;
@@ -90,14 +90,14 @@ void BinarySearch::apply(HornetClass& hornet,
         return;
     kernel::binarySearchKernel<BLOCK_SIZE>
         <<< grid_size, BLOCK_SIZE, DYN_SMEM_SIZE >>>
-        (hornet.device(), d_input, d_work.data().get(), num_vertices + 1, op);
+        (hornet.device(), d_input, d_work.data().get(), num_vertices, op);
     CHECK_CUDA_ERROR
 }
 
 template<typename HornetClass, typename Operator>
 void BinarySearch::apply(HornetClass& hornet, const Operator& op)
                          const noexcept {
-    apply(hornet, nullptr, hornet.nV(), op);
+    apply<HornetClass, Operator, int>(hornet, nullptr, (int) hornet.nV(), op);
 }
 
 } // namespace load_balancing

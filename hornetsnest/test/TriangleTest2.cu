@@ -5,8 +5,6 @@
 
 #include "HornetAlg.hpp"
 #include <StandardAPI.hpp>
-#include <Core/GPUCsr/Csr.cuh>
-#include <Core/GPUHornet/Hornet.cuh>
 #include <Graph/GraphStd.hpp>
 #include <Util/CommandLineParam.hpp>
 #include <cuda_profiler_api.h> //--profile-from-start off
@@ -16,7 +14,8 @@
 using namespace timer;
 using namespace hornets_nest;
 
-using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
+
+using HornetGraph = ::hornet::gpu::Hornet<vid_t>;
 
 
 // CPU Version - assume sorted index lists. 

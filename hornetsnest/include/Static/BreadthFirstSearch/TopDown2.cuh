@@ -43,7 +43,13 @@
 
 namespace hornets_nest {
 
-using HornetGraph = gpu::Csr<EMPTY, EMPTY>;
+using vid_t = int;
+using dist_t = int;
+
+using HornetGraph = ::hornet::gpu::Hornet<vid_t>;
+using HornetInit  = ::hornet::HornetInit<vid_t>;
+
+//using HornetGraph = gpu::Csr<EMPTY, EMPTY>;
 //using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
 
 using dist_t = int;

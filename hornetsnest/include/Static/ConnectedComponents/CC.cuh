@@ -42,14 +42,17 @@
 
 namespace hornets_nest {
 
-using HornetGraph = gpu::Csr<EMPTY, EMPTY>;
-// using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
+using vid_t = int;
+using vid2_2 = int;
+
+using HornetGraph = ::hornet::gpu::Hornet<vid_t>;
+using HornetInit  = ::hornet::HornetInit<vid_t>;
 
 using color_t = int;
 
 class CC : public StaticAlgorithm<HornetGraph> {
 public:
-    explicit CC(HornetGraph& horne);
+    explicit CC(HornetGraph& hornet);
     ~CC();
 
     void reset()    override;

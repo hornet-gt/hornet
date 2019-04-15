@@ -108,6 +108,8 @@ public:
     degree_t nE(void) const noexcept;
 
     HornetDeviceT device(void) noexcept;
+
+    vid_t max_degree_id();
 };
 
 #define HORNET Hornet<vid_t,\
@@ -127,5 +129,6 @@ class IsHornet<gpu::Hornet<V, VM, EM, D>> : public std::true_type {};
 
 #include "Core/HornetInitialize/HornetInitialize.i.cuh"
 #include "Core/HornetOperations/HornetInsert.i.cuh"
+#include "Core/HornetOperations/HornetQuery.i.cuh"
 
 #endif

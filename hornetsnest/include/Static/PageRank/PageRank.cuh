@@ -42,7 +42,9 @@
 
 namespace hornets_nest {
 
-using HornetGPU = gpu::Hornet<EMPTY, EMPTY>;
+using vid_t = int;
+using HornetGraph = ::hornet::gpu::Hornet<vid_t>;
+using HornetInit  = ::hornet::HornetInit<vid_t>;
 
 using pr_t = float;
 
@@ -63,9 +65,9 @@ struct PrData {
 };
 
 // Label propogation is based on the values from the previous iteration.
-class StaticPageRank : public StaticAlgorithm<HornetGPU> {
+class StaticPageRank : public StaticAlgorithm<HornetGraph> {
 public:
-    StaticPageRank(HornetGPU& hornet,
+    StaticPageRank(HornetGraph& hornet,
 	            	int  iteration_max = 20,
 	            	pr_t     threshold = 0.001f,
 	            	pr_t          damp = 0.85f,

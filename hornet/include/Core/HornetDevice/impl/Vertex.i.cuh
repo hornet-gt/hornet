@@ -45,7 +45,7 @@ template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
 HOST_DEVICE
 VERTEX::
 Vertex(HornetDeviceT& hornet, const vid_t id) :
-    _hornet(hornet), _id(id), _ptr(_hornet.get_vertex_data()), _data(_ptr[_id]) {}
+    _hornet(hornet), _id(id) {}
 
 template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
     typename vid_t, typename degree_t>
@@ -62,7 +62,7 @@ HOST_DEVICE
 degree_t
 VERTEX::
 degree(void) const {
-    return _data.template get<0>();
+    return (_hornet.get_vertex_data().template get<0>())[_id];
 }
 
 template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
@@ -71,7 +71,7 @@ HOST_DEVICE
 xlib::byte_t*
 VERTEX::
 edge_block_ptr(void) const {
-    return _data.template get<1>();
+    return (_hornet.get_vertex_data().template get<1>())[_id];
 }
 
 template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
@@ -80,7 +80,7 @@ HOST_DEVICE
 degree_t
 VERTEX::
 vertex_offset(void) const {
-    return _data.template get<2>();
+    return (_hornet.get_vertex_data().template get<2>())[_id];
 }
 
 template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
@@ -89,7 +89,7 @@ HOST_DEVICE
 degree_t
 VERTEX::
 edges_per_block(void) const {
-    return _data.template get<3>();
+    return (_hornet.get_vertex_data().template get<3>())[_id];
 }
 
 template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
@@ -112,7 +112,7 @@ typename std::enable_if<
     typename xlib::SelectType<N, VertexMetaTypes&...>::type>::type
 VERTEX::
 field(void) const {
-    return _data.template get<N+4>();
+    return (_hornet.get_vertex_data().template get<N+4>())[_id];
 }
 
 template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
@@ -133,7 +133,7 @@ HOST_DEVICE
 void
 VERTEX::
 set_degree(degree_t new_degree) const {
-    _data.template get<0>() = new_degree;
+    (_hornet.get_vertex_data().template get<0>())[_id] = new_degree;
 }
 
 template <typename... VertexMetaTypes, typename... EdgeMetaTypes,

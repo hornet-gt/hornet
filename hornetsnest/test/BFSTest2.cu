@@ -19,18 +19,24 @@ int exec(int argc, char* argv[]) {
     HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
                            graph.csr_out_edges());
 
+    Timer<DEVICE> TM;
+    cudaProfilerStart();
+    TM.start();
     HornetGraph hornet_graph(hornet_init);
-
+    TM.stop();
+    cudaProfilerStop();
+    TM.print("Initilization Time:");
 
     BfsTopDown2 bfs_top_down(hornet_graph);
- 
-	vid_t root = graph.max_out_degree_id();
-	if (argc==3)
-	  root = atoi(argv[2]);
+
+    vid_t root = graph.max_out_degree_id();
+    if (argc==3)
+        root = atoi(argv[2]);
+
+    std::cout << "My root is " << root << std::endl;
 
     bfs_top_down.set_parameters(root);
- 
-    Timer<DEVICE> TM;
+
     cudaProfilerStart();
     TM.start();
 
@@ -39,6 +45,8 @@ int exec(int argc, char* argv[]) {
     TM.stop();
     cudaProfilerStop();
     TM.print("TopDown2");
+
+    std::cout << "Number of levels is : " << bfs_top_down.getLevels() << std::endl;
 
     auto is_correct = bfs_top_down.validate();
     std::cout << (is_correct ? "\nCorrect <>\n\n" : "\n! Not Correct\n\n");

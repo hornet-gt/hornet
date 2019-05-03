@@ -30,7 +30,7 @@ int exec(int argc, char* argv[]) {
 
     auto is_correct = cc_multistep.validate();
     std::cout << (is_correct ? "\nCorrect <>\n\n" : "\n! Not Correct\n\n");
-    return is_correct;
+    return !is_correct;
 }
 
 int main(int argc, char* argv[]) {

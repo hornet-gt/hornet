@@ -72,8 +72,8 @@ class Edge<
 
     HornetDeviceT&      _hornet;
     vid_t               _src_id;
-    EdgeContainerT         _ptr;//Needed for _ref
-    SoARef<EdgeContainerT> _ref;
+    degree_t             _index;
+    EdgeContainerT         _ptr;
 
     HOST_DEVICE
     Edge(HornetDeviceT& hornet,
@@ -107,10 +107,6 @@ class Edge<
         (N < sizeof...(EdgeMetaTypes)),
         typename xlib::SelectType<N, EdgeMetaTypes&...>::type>::type
     field(void) const;
-
-    HOST_DEVICE
-    Edge<TypeList<VertexMetaTypes...>, TypeList<EdgeMetaTypes...>, vid_t, degree_t>&
-    operator=(const SoARef<EdgeContainerT>& source_edge) noexcept;
 
     HOST_DEVICE
     Edge<TypeList<VertexMetaTypes...>, TypeList<EdgeMetaTypes...>, vid_t, degree_t>&

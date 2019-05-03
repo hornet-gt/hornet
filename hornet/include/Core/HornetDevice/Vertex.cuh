@@ -76,10 +76,6 @@ class Vertex<
 
     vid_t           _id;
 
-    SoAPtr<degree_t, xlib::byte_t*, degree_t, degree_t, VertexMetaTypes...> _ptr;
-
-    SoARef<SoAPtr<degree_t, xlib::byte_t*, degree_t, degree_t, VertexMetaTypes...>> _data;
-
     HOST_DEVICE
     Vertex(HornetDeviceT& hornet, const vid_t id);
 

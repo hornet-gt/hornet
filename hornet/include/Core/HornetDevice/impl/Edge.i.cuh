@@ -50,8 +50,8 @@ EDGE::Edge(
         const degree_t edges_per_block) :
     _hornet(hornet),
     _src_id(src_id),
-    _ptr(edge_block_ptr, edges_per_block),
-    _ref(_ptr, vertex_offset + index) {}
+    _index(index + vertex_offset),
+    _ptr(edge_block_ptr, edges_per_block) {}
 
 template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
     typename vid_t, typename degree_t>
@@ -66,7 +66,7 @@ template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
 HOST_DEVICE
 vid_t
 EDGE::dst_id(void) const {
-    return _ref.template get<0>();
+    return _ptr.template get<0>()[_index];
 }
 
 template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
@@ -82,7 +82,7 @@ template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
 HOST_DEVICE
 EDGE::VertexT
 EDGE::dst(void) const {
-    return _hornet.vertex(_ref.template get<0>());
+    return _hornet.vertex(dst_id());
 }
 
 template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
@@ -93,16 +93,7 @@ typename std::enable_if<
     (N < sizeof...(EdgeMetaTypes)),
     typename xlib::SelectType<N, EdgeMetaTypes&...>::type>::type
 EDGE::field(void) const {
-    return _ref.template get<N+1>();
-}
-
-template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
-    typename vid_t, typename degree_t>
-HOST_DEVICE
-EDGE&
-EDGE::operator=(const SoARef<EdgeContainerT>& source_edge) noexcept {
-    _ref = source_edge;
-    return *this;
+    return _ptr.template get<N+1>()[_index];
 }
 
 template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
@@ -110,7 +101,7 @@ template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
 HOST_DEVICE
 EDGE&
 EDGE::operator=(const EDGE& source_edge) noexcept {
-    _ref = source_edge._ref;
+    RecursiveAssign<0, sizeof...(EdgeMetaTypes)>(_ptr, index, source_edge._ptr, source_edge._index);
     return *this;
 }
 

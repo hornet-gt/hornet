@@ -48,6 +48,14 @@ struct RecursiveAssign {
         dst.template get<N>() = src.template get<N>();
         RecursiveAssign<N+1, SIZE>::assign(src, dst);
     }
+    template<typename SPtr, typename degree_t>
+    HOST_DEVICE
+    static void assign(
+            const SPtr& src, const degree_t srcIndex,
+            SPtr& dst, degree_t dstIndex) {
+        dst.template get<N>()[dstIndex] = src.template get<N>()[srcIndex];
+        RecursiveAssign<N+1, SIZE>::assign(src, srcIndex, dst, dstIndex);
+    }
 };
 
 template<unsigned N>
@@ -56,6 +64,13 @@ struct RecursiveAssign<N, N> {
     HOST_DEVICE
     static void assign(const SRef& src, SRef& dst) {
         dst.template get<N>() = src.template get<N>();
+    }
+    template<typename SPtr, typename degree_t>
+    HOST_DEVICE
+    static void assign(
+            const SPtr& src, const degree_t srcIndex,
+            SPtr& dst, degree_t dstIndex) {
+        dst.template get<N>()[dstIndex] = src.template get<N>()[srcIndex];
     }
 };
 

@@ -65,6 +65,8 @@ public:
     bool validate() override;
 
     void set_parameters(vid_t source);
+
+    dist_t getLevels(){return current_level;}
 private:
     TwoLevelQueue<vid_t>        queue;
     load_balancing::BinarySearch load_balancing;

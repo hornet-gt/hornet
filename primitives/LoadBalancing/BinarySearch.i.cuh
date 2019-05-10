@@ -88,9 +88,15 @@ void BinarySearch::apply(HornetClass& hornet,
 
     if (total_work == 0)
         return;
+    if (d_input != nullptr) {
     kernel::binarySearchKernel<BLOCK_SIZE>
         <<< grid_size, BLOCK_SIZE, DYN_SMEM_SIZE >>>
         (hornet.device(), d_input, d_work.data().get(), num_vertices + 1, op);
+    } else {
+    kernel::binarySearchKernel<BLOCK_SIZE>
+        <<< grid_size, BLOCK_SIZE, DYN_SMEM_SIZE >>>
+        (hornet.device(), d_work.data().get(), num_vertices + 1, op);
+    }
     CHECK_CUDA_ERROR
 }
 

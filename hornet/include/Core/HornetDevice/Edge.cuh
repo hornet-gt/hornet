@@ -73,7 +73,7 @@ class Edge<
     HornetDeviceT&      _hornet;
     vid_t               _src_id;
     degree_t             _index;
-    EdgeContainerT         _ptr;
+    mutable EdgeContainerT _ptr;
 
     HOST_DEVICE
     Edge(HornetDeviceT& hornet,

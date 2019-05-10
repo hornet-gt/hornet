@@ -66,6 +66,10 @@ class HornetDevice<
 
     using VertexT = Vertex<TypeList<VertexMetaTypes...>, TypeList<EdgeMetaTypes...>, vid_t, degree_t>;
 
+    using VertexType = vid_t;
+
+    using DegreeType = degree_t;
+
     HOST_DEVICE
     SoAPtr<degree_t, xlib::byte_t*, degree_t, degree_t, VertexMetaTypes...>
     get_vertex_data(void) noexcept;

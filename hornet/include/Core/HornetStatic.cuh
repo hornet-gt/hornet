@@ -2,6 +2,7 @@
 #define HORNETSTATIC_CUH
 
 #include "Conf/Common.cuh"
+#include "Conf/HornetConf.cuh"
 #include "HornetDevice/HornetDevice.cuh"
 #include "Core/HornetInitialize/HornetInit.cuh"
 

@@ -8,7 +8,7 @@
 namespace hornets_nest {
 
 
-using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
+using HornetGraph = ::hornet::gpu::Hornet<vid_t>;
 using clusterCoeff_t =  float;
 //==============================================================================
 

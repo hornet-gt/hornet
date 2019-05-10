@@ -43,8 +43,10 @@
 
 namespace hornets_nest {
 
-using HornetGraph = gpu::Csr<EMPTY, TypeList<int>>;
-//using HornetGraph = gpu::Hornet<EMPTY, TypeList<int>>;
+using vid_t = int;
+using weight_t = int;
+using HornetGraph = ::hornet::gpu::Hornet<vid_t, EMPTY, TypeList<weight_t>>;
+using HornetInit  = ::hornet::HornetInit<vid_t, EMPTY, TypeList<weight_t>>;
 
 class SpMV : public StaticAlgorithm<HornetGraph> {
 public:

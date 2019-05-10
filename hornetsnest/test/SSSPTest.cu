@@ -16,7 +16,7 @@ int exec(int argc, char* argv[]) {
     CommandLineParam cmd(graph, argc, argv,false);
 
     auto h_weights = new weight_t[graph.nE()];
-    host::generate_randoms(h_weights, graph.nE(), 0, 100);
+    host::generate_randoms(h_weights, graph.nE(), 0, 100, 1);
 
     HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
                            graph.csr_out_edges());

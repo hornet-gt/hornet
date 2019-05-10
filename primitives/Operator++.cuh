@@ -40,7 +40,7 @@
 
 #include "Queue/TwoLevelQueue.cuh"
 #include "HostDeviceVar.cuh"
-//#include "LoadBalancing/VertexBased.cuh"
+#include "LoadBalancing/VertexBased.cuh"
 #include <BasicTypes.hpp>
 //#include <Core/BatchUpdate/BatchUpdate.cuh>
 
@@ -50,7 +50,7 @@ namespace hornets_nest {
 // C++11 API //
 ///////////////
 /**
- * @brief Block size for all kernels associeted to operators
+ * @brief Block size for all kernels associated to operators
  */
 const int BLOCK_SIZE_OP2 = 256;
 

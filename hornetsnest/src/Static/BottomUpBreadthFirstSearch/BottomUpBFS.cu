@@ -15,7 +15,6 @@ const dist_t INF = std::numeric_limits<dist_t>::max();
 struct countDegrees {
 int32_t *bins;
 
-
 OPERATOR(Vertex& vertex) {
 
     __shared__ int32_t localBins[33];
@@ -39,9 +38,7 @@ OPERATOR(Vertex& vertex) {
          for (int i=0; i<33; i++){
              atomicAdd(bins+i, localBins[i]);
          }
-
     }
-
 } 
 };
 
@@ -53,11 +50,8 @@ int i = threadIdx.x + blockIdx.x *blockDim.x;
     d_binsPrefix[0]=0;
     for(int b=0; b<33; b++){
         d_binsPrefix[b+1]=d_binsPrefix[b]+bins[b];
-         //printf("%d ",d_binsPrefix[b+1] );
     }
-     //printf("\n");
 }
-
 
 template<typename HornetDevice> __global__ void  rebinKernel(
   HornetDevice hornet ,
@@ -65,9 +59,7 @@ template<typename HornetDevice> __global__ void  rebinKernel(
   int32_t    *d_binsPrefix,
   vid_t     *d_reOrg,
   int N){
-
     int i = threadIdx.x + blockIdx.x *blockDim.x;
-
     __shared__ int32_t localBins[33];
     __shared__ int32_t localPos[33];
 
@@ -77,7 +69,6 @@ template<typename HornetDevice> __global__ void  rebinKernel(
       localBins[id]=0;
       localPos[id]=0;
     }
-
     __syncthreads();
 
     int myBin,myPos;
@@ -88,15 +79,12 @@ template<typename HornetDevice> __global__ void  rebinKernel(
         myBin  = __clz(adjSize);
         myPos = atomicAdd(localBins+myBin, 1);
     }
-
-  __syncthreads();
+    __syncthreads();
 
     if(id<33){
         localPos[id]=atomicAdd(d_binsPrefix+id, localBins[id]);
     }
-
   __syncthreads();
-
 
     if(i<N){
 
@@ -105,8 +93,6 @@ template<typename HornetDevice> __global__ void  rebinKernel(
 
     }
 }
-
-
 
 struct BFSOperatorAtomic {                  //deterministic
     dist_t               current_level;
@@ -120,7 +106,6 @@ struct BFSOperatorAtomic {                  //deterministic
             }
         }
 };
-
 
 struct OPERATOR_AddToQueue {
     dist_t               current_level;
@@ -158,11 +143,9 @@ struct vertexBFSOperator {
     dist_t*              d_distances;
 
     OPERATOR(Vertex &v1) {
-
        int deg1 = v1.degree();
        vid_t* ui_begin = v1.neighbor_ptr();
        vid_t* ui_end = ui_begin+deg1-1;
-
 
        while (ui_begin <= ui_end) {
               if((d_distances[v1.id()] == INF) && (d_distances[*ui_begin] == current_level - 1)){
@@ -188,7 +171,6 @@ void forAllVerticesKernel1(HornetDevice              hornet,
     int stride = gridDim.x * blockDim.x;
 
     for (vid_t i = id; i < num_items; i += stride) {
-        //printf("vertices_array[%i] = %i\n", i, vertices_array[i]);
         auto vertex = hornet.vertex(vertices_array[i]);
         op(vertex);
     }
@@ -204,7 +186,6 @@ void forAllVerticesKernel2(HornetDevice              hornet,
     int stride = gridDim.x * blockDim.x;
 
     for (vid_t i = id; i < num_items; i += stride) {
-        //printf("vertices_array[%i] = %i\n", i, vertices_array[i]);
         auto vertex = hornet.vertex(vertices_array[i]);
         op(vertex);
     }
@@ -242,7 +223,6 @@ void BfsBottomUp2::reset() {
     current_level = 1;
     queue.clear();
 
-    //*d_mu = hornet.nE();
     auto distances = d_distances;
     auto edges = d_edges;
     auto edges_frontier = d_edges_frontier;
@@ -274,14 +254,12 @@ void BfsBottomUp2::run() {
 
 
 void BfsBottomUp2::run(HornetGraph& hornet_in) {
-    
        int td = 1; //top down 1, bottom up 0
        int qs;
        int nv = hornet.nV();
        int bu_flag = 0;
 
     while (queue.size() > 0) {
-
 
         qs = queue.size();
         td = (float)nv/(float)qs > 40 ? 1 : 0;
@@ -306,15 +284,9 @@ void BfsBottomUp2::run(HornetGraph& hornet_in) {
                 forAllVertices(hornet_in, OPERATOR_AddToQueue_inf { current_level, d_distances, queue_inf });
                 queue_inf.swap();
                 forAllVertices(hornet_in, queue_inf, countDegrees { d_bin });
-
-                //rebin vertices for bottom up BFS
-                //const int RB_BLOCK_SIZE = 256; 
-                //int elements = queue_inf.size();
-                //int rebinblocks = (elements)/RB_BLOCK_SIZE + (((elements)%RB_BLOCK_SIZE)?1:0);
         
                 binPrefixKernel<<< xlib::ceil_div<BLOCK_SIZE_OP2>(queue_inf.size()), BLOCK_SIZE_OP2 >>>(d_bin, d_binsPrefix);
                 rebinKernel<<< xlib::ceil_div<BLOCK_SIZE_OP2>(queue_inf.size()), BLOCK_SIZE_OP2 >>>(hornet_in.device_side(),queue_inf.device_input_ptr(), d_binsPrefix,d_lrbRelabled,queue_inf.size());
-
             }
 
             if(queue.size() > 0){
@@ -325,10 +297,6 @@ void BfsBottomUp2::run(HornetGraph& hornet_in) {
                     forAllVertices(hornet_in, queue_inf, OPERATOR_AddToQueue { current_level, d_distances, queue, queue_inf });
 
                 }else{
-
-                  //with vertex relabeling
-                  //forAllVerticesKernel1<<< xlib::ceil_div<BLOCK_SIZE_OP2>(queue_inf.size()), BLOCK_SIZE_OP2 >>>(hornet_in.device_side(),d_lrbRelabled, queue_inf.size() , vertexBFSOperator { current_level, d_distances});
-                  //forAllVerticesKernel1<<< xlib::ceil_div<BLOCK_SIZE_OP2>(queue_inf.size()), BLOCK_SIZE_OP2 >>>(hornet_in.device_side(),d_lrbRelabled, queue_inf.size() , OPERATOR_AddToQueue { current_level, d_distances, queue, queue_inf });
 
                   //no vertex relabeling
                   forAllVerticesKernel2<<< xlib::ceil_div<BLOCK_SIZE_OP2>(queue_inf.size()), BLOCK_SIZE_OP2 >>>(hornet_in.device_side(),queue_inf.device_input_ptr(), queue_inf.size() , vertexBFSOperator { current_level, d_distances});

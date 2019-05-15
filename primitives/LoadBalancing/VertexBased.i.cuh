@@ -46,8 +46,8 @@ void VertexBased<VW_SIZE>::apply(HornetClass& hornet,
                                  const vid_t*       d_input,
                                  int                num_vertices,
                                  Operator&&         op) const noexcept {
-    static_assert(IsHornet<HornetClass>::value,
-                  "VertexBased: paramenter is not an instance of Hornet Class");
+    //static_assert(IsHornet<HornetClass>::value,
+    //              "VertexBased: paramenter is not an instance of Hornet Class");
     int dyn_smem_size = xlib::DeviceProperty::smem_per_block(BLOCK_SIZE);
 
     kernel::vertexBasedKernel<VW_SIZE>

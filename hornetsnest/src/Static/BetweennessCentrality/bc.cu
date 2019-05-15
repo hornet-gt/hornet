@@ -106,14 +106,32 @@ void BCCentrality::run() {
     // Regular BFS
     hd_BCData().depth_indices[0]=1;
 
+    vid_t* depArray;
+    gpu::allocate(depArray, hornet.nV());
+
+
+    cudaMemcpy(depArray,hd_BCData().queue.device_input_ptr(),sizeof(vid_t)*hd_BCData().queue.size(),cudaMemcpyDeviceToDevice);
+    // cout << hd_BCData().depth_indices[0] <<  " " <<  1 << endl;
+
     while (hd_BCData().queue.size() > 0) {
 
+        if(hd_BCData().currLevel>0) {
+            length_t prevLength = hd_BCData().depth_indices[hd_BCData().currLevel] - hd_BCData().depth_indices[hd_BCData().currLevel-1];
+
+            cudaMemcpy(depArray+hd_BCData().depth_indices[hd_BCData().currLevel-1],hd_BCData().queue.device_input_ptr(),
+                sizeof(vid_t)*(prevLength) ,cudaMemcpyDeviceToDevice);
+            // cout << hd_BCData().depth_indices[hd_BCData().currLevel-1] <<  " " <<  prevLength << endl;
+        }
+
+
         hd_BCData().depth_indices[hd_BCData().currLevel+1]=
-        hd_BCData().depth_indices[hd_BCData().currLevel]+hd_BCData().queue.size();
+                       hd_BCData().depth_indices[hd_BCData().currLevel]+hd_BCData().queue.size();
 
         forAllEdges(hornet, hd_BCData().queue, BC_BFSTopDown { hd_BCData }, load_balancing);
         // hd_BCData.sync();
         hd_BCData().currLevel++;
+        // cout << "Depth in the Forward-BFS " <<  hd_BCData().queue.size() << endl;
+
         hd_BCData().queue.swap();
     }
 
@@ -121,18 +139,24 @@ void BCCentrality::run() {
 
     // Reverse BFS - Dependency accumulation
     while (hd_BCData().currLevel>=0) {
-        int2 pos={hd_BCData().depth_indices[hd_BCData().currLevel],
-            hd_BCData().depth_indices[hd_BCData().currLevel + 1]};
+        // int2 pos={hd_BCData().depth_indices[hd_BCData().currLevel],
+        //     hd_BCData().depth_indices[hd_BCData().currLevel + 1]};
+        length_t prevLength = hd_BCData().depth_indices[hd_BCData().currLevel+1] - hd_BCData().depth_indices[hd_BCData().currLevel];
 
-        hd_BCData().queue.set_positions(pos);
 
-        // cout << "Depth in the RBFS " <<  hd_BCData().queue.size() << endl;
-        forAllEdges(hornet, hd_BCData().queue, BC_DepAccumulation { hd_BCData }, load_balancing);
+        // cout << hd_BCData().depth_indices[hd_BCData().currLevel] <<  " " <<  prevLength << endl;
+
+
+
+        // forAllEdges(hornet, hd_BCData().queue, BC_DepAccumulation { hd_BCData }, load_balancing);
+        forAllEdges(hornet, depArray+hd_BCData().depth_indices[hd_BCData().currLevel],prevLength, BC_DepAccumulation { hd_BCData }, load_balancing);
 
         forAllnumV(hornet, IncrementBC { hd_BCData });
 
         hd_BCData().currLevel--;
     }
+    gpu::free(depArray);
+
 }
 
 

@@ -682,15 +682,16 @@ template<typename... Ts, DeviceType device_t>
 void
 CSoAData<TypeList<Ts...>, device_t>::
 resize(const int resize_items) noexcept {
-    if (resize_items > _capacity) {
+    int new_capacity = xlib::upper_approx<512>(resize_items);
+    if (new_capacity > _capacity) {
         CSoAPtr<Ts...> temp_soa(
-                allocate<device_t>(xlib::SizeSum<Ts...>::value * resize_items),
-                resize_items);
+                allocate<device_t>(xlib::SizeSum<Ts...>::value * new_capacity),
+                new_capacity);
         RecursiveCopy<0, sizeof...(Ts) - 1>::copy(
                 _soa, device_t, temp_soa, device_t, _num_items);
         deallocate<device_t>(reinterpret_cast<xlib::byte_t*>(_soa.template get<0>()));
         _soa = temp_soa;
-        _capacity = resize_items;
+        _capacity = new_capacity;
     }
     _num_items = resize_items;
 }

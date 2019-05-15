@@ -17,7 +17,7 @@ using UpdatePtr = hornet::BatchUpdatePtr<vert_t, hornet::EMPTY, hornet::DeviceTy
 using Update = hornet::gpu::BatchUpdate<vert_t>;
 using Init = hornet::HornetInit<vert_t>;
 
-#define RANDOM
+//#define RANDOM
 
 void deleteBatch(HornetGPU &hornet,
         vert_t * src,
@@ -54,9 +54,9 @@ void deleteBatchTest(HornetGPU &hornet,
         int batch_size,
         const bool print_debug) {
     #ifndef RANDOM
-    vert_t batch_src[] = {0, 2, 23, 32, 32, 33, 33, 33};
-    vert_t batch_dst[] = {31, 27, 27, 23, 31, 23, 27, 31};
-    batch_size = 8;
+    vert_t batch_src[] = {1, 5, 2, 4};
+    vert_t batch_dst[] = {2, 4, 1, 5};
+    batch_size = 4;
 
     #else
     vert_t* batch_src, *batch_dst;
@@ -79,12 +79,12 @@ int exec(int argc, char* argv[]) {
     using namespace graph::structure_prop;
     using namespace graph::parsing_prop;
     xlib::device_info();
-    graph::GraphStd<vert_t, vert_t> graph;
-    graph.read(argv[1]);
+    graph::GraphStd<vert_t, vert_t> graph(UNDIRECTED);
+    graph.read(argv[1], SORT | PRINT_INFO);
     Init hornet_init(graph.nV(), graph.nE(),
             graph.csr_out_offsets(), graph.csr_out_edges());
     HornetGPU hornet(hornet_init);
-    deleteBatchTest(hornet, graph, std::stoi(argv[2]), false);
+    deleteBatchTest(hornet, graph, 4, false);
     return 0;
 }
 

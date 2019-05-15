@@ -112,6 +112,11 @@ class Edge<
     Edge<TypeList<VertexMetaTypes...>, TypeList<EdgeMetaTypes...>, vid_t, degree_t>&
     operator=
     (const Edge<TypeList<VertexMetaTypes...>, TypeList<EdgeMetaTypes...>, vid_t, degree_t>& source_edge) noexcept;
+
+    template <typename SRef>
+    HOST_DEVICE
+    Edge<TypeList<VertexMetaTypes...>, TypeList<EdgeMetaTypes...>, vid_t, degree_t>&
+    operator=(const SRef& source_edge) noexcept;
 };
 
 }

@@ -602,24 +602,25 @@ markOverwriteSrcDst(
                 source_edges_offset.data().get(),//new
                 batch_src_offsets.size()
                 );
-    unique_sources.resize(realloc_sources.size());
+    realloc_sources.resize(unique_sources.size());
     batch_src_offsets.resize(realloc_sources.size());
     auto ptr_tuple = thrust::make_zip_iterator(thrust::make_tuple(
-                realloc_sources.begin(), destination_edges.begin()));
+                unique_sources.begin(), destination_edges.begin()));
     auto out_ptr_tuple = thrust::make_zip_iterator(thrust::make_tuple(
-                unique_sources.begin(), batch_src_offsets.begin()));
+                realloc_sources.begin(), batch_src_offsets.begin()));
     degree_t length =
     thrust::copy_if(ptr_tuple, ptr_tuple + destination_edges.size(),
             destination_edges_flag.begin(),
             out_ptr_tuple, thrust::identity<degree_t>()) - out_ptr_tuple;
-    unique_sources.resize(length);
+    if (length == 0) { return; }
+    realloc_sources.resize(length);
     batch_src_offsets.resize(length);
     destination_edges.resize(realloc_sources.size());
     length = thrust::copy_if(source_edges_offset.begin(), source_edges_offset.end(),
             source_edges_flag.begin(),
             destination_edges.begin(), thrust::identity<degree_t>()) - destination_edges.begin();
     destination_edges.resize(length);
-    overwriteDeletedEdges(hornet_device, unique_sources, batch_src_offsets, destination_edges);
+    overwriteDeletedEdges(hornet_device, realloc_sources, batch_src_offsets, destination_edges);
 }
 
 template <typename... EdgeMetaTypes,
@@ -837,9 +838,10 @@ void
 BATCH_UPDATE::
 print(void) noexcept {
     auto ptr = in_edge().get_soa_ptr();
-    std::cout<<"src, dst\n";
+    std::cout<<"src, dst : "<<size()<<"\n";
     thrust::device_vector<vid_t> src(size());
     thrust::device_vector<vid_t> dst(size());
+    std::cerr<<"blah\n";
     thrust::copy(ptr.template get<0>(), ptr.template get<0>() + size(), src.begin());
     thrust::copy(ptr.template get<1>(), ptr.template get<1>() + size(), dst.begin());
     thrust::copy(src.begin(), src.end(), std::ostream_iterator<vid_t>(std::cout, " "));

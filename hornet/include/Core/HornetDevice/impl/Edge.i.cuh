@@ -101,7 +101,17 @@ template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
 HOST_DEVICE
 EDGE&
 EDGE::operator=(const EDGE& source_edge) noexcept {
-    RecursiveAssign<0, sizeof...(EdgeMetaTypes)>(_ptr, index, source_edge._ptr, source_edge._index);
+    RecursiveAssign<0, sizeof...(EdgeMetaTypes)>::assign(source_edge._ptr, source_edge._index, _ptr, _index);
+    return *this;
+}
+
+template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
+    typename vid_t, typename degree_t>
+template <typename SRef>
+HOST_DEVICE
+EDGE&
+EDGE::operator=(const SRef& source_edge) noexcept {
+    RecursiveAssign<0, sizeof...(EdgeMetaTypes)>::assign(source_edge, _ptr, _index);
     return *this;
 }
 

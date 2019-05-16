@@ -1,6 +1,6 @@
 /**
  * @brief Hybrid Top-Down and Bottom-Up implementation of 
- *        Breadth-first Search by using C++11-Style
+ *        Breadth-first Search
  * @author Sarah Nguyen                                                 <br>
  *         Georgia Institute of Technology                              <br>
  * @date May, 2019

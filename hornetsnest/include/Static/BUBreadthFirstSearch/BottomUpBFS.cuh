@@ -1,11 +1,9 @@
 /**
- * @brief Top-Down implementation of Breadth-first Search by using C++11-Style
- *        APIs
- * @author Federico Busato                                                  <br>
- *         Univerity of Verona, Dept. of Computer Science                   <br>
- *         federico.busato@univr.it
- * @date September, 2017
- * @version v2
+ * @brief Hybrid Top-Down and Bottom-Up implementation of 
+ *        Breadth-first Search by using C++11-Style
+ * @author Sarah Nguyen                                                 <br>
+ *         Georgia Institute of Technology                              <br>
+ * @date May, 2019
  *
  * @copyright Copyright © 2017 Hornet. All rights reserved.
  *

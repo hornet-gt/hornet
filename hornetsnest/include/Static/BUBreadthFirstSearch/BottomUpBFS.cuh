@@ -59,19 +59,12 @@ public:
     void set_parameters(vid_t source);
 private:
     TwoLevelQueue<vid_t>        queue;
-    TwoLevelQueue<vid_t>        queue_relabel;
     TwoLevelQueue<vid_t>        queue_inf;
     load_balancing::BinarySearch load_balancing;
 
     dist_t* d_distances   { nullptr };
     vid_t   bfs_source    { 0 };
     dist_t  current_level { 0 };
-    int* d_edges   { nullptr };
-    int* d_edges_frontier {nullptr};
-
-    int32_t* d_binsPrefix   { nullptr };
-    vid_t* d_lrbRelabled   { nullptr };
-    int32_t* d_bin   { nullptr };
 
 };
 

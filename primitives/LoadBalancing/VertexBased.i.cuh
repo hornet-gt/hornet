@@ -61,6 +61,7 @@ void VertexBased<VW_SIZE>::apply(const HornetClass& hornet,
                                  const vid_t*       d_input,
                                  int                num_vertices,
                                  Operator&&         op) const noexcept {
+  if (num_vertices == 0) { return; }
     static_assert(IsHornet<HornetClass>::value,
                   "VertexBased: paramenter is not an instance of Hornet Class");
     int dyn_smem_size = xlib::DeviceProperty::smem_per_block(BLOCK_SIZE);
@@ -77,6 +78,7 @@ template<unsigned VW_SIZE>
 template<typename HornetClass, typename Operator>
 void VertexBased<VW_SIZE>::apply(const HornetClass& hornet, Operator&& op)
                                  const noexcept {
+    if (hornet.nV() == 0) { return; }
     static_assert(IsHornet<HornetClass>::value,
                  "VertexBased: paramenter is not an instance of Hornet Class");
     int dyn_smem_size = xlib::DeviceProperty::smem_per_block(BLOCK_SIZE);
@@ -92,6 +94,7 @@ template<unsigned VW_SIZE>
 template<typename HornetClass, typename Operator>
 void VertexBased<VW_SIZE>::applyVertexPairs(const HornetClass& hornet, Operator&& op)
                                        const noexcept {
+    if (hornet.nV() == 0) { return; }
     static_assert(IsHornet<HornetClass>::value,
                  "VertexBased: paramenter is not an instance of Hornet Class");
     //const auto ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;

@@ -107,7 +107,7 @@ template<typename R, int SIZE>
 AoSData<T, TArgs...>::AoSData(const R* const (&array)[SIZE],
                               size_t index) noexcept:
                            _value(reinterpret_cast<const T*>(array[0])[index]) {
-    _tail.assign<1>(array, index);
+    _tail.template assign<1>(array, index);
 }
 
 template<typename T, typename... TArgs>
@@ -115,7 +115,7 @@ template<int INDEX, typename R, int SIZE>
 void AoSData<T, TArgs...>::assign(const R* const (&array)[SIZE],
                                   int index) noexcept {
     _value = reinterpret_cast<const T*>(array[INDEX])[index];
-    _tail.assign<INDEX + 1>(array, index);
+    _tail.template assign<INDEX + 1>(array, index);
 }
 
 template<typename T, typename... TArgs>
@@ -141,7 +141,7 @@ typename std::enable_if<INDEX != 0,
                       typename xlib::SelectType<INDEX, const T&, TArgs...>::type
                         >::type
 AoSData<T, TArgs...>::get() const noexcept {
-    return _tail.get<INDEX - 1>();
+    return _tail.template get<INDEX - 1>();
 }
 
 template<typename T, typename... TArgs>
@@ -151,7 +151,7 @@ typename std::enable_if<INDEX != 0,
                         typename xlib::SelectType<INDEX, T&, TArgs...>::type
                         >::type
 AoSData<T, TArgs...>::get() noexcept {
-    return _tail.get<INDEX - 1>();
+    return _tail.template get<INDEX - 1>();
 }
 
 //==============================================================================

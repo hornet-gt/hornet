@@ -92,8 +92,8 @@ void HORNET::initialize() noexcept {
         ERROR("Vertex data not initializated");
     if (!edge_check)
         ERROR("Edge data not initializated");
-    Timer<DEVICE> TM;
-    TM.start();
+    //Timer<DEVICE> TM;
+    //TM.start();
     //--------------------------------------------------------------------------
     ///////////////////////////////////
     // EDGES INITIALIZATION AND COPY //
@@ -153,8 +153,8 @@ void HORNET::initialize() noexcept {
     delete[] degrees_array;
     delete[] ptrs_array;
     //--------------------------------------------------------------------------
-    TM.stop();
-    TM.print("Initilization Time:");
+    //TM.stop();
+    //TM.print("Initilization Time:");
 
     //_mem_manager.free_host_ptr();
     build_device_degrees();

@@ -46,8 +46,8 @@ void printKernel(HornetDevice hornet) {
     xlib::gpu::Cout cout;
     for (vid_t i = 0; i < hornet.nV(); i++) {
         auto vertex = hornet.vertex(i);
-        cout << i << " [" << vertex.degree() << ", "
-                          << vertex.neighbor_ptr() << "]: ";
+        cout << i << " : " << vertex.degree() << " | ";
+                          //<< vertex.neighbor_ptr() << "]: ";
 
         for (degree_t j = 0; j < vertex.degree(); j++) {
             auto edge = vertex.edge(j);

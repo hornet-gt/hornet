@@ -16,9 +16,6 @@ int main(int argc, char **argv) {
     HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
                            graph.csr_out_edges());
 
-    HornetInit hcopy_init(graph.nV(), 0, graph.csr_out_offsets(),
-                           graph.csr_out_edges());
-
     HornetGraph hornet_graph(hornet_init);
     KCore kcore(hornet_graph);
     kcore.run();

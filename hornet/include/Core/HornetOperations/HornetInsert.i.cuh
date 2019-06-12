@@ -57,7 +57,7 @@ reallocate_vertices(gpu::BatchUpdate<vid_t, TypeList<EdgeMetaTypes...>, degree_t
     }
 
     ////Move adjacency list and edit vertex access data
-    batch.move_adjacency_lists(hornet_device, _vertex_data.get_soa_ptr(), h_realloc_v_data, h_new_v_data, d_realloc_v_data, d_new_v_data, reallocated_vertices_count);
+    batch.move_adjacency_lists(hornet_device, _vertex_data.get_soa_ptr(), h_realloc_v_data, h_new_v_data, d_realloc_v_data, d_new_v_data, reallocated_vertices_count, is_insert);
 
     CUDA_CHECK_LAST()
     for (degree_t i = 0; i < reallocated_vertices_count; i++) {
@@ -75,9 +75,15 @@ HORNET::
 erase(gpu::BatchUpdate<vid_t, TypeList<EdgeMetaTypes...>, degree_t>& batch, bool removeBatchDuplicates) {
     auto hornet_device = device();
     //Preprocess batch according to user preference
+    //std::cout<<"\nBEFORE DELETE\n";
+    //print();
     batch.preprocess_erase(hornet_device, removeBatchDuplicates);
     _nE = _nE - batch.nE();
+    //std::cout<<"\nBEFORE REALLOCATE\n";
+    //print();
     reallocate_vertices(batch, false);
+    //std::cout<<"\nAFTER REALLOCATE\n";
+    //print();
 }
 
 }

@@ -52,6 +52,7 @@ class Edge<
     vid_t, degree_t> {
 
     template <typename, typename, typename, typename> friend class Vertex;
+    template <typename> friend class SoARef;
 
     public:
 

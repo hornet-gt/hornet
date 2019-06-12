@@ -144,10 +144,12 @@ print(void) {
     for (int i = 0; i < _nV; ++i) {
         degree_t v_degree = ptr[i].template get<0>();
         std::cout<<i<<" : "<<v_degree<<" | ";
-        thrust::device_vector<degree_t> dst(v_degree);
-        vid_t * dst_ptr = reinterpret_cast<vid_t*>(ptr[i].template get<1>()) + ptr[i].template get<2>();
-        thrust::copy(dst_ptr, dst_ptr + v_degree, dst.begin());
-        thrust::copy(dst.begin(), dst.end(), std::ostream_iterator<vid_t>(std::cout, " "));
+        if (v_degree != 0) {
+          thrust::device_vector<degree_t> dst(v_degree);
+          vid_t * dst_ptr = reinterpret_cast<vid_t*>(ptr[i].template get<1>()) + ptr[i].template get<2>();
+          thrust::copy(dst_ptr, dst_ptr + v_degree, dst.begin());
+          thrust::copy(dst.begin(), dst.end(), std::ostream_iterator<vid_t>(std::cout, " "));
+        }
         std::cout<<"\n";
 
     }

@@ -93,6 +93,8 @@ public:
             vid_t*  dst,
             EdgeMetaTypes *... edge_data) noexcept;
 
+    BatchUpdatePtr(SoAData<TypeList<vid_t, vid_t, EdgeMetaTypes...>, device_t>& data) noexcept;
+
     template <unsigned N>
     void insertEdgeData(typename xlib::SelectType<N,
             vid_t *,
@@ -184,6 +186,9 @@ class BatchUpdate<
     BatchUpdate(BatchUpdatePtr<vid_t, TypeList<EdgeMetaTypes...>, device_t, degree_t> ptr) noexcept;
 
     template <DeviceType device_t>
+    BatchUpdate(SoAData<TypeList<vid_t, vid_t, EdgeMetaTypes...>, device_t>& data) noexcept;
+
+    template <DeviceType device_t>
     void reset(BatchUpdatePtr<vid_t, TypeList<EdgeMetaTypes...>, device_t, degree_t> ptr) noexcept;
 
     void sort(void) noexcept;
@@ -224,14 +229,15 @@ class BatchUpdate<
             SoAPtr<degree_t, xlib::byte_t*, degree_t, degree_t>& h_new_v_data,
             SoAPtr<degree_t, xlib::byte_t*, degree_t, degree_t>& d_realloc_v_data,
             SoAPtr<degree_t, xlib::byte_t*, degree_t, degree_t>& d_new_v_data,
-            const degree_t reallocated_vertices_count);
+            const degree_t reallocated_vertices_count,
+            const bool is_insert);
 
     template <typename... VertexMetaTypes>
     void
     appendBatchEdges(
             hornet::HornetDevice<TypeList<VertexMetaTypes...>, TypeList<EdgeMetaTypes...>, vid_t, degree_t>& hornet_device) noexcept;
 
-    void print(void) noexcept;
+    void print(bool sort = false) noexcept;
 
     template <typename... VertexMetaTypes>
     void preprocess_erase(
@@ -246,6 +252,7 @@ class BatchUpdate<
     template <typename... VertexMetaTypes>
     void markOverwriteSrcDst(
         hornet::HornetDevice<TypeList<VertexMetaTypes...>, TypeList<EdgeMetaTypes...>, vid_t, degree_t>& hornet_device,
+        vid_t * batch_src,
         thrust::device_vector<vid_t> &unique_sources,
         thrust::device_vector<degree_t>& batch_src_degrees,
         thrust::device_vector<degree_t>& destination_edges,

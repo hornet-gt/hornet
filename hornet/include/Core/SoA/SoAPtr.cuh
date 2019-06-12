@@ -37,6 +37,14 @@
 #define SOAPTR_CUH
 
 #include "Host/Metaprogramming.hpp"
+#include <thrust/device_vector.h>
+#include <thrust/sort.h>
+#include <thrust/unique.h>
+#include <thrust/sequence.h>
+#include <thrust/gather.h>
+#include <thrust/execution_policy.h>
+#include <Device/Util/SafeCudaAPI.cuh>  //cuMalloc
+#include <Device/Util/SafeCudaAPISync.cuh>
 //#include "BasicTypes.hpp"   //xlib::byte_t
 
 namespace hornet {
@@ -68,6 +76,10 @@ public:
 
     HOST_DEVICE
     SoARef<Contnr<Ts...>>& operator=(const SoARef<Contnr<Ts...>>& other) noexcept;
+
+    template <typename EdgeT>
+    HOST_DEVICE
+    SoARef<Contnr<Ts...>>& operator=(const EdgeT& other) noexcept;
 
     HOST_DEVICE
     SoARef(const SoARef<Contnr<Ts...>>& other) noexcept;

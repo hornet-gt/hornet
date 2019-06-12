@@ -219,108 +219,6 @@ struct RecursiveSetNull<N, N> {
 
 //==============================================================================
 ///////////////////
-// RecursiveCopy //
-///////////////////
-
-struct DeviceCopy {
-    template<typename T>
-    static void copy(
-            T const * const src,
-            const DeviceType src_device_type,
-            T * const dst,
-            const DeviceType dst_device_type,
-            const int num_items) {
-        if (src == nullptr) { return; }
-        if ((src_device_type == DeviceType::DEVICE) &&
-                (dst_device_type == DeviceType::DEVICE)) {
-            cuMemcpyDevToDev(src, num_items, dst);
-        } else if ((src_device_type == DeviceType::DEVICE) &&
-                (dst_device_type == DeviceType::HOST)) {
-            cuMemcpyToHost(src, num_items, dst);
-        } else if ((src_device_type == DeviceType::HOST) &&
-                (dst_device_type == DeviceType::DEVICE)) {
-            cuMemcpyToDevice(src, num_items, dst);
-        } else if ((src_device_type == DeviceType::HOST) &&
-                (dst_device_type == DeviceType::HOST)) {
-            std::copy(src, src + num_items, dst);
-        }
-    }
-};
-
-template<int N, int SIZE>
-struct RecursiveCopy {
-    template<
-        template <typename...> typename SrcContnr,
-        template <typename...> typename DstContnr,
-        typename... Ts>
-    static void copy(
-            const SrcContnr<Ts...>& src,
-            const DeviceType src_device_type,
-            DstContnr<Ts...>& dst,
-            const DeviceType dst_device_type,
-            const int num_items) {
-        DeviceCopy::copy(
-                src.template get<N>(), src_device_type,
-                dst.template get<N>(), dst_device_type,
-                num_items);
-        RecursiveCopy<N + 1, SIZE>::copy(src, src_device_type, dst, dst_device_type, num_items);
-    }
-
-    template<
-        template <typename...> typename SrcContnr,
-        template <typename...> typename DstContnr,
-        typename... Ts>
-    static void copy(
-            const SrcContnr<Ts const...>& src,
-            const DeviceType src_device_type,
-            DstContnr<Ts...>& dst,
-            const DeviceType dst_device_type,
-            const int num_items) {
-        DeviceCopy::copy(
-                src.template get<N>(), src_device_type,
-                dst.template get<N>(), dst_device_type,
-                num_items);
-        RecursiveCopy<N + 1, SIZE>::copy(src, src_device_type, dst, dst_device_type, num_items);
-    }
-};
-
-template<int N>
-struct RecursiveCopy<N, N> {
-    template<
-        template <typename...> typename SrcContnr,
-        template <typename...> typename DstContnr,
-        typename... Ts>
-    static void copy(
-            const SrcContnr<Ts...>& src,
-            DeviceType src_device_type,
-            DstContnr<Ts...>& dst,
-            DeviceType dst_device_type,
-            const int num_items) {
-        DeviceCopy::copy(
-                src.template get<N>(), src_device_type,
-                dst.template get<N>(), dst_device_type,
-                num_items);
-    }
-
-    template<
-        template <typename...> typename SrcContnr,
-        template <typename...> typename DstContnr,
-        typename... Ts>
-    static void copy(
-            const SrcContnr<Ts const...>& src,
-            DeviceType src_device_type,
-            DstContnr<Ts...>& dst,
-            DeviceType dst_device_type,
-            const int num_items) {
-        DeviceCopy::copy(
-                src.template get<N>(), src_device_type,
-                dst.template get<N>(), dst_device_type,
-                num_items);
-    }
-};
-
-//==============================================================================
-///////////////////
 // RecursivePrint //
 ///////////////////
 
@@ -408,37 +306,6 @@ struct RecursivePrint<N, N> {
 };
 
 //==============================================================================
-/////////////////////
-// RecursiveGather //
-/////////////////////
-
-template<unsigned N, unsigned SIZE>
-struct RecursiveGather {
-    template<typename degree_t, typename Ptr>
-    HOST_DEVICE
-    static void assign(Ptr src, Ptr dst,
-        const thrust::device_vector<degree_t>& map,
-        const degree_t nE) {
-        if (N >= SIZE) { return; }
-        thrust::gather(
-                thrust::device,
-                map.begin(), map.begin() + nE,
-                src.template get<N>(),
-                dst.template get<N>());
-        RecursiveGather<N+1, SIZE>::assign(src, dst, map, nE);
-    }
-};
-
-template<unsigned N>
-struct RecursiveGather<N, N> {
-    template<typename degree_t, typename Ptr>
-    HOST_DEVICE
-    static void assign(Ptr src, Ptr dst,
-        const thrust::device_vector<degree_t>& map,
-        const degree_t nE) { }
-};
-
-//==============================================================================
 /////////////
 // SoAData //
 /////////////
@@ -505,6 +372,45 @@ SoAData<TypeList<Ts...>, device_t>:://TODO remove get_soa_ptr because SoAData<ty
 copy(const SoAData<TypeList<Ts...>, d_t>& other) noexcept {
     int _item_count = std::min(other._num_items, _num_items);
     RecursiveCopy<0, sizeof...(Ts) - 1>::copy(other._soa, d_t, _soa, device_t, _item_count);
+}
+
+template<typename... Ts, DeviceType device_t>
+void
+SoAData<TypeList<Ts...>, device_t>:://TODO remove get_soa_ptr because SoAData<typename, DeviceType> is friend
+copy(SoAPtr<Ts...> other, const DeviceType other_d_t, const int other_num_items) noexcept {
+    int _item_count = std::min(other_num_items, _num_items);
+    RecursiveCopy<0, sizeof...(Ts) - 1>::copy(other._soa, other_d_t, _soa, device_t, _item_count);
+}
+
+template<typename... Ts, DeviceType device_t>
+template<DeviceType d_t>
+void
+SoAData<TypeList<Ts...>, device_t>:://TODO remove get_soa_ptr because SoAData<typename, DeviceType> is friend
+append(const SoAData<TypeList<Ts...>, d_t>& other) noexcept {
+  auto old_num_items = _num_items;
+  resize(_num_items + other._num_items);
+  RecursiveCopy<0, sizeof...(Ts) - 1>::copy(other._soa, d_t, _soa, device_t, other._num_items, 0, old_num_items);
+}
+
+template<typename... Ts, DeviceType device_t>
+void
+SoAData<TypeList<Ts...>, device_t>::
+sort(void) noexcept {
+  thrust::device_vector<int> range;
+  if (sizeof...(Ts) > 3) {
+    SoAPtr<Ts...> temp_soa;
+    RecursiveAllocate<0, sizeof...(Ts) - 1, device_t>::allocate(temp_soa, _num_items);
+    sort_batch(_soa, _num_items, range, temp_soa);
+    RecursiveDeallocate<0, sizeof...(Ts) - 1, device_t>::deallocate(_soa);
+    _soa = temp_soa;
+  }
+}
+
+template<typename... Ts, DeviceType device_t>
+void
+SoAData<TypeList<Ts...>, device_t>::
+gather(SoAData<TypeList<Ts...>, device_t>& other, thrust::device_vector<int>& map) noexcept {
+  RecursiveGather<0, sizeof...(Ts)>::assign(other._soa, _soa, map, map.size());
 }
 
 template<typename... Ts, DeviceType device_t>
@@ -710,25 +616,25 @@ get_device_type(void) noexcept {
 template<typename... Ts>
 void print(SoAData<TypeList<Ts...>, DeviceType::HOST>& data) {
     auto ptr = data.get_soa_ptr();
-    RecursivePrint<0, sizeof...(Ts) - 1>::print(ptr, data.get_num_items());
+    RecursivePrint<0, sizeof...(Ts) - 1>::print(ptr, DeviceType::HOST, data.get_num_items());
 }
 
 template<typename... Ts>
 void print(SoAData<TypeList<Ts...>, DeviceType::DEVICE>& data) {
     auto ptr = data.get_soa_ptr();
-    RecursivePrint<0, sizeof...(Ts) - 1>::print(ptr, data.get_num_items());
+    RecursivePrint<0, sizeof...(Ts) - 1>::print(ptr, DeviceType::DEVICE, data.get_num_items());
 }
 
 template<typename... Ts>
 void print(CSoAData<TypeList<Ts...>, DeviceType::HOST>& data) {
     auto ptr = data.get_soa_ptr();
-    RecursivePrint<0, sizeof...(Ts) - 1>::print(ptr, data.get_num_items());
+    RecursivePrint<0, sizeof...(Ts) - 1>::print(ptr, DeviceType::HOST, data.get_num_items());
 }
 
 template<typename... Ts>
 void print(CSoAData<TypeList<Ts...>, DeviceType::DEVICE>& data) {
     auto ptr = data.get_soa_ptr();
-    RecursivePrint<0, sizeof...(Ts) - 1>::print(ptr, data.get_num_items());
+    RecursivePrint<0, sizeof...(Ts) - 1>::print(ptr, DeviceType::DEVICE, data.get_num_items());
 }
 
 //==============================================================================

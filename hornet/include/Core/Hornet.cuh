@@ -73,6 +73,8 @@ public:
 
     using DegreeType = degree_t;
 
+
+    using FlatCOO = SoAData<TypeList<vid_t, vid_t, EdgeMetaTypes...>, DeviceType::DEVICE>;
 private:
 
     static int _instance_count;
@@ -112,6 +114,12 @@ public:
     vid_t max_degree_id(void) const noexcept;
 
     degree_t max_degree(void) const noexcept;
+
+    //std::pair<SoAData<degree_t, VertexMetaTypes...>, SoAData<vid_t*, EdgeMetaTypes...>>
+    //getCSR(bool sortAdjacencyList = false) const noexcept;
+
+    SoAData<TypeList<vid_t, vid_t, EdgeMetaTypes...>, DeviceType::DEVICE>
+    getCOO(bool sortAdjacencyList = false) noexcept;
 };
 
 #define HORNET Hornet<vid_t,\

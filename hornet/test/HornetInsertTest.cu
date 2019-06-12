@@ -1,6 +1,7 @@
 #include <Hornet.hpp>
 #include "StandardAPI.hpp"
 #include "Util/BatchFunctions.hpp"
+#include "Util/RandomGraphData.cuh"
 #include <Host/FileUtil.hpp>            //xlib::extract_filepath_noextension
 #include <Device/Util/CudaUtil.cuh>     //xlib::deviceInfo
 #include <algorithm>                    //std:.generate
@@ -17,6 +18,11 @@ using HornetGPU = hornet::gpu::Hornet<vert_t>;
 using UpdatePtr = hornet::BatchUpdatePtr<vert_t, hornet::EMPTY, hornet::DeviceType::HOST>;
 using Update = hornet::gpu::BatchUpdate<vert_t>;
 using Init = hornet::HornetInit<vert_t>;
+using hornet::SoAData;
+using hornet::TypeList;
+using hornet::DeviceType;
+using hornet::print;
+using hornet::generateBatchData;
 
 /**
  * @brief Example tester for Hornet
@@ -24,45 +30,41 @@ using Init = hornet::HornetInit<vert_t>;
 int exec(int argc, char* argv[]) {
     using namespace graph::structure_prop;
     using namespace graph::parsing_prop;
-    xlib::device_info();
 
     graph::GraphStd<vert_t, vert_t> graph;
     graph.read(argv[1]);
-    //--------------------------------------------------------------------------
-    Init hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
-                           graph.csr_out_edges());
+    int batch_size = std::stoi(argv[2]);
+    Init hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(), graph.csr_out_edges());
 
     HornetGPU hornet_gpu(hornet_init);
-    std::cout << "------------------------------------------------" <<std::endl;
-    using namespace hornets_nest::batch_gen_property;
-    using namespace hornets_nest::host;
+    auto init_coo = hornet_gpu.getCOO(true);
 
-    vert_t* batch_src, *batch_dst;
-    int batch_size = std::stoi(argv[2]);
-
-    allocatePageLocked(batch_src, batch_size);
-    allocatePageLocked(batch_dst, batch_size);
-
-    generateBatch(graph,
-            batch_size, batch_src, batch_dst,
-            hornets_nest::BatchGenType::INSERT);
-    UpdatePtr ptr(batch_size, batch_src, batch_dst);
-
-    Update batch_update(ptr);
-
-    printf("ne: %d\n", hornet_gpu.nE());
-    std::cout<<"=======\n";
-    Timer<DEVICE> TM(3);
-    TM.start();
+    auto randomBatch = generateBatchData<vert_t>(graph, batch_size);
+    Update batch_update(randomBatch);
     hornet_gpu.insert(batch_update);
 
-    TM.stop();
+    auto post_insert_coo = hornet_gpu.getCOO(true);
+
+    init_coo.append(randomBatch);
+    init_coo.sort();
+
+    SoAData<TypeList<vert_t, vert_t>, DeviceType::HOST> host_init_coo(init_coo.get_num_items());
+    host_init_coo.copy(init_coo);
+    SoAData<TypeList<vert_t, vert_t>, DeviceType::HOST> host_inst_coo(post_insert_coo.get_num_items());
+    host_inst_coo.copy(post_insert_coo);
+
+    auto *s = host_init_coo.get_soa_ptr().get<0>();
+    auto *d = host_init_coo.get_soa_ptr().get<1>();
+    auto *S = host_init_coo.get_soa_ptr().get<0>();
+    auto *D = host_init_coo.get_soa_ptr().get<1>();
+    for (int i = 0; i < host_init_coo.get_num_items(); ++i) {
+      if ((s[i] != S[i]) || (d[i] != D[i])) {
+        std::cout<<"ERR : "<<s[i]<<" "<<d[i]<<"\n";
+      }
+    }
 
     printf("ne: %d\n", hornet_gpu.nE());
     std::cout<<"=======\n";
-    TM.print("Insertion " + std::to_string(batch_size) + ":  ");
-
-    freePageLocked(batch_dst, batch_src);
 
     return 0;
 }

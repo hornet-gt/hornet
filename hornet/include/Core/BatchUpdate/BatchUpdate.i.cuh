@@ -41,6 +41,13 @@ void print_vec(thrust::device_vector<T>& vec) {
         std::cout<<"\n";
 }
 
+template <typename T>
+void print_vec(thrust::device_vector<T>& d, std::string name) {
+  std::cout<<"\n"<<name<<" : ";
+  thrust::copy(d.begin(), d.end(), std::ostream_iterator<T>(std::cout, " "));
+  std::cout<<"\n";
+}
+
 namespace hornet {
 
 #define BATCH_UPDATE_PTR BatchUpdatePtr<vid_t, TypeList<EdgeMetaTypes...>,\
@@ -58,6 +65,17 @@ BatchUpdatePtr(
         EdgeMetaTypes *... edge_meta_data) noexcept :
     _nE(num_edges),
     _batch_ptr(src, dst, edge_meta_data...) {
+}
+
+template <typename... EdgeMetaTypes,
+    typename vid_t, typename degree_t,
+    DeviceType device_t>
+inline
+BATCH_UPDATE_PTR::
+BatchUpdatePtr(
+    SoAData<TypeList<vid_t, vid_t, EdgeMetaTypes...>, device_t>& data) noexcept :
+    _nE(data.get_num_items()),
+    _batch_ptr(data.get_soa_ptr()) {
 }
 
 template <typename... EdgeMetaTypes,
@@ -101,6 +119,15 @@ template <DeviceType device_t>
 BATCH_UPDATE::
 BatchUpdate(BatchUpdatePtr<vid_t, TypeList<EdgeMetaTypes...>, device_t, degree_t> ptr) noexcept {
     reset(ptr);
+}
+
+template <typename... EdgeMetaTypes,
+    typename vid_t, typename degree_t>
+template <DeviceType device_t>
+BATCH_UPDATE::
+BatchUpdate(SoAData<TypeList<vid_t, vid_t, EdgeMetaTypes...>, device_t>& data) noexcept {
+  BatchUpdatePtr<vid_t, TypeList<EdgeMetaTypes...>, device_t, degree_t> bPtr(data);
+  reset(bPtr);
 }
 
 template <typename... EdgeMetaTypes,
@@ -175,59 +202,6 @@ flip_resource(void) noexcept {
     current_edge = !current_edge;
 }
 
-template <typename degree_t, typename... EdgeTypes>
-void
-sort_edges(CSoAPtr<EdgeTypes...> ptr, const degree_t nE) {
-    thrust::sort_by_key(
-            thrust::device,
-            ptr.template get<1>(), ptr.template get<1>() + nE,
-            ptr.template get<0>());
-    thrust::sort_by_key(
-            thrust::device,
-            ptr.template get<0>(), ptr.template get<0>() + nE,
-            ptr.template get<1>());
-}
-
-template <typename degree_t, typename... EdgeTypes>
-typename std::enable_if<(2 == sizeof...(EdgeTypes)), bool>::type
-sort_batch(CSoAPtr<EdgeTypes...> in_ptr, const degree_t nE, thrust::device_vector<degree_t>& range,
-        CSoAPtr<EdgeTypes...> out_ptr) {
-    sort_edges(in_ptr, nE);
-    return false;
-}
-
-template <typename degree_t, typename... EdgeTypes>
-typename std::enable_if<(3 == sizeof...(EdgeTypes)), bool>::type
-sort_batch(CSoAPtr<EdgeTypes...> in_ptr, const degree_t nE, thrust::device_vector<degree_t>& range,
-        CSoAPtr<EdgeTypes...> out_ptr) {
-    thrust::sort_by_key(
-            thrust::device,
-            in_ptr.template get<1>(), in_ptr.template get<1>() + nE,
-            thrust::make_zip_iterator(thrust::make_tuple(in_ptr.template get<0>(), in_ptr.template get<2>())) );
-    thrust::sort_by_key(
-            thrust::device,
-            in_ptr.template get<0>(), in_ptr.template get<0>() + nE,
-            thrust::make_zip_iterator(thrust::make_tuple(in_ptr.template get<1>(), in_ptr.template get<2>())) );
-    return false;
-}
-
-template <typename degree_t, typename... EdgeTypes>
-typename std::enable_if<(3 < sizeof...(EdgeTypes)), bool>::type
-sort_batch(CSoAPtr<EdgeTypes...> in_ptr, const degree_t nE, thrust::device_vector<degree_t>& range,
-        CSoAPtr<EdgeTypes...> out_ptr) {
-    thrust::sort_by_key(
-            thrust::device,
-            in_ptr.template get<1>(), in_ptr.template get<1>() + nE,
-            thrust::make_zip_iterator(thrust::make_tuple(in_ptr.template get<0>(), range.begin())) );
-    thrust::sort_by_key(
-            thrust::device,
-            in_ptr.template get<0>(), in_ptr.template get<0>() + nE,
-            thrust::make_zip_iterator(thrust::make_tuple(in_ptr.template get<1>(), range.begin())) );
-    RecursiveCopy<0, 2>::copy(in_ptr, DeviceType::DEVICE, out_ptr, DeviceType::DEVICE, nE);
-    RecursiveGather<2, sizeof...(EdgeTypes)>::assign(in_ptr, out_ptr, range, nE);
-    return true;
-}
-
 template <typename... EdgeMetaTypes,
     typename vid_t, typename degree_t>
 void
@@ -235,8 +209,9 @@ BATCH_UPDATE::
 sort(void) noexcept {
     auto in_ptr = in_edge().get_soa_ptr();
     auto out_ptr = out_edge().get_soa_ptr();
-    in_range().resize(_nE);
-    thrust::sequence(in_range().begin(), in_range().end());
+    //in_range().resize(_nE);
+    //thrust::sequence(in_range().begin(), in_range().end());
+    //TODO : Move in_range resize and sequencing to sort_batch dependent on usage
     bool flip = sort_batch(in_ptr, _nE, in_range(), out_ptr);
     if (flip) { flip_resource(); }
 }
@@ -545,7 +520,6 @@ overWriteEdges(hornet::HornetDevice<TypeList<VertexMetaTypes...>, TypeList<EdgeM
     unique_sources.resize(unique_sources_count);
     batch_src_degrees.resize(unique_sources_count);
 
-
     destination_edges_flag.resize(_nE);
     source_edges_flag.resize(_nE);
     source_edges_offset.resize(_nE);
@@ -554,6 +528,7 @@ overWriteEdges(hornet::HornetDevice<TypeList<VertexMetaTypes...>, TypeList<EdgeM
     //batch_src_degrees
     //batch_src_offsets
     markOverwriteSrcDst(hornet_device,
+            batch_src,
             unique_sources,
             batch_src_degrees,
             destination_edges,
@@ -571,6 +546,7 @@ void
 BATCH_UPDATE::
 markOverwriteSrcDst(
         hornet::HornetDevice<TypeList<VertexMetaTypes...>, TypeList<EdgeMetaTypes...>, vid_t, degree_t>& hornet_device,
+        vid_t * batch_src,
         thrust::device_vector<vid_t> &unique_sources,
         thrust::device_vector<degree_t>& batch_src_degrees,
         thrust::device_vector<degree_t>& destination_edges,
@@ -602,10 +578,12 @@ markOverwriteSrcDst(
                 source_edges_offset.data().get(),//new
                 batch_src_offsets.size()
                 );
-    realloc_sources.resize(unique_sources.size());
-    batch_src_offsets.resize(realloc_sources.size());
+
+    thrust::device_ptr<vid_t> sources(batch_src);
+    realloc_sources.resize(destination_edges.size());
+    batch_src_offsets.resize(destination_edges.size());
     auto ptr_tuple = thrust::make_zip_iterator(thrust::make_tuple(
-                unique_sources.begin(), destination_edges.begin()));
+                sources, destination_edges.begin()));
     auto out_ptr_tuple = thrust::make_zip_iterator(thrust::make_tuple(
                 realloc_sources.begin(), batch_src_offsets.begin()));
     degree_t length =
@@ -615,6 +593,7 @@ markOverwriteSrcDst(
     if (length == 0) { return; }
     realloc_sources.resize(length);
     batch_src_offsets.resize(length);
+
     destination_edges.resize(realloc_sources.size());
     length = thrust::copy_if(source_edges_offset.begin(), source_edges_offset.end(),
             source_edges_flag.begin(),
@@ -763,7 +742,8 @@ move_adjacency_lists(
         SoAPtr<degree_t, xlib::byte_t*, degree_t, degree_t>& h_new_v_data,
         SoAPtr<degree_t, xlib::byte_t*, degree_t, degree_t>& d_realloc_v_data,
         SoAPtr<degree_t, xlib::byte_t*, degree_t, degree_t>& d_new_v_data,
-        const degree_t reallocated_vertices_count) {
+        const degree_t reallocated_vertices_count,
+        const bool is_insert) {
     //Get reallocated block data to device
     RecursiveCopy<1, 3>::copy(
             h_new_v_data, DeviceType::HOST,
@@ -773,39 +753,46 @@ move_adjacency_lists(
 
     //Get offsets for binarySearchLB kernel
     duplicate_flag.resize(reallocated_vertices_count + 1);
-    DeviceCopy::copy(
-            d_realloc_v_data. template get<0>(), DeviceType::DEVICE,
-            duplicate_flag.data().get(), DeviceType::DEVICE,
-            reallocated_vertices_count);
+    //DeviceCopy::copy(
+    //        d_realloc_v_data. template get<0>(), DeviceType::DEVICE,
+    //        duplicate_flag.data().get(), DeviceType::DEVICE,
+    //        reallocated_vertices_count);
     CUDA_CHECK_LAST()
+    if (is_insert) {
     cub_prefixsum.run(d_realloc_v_data. template get<0>(),
             duplicate_flag.size(),
             duplicate_flag.data().get());
+    } else {
+    cub_prefixsum.run(d_new_v_data. template get<0>(),
+            duplicate_flag.size(),
+            duplicate_flag.data().get());
+    }
     CUDA_CHECK_LAST()
     degree_t total_work = duplicate_flag[duplicate_flag.size() - 1];
-    if (total_work == 0)  { return; }
-
-    const int BLOCK_SIZE = 256;
-    int smem = xlib::DeviceProperty::smem_per_block<degree_t>(BLOCK_SIZE);
-    int num_blocks = xlib::ceil_div(total_work, smem);
-    //TODO what are the pointers inputs to this kernel?
-    move_adjacency_lists_kernel<BLOCK_SIZE>
-        <<<num_blocks, BLOCK_SIZE>>>(
-                hornet_device,
-                d_realloc_v_data,
-                d_new_v_data,
-                duplicate_flag.data().get(),
-                duplicate_flag.size());
-    CUDA_CHECK_LAST()
-    num_blocks = xlib::ceil_div(reallocated_vertices_count, BLOCK_SIZE);
-
-    set_vertex_meta_data
-        <<<num_blocks, BLOCK_SIZE>>>(
-                realloc_sources.data().get(),
-                vertex_access_ptr,
-                d_new_v_data,
-                reallocated_vertices_count);
-    CUDA_CHECK_LAST()
+    if (total_work != 0)  {
+      const int BLOCK_SIZE = 256;
+      int smem = xlib::DeviceProperty::smem_per_block<degree_t>(BLOCK_SIZE);
+      int num_blocks = xlib::ceil_div(total_work, smem);
+      move_adjacency_lists_kernel<BLOCK_SIZE>
+          <<<num_blocks, BLOCK_SIZE>>>(
+                  hornet_device,
+                  d_realloc_v_data,
+                  d_new_v_data,
+                  duplicate_flag.data().get(),
+                  duplicate_flag.size());
+      CUDA_CHECK_LAST()
+    }
+    if (reallocated_vertices_count != 0) {
+      const int BLOCK_SIZE = 256;
+      int num_blocks = xlib::ceil_div(reallocated_vertices_count, BLOCK_SIZE);
+      set_vertex_meta_data
+          <<<num_blocks, BLOCK_SIZE>>>(
+                  realloc_sources.data().get(),
+                  vertex_access_ptr,
+                  d_new_v_data,
+                  reallocated_vertices_count);
+      CUDA_CHECK_LAST()
+    }
 }
 
 template <typename... EdgeMetaTypes,
@@ -836,18 +823,31 @@ template <typename... EdgeMetaTypes,
     typename vid_t, typename degree_t>
 void
 BATCH_UPDATE::
-print(void) noexcept {
+print(bool sort) noexcept {
     auto ptr = in_edge().get_soa_ptr();
     std::cout<<"src, dst : "<<size()<<"\n";
     thrust::device_vector<vid_t> src(size());
     thrust::device_vector<vid_t> dst(size());
-    std::cerr<<"blah\n";
     thrust::copy(ptr.template get<0>(), ptr.template get<0>() + size(), src.begin());
     thrust::copy(ptr.template get<1>(), ptr.template get<1>() + size(), dst.begin());
-    thrust::copy(src.begin(), src.end(), std::ostream_iterator<vid_t>(std::cout, " "));
-    std::cout<<"\n";
-    thrust::copy(dst.begin(), dst.end(), std::ostream_iterator<vid_t>(std::cout, " "));
-    std::cout<<"\n";
+    if (!sort) {
+      thrust::copy(src.begin(), src.end(), std::ostream_iterator<vid_t>(std::cout, " "));
+      std::cout<<"\n";
+      thrust::copy(dst.begin(), dst.end(), std::ostream_iterator<vid_t>(std::cout, " "));
+      std::cout<<"\n";
+    } else {
+      thrust::host_vector<vid_t> hSrc = src;
+      thrust::host_vector<vid_t> hDst = dst;
+      std::vector<std::pair<vid_t, vid_t>> e;
+      for (int i = 0; i < size(); ++i) {
+        e.push_back(std::make_pair(hSrc[i], hDst[i]));
+      }
+      std::sort(e.begin(), e.end());
+      for (unsigned i = 0; i < e.size(); ++i) { std::cout<<e[i].first<<" "; }
+      std::cout<<"\n";
+      for (unsigned i = 0; i < e.size(); ++i) { std::cout<<e[i].second<<" "; }
+      std::cout<<"\n";
+    }
 }
 
 template <typename... EdgeMetaTypes,

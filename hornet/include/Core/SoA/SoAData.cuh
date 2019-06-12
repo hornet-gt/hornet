@@ -80,6 +80,15 @@ class SoAData<TypeList<Ts...>, device_t> {
     template<DeviceType d_t>
     void copy(const SoAData<TypeList<Ts...>, d_t>& other) noexcept;
 
+    void copy(SoAPtr<Ts...> other, const DeviceType other_d_t, const int other_num_items) noexcept;
+
+    template<DeviceType d_t>
+    void append(const SoAData<TypeList<Ts...>, d_t>& other) noexcept;
+
+    void sort(void) noexcept;
+
+    void gather(SoAData<TypeList<Ts...>, device_t>& other, thrust::device_vector<int>& map) noexcept;
+
     int get_num_items(void) noexcept;
 
     void resize(const int resize_items) noexcept;

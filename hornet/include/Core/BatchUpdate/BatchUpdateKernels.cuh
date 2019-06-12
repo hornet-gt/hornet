@@ -409,21 +409,24 @@ void overwriteDeletedEdgesKernel(
     }
 }
 
+template <typename T>
+void print_arr(thrust::device_ptr<T> d, int count, std::string name) {
+  std::cout<<"\n"<<name<<" : ";
+  thrust::copy(d, d + count, std::ostream_iterator<T>(std::cout, " "));
+}
+
+template <typename T>
+void print_arr(thrust::device_vector<T>& d, std::string name) {
+  std::cout<<"\n"<<name<<" : ";
+  thrust::copy(d.begin(), d.end(), std::ostream_iterator<T>(std::cout, " "));
+}
+
 template <typename HornetDeviceT, typename vid_t, typename degree_t>
 void overwriteDeletedEdges(
         HornetDeviceT& hornet,
         thrust::device_vector<vid_t>& sources,
         thrust::device_vector<degree_t>& dst_offsets,
         thrust::device_vector<degree_t>& src_offsets) {
-    //{
-    //    std::cout<<"\nsources\n";
-    //    thrust::copy(sources.begin(), sources.end(), std::ostream_iterator<vid_t>(std::cout, " "));
-    //    std::cout<<"\ndst_offsets\n";
-    //    thrust::copy(dst_offsets.begin(), dst_offsets.end(), std::ostream_iterator<degree_t>(std::cout, " "));
-    //    std::cout<<"\nsrc_offsets\n";
-    //    thrust::copy(src_offsets.begin(), src_offsets.end(), std::ostream_iterator<degree_t>(std::cout, " "));
-    //    std::cout<<"\n";
-    //}
     const unsigned BLOCK_SIZE = 128;
     overwriteDeletedEdgesKernel<<<xlib::ceil_div<BLOCK_SIZE>(sources.size()), BLOCK_SIZE>>>(
             hornet,

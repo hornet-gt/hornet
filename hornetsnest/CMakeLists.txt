@@ -24,6 +24,7 @@ file(GLOB_RECURSE BFS2_SRCS     ${PROJECT_SOURCE_DIR}/src/Static/BreadthFirstSea
 file(GLOB_RECURSE BC_SRCS       ${PROJECT_SOURCE_DIR}/src/Static/BetweennessCentrality/bc.cu)
 file(GLOB_RECURSE BC_SRCS2      ${PROJECT_SOURCE_DIR}/src/Static/BetweennessCentrality/approximate_bc.cu)
 file(GLOB_RECURSE BC_SRCS3      ${PROJECT_SOURCE_DIR}/src/Static/BetweennessCentrality/exact_bc.cu)
+file(GLOB_RECURSE BUBFS_SRC     ${PROJECT_SOURCE_DIR}/src/Static/BottomUpBreadthFirstSearch/BottomUpBFS.cu)
 file(GLOB_RECURSE CC_SRCS       ${PROJECT_SOURCE_DIR}/src/Static/ConnectedComponents/CC.cu)
 file(GLOB_RECURSE CLCOEFF_SRCS  ${PROJECT_SOURCE_DIR}/src/Static/ClusteringCoefficient/cc.cu)
 file(GLOB_RECURSE SSSP_SRCS     ${PROJECT_SOURCE_DIR}/src/Static/ShortestPath/SSSP.cu)
@@ -35,7 +36,7 @@ file(GLOB_RECURSE TRI2_SRCS     ${PROJECT_SOURCE_DIR}/src/Static/TriangleCountin
 file(GLOB_RECURSE X_SRCS        ${PROJECT_SOURCE_DIR}/../xlib/src/*)
 file(GLOB_RECURSE H_SRCS        ${PROJECT_SOURCE_DIR}/../hornet/src/*)
 
-add_library(hornetAlg ${X_SRCS} ${H_SRCS} ${DUMMY} ${BFS_SRCS} ${BFS2_SRCS} ${BC_SRCS} ${BC_SRCS2} ${BC_SRCS3} ${CC_SRCS} ${CLCOEFF_SRCS} ${SSSP_SRCS} ${SPMV_SRCS} ${PR_SRCS} ${KATZ_SRCS} ${KCORE_SRCS} ${TRI2_SRCS})
+add_library(hornetAlg ${X_SRCS} ${H_SRCS} ${DUMMY} ${BFS_SRCS} ${BFS2_SRCS} ${BC_SRCS} ${BC_SRCS2} ${BC_SRCS3} ${BUBFS_SRC} ${CC_SRCS} ${CLCOEFF_SRCS} ${SSSP_SRCS} ${SPMV_SRCS} ${PR_SRCS} ${KATZ_SRCS} ${KCORE_SRCS} ${TRI2_SRCS})
 
 ###################################################################################################
 # - add executables -------------------------------------------------------------------------------
@@ -43,7 +44,8 @@ add_library(hornetAlg ${X_SRCS} ${H_SRCS} ${DUMMY} ${BFS_SRCS} ${BFS2_SRCS} ${BC
 add_executable(dummy        test/DummyTest.cu)
 add_executable(bfs          test/BFSTest.cu)
 add_executable(bfs2         test/BFSTest2.cu)
-add_executable(bc	        test/BCTest.cu)
+add_executable(bc	          test/BCTest.cu)
+add_executable(bubfs        test/BUBFSTest2.cu)
 add_executable(con-comp     test/CCTest.cu)
 add_executable(spmv         test/SpMVTest.cu)
 add_executable(sssp         test/SSSPTest.cu)
@@ -58,6 +60,7 @@ target_link_libraries(dummy         hornetAlg)
 target_link_libraries(bfs           hornetAlg)
 target_link_libraries(bfs2          hornetAlg)
 target_link_libraries(bc            hornetAlg)
+target_link_libraries(bubfs         hornetAlg)
 target_link_libraries(con-comp      hornetAlg)
 target_link_libraries(spmv          hornetAlg)
 target_link_libraries(sssp          hornetAlg)

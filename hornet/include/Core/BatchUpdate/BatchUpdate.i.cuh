@@ -60,6 +60,18 @@ inline
 BATCH_UPDATE_PTR::
 BatchUpdatePtr(
         degree_t num_edges,
+        SoAPtr<vid_t, vid_t, EdgeMetaTypes...> ptr) noexcept :
+    _nE(num_edges),
+    _batch_ptr(ptr) {
+}
+
+template <typename... EdgeMetaTypes,
+    typename vid_t, typename degree_t,
+    DeviceType device_t>
+inline
+BATCH_UPDATE_PTR::
+BatchUpdatePtr(
+        degree_t num_edges,
         vid_t * src,
         vid_t * dst,
         EdgeMetaTypes *... edge_meta_data) noexcept :
@@ -119,6 +131,15 @@ template <DeviceType device_t>
 BATCH_UPDATE::
 BatchUpdate(BatchUpdatePtr<vid_t, TypeList<EdgeMetaTypes...>, device_t, degree_t> ptr) noexcept {
     reset(ptr);
+}
+
+template <typename... EdgeMetaTypes,
+    typename vid_t, typename degree_t>
+template <DeviceType device_t>
+BATCH_UPDATE::
+BatchUpdate(hornet::COO<device_t, vid_t, TypeList<EdgeMetaTypes...>, degree_t>& data) noexcept {
+  BatchUpdatePtr<vid_t, TypeList<EdgeMetaTypes...>, device_t, degree_t> bPtr(data.size(), data.getPtr());
+  reset(bPtr);
 }
 
 template <typename... EdgeMetaTypes,
@@ -491,11 +512,15 @@ preprocess_erase(
     if (_nE == 0) { return; }
     auto in_ptr = in_edge().get_soa_ptr();
     sort_edges(in_ptr, _nE);
+    CHECK_CUDA_ERROR
     if (removeBatchDuplicates) {
         remove_batch_duplicates(false);
+    CHECK_CUDA_ERROR
     }
     locateEdgesToBeErased(hornet_device, !removeBatchDuplicates);
+    CHECK_CUDA_ERROR
     overWriteEdges(hornet_device);
+    CHECK_CUDA_ERROR
 }
 
 template <typename... EdgeMetaTypes,
@@ -519,6 +544,7 @@ overWriteEdges(hornet::HornetDevice<TypeList<VertexMetaTypes...>, TypeList<EdgeM
             unique_sources.data().get(), batch_src_degrees.data().get());
     unique_sources.resize(unique_sources_count);
     batch_src_degrees.resize(unique_sources_count);
+    CHECK_CUDA_ERROR
 
     destination_edges_flag.resize(_nE);
     source_edges_flag.resize(_nE);
@@ -536,6 +562,7 @@ overWriteEdges(hornet::HornetDevice<TypeList<VertexMetaTypes...>, TypeList<EdgeM
             source_edges_flag,
             source_edges_offset
             );
+    CHECK_CUDA_ERROR
 
 }
 
@@ -561,11 +588,13 @@ markOverwriteSrcDst(
     cub_prefixsum.run(batch_src_offsets.data().get(), batch_src_degrees.size() + 1);
     thrust::fill(source_edges_flag.begin(), source_edges_flag.end(), 1);
     thrust::fill(destination_edges_flag.begin(), destination_edges_flag.end(), 0);
+    CHECK_CUDA_ERROR
 
     degree_t total_work = batch_src_offsets[batch_src_offsets.size() - 1];
     const int BLOCK_SIZE = 256;
     int smem = xlib::DeviceProperty::smem_per_block<degree_t>(BLOCK_SIZE);
     int num_blocks = xlib::ceil_div(total_work, smem);
+    if (num_blocks != 0) {
     markOverwriteSrcDstKernel<BLOCK_SIZE>
         <<<num_blocks, BLOCK_SIZE>>>(
                 hornet_device,
@@ -578,6 +607,8 @@ markOverwriteSrcDst(
                 source_edges_offset.data().get(),//new
                 batch_src_offsets.size()
                 );
+    }
+    CHECK_CUDA_ERROR
 
     thrust::device_ptr<vid_t> sources(batch_src);
     realloc_sources.resize(destination_edges.size());
@@ -593,6 +624,7 @@ markOverwriteSrcDst(
     if (length == 0) { return; }
     realloc_sources.resize(length);
     batch_src_offsets.resize(length);
+    CHECK_CUDA_ERROR
 
     destination_edges.resize(realloc_sources.size());
     length = thrust::copy_if(source_edges_offset.begin(), source_edges_offset.end(),
@@ -600,6 +632,7 @@ markOverwriteSrcDst(
             destination_edges.begin(), thrust::identity<degree_t>()) - destination_edges.begin();
     destination_edges.resize(length);
     overwriteDeletedEdges(hornet_device, realloc_sources, batch_src_offsets, destination_edges);
+    CHECK_CUDA_ERROR
 }
 
 template <typename... EdgeMetaTypes,

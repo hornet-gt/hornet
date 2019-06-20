@@ -48,6 +48,7 @@
 #include <Device/Primitives/BinarySearchLB.cuh>
 #include <Device/Util/DeviceQueue.cuh>
 #include "BatchUpdateKernels.cuh"
+#include "../Static/Static.cuh"
 
 #define CUDA_TRY( call ) 									                            \
 {                                                                     \
@@ -86,6 +87,10 @@ class BatchUpdatePtr<
     SoAPtr<vid_t, vid_t, EdgeMetaTypes...>  _batch_ptr;
 
 public:
+
+    BatchUpdatePtr(
+            degree_t num_edges,
+            SoAPtr<vid_t, vid_t, EdgeMetaTypes...> ptr) noexcept;
 
     BatchUpdatePtr(
             degree_t num_edges,
@@ -187,6 +192,9 @@ class BatchUpdate<
 
     template <DeviceType device_t>
     BatchUpdate(SoAData<TypeList<vid_t, vid_t, EdgeMetaTypes...>, device_t>& data) noexcept;
+
+    template <DeviceType device_t>
+    BatchUpdate(hornet::COO<device_t, vid_t, TypeList<EdgeMetaTypes...>, degree_t>& data) noexcept;
 
     template <DeviceType device_t>
     void reset(BatchUpdatePtr<vid_t, TypeList<EdgeMetaTypes...>, device_t, degree_t> ptr) noexcept;

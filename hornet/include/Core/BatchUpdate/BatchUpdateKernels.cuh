@@ -434,4 +434,5 @@ void overwriteDeletedEdges(
             dst_offsets.data().get(),
             src_offsets.data().get(),
             sources.size());
+    CHECK_CUDA_ERROR
 }

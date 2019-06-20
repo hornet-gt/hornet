@@ -59,6 +59,13 @@ class SoAData<TypeList<Ts...>, device_t> {
     SoAPtr<Ts...> _soa;
 
     public:
+    template <typename T>
+    using Map = typename
+    std::conditional<
+    (device_t == DeviceType::DEVICE),
+    typename thrust::device_vector<T>,
+    typename thrust::host_vector<T>>::type;
+
     SoAData(const int num_items = 0) noexcept;
 
     ~SoAData(void) noexcept;
@@ -87,7 +94,8 @@ class SoAData<TypeList<Ts...>, device_t> {
 
     void sort(void) noexcept;
 
-    void gather(SoAData<TypeList<Ts...>, device_t>& other, thrust::device_vector<int>& map) noexcept;
+    template <typename degree_t>
+    void gather(SoAData<TypeList<Ts...>, device_t>& other, const Map<degree_t>& map) noexcept;
 
     int get_num_items(void) noexcept;
 

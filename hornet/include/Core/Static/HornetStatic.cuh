@@ -1,10 +1,10 @@
 #ifndef HORNETSTATIC_CUH
 #define HORNETSTATIC_CUH
 
-#include "Conf/Common.cuh"
-#include "Conf/HornetConf.cuh"
-#include "HornetDevice/HornetDevice.cuh"
-#include "Core/HornetInitialize/HornetInit.cuh"
+#include "../Conf/Common.cuh"
+#include "../Conf/HornetConf.cuh"
+#include "../HornetDevice/HornetDevice.cuh"
+#include "../HornetInitialize/HornetInit.cuh"
 
 namespace hornet {
 namespace gpu {

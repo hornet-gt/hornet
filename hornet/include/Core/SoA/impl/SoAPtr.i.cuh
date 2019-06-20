@@ -211,6 +211,19 @@ struct RecursiveGather {
     template<typename degree_t, typename Ptr>
     HOST_DEVICE
     static void assign(Ptr src, Ptr dst,
+        const thrust::host_vector<degree_t>& map,
+        const degree_t nE) {
+        if (N >= SIZE) { return; }
+        thrust::gather(
+                thrust::host,
+                map.begin(), map.begin() + nE,
+                src.template get<N>(),
+                dst.template get<N>());
+        RecursiveGather<N+1, SIZE>::assign(src, dst, map, nE);
+    }
+    template<typename degree_t, typename Ptr>
+    HOST_DEVICE
+    static void assign(Ptr src, Ptr dst,
         const thrust::device_vector<degree_t>& map,
         const degree_t nE) {
         if (N >= SIZE) { return; }
@@ -225,6 +238,11 @@ struct RecursiveGather {
 
 template<unsigned N>
 struct RecursiveGather<N, N> {
+    template<typename degree_t, typename Ptr>
+    HOST_DEVICE
+    static void assign(Ptr src, Ptr dst,
+        const thrust::host_vector<degree_t>& map,
+        const degree_t nE) { }
     template<typename degree_t, typename Ptr>
     HOST_DEVICE
     static void assign(Ptr src, Ptr dst,
@@ -573,5 +591,42 @@ sort_batch(Ptr<EdgeTypes...> in_ptr, const degree_t nE, thrust::device_vector<de
 }
 
 //==============================================================================
+//==============================================================================
+/////////////////////
+// RecursiveSetPtr //
+/////////////////////
+template<unsigned N, unsigned SIZE, unsigned OFFSET>
+struct RecursiveSetPtr {
+    template<typename PtrD, typename PtrS>
+    HOST_DEVICE
+    static void set(PtrD &d, PtrS &s) {
+        //if (N >= SIZE) { return; }
+      d.template set<N>(s.template get<OFFSET>());
+      RecursiveSetPtr<N+1, SIZE, OFFSET+1>::set(d, s);
+    }
+};
+
+template<unsigned N, unsigned OFFSET>
+struct RecursiveSetPtr<N, N, OFFSET> {
+    template<typename PtrD, typename PtrS>
+    HOST_DEVICE
+    static void set(PtrD &d, PtrS &s) {}
+};
+
+template <typename A, typename... B>
+SoAPtr<A, B...> concat(A* a, SoAPtr<B...> b) {
+  SoAPtr<A, B...> d;
+  d.template set<0>(a);
+  RecursiveSetPtr<0, sizeof...(B), 1>::set(d, b);
+  return d;
+}
+
+template <typename... A, typename... B>
+SoAPtr<A..., B...> concat(SoAPtr<A...> a, SoAPtr<B...> b) {
+  SoAPtr<A..., B...> d;
+  RecursiveSetPtr<0, sizeof...(A), 0>::set(d, a);
+  RecursiveSetPtr<0, sizeof...(B), sizeof...(A)>::set(d, b);
+  return d;
+}
 
 }//namespace hornet

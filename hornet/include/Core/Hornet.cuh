@@ -42,6 +42,7 @@
 #include "Core/HornetInitialize/HornetInit.cuh"
 #include "BatchUpdate/BatchUpdate.cuh"
 #include "MemoryManager/BlockArray/BlockArray.cuh"
+#include "Static/Static.cuh"
 
 namespace hornet {
 namespace gpu {
@@ -115,11 +116,11 @@ public:
 
     degree_t max_degree(void) const noexcept;
 
-    //std::pair<SoAData<degree_t, VertexMetaTypes...>, SoAData<vid_t*, EdgeMetaTypes...>>
-    //getCSR(bool sortAdjacencyList = false) const noexcept;
+    CSR<DeviceType::DEVICE, vid_t, TypeList<EdgeMetaTypes...>, degree_t>
+    getCSR(bool sortAdjacencyList = false) noexcept;
 
-    SoAData<TypeList<vid_t, vid_t, EdgeMetaTypes...>, DeviceType::DEVICE>
-    getCOO(bool sortAdjacencyList = false) noexcept;
+    COO<DeviceType::DEVICE, vid_t, TypeList<EdgeMetaTypes...>, degree_t>
+    getCOO(bool sortAdjacencyList = false) ;
 };
 
 #define HORNET Hornet<vid_t,\

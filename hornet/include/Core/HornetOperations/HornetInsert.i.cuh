@@ -78,10 +78,12 @@ erase(gpu::BatchUpdate<vid_t, TypeList<EdgeMetaTypes...>, degree_t>& batch, bool
     //std::cout<<"\nBEFORE DELETE\n";
     //print();
     batch.preprocess_erase(hornet_device, removeBatchDuplicates);
+    CHECK_CUDA_ERROR
     _nE = _nE - batch.nE();
     //std::cout<<"\nBEFORE REALLOCATE\n";
     //print();
     reallocate_vertices(batch, false);
+    CHECK_CUDA_ERROR
     //std::cout<<"\nAFTER REALLOCATE\n";
     //print();
 }

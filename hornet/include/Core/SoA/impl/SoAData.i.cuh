@@ -403,14 +403,18 @@ sort(void) noexcept {
     sort_batch(_soa, _num_items, range, temp_soa);
     RecursiveDeallocate<0, sizeof...(Ts) - 1, device_t>::deallocate(_soa);
     _soa = temp_soa;
+  } else {
+    SoAPtr<Ts...> temp_soa;
+    sort_batch(_soa, _num_items, range, temp_soa);
   }
 }
 
 template<typename... Ts, DeviceType device_t>
+template <typename degree_t>
 void
 SoAData<TypeList<Ts...>, device_t>::
-gather(SoAData<TypeList<Ts...>, device_t>& other, thrust::device_vector<int>& map) noexcept {
-  RecursiveGather<0, sizeof...(Ts)>::assign(other._soa, _soa, map, map.size());
+gather(SoAData<TypeList<Ts...>, device_t>& other, const Map<degree_t>& map) noexcept {
+  RecursiveGather<0, sizeof...(Ts)>::assign(other._soa, _soa, map, static_cast<degree_t>(map.size()));
 }
 
 template<typename... Ts, DeviceType device_t>

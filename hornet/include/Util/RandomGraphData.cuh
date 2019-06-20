@@ -3,7 +3,11 @@
 
 //#include <Hornet.hpp>
 #include "../Core/SoA/SoAData.cuh"
+#include "../Core/Static/Static.cuh"
 #include <random>                       //std::mt19937_64
+#include <utility>                       //std::mt19937_64
+#include <thrust/random/linear_congruential_engine.h>
+#include <thrust/random/uniform_int_distribution.h>
 
 namespace hornet {
 
@@ -90,6 +94,100 @@ randomizeVertices(
   }
 }
 
+template <typename = EMPTY> struct DefaultMinMax;
+
+template <typename... T>
+struct DefaultMinMax<TypeList<T...>> {
+
+  template <unsigned N = 0>
+  static
+  typename std::enable_if<(N < sizeof...(T)), void>::type
+  set(std::tuple<std::pair<T, T>...>& t) {
+    using Type = typename xlib::SelectType<N, T...>::type;
+    std::get<N>(t) = std::make_pair(std::numeric_limits<Type>::lowest(), std::numeric_limits<Type>::max());
+    set<N+1>(t);
+  }
+
+  template <unsigned N = 0>
+  static
+  typename std::enable_if<(N == sizeof...(T)), void>::type
+  set(std::tuple<std::pair<T, T>...>& t) { }
+
+  static
+  std::tuple<std::pair<T, T>...>
+  assign(void) {
+    std::tuple<std::pair<T, T>...> t;
+    set<0>(t);
+    return t;
+  }
+};
+
+template <typename = EMPTY> struct RandomGenTraits;
+
+template <typename... T>
+struct RandomGenTraits<TypeList<T...>> {
+  bool insert;
+  bool unique;
+  size_t seed;
+  std::tuple<std::pair<T, T>...> minMax;
+  RandomGenTraits(
+      bool ins = true,
+      bool uni = false,
+      size_t s = 0,
+      std::tuple<std::pair<T, T>...> mm = DefaultMinMax<TypeList<T...>>::assign()) :
+    insert(ins), unique(uni), seed(s), minMax(mm) {}
+};
+
+template <typename T>
+struct RFunc {
+  T lb;
+  T ub;
+  RFunc(T l, T u) : lb(l), ub(u) {}
+  using Dist = typename
+    std::conditional<
+    std::is_integral<T>::value,
+    thrust::uniform_int_distribution<T>,
+    thrust::uniform_real_distribution<T>>::type;
+
+  __host__ __device__
+    T operator() (T index) { //okay
+      thrust::minstd_rand rng(index);
+      Dist dist(lb, ub);
+      rng.discard(index);
+      return dist(rng);
+    };
+};
+
+template <DeviceType device_t, typename T>
+using Vector = typename
+std::conditional<
+(device_t == DeviceType::DEVICE),
+typename thrust::device_vector<T>,
+typename thrust::host_vector<T>>::type;
+
+template <typename... EdgeMetaTypes, typename vid_t, typename degree_t, DeviceType device_t>
+COO<device_t, vid_t, TypeList<EdgeMetaTypes...>, degree_t>
+selectRandom(
+    COO<device_t, vid_t, TypeList<EdgeMetaTypes...>, degree_t>& coo,
+    degree_t size,
+    RandomGenTraits<TypeList<EdgeMetaTypes...>> t) {
+
+  Vector<device_t, degree_t> indexKey(coo.size());
+  Vector<device_t, degree_t> indexVal(coo.size());
+  thrust::counting_iterator<degree_t> index_sequence_begin(t.seed);
+  thrust::transform(index_sequence_begin,
+      index_sequence_begin + indexKey.size(),
+      indexKey.begin(), RFunc<degree_t>(0, coo.size() - 1));
+
+  thrust::sequence(indexVal.begin(), indexVal.end());
+  thrust::sort_by_key(indexKey.begin(), indexKey.end(), indexVal.begin());
+
+  COO<device_t, vid_t, TypeList<EdgeMetaTypes...>, degree_t> selectCOO(size);
+  indexVal.resize(size);
+  selectCOO.gather(coo, indexVal);
+  return selectCOO;
+}
+
 template <unsigned N, unsigned SIZE>
 struct RecursiveRandom {
   template <typename V, typename... T>
@@ -97,11 +195,11 @@ struct RecursiveRandom {
     SoAPtr<V, V, T...> ptr, int batch_size,
     std::tuple<std::pair<T, T>...>& minMax, size_t seed = 0) {
     using M = typename xlib::SelectType<N, T...>::type;
-    M metaPtr = ptr.template get<N + 2>();
-    RandomValues<M> rMeta(std::get<N>(minMax).first, std::get<N>(minMax).second, seed);
-    for (int i = 0; i < batch_size; ++i) {
-      metaPtr[i] = rMeta();
-    }
+    thrust::device_ptr<M> metaPtr(ptr.template get<N + 2>());
+    thrust::counting_iterator<size_t> index_sequence_begin(seed);
+    thrust::transform(index_sequence_begin,
+        index_sequence_begin + batch_size,
+        metaPtr, RFunc<M>(std::get<N>(minMax).first, std::get<N>(minMax).second, seed));
     RecursiveRandom<N+1, SIZE>::assign(ptr, batch_size, minMax, seed);
   }
 };
@@ -113,43 +211,55 @@ struct RecursiveRandom<N, N> {
     SoAPtr<V, V, T...> ptr, int batch_size,
     std::tuple<std::pair<T, T>...>& minMax, size_t seed = 0) {
     using M = typename xlib::SelectType<N, T...>::type;
-    M metaPtr = ptr.template get<N + 2>();
-    RandomValues<M> rMeta(std::get<N>(minMax).first, std::get<N>(minMax).second, seed);
-    for (int i = 0; i < batch_size; ++i) {
-      metaPtr[i] = rMeta();
-    }
+    thrust::device_ptr<M> metaPtr(ptr.template get<N + 2>());
+    thrust::counting_iterator<size_t> index_sequence_begin(seed);
+    thrust::transform(index_sequence_begin,
+        index_sequence_begin + batch_size,
+        metaPtr, RFunc<M>(std::get<N>(minMax).first, std::get<N>(minMax).second, seed));
   }
 };
 
 template <typename V, typename... T>
 void
 randomizeEdgeMeta(
-    SoAPtr<V, V, T...> ptr, int& batch_size,
+    SoAPtr<V, V, T...> ptr, int batch_size,
     std::tuple<std::pair<T, T>...>& minMax, size_t seed = 0) {
   RecursiveRandom<0, sizeof...(T) - 1>::assign(ptr, batch_size, minMax, seed);
 }
 
-template <typename T>
-SoAData<TypeList<T, T>, DeviceType::HOST>
-generateBatchData(const graph::GraphStd<>& graph, int& batch_size,
-              const bool insert = true, const bool unique = false, size_t seed = 0) {
-  SoAData<TypeList<T, T>, DeviceType::HOST> batchData(batch_size);
-  randomizeVertices(batchData.get_soa_ptr(), graph, batch_size, insert, unique, seed);
-  return batchData;
+template <typename vid_t, typename degree_t, typename... EdgeMetaTypes>
+typename std::enable_if<(0 == sizeof...(EdgeMetaTypes)),
+COO<DeviceType::DEVICE, vid_t, TypeList<EdgeMetaTypes...>, degree_t>>::type
+generateRandomCOO(vid_t nV, degree_t size, RandomGenTraits<TypeList<EdgeMetaTypes...>> t) {
+  COO<DeviceType::DEVICE, vid_t, TypeList<EdgeMetaTypes...>, degree_t> coo(size);
+  thrust::device_ptr<vid_t> src(coo.srcPtr());
+  thrust::device_ptr<vid_t> dst(coo.dstPtr());
+  thrust::counting_iterator<degree_t> index_sequence_begin(t.seed);
+  thrust::transform(index_sequence_begin,
+      index_sequence_begin + size,
+      src, RFunc<degree_t>(0, nV - 1));
+  thrust::transform(index_sequence_begin,
+      index_sequence_begin + size,
+      dst, RFunc<degree_t>(0, nV - 1));
+  return coo;
 }
 
-template <typename V, typename... T>
-typename std::enable_if<
-  (0 < sizeof...(T)),
-  SoAData<TypeList<V, V, T...>, DeviceType::HOST>>::type
-generateBatchData(const graph::GraphStd<>& graph, int& batch_size,
-              std::tuple<std::pair<T, T>...>& minMax,
-              const bool insert = true, const bool unique = false, size_t seed = 0) {
-  SoAData<TypeList<V, V, T...>, DeviceType::HOST> batchData(batch_size);
-  randomizeVertices(batchData.get_soa_ptr(), graph, batch_size, insert, unique, seed);
-  randomizeEdgeMeta(batchData.get_soa_ptr(), batch_size, minMax, seed);
-  
-  return batchData;
+template <typename vid_t, typename degree_t, typename... EdgeMetaTypes>
+typename std::enable_if<(0 < sizeof...(EdgeMetaTypes)),
+COO<DeviceType::DEVICE, vid_t, TypeList<EdgeMetaTypes...>, degree_t>>::type
+generateRandomCOO(vid_t nV, degree_t size, RandomGenTraits<TypeList<EdgeMetaTypes...>> t) {
+  COO<DeviceType::DEVICE, vid_t, TypeList<EdgeMetaTypes...>, degree_t> coo(size);
+  thrust::device_ptr<vid_t> src(coo.srcPtr());
+  thrust::device_ptr<vid_t> dst(coo.dstPtr());
+  thrust::counting_iterator<degree_t> index_sequence_begin(t.seed);
+  thrust::transform(index_sequence_begin,
+      index_sequence_begin + size,
+      src, RFunc<degree_t>(0, nV - 1));
+  thrust::transform(index_sequence_begin,
+      index_sequence_begin + size,
+      dst, RFunc<degree_t>(0, nV - 1));
+  randomizeEdgeMeta(coo.getPtr(), size, t.minMax, t.seed);
+  return coo;
 }
 
 }

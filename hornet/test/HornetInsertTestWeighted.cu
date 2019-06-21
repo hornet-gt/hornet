@@ -1,6 +1,7 @@
 #include "Hornet.hpp"
 #include "StandardAPI.hpp"
 #include "Util/BatchFunctions.hpp"
+#include "Util/RandomGraphData.cuh"
 #include <Host/FileUtil.hpp>            //xlib::extract_filepath_noextension
 #include <Device/Util/CudaUtil.cuh>     //xlib::deviceInfo
 #include <algorithm>                    //std:.generate
@@ -13,10 +14,15 @@ using namespace timer;
 using namespace std::string_literals;
 
 using vert_t = int;
-using Init = hornet::HornetInit<vert_t, hornet::EMPTY, hornet::TypeList<int, float>>;
-using HornetGPU = hornet::gpu::Hornet<vert_t, hornet::EMPTY, hornet::TypeList<int, float>>;
-using UpdatePtr = hornet::BatchUpdatePtr<vert_t, hornet::TypeList<int, float>, hornet::DeviceType::HOST>;
-using Update = hornet::gpu::BatchUpdate<vert_t, hornet::TypeList<int, float>>;
+using eoff_t = int;
+using wgt0_t = int;
+using wgt1_t = float;
+using Init = hornet::HornetInit<vert_t, hornet::EMPTY, hornet::TypeList<wgt0_t, wgt1_t>>;
+using HornetGPU = hornet::gpu::Hornet<vert_t, hornet::EMPTY, hornet::TypeList<wgt0_t, wgt1_t>>;
+using UpdatePtr = hornet::BatchUpdatePtr<vert_t, hornet::TypeList<wgt0_t, wgt1_t>, hornet::DeviceType::HOST>;
+using Update = hornet::gpu::BatchUpdate<vert_t, hornet::TypeList<wgt0_t, wgt1_t>>;
+using hornet::TypeList;
+using hornet::DeviceType;
 
 /**
  * @brief Example tester for Hornet
@@ -24,38 +30,22 @@ using Update = hornet::gpu::BatchUpdate<vert_t, hornet::TypeList<int, float>>;
 int exec(int argc, char* argv[]) {
     using namespace graph::structure_prop;
     using namespace graph::parsing_prop;
-    xlib::device_info();
 
     graph::GraphStd<vert_t, vert_t> graph;
     graph.read(argv[1]);
-    //--------------------------------------------------------------------------
-    Init hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
-                           graph.csr_out_edges());
+    int batch_size = std::stoi(argv[2]);
+    Init hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(), graph.csr_out_edges());
 
     //Use meta with hornet_init
-    std::vector<int> edge_meta_0(graph.nE(), 0);
-    std::vector<float> edge_meta_1(graph.nE(), 1);
+    std::vector<wgt0_t> edge_meta_0(graph.nE(), 0);
+    std::vector<wgt1_t> edge_meta_1(graph.nE(), 1);
     hornet_init.insertEdgeData(edge_meta_0.data(), edge_meta_1.data());
-
     HornetGPU hornet_gpu(hornet_init);
-    using namespace hornets_nest::batch_gen_property;
-    using namespace hornets_nest::host;
+    auto init_coo = hornet_gpu.getCOO(true);
 
-    vert_t* batch_src, *batch_dst;
-    int batch_size = std::stoi(argv[2]);
-
-    allocatePageLocked(batch_src, batch_size);
-    allocatePageLocked(batch_dst, batch_size);
-    //std::vector<int> batch_edge_meta_0(batch_size, 2);
-    std::vector<float> batch_edge_meta_1(batch_size, -1.5);
-
-    generateBatch(graph,
-            batch_size, batch_src, batch_dst,
-            hornets_nest::BatchGenType::INSERT);
-    //UpdatePtr ptr(batch_size, batch_src, batch_dst, batch_edge_meta_0.data(), batch_edge_meta_1.data());
-    UpdatePtr ptr(batch_size, batch_src, batch_dst, nullptr, batch_edge_meta_1.data());
-
-    Update batch_update(ptr);
+    hornet::RandomGenTraits<TypeList<wgt0_t, wgt1_t>> cooGenTraits;
+    auto randomBatch = hornet::generateRandomCOO<vert_t, eoff_t>(graph.nV(), batch_size, cooGenTraits);
+    Update batch_update(randomBatch);
 
     printf("ne: %d\n", hornet_gpu.nE());
     std::cout<<"=======\n";
@@ -69,7 +59,19 @@ int exec(int argc, char* argv[]) {
     std::cout<<"=======\n";
     TM.print("Insertion " + std::to_string(batch_size) + ":  ");
 
-    freePageLocked(batch_dst, batch_src);
+    auto inst_coo = hornet_gpu.getCOO(true);
+    init_coo.append(randomBatch);
+    init_coo.sort();
+
+    std::cout<<"Creating multimap for testing correctness...";
+    auto init_coo_map = getHostMMap(init_coo);
+    auto inst_coo_map = getHostMMap(inst_coo);
+    std::cout<<"...Done!\n";
+    if (inst_coo_map == inst_coo_map) {
+      std::cout<<"Passed\n";
+    } else {
+      std::cout<<"Failed\n";
+    }
 
     return 0;
 }

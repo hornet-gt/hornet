@@ -64,6 +64,13 @@ append(const HCOO& other) noexcept {
 }
 
 template <typename... EdgeMetaTypes, typename vid_t, typename degree_t, DeviceType device_t>
+template <DeviceType other_device>
+void HCOO::
+copy(const COO<other_device, vid_t, TypeList<EdgeMetaTypes...>, degree_t>& other) noexcept {
+  _edge.copy(other._edge);
+}
+
+template <typename... EdgeMetaTypes, typename vid_t, typename degree_t, DeviceType device_t>
 void HCOO::
 gather(HCOO& other, const Vector<degree_t>& map) noexcept {
   //_edge.gather(other._edge, map);

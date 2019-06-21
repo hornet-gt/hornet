@@ -199,7 +199,7 @@ struct RecursiveRandom {
     thrust::counting_iterator<size_t> index_sequence_begin(seed);
     thrust::transform(index_sequence_begin,
         index_sequence_begin + batch_size,
-        metaPtr, RFunc<M>(std::get<N>(minMax).first, std::get<N>(minMax).second, seed));
+        metaPtr, RFunc<M>(std::get<N>(minMax).first, std::get<N>(minMax).second));
     RecursiveRandom<N+1, SIZE>::assign(ptr, batch_size, minMax, seed);
   }
 };
@@ -215,7 +215,7 @@ struct RecursiveRandom<N, N> {
     thrust::counting_iterator<size_t> index_sequence_begin(seed);
     thrust::transform(index_sequence_begin,
         index_sequence_begin + batch_size,
-        metaPtr, RFunc<M>(std::get<N>(minMax).first, std::get<N>(minMax).second, seed));
+        metaPtr, RFunc<M>(std::get<N>(minMax).first, std::get<N>(minMax).second));
   }
 };
 

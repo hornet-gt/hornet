@@ -8,6 +8,7 @@
 #include "../BatchUpdate/BatchUpdate.cuh"
 #include "../MemoryManager/BlockArray/BlockArray.cuh"
 #include "../Hornet.cuh"
+#include <map>
 
 namespace hornet {
 
@@ -56,6 +57,9 @@ public:
 
   void append(const COO<device_t, vid_t, TypeList<EdgeMetaTypes...>, degree_t>& other) noexcept;
 
+  template <DeviceType other_device>
+  void copy(const COO<other_device, vid_t, TypeList<EdgeMetaTypes...>, degree_t>& other) noexcept;
+
   void gather(COO<device_t, vid_t, TypeList<EdgeMetaTypes...>, degree_t>& other,
       const Vector<degree_t>& map) noexcept;
 
@@ -63,6 +67,26 @@ public:
 
   degree_t size(void) noexcept;
 };
+
+template <typename... EdgeMetaTypes, typename vid_t, typename degree_t, DeviceType device_t>
+std::multimap<vid_t, TypeList<vid_t, EdgeMetaTypes...>> getHostMMap(
+    COO<device_t, vid_t, TypeList<EdgeMetaTypes...>, degree_t>& coo) {
+  auto *src = coo.srcPtr();
+  auto ptr = coo.getPtr();
+  COO<DeviceType::HOST, vid_t, TypeList<EdgeMetaTypes...>, degree_t> host_coo;
+  if (device_t == DeviceType::DEVICE) {
+    host_coo.resize(coo.size());
+    host_coo.copy(coo);
+    src = host_coo.srcPtr();
+    ptr = host_coo.getPtr();
+  }
+  auto eptr = ptr.get_tail();
+  std::multimap<vid_t, TypeList<vid_t, EdgeMetaTypes...>> mmap;
+  for (int i = 0; i < coo.size(); ++i) {
+    mmap.insert(std::make_pair(src[i], hornet::getTuple(eptr[i])));
+  }
+  return mmap;
+}
 
 template <typename... EdgeMetaTypes, typename vid_t, typename degree_t, DeviceType device_t>
 class CSR<device_t, vid_t, TypeList<EdgeMetaTypes...>, degree_t> {

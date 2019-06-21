@@ -64,6 +64,14 @@ struct RecursiveAssign {
         dst.template get<N>()[dstIndex] = src.template get<N>();
         RecursiveAssign<N+1, SIZE>::assign(src, dst, dstIndex);
     }
+    template<typename Tuple, typename SRef>
+    HOST_DEVICE
+    static void assign(
+            const SRef& src,
+            Tuple& dst) {
+        std::get<N>(dst) = src.template get<N>();
+        RecursiveAssign<N+1, SIZE>::assign(src, dst);
+    }
 };
 
 template<unsigned N>
@@ -86,6 +94,13 @@ struct RecursiveAssign<N, N> {
             const SRef& src,
             SPtr& dst, degree_t dstIndex) {
         dst.template get<N>()[dstIndex] = src.template get<N>();
+    }
+    template<typename Tuple, typename SRef>
+    HOST_DEVICE
+    static void assign(
+            const SRef& src,
+            Tuple& dst) {
+        std::get<N>(dst) = src.template get<N>();
     }
 };
 
@@ -295,6 +310,13 @@ SoARef<Contnr<Ts...>>::SoARef(const SoARef<Contnr<Ts...>>& other) noexcept : _so
 template<template <typename...> typename Contnr, typename... Ts>
 HOST_DEVICE
 SoARef<Contnr<Ts...>>::SoARef(Contnr<Ts...>& soa, const int& index) noexcept : _soa(soa), _index(index) { }
+
+template<template <typename...> typename Contnr, typename... Ts>
+std::tuple<Ts...> getTuple(const SoARef<Contnr<Ts...>>& r) {
+  std::tuple<Ts...> t;
+  RecursiveAssign<0, sizeof...(Ts) - 1>::assign(r, t);
+  return t;
+}
 
 //==============================================================================
 ///////////////

@@ -1,23 +1,36 @@
-#include "Hornet.hpp"
+#include <Hornet.hpp>
 #include "StandardAPI.hpp"
-#include "Core/GPUHornet/BatchUpdate.cuh"
 #include "Util/BatchFunctions.hpp"
-#include <Device/Util/CudaUtil.cuh>          //xlib::deviceInfo
-#include <Device/Util/Timer.cuh>             //xlib::Timer
+#include "Util/RandomGraphData.cuh"
+//#include <Device/Util/CudaUtil.cuh>          //xlib::deviceInfo
+//#include <Device/Util/Timer.cuh>             //xlib::Timer
 #include <string>
 #include <algorithm>                    //std:.generate
-using namespace timer;
-using namespace hornets_nest;
-using HornetGPU = hornets_nest::gpu::Hornet<EMPTY, EMPTY>;
-#define RANDOM
+using namespace std::string_literals;
+
+using vert_t = int;
+using eoff_t = int;
+using HornetGPU = hornet::gpu::Hornet<vert_t>;
+using UpdatePtr = hornet::BatchUpdatePtr<vert_t, hornet::EMPTY, hornet::DeviceType::HOST>;
+using Update = hornet::gpu::BatchUpdate<vert_t>;
+using Init = hornet::HornetInit<vert_t>;
+using hornet::SoAData;
+using hornet::TypeList;
+using hornet::DeviceType;
+using hornet::print;
+//using hornet::generateBatchData;
+
+//#define RANDOM
 
 void deleteBatch(HornetGPU &hornet,
-        vid_t * src,
-        vid_t * dst,
+        vert_t * src,
+        vert_t * dst,
         const int batch_size,
         const bool print_debug) {
-    Timer<DEVICE> TM(3);
-    gpu::BatchUpdate batch_update(src, dst, batch_size);
+    UpdatePtr ptr(batch_size, src, dst);
+
+    Update batch_update(ptr);
+
 
 
     if (print_debug) {
@@ -26,29 +39,26 @@ void deleteBatch(HornetGPU &hornet,
         hornet.print();
     }
 
-    TM.start();
-    hornet.deleteEdgeBatch(batch_update);
-    TM.stop();
+    hornet.erase(batch_update);
 
     if (print_debug) {
         std::cout<<"ne: "<<hornet.nE()<<"\n=======\n";
         hornet.print();
     }
 
-    TM.print("Deletion " + std::to_string(batch_size) + ":  ");
 }
 
 void deleteBatchTest(HornetGPU &hornet,
-        graph::GraphStd<vid_t, eoff_t> &graph,
+        graph::GraphStd<vert_t, eoff_t> &graph,
         int batch_size,
         const bool print_debug) {
     #ifndef RANDOM
-    vid_t batch_src[] = {0, 2, 23, 32, 32, 33, 33, 33};
-    vid_t batch_dst[] = {31, 27, 27, 23, 31, 23, 27, 31};
-    batch_size = 8;
+    vert_t batch_src[] = {1, 5, 2, 4};
+    vert_t batch_dst[] = {2, 4, 1, 5};
+    batch_size = 4;
 
     #else
-    vid_t* batch_src, *batch_dst;
+    vert_t* batch_src, *batch_dst;
     host::allocatePageLocked(batch_src, batch_size);
     host::allocatePageLocked(batch_dst, batch_size);
     generateBatch(graph,
@@ -56,8 +66,6 @@ void deleteBatchTest(HornetGPU &hornet,
             BatchGenType::INSERT);
     #endif
 
-    hornet.reserveBatchOpResource(batch_size,
-                                     gpu::batch_property::IN_PLACE | gpu::batch_property::REMOVE_BATCH_DUPLICATE);
     deleteBatch(hornet, batch_src, batch_dst, batch_size, print_debug);
 
     #ifndef RANDOM
@@ -69,13 +77,53 @@ void deleteBatchTest(HornetGPU &hornet,
 int exec(int argc, char* argv[]) {
     using namespace graph::structure_prop;
     using namespace graph::parsing_prop;
-    xlib::device_info();
-    graph::GraphStd<vid_t, eoff_t> graph;
+
+    graph::GraphStd<vert_t, vert_t> graph;
     graph.read(argv[1]);
-    HornetInit hornet_init(graph.nV(), graph.nE(),
-            graph.csr_out_offsets(), graph.csr_out_edges());
-    HornetGPU hornet(hornet_init);
-    deleteBatchTest(hornet, graph, std::stoi(argv[2]), false);
+    int batch_size = std::stoi(argv[2]);
+    Init hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(), graph.csr_out_edges());
+
+    HornetGPU hornet_gpu(hornet_init);
+    auto init_coo = hornet_gpu.getCOO(true);
+
+    hornet::RandomGenTraits<hornet::EMPTY> cooGenTraits;
+    auto randomBatch = hornet::selectRandom(init_coo, batch_size, cooGenTraits);
+    Update batch_update(randomBatch);
+    hornet_gpu.erase(batch_update);
+    auto inst_coo = hornet_gpu.getCOO(true);
+    inst_coo.append(randomBatch);
+    inst_coo.sort();
+
+    hornet::COO<DeviceType::HOST, vert_t, hornet::EMPTY, eoff_t> host_init_coo = init_coo;
+    hornet::COO<DeviceType::HOST, vert_t, hornet::EMPTY, eoff_t> host_inst_coo = inst_coo;
+
+    auto *s = host_init_coo.srcPtr();
+    auto *d = host_init_coo.dstPtr();
+    auto *S = host_inst_coo.srcPtr();
+    auto *D = host_inst_coo.dstPtr();
+    auto len = host_init_coo.size();
+    bool err = false;
+    if (host_inst_coo.size() != host_init_coo.size()) {
+      err = true;
+      std::cerr<<"\nInit Size "<<host_init_coo.size()<<" != Combined size "<<host_inst_coo.size()<<"\n";
+      len = std::min(host_init_coo.size(), host_inst_coo.size());
+    }
+    for (int i = 0; i < len; ++i) {
+      if ((s[i] != S[i]) || (d[i] != D[i])) {
+        err = true;
+        std::cout<<"ERR : ";
+        std::cout<<s[i]<<" "<<d[i]<<"\t";
+        std::cout<<"\t\t";
+        std::cout<<S[i]<<" "<<D[i];
+        std::cout<<"\n";
+      }
+    }
+    if (!err) {
+      std::cout<<"PASSED\n";
+    } else {
+      std::cout<<"NOT PASSED\n";
+    }
+
     return 0;
 }
 

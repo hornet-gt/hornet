@@ -351,6 +351,30 @@ public:
 //==============================================================================
 
 template<typename T>
+class CubInclusiveMax : public CubWrapper {
+public:
+    explicit CubInclusiveMax() noexcept = default;
+
+    explicit CubInclusiveMax(const int max_items) noexcept;
+
+    void initialize(const int max_items) noexcept;
+
+    void resize(const int max_items) noexcept;
+
+    void shrink_to_fit(const int max_items) noexcept;
+
+    void run(const T* d_in, const int num_items, T* d_out) const noexcept;
+
+    void run(T* d_in_out, const int num_items) const noexcept;
+
+    static void srun(const T* d_in, const int num_items, T* d_out) noexcept;
+
+    static void srun(T* d_in_out, const int num_items) noexcept;
+};
+
+//==============================================================================
+
+template<typename T>
 class CubSelectFlagged : public CubWrapper {
 public:
     explicit CubSelectFlagged() noexcept = default;

@@ -1,6 +1,9 @@
 #include <Device/Util/Timer.cuh>
 #include "Static/KCore/KCore.cuh"
 #include <fstream>
+#include <vector>
+#include <utility>
+#include <algorithm>
 
 #include <nvToolsExt.h>
 
@@ -8,6 +11,48 @@
 
 using namespace timer;
 namespace hornets_nest {
+
+template <bool device>
+void print_ptr(vid_t* src, vid_t* dst, int count, bool sort = false) {
+  vid_t * s = nullptr;
+  vid_t * d = nullptr;
+  std::vector<vid_t> S, D;
+  if (!device) {
+    s = src; d = dst;
+  } else {
+    S.resize(count);
+    D.resize(count);
+    s = S.data();
+    d = D.data();
+    cudaMemcpy(s, src, sizeof(vid_t)*count, cudaMemcpyDeviceToHost);
+    cudaMemcpy(d, dst, sizeof(vid_t)*count, cudaMemcpyDeviceToHost);
+  }
+  std::vector<std::pair<vid_t, vid_t>> v;
+  for (int i = 0; i < count; ++i) {
+    v.push_back(std::make_pair(s[i], d[i]));
+  }
+  if (sort) { std::sort(v.begin(), v.end()); }
+  for (unsigned i = 0; i < v.size(); ++i) {
+    std::cout<<i<<"\t"<<v[i].first<<"\t"<<v[i].second<<"\n";
+  }
+}
+
+template <bool device>
+void print_ptr(vid_t* src, int count, bool sort = false) {
+  vid_t * s = nullptr;
+  std::vector<vid_t> S;
+  if (!device) {
+    s = src;
+  } else {
+    S.resize(count);
+    s = S.data();
+    cudaMemcpy(s, src, sizeof(vid_t)*count, cudaMemcpyDeviceToHost);
+  }
+  if (sort) { std::sort(S.begin(), S.end()); }
+  for (unsigned i = 0; i < S.size(); ++i) {
+    std::cout<<i<<"\t"<<S[i]<<"\n";
+  }
+}
 
 KCore::KCore(HornetGraph &hornet) : 
                         StaticAlgorithm(hornet),
@@ -34,6 +79,19 @@ KCore::~KCore() {
     gpu::free(hd_data().dst);
 }
 
+struct Comp {
+    using Tuple = thrust::tuple<vid_t, vid_t, uint32_t>;
+    __host__
+        bool operator()(Tuple a, Tuple b) {
+            if ( (thrust::get<0>(a) < thrust::get<0>(b)) ||
+                    ( (thrust::get<1>(a) == thrust::get<1>(b)) && (thrust::get<1>(a) < thrust::get<1>(b)) ) ) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+};
+
 struct ActiveVertices {
     vid_t *vertex_pres;
     vid_t *deg;
@@ -56,6 +114,7 @@ struct PeelVertices {
     TwoLevelQueue<vid_t> peel_queue;
     TwoLevelQueue<vid_t> iter_queue;
     
+    //mark vertices with degrees less than peel
     OPERATOR(Vertex &v) {
         vid_t id = v.id();
         if (vertex_pres[id] == 1 && deg[id] <= peel) {
@@ -145,13 +204,10 @@ void KCore::reset() {
     iter_queue.swap();
 }
 
-void oper_bidirect_batch(HornetGraph &hornet, vid_t *src, vid_t *dst, 
-                         int size, uint8_t op) {
-
-    gpu::BatchUpdate batch_update(src, dst, size, gpu::BatchType::DEVICE);
-
-    // Delete edges in the forward and backward directions.
-    hornet.deleteEdgeBatch(batch_update, gpu::batch_property::IN_PLACE);
+void oper_bidirect_batch(HornetGraph &hornet, vid_t *src, vid_t *dst, int size, bool print = false) {
+  UpdatePtr ptr(size, src, dst);
+  Update batch_update(ptr);
+  hornet.erase(batch_update);
 }
 
 void kcores_new(HornetGraph &hornet, 
@@ -164,29 +220,29 @@ void kcores_new(HornetGraph &hornet,
             vid_t *vertex_pres,
             uint32_t *max_peel,
             int *batch_size) {
-
     forAllVertices(hornet, ActiveVertices { vertex_pres, deg, active_queue });
-    active_queue.swap();
 
+    active_queue.swap();
     int n_active = active_queue.size();
     uint32_t peel = 0;
 
     while (n_active > 0) {
-        forAllVertices(hornet, active_queue, 
-                PeelVertices { vertex_pres, deg, peel, peel_queue, iter_queue} );
+      forAllVertices(hornet, active_queue, 
+          PeelVertices { vertex_pres, deg, peel, peel_queue, iter_queue} );
         iter_queue.swap();
-        
-        n_active -= iter_queue.size();
-    
-        if (iter_queue.size() == 0) {
-            peel++;
-            peel_queue.swap();
-            if (n_active > 0) {
-                forAllVertices(hornet, active_queue, RemovePres { vertex_pres });
-            }
-        } else {
-            forAllEdges(hornet, iter_queue, DecrementDegree { deg }, load_balancing);
+
+      n_active -= iter_queue.size();
+
+      if (iter_queue.size() == 0) {
+        peel++;
+        peel_queue.swap();
+        if (n_active > 0) {
+          forAllVertices(hornet, active_queue, RemovePres { vertex_pres });
         }
+      } else {
+        forAllEdges(hornet, iter_queue, DecrementDegree { deg }, load_balancing);
+      }
+
     }
 
     gpu::memsetZero(hd().counter);  // reset counter. 
@@ -197,10 +253,15 @@ void kcores_new(HornetGraph &hornet,
     *max_peel = peel;
     int size = 0;
     cudaMemcpy(&size, hd().counter, sizeof(int), cudaMemcpyDeviceToHost);
+    //print<true>(hd().src, hd().dst, size, true);
     *batch_size = size;
 }
 
-void json_dump(vid_t *src, vid_t *dst, uint32_t *peel, uint32_t peel_edges) {
+void json_dump(vid_t *src, vid_t *dst, uint32_t *peel, uint32_t peel_edges, bool sort_output = false) {
+    if (sort_output) {
+        auto iter = thrust::make_zip_iterator(thrust::make_tuple(src, dst, peel));
+        thrust::sort(thrust::host, iter, iter + peel_edges, Comp());
+    }
     std::ofstream output_file;
     output_file.open("output.txt");
     
@@ -264,7 +325,7 @@ void KCore::run() {
     peel_edges = (uint32_t)peel_one_count;
 
     // Delete peel 1 edges.
-    oper_bidirect_batch(hornet, hd_data().src, hd_data().dst, peel_one_count, DELETE);
+    oper_bidirect_batch(hornet, hd_data().src, hd_data().dst, peel_one_count);
 
     /* Begin running main kcore algorithm */
     while (peel_edges < ne) {
@@ -289,11 +350,11 @@ void KCore::run() {
 
             peel_edges += batch_size;
         }
-        oper_bidirect_batch(hornet, hd_data().src, hd_data().dst, batch_size, DELETE);
+        oper_bidirect_batch(hornet, hd_data().src, hd_data().dst, batch_size);
     }
     TM.stop();
     TM.print("KCore");
-    json_dump(src, dst, peel, peel_edges);
+    //json_dump(src, dst, peel, peel_edges);
 }
 
 void KCore::release() {

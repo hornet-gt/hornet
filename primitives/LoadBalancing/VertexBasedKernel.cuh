@@ -42,7 +42,7 @@ namespace kernel {
 /**
  * @brief
  */
-template<unsigned VW_SIZE, typename HornetDevice, typename Operator>
+template<unsigned VW_SIZE, typename HornetDevice, typename Operator, typename vid_t>
 __global__
 void vertexBasedVertexPairsKernel(HornetDevice              hornet,
                                   const vid_t* __restrict__ d_input,
@@ -67,7 +67,7 @@ void vertexBasedVertexPairsKernel(HornetDevice              hornet,
 /**
  * @brief
  */
-template<unsigned VW_SIZE, typename HornetDevice, typename Operator>
+template<unsigned VW_SIZE, typename HornetDevice, typename Operator, typename vid_t>
 __global__
 void vertexBasedKernel(HornetDevice              hornet,
                        const vid_t* __restrict__ d_input,

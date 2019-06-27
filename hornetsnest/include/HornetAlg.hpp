@@ -38,18 +38,17 @@
  *
  * @file
  */
-#pragma once
+#ifndef HORNET_ALG_HPP
+#define HORNET_ALG_HPP
 
 #include "HornetAlg.cuh"
 #include "Operator++.cuh"
 #include "Queue/TwoLevelQueue.cuh"
 #include "StandardAPI.hpp"
 #include "HostDeviceVar.cuh"
-#include "LoadBalancing/VertexBased.cuh"
-#include "LoadBalancing/ScanBased.cuh"
 #include "LoadBalancing/BinarySearch.cuh"
 
 
-#include <BasicTypes.hpp>
-#include <Core/GPUCsr/Csr.cuh>
-#include <Core/GPUHornet/Hornet.cuh>
+//#include <BasicTypes.hpp>
+#include <Hornet.hpp>
+#endif

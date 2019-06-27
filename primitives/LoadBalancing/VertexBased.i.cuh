@@ -39,44 +39,29 @@
 
 namespace hornets_nest {
 namespace load_balancing {
-/*
-template<unsigned VW_SIZE>
-template<typename HornetClass, typename Operator>
-void VertexBased<VW_SIZE>::apply(const HornetClass& hornet,
-                                 const vid_t*       d_input,
-                                 int                num_vertices,
-                                 const Operator&    op) const noexcept {
-    static_assert(IsHornet<HornetClass>::value,
-                  "VertexBased: paramenter is not an instance of Hornet Class");
-
-    kernel::vertexBasedKernel<VW_SIZE>
-        <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices) * VW_SIZE, BLOCK_SIZE >>>
-        (hornet.device_side(), d_input, num_vertices, op);
-    CHECK_CUDA_ERROR
-}*/
 
 template<unsigned VW_SIZE>
-template<typename HornetClass, typename Operator>
-void VertexBased<VW_SIZE>::apply(const HornetClass& hornet,
+template<typename HornetClass, typename Operator, typename vid_t>
+void VertexBased<VW_SIZE>::apply(HornetClass& hornet,
                                  const vid_t*       d_input,
                                  int                num_vertices,
                                  Operator&&         op) const noexcept {
   if (num_vertices == 0) { return; }
-    static_assert(IsHornet<HornetClass>::value,
-                  "VertexBased: paramenter is not an instance of Hornet Class");
+    //static_assert(IsHornet<HornetClass>::value,
+    //              "VertexBased: paramenter is not an instance of Hornet Class");
     int dyn_smem_size = xlib::DeviceProperty::smem_per_block(BLOCK_SIZE);
 
     kernel::vertexBasedKernel<VW_SIZE>
         <<< xlib::ceil_div<BLOCK_SIZE>(num_vertices) * VW_SIZE, BLOCK_SIZE,
             dyn_smem_size >>>
-        (hornet.device_side(), d_input, num_vertices, op);
+        (hornet.device(), d_input, num_vertices, op);
 
     CHECK_CUDA_ERROR
 }
 
 template<unsigned VW_SIZE>
 template<typename HornetClass, typename Operator>
-void VertexBased<VW_SIZE>::apply(const HornetClass& hornet, Operator&& op)
+void VertexBased<VW_SIZE>::apply(HornetClass& hornet, Operator&& op)
                                  const noexcept {
     if (hornet.nV() == 0) { return; }
     static_assert(IsHornet<HornetClass>::value,
@@ -86,25 +71,20 @@ void VertexBased<VW_SIZE>::apply(const HornetClass& hornet, Operator&& op)
     kernel::vertexBasedKernel<VW_SIZE>
         <<< xlib::ceil_div<BLOCK_SIZE>(hornet.nV()) * VW_SIZE, BLOCK_SIZE,
             dyn_smem_size >>>
-        (hornet.device_side(), op);
+        (hornet.device(), op);
     CHECK_CUDA_ERROR
 }
 
 template<unsigned VW_SIZE>
 template<typename HornetClass, typename Operator>
-void VertexBased<VW_SIZE>::applyVertexPairs(const HornetClass& hornet, Operator&& op)
+void VertexBased<VW_SIZE>::applyVertexPairs(HornetClass& hornet, Operator&& op)
                                        const noexcept {
     if (hornet.nV() == 0) { return; }
-    static_assert(IsHornet<HornetClass>::value,
-                 "VertexBased: paramenter is not an instance of Hornet Class");
-    //const auto ITEMS_PER_BLOCK = xlib::SMemPerBlock<BLOCK_SIZE, vid_t>::value;
-    //const auto   DYN_SMEM_SIZE = ITEMS_PER_BLOCK * sizeof(vid_t);
-
     int dyn_smem_size = xlib::DeviceProperty::smem_per_block(BLOCK_SIZE);
     kernel::vertexBasedVertexPairsKernel<VW_SIZE>
         <<< xlib::ceil_div<BLOCK_SIZE>(hornet.nV()) * VW_SIZE, BLOCK_SIZE,
             dyn_smem_size >>>
-        (hornet.device_side(), op);
+        (hornet.device(), op);
     CHECK_CUDA_ERROR
 }
 

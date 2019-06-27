@@ -56,7 +56,7 @@ public:
      * @param[in] hornet Hornet instance
      */
     template<typename HornetClass>
-    explicit BinarySearch(const HornetClass& hornet,
+    explicit BinarySearch(HornetClass& hornet,
                           const float work_factor = 2.0f) noexcept;
 
     /**
@@ -74,22 +74,23 @@ public:
      *            `void operator()(Vertex, Edge)` or the lambda expression
      *            `[=](Vertex, Edge){}`
      */
-     template<typename HornetClass, typename Operator>
-     void apply(const HornetClass& hornet,
-                const vid_t*       d_input,
+     template<typename HornetClass, typename Operator, typename vid_t>
+     void apply(HornetClass& hornet,
+                const vid_t *      d_input,
                 int                num_vertices,
                 const Operator&    op) const noexcept;
 
     template<typename HornetClass, typename Operator>
-    void apply(const HornetClass& hornet, const Operator& op) const noexcept;
+    void apply(HornetClass& hornet, const Operator& op) const noexcept;
 
 private:
     static const unsigned BLOCK_SIZE = 128;
 
-    xlib::CubExclusiveSum<int> prefixsum;
+    mutable xlib::CubExclusiveSum<int> prefixsum;
 
-    int* _d_work { nullptr };
-    const size_t _work_size;
+    //int* _d_work { nullptr };
+    mutable thrust::device_vector<int> d_work;
+    //const size_t _work_size;
 };
 
 } // namespace load_balancing

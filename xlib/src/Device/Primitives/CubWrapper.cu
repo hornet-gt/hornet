@@ -638,6 +638,92 @@ void CubExclusiveSum<T>::srun(T* d_in_out, const int num_items) noexcept {
 
 //==============================================================================
 //==============================================================================
+/////////////////////
+// CubInclusiveMax //
+/////////////////////
+
+// CubMax functor
+struct CubMax
+{
+    template <typename T>
+    __device__ __forceinline__
+    T operator()(const T &a, const T &b) const {
+        return (b > a) ? b : a;
+    }
+};
+
+template<typename T>
+CubInclusiveMax<T>::CubInclusiveMax(const int max_items) noexcept {
+    initialize(max_items);
+}
+
+template<typename T>
+void CubInclusiveMax<T>::initialize(const int max_items) noexcept {
+    CubMax max_op;
+    CubWrapper::initialize(max_items);
+    size_t temp_storage_bytes;
+    T* d_in = nullptr, *d_out = nullptr;
+    cub::DeviceScan::InclusiveScan(nullptr, temp_storage_bytes,
+                                  d_in, d_out, max_op, _num_items);
+    cuMalloc(_d_temp_storage, _temp_storage_bytes);
+}
+
+//------------------------------------------------------------------------------
+
+template<typename T>
+void CubInclusiveMax<T>::resize(const int max_items) noexcept {
+    if (_num_items < max_items) {
+        release();
+        initialize(max_items);
+    }
+}
+
+template<typename T>
+void CubInclusiveMax<T>::shrink_to_fit(const int max_items) noexcept {
+    if (_num_items > max_items) {
+        release();
+        initialize(max_items);
+    }
+}
+
+//------------------------------------------------------------------------------
+
+template<typename T>
+void CubInclusiveMax<T>::run(
+        const T* d_in,
+        const int num_items,
+        T* d_out) const noexcept {
+    CubMax max_op;
+    int temp_num_items = num_items;
+    size_t temp_storage_bytes = 0;
+    cub::DeviceScan::InclusiveScan(nullptr, temp_storage_bytes,
+                                  d_in, d_out, max_op, temp_num_items);
+    cub::DeviceScan::InclusiveScan(_d_temp_storage, temp_storage_bytes,
+                                  d_in, d_out, max_op, temp_num_items);
+}
+
+template<typename T>
+void CubInclusiveMax<T>::run(T* d_in_out, const int num_items) const noexcept {
+    run(d_in_out, num_items, d_in_out);
+}
+
+//------------------------------------------------------------------------------
+
+template<typename T>
+void CubInclusiveMax<T>::srun(const T* d_in, const int num_items, T* d_out) noexcept {
+    CubInclusiveMax<T> cub_instance(num_items);
+    cub_instance.run(d_in, num_items, d_out);
+}
+
+template<typename T>
+void CubInclusiveMax<T>::srun(T* d_in_out, const int num_items) noexcept {
+    CubInclusiveMax::srun(d_in_out, num_items, d_in_out);
+}
+
+
+
+//==============================================================================
+//==============================================================================
 ///////////////////
 // SelectFlagged //
 ///////////////////
@@ -739,6 +825,7 @@ template class CubSortByKey<double, int>;
 template class CubSortPairs2<int, int>;
 template class CubRunLengthEncode<int>;
 template class CubExclusiveSum<int>;
+template class CubInclusiveMax<int>;
 template class CubSelectFlagged<int>;
 
 //template class CubSelectFlagged<hornets_nest::AoSData<int>>;

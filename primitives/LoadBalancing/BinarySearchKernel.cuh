@@ -44,20 +44,33 @@ namespace hornets_nest {
 namespace load_balancing {
 namespace kernel {
 
-template<bool = true>
+template<typename HornetDevice, typename vid_t>
 __global__
-void computeWorkKernel(const vid_t*    __restrict__ d_input,
-                       const degree_t* __restrict__ d_degrees,
-                       int                          num_vertices,
-                       int*            __restrict__ d_work) {
+void computeWorkKernel(HornetDevice              hornet,
+                       const vid_t* __restrict__ d_input,
+                       int                       num_vertices,
+                       int*         __restrict__ d_work) {
     int     id = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
-    for (auto i = id; i < num_vertices; i += stride)
-        d_work[i] = d_degrees[ d_input[i] ];
+    for (auto i = id; i < num_vertices; i += stride) {
+        d_work[i] = hornet.vertex(d_input[i]).degree();
+    }
+}
+
+template<typename HornetDevice>
+__global__
+void computeWorkKernel(HornetDevice              hornet,
+                       int                       num_vertices,
+                       int*         __restrict__ d_work) {
+    int     id = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
+    for (auto i = id; i < num_vertices; i += stride) {
+        d_work[i] = hornet.vertex(i).degree();
+    }
 }
 
 template<unsigned BLOCK_SIZE,
-         typename HornetDevice, typename Operator>
+         typename HornetDevice, typename Operator, typename vid_t>
 __global__
 void binarySearchKernel(HornetDevice              hornet,
                         const vid_t* __restrict__ d_input,

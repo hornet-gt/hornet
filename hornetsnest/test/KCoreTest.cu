@@ -14,10 +14,7 @@ int main(int argc, char **argv) {
     graph.read(argv[1], SORT | PRINT_INFO);
 
     HornetInit hornet_init(graph.nV(), graph.nE(), graph.csr_out_offsets(),
-                           graph.csr_out_edges(), true);
-
-    HornetInit hcopy_init(graph.nV(), 0, graph.csr_out_offsets(),
-                           graph.csr_out_edges(), true);
+                           graph.csr_out_edges());
 
     HornetGraph hornet_graph(hornet_init);
     KCore kcore(hornet_graph);

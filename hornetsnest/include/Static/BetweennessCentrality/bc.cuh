@@ -44,11 +44,12 @@
 
 namespace hornets_nest {
 
-using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
+  using vid_t = int;
+  using HornetGraph = ::hornet::gpu::Hornet<vid_t>;
+  using HornetInit  = ::hornet::HornetInit<vid_t>;
 
 using paths_t = degree_t;
 using bc_t = float;
-
 struct BCData {
     vid_t *d;
     vid_t *depth_indices;

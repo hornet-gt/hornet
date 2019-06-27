@@ -268,6 +268,11 @@ template<typename T>
 void generate_randoms(T* pointer, size_t num_items, T min, T max) {
     auto seed = std::chrono::high_resolution_clock::now().time_since_epoch()
                 .count();
+    generate_randoms(pointer, num_items, min, max, seed);
+}
+
+template<typename T, typename S>
+void generate_randoms(T* pointer, size_t num_items, T min, T max, S seed) {
     std::mt19937 engine(seed);
     std::uniform_int_distribution<T> distrib(min, max);
     std::generate(pointer, pointer + num_items,

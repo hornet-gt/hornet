@@ -5,8 +5,6 @@
 
 #include "HornetAlg.hpp"
 #include <StandardAPI.hpp>
-#include <Core/GPUCsr/Csr.cuh>
-#include <Core/GPUHornet/Hornet.cuh>
 #include <Graph/GraphStd.hpp>
 #include <Util/CommandLineParam.hpp>
 
@@ -15,7 +13,7 @@
 using namespace timer;
 using namespace hornets_nest;
 
-using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
+using HornetGraph = ::hornet::gpu::Hornet<vid_t>;
 
 int exec(int argc, char* argv[]) {
 

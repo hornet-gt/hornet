@@ -43,10 +43,10 @@
 
 namespace hornets_nest {
 
+using vid_t = int;
 using weight_t = int;
-
-//using HornetGraph = gpu::Hornet<EMPTY, TypeList<weight_t>>;
-using HornetGraph = gpu::Csr<EMPTY, TypeList<weight_t>>;
+using HornetGraph = ::hornet::gpu::Hornet<vid_t, EMPTY, TypeList<weight_t>>;
+using HornetInit  = ::hornet::HornetInit<vid_t, EMPTY, TypeList<weight_t>>;
 
 class SSSP : public StaticAlgorithm<HornetGraph> {
 public:

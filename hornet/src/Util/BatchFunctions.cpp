@@ -47,10 +47,10 @@ BatchGenProperty::BatchGenProperty(const detail::BatchGenEnum& obj) noexcept :
 //------------------------------------------------------------------------------
 
 void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
-                   vid_t* batch_src, vid_t* batch_dst,
+                   vert_t* batch_src, vert_t* batch_dst,
                    const BatchGenType& batch_type,
                    const BatchGenProperty& prop) {
-    using vid_distribution = std::uniform_int_distribution<vid_t>;
+    using vid_distribution = std::uniform_int_distribution<vert_t>;
 
     if (batch_type == BatchGenType::REMOVE) {
         auto seed = std::chrono::high_resolution_clock::now().time_since_epoch()
@@ -70,7 +70,7 @@ void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
         }
     }
     else if (prop == batch_gen_property::WEIGHTED) {
-        xlib::WeightedRandomGenerator<vid_t>
+        xlib::WeightedRandomGenerator<vert_t>
             weighted_gen(graph.out_degrees_ptr(), graph.nV());
         for (int i = 0; i < batch_size; i++) {
             batch_src[i]  = weighted_gen.get();
@@ -81,7 +81,7 @@ void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
         auto seed = std::chrono::high_resolution_clock::now().time_since_epoch()
                     .count();
         std::mt19937_64 gen(seed);
-        std::uniform_int_distribution<vid_t> distribution(0, graph.nV() - 1);
+        std::uniform_int_distribution<vert_t> distribution(0, graph.nV() - 1);
         for (int i = 0; i < batch_size; i++) {
             batch_src[i]  = distribution(gen);
             batch_dst[i] = distribution(gen);
@@ -89,7 +89,7 @@ void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
     }
 
     if (prop == batch_gen_property::PRINT || prop == batch_gen_property::UNIQUE) {
-        auto tmp_batch = new std::pair<vid_t, vid_t>[batch_size];
+        auto tmp_batch = new std::pair<vert_t, vert_t>[batch_size];
         for (int i = 0; i < batch_size; i++)
             tmp_batch[i] = std::make_pair(batch_src[i], batch_dst[i]);
 

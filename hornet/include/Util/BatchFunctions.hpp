@@ -35,9 +35,10 @@
  *
  * @file
  */
-#pragma once
+#ifndef BATCHFUNCTIONS_HPP
+#define BATCHFUNCTIONS_HPP
 
-#include "BasicTypes.hpp"       //vid_t
+#include "BasicTypes.hpp"       //vert_t
 #include <Graph/GraphStd.hpp>   //GraphStd
 
 namespace hornets_nest {
@@ -62,8 +63,9 @@ namespace batch_gen_property {
 enum class BatchGenType { INSERT, REMOVE };
 
 void generateBatch(const graph::GraphStd<>& graph, int& batch_size,
-                   vid_t* batch_src, vid_t* batch_dest,
+                   vert_t* batch_src, vert_t* batch_dest,
                    const BatchGenType& batch_type,
                    const BatchGenProperty& prop = BatchGenProperty());
 
 } // namespace hornets_nest
+#endif

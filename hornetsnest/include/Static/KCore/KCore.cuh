@@ -4,7 +4,12 @@
 
 namespace hornets_nest {
 
-using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
+using vid_t = int;
+using HornetGraph = ::hornet::gpu::Hornet<vid_t>;
+using HornetInit  = ::hornet::HornetInit<vid_t>;
+//using UpdatePtr   = ::hornet::BatchUpdatePtr<vid_t>;
+using UpdatePtr   = ::hornet::BatchUpdatePtr<vid_t, hornet::EMPTY, hornet::DeviceType::DEVICE>;
+using Update      = ::hornet::gpu::BatchUpdate<vid_t>;
 
 struct KCoreData {
     vid_t *src;

@@ -43,12 +43,11 @@
 
 namespace hornets_nest {
 
-using HornetGraph = gpu::Csr<EMPTY, EMPTY>;
-//using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
-//using HornetGraph = gpu::CsrPlain;
-//using HornetGraph = gpu::HornetPlain;
-
+using vert_t = int;
 using dist_t = int;
+
+using HornetGraph = ::hornet::gpu::Hornet<vert_t>;
+using HornetInit  = ::hornet::HornetInit<vert_t>;
 
 class BfsTopDown : public StaticAlgorithm<HornetGraph> {
 public:
@@ -60,15 +59,13 @@ public:
     void release()  override;
     bool validate() override;
 
-    void set_parameters(vid_t source);
+    void set_parameters(vert_t source);
 private:
-    TwoLevelQueue<vid_t>           queue;
+    TwoLevelQueue<vert_t> queue;
     load_balancing::BinarySearch   load_balancing;
-    //load_balancing::VertexBased1 load_balancing;
-    //load_balancing::ScanBased    load_balancing;
 
     dist_t* d_distances   { nullptr };
-    vid_t   bfs_source    { 0 };
+    vert_t  bfs_source    { 0 };
     dist_t  current_level { 0 };
 };
 

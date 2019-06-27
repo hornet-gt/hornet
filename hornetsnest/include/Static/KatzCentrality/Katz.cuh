@@ -42,8 +42,9 @@
 
 namespace hornets_nest {
 
-using HornetGraph = gpu::Hornet<EMPTY, EMPTY>;
-//using HornetGraph = gpu::Csr<EMPTY, EMPTY>;
+using vid_t = int;
+using HornetGraph = ::hornet::gpu::Hornet<vid_t>;
+using HornetInit  = ::hornet::HornetInit<vid_t>;
 
 using ulong_t = long long unsigned;
 

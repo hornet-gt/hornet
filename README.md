@@ -143,7 +143,7 @@ We are also ready to engage in improving and extending the framework if you requ
   **Exact and Parallel Triangle Counting in Streaming Graphs**,
   IEEE Conference on High Performance Computing, Data, and Analytics (HiPC),
   18-21 December 2017, Jaipur, India, pp. 1-10.
-* A. Tripathy, F. Hohman, D.H Chau, O. Green,
+* [A. Tripathy](aloktripathy.me), F. Hohman, D.H Chau, O. Green,
   **"Scalable K-Core Decomposition for Static Graphs Using a Dynamic Graph Data Structure"**,
   IEEE International Conference on Big Data,
   Seattle, Washington, 2018

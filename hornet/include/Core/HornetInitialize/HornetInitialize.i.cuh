@@ -72,6 +72,20 @@ int HORNET::_instance_count = 0;
 template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
     typename vid_t, typename degree_t>
 HORNET::
+Hornet(void) noexcept { }
+
+template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
+    typename vid_t, typename degree_t>
+HORNET::
+Hornet(degree_t nV) noexcept :
+    _nV(nV),
+    _nE(0),
+    _id(_instance_count++),
+    _vertex_data(nV) { }
+
+template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
+    typename vid_t, typename degree_t>
+HORNET::
 Hornet(HORNET::HInitT& h_init) noexcept :
     _nV(h_init.nV()),
     _nE(h_init.nE()),
@@ -169,6 +183,24 @@ degree_t
 HORNET::
 nE(void) const noexcept {
     return _nE;
+}
+
+template <typename... VertexMetaTypes, typename... EdgeMetaTypes,
+    typename vid_t, typename degree_t>
+void
+HORNET::
+reset(HornetInit<
+    vid_t,
+    TypeList<VertexMetaTypes...>,
+    TypeList<EdgeMetaTypes...>, degree_t>& h_init) noexcept {
+  _nV = h_init.nV();
+  _nE = h_init.nE();
+  SoAData<
+      TypeList<degree_t, xlib::byte_t*, degree_t, degree_t, VertexMetaTypes...>,
+      DeviceType::DEVICE> new_vertex_data(h_init.nV());
+  _vertex_data = std::move(new_vertex_data);
+  _ba_manager.removeAll();
+  initialize(h_init);
 }
 
 }

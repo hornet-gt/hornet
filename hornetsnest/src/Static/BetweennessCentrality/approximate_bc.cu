@@ -75,13 +75,10 @@ void ApproximateBC::release(){
 void ApproximateBC::run() {
 
     for(vid_t r=0; r<numRoots; r++){
-        if((r%200)==0)
-            cout << r << ", " << flush;
         
         BCCentrality::setRoot(h_rootIDs[r]);
         BCCentrality::run();
     }
-    cout << endl;
 }
 
 
@@ -116,6 +113,19 @@ void ApproximateBC::generateRandomRootsUniform(vid_t nV,
 
     delete[] selected;
     *returnRoots = tempRoots;
+}
+
+
+bc_t* ApproximateBC::getBCScores() {
+    return BCCentrality::getBCScores();
+}
+
+paths_t* ApproximateBC::getSigmas() {
+    return  BCCentrality::getSigmas();
+}
+
+bc_t* ApproximateBC::getDeltas() {
+    return  BCCentrality::getDeltas();
 }
 
 

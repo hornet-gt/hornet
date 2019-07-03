@@ -53,7 +53,6 @@ BCCentrality::BCCentrality(HornetGraph& hornet) :
                                        StaticAlgorithm(hornet),
                                        load_balancing(hornet)
 {
-    hd_BCData().currLevel=0;
     cout << "hornet.nV   " << hornet.nV() << endl;
 
     host::allocate(hd_BCData().depth_indices, hornet.nV());
@@ -72,11 +71,9 @@ BCCentrality::~BCCentrality() {
 }
 
 void BCCentrality::reset() {
-    hd_BCData().currLevel=0;
 
     forAllnumV(hornet, InitBC { hd_BCData });
     forAllnumV(hornet, InitOneTree { hd_BCData });
-    hd_BCData.sync();
 }
 
 void BCCentrality::release(){
@@ -101,7 +98,7 @@ void BCCentrality::run() {
     vid_t root = hd_BCData().root;
 
     hd_BCData().queue.insert(root);                   // insert source in the frontier
-    gpu::memsetZero(hd_BCData().d + root);
+    forAll(1,  InitRootData { hd_BCData });
 
     // Regular BFS
     hd_BCData().depth_indices[0]=1;
@@ -116,32 +113,33 @@ void BCCentrality::run() {
     while (hd_BCData().queue.size() > 0) {
 
         if(hd_BCData().currLevel>0) {
-            length_t prevLength = hd_BCData().depth_indices[hd_BCData().currLevel] - hd_BCData().depth_indices[hd_BCData().currLevel-1];
+            length_t prevLength = hd_BCData().depth_indices[hd_BCData().currLevel] - 
+                                  hd_BCData().depth_indices[hd_BCData().currLevel-1];
 
-            cudaMemcpy(depArray+hd_BCData().depth_indices[hd_BCData().currLevel-1],hd_BCData().queue.device_input_ptr(),
-                sizeof(vid_t)*(prevLength) ,cudaMemcpyDeviceToDevice);
-            // cout << hd_BCData().depth_indices[hd_BCData().currLevel-1] <<  " " <<  prevLength << endl;
+            cudaMemcpy(depArray+hd_BCData().depth_indices[hd_BCData().currLevel-1],
+                       hd_BCData().queue.device_input_ptr(),
+                       sizeof(vid_t)*(prevLength), cudaMemcpyDeviceToDevice);
         }
 
 
+        forAllEdges(hornet, hd_BCData().queue, BC_BFSTopDown { hd_BCData }, load_balancing);
+        hd_BCData().queue.swap();
         hd_BCData().depth_indices[hd_BCData().currLevel+1]=
                        hd_BCData().depth_indices[hd_BCData().currLevel]+hd_BCData().queue.size();
 
-        forAllEdges(hornet, hd_BCData().queue, BC_BFSTopDown { hd_BCData }, load_balancing);
-        // hd_BCData.sync();
         hd_BCData().currLevel++;
-        // cout << "Depth in the Forward-BFS " <<  hd_BCData().queue.size() << endl;
-
-        hd_BCData().queue.swap();
     }
 
     hd_BCData().currLevel -= 2;
 
+    vid_t deepest = hd_BCData().currLevel-1;
+
     // Reverse BFS - Dependency accumulation
-    while (hd_BCData().currLevel>=0) {
+    while (hd_BCData().currLevel>0) {
         // int2 pos={hd_BCData().depth_indices[hd_BCData().currLevel],
         //     hd_BCData().depth_indices[hd_BCData().currLevel + 1]};
-        length_t prevLength = hd_BCData().depth_indices[hd_BCData().currLevel+1] - hd_BCData().depth_indices[hd_BCData().currLevel];
+        length_t prevLength = hd_BCData().depth_indices[hd_BCData().currLevel+1] - 
+                              hd_BCData().depth_indices[hd_BCData().currLevel];
 
 
         // cout << hd_BCData().depth_indices[hd_BCData().currLevel] <<  " " <<  prevLength << endl;
@@ -149,12 +147,17 @@ void BCCentrality::run() {
 
 
         // forAllEdges(hornet, hd_BCData().queue, BC_DepAccumulation { hd_BCData }, load_balancing);
-        forAllEdges(hornet, depArray+hd_BCData().depth_indices[hd_BCData().currLevel],prevLength, BC_DepAccumulation { hd_BCData }, load_balancing);
 
-        forAllnumV(hornet, IncrementBC { hd_BCData });
-
+        forAllEdges(hornet, depArray+hd_BCData().depth_indices[hd_BCData().currLevel] ,prevLength, 
+                    BC_DepAccumulation { hd_BCData }, load_balancing);
         hd_BCData().currLevel--;
     }
+
+    if(deepest>0)
+        forAllVertices(hornet, depArray, hd_BCData().depth_indices[deepest],IncrementBCNew { hd_BCData });
+
+    // if(deepest>0)
+    //     forAllnumV(hornet, IncrementBC { hd_BCData });
     gpu::free(depArray);
 
 }
@@ -166,6 +169,18 @@ void BCCentrality::run() {
 
 bool BCCentrality::validate() {
     return true;
+}
+ 
+bc_t* BCCentrality::getBCScores() {
+    return  bc_data().bc;
+}
+
+paths_t* BCCentrality::getSigmas() {
+    return  bc_data().sigma;
+}
+
+bc_t* BCCentrality::getDeltas() {
+    return  bc_data().delta;
 }
 
 } // namespace hornets_nest

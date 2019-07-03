@@ -50,10 +50,22 @@ struct InitBC {
 
 
     OPERATOR(vid_t src) {
-        bcd().bc[0] = 0.0;
+        bcd().bc[src] = 0.0;
     }
 };
 
+struct InitRootData {
+    HostDeviceVar<BCData> bcd;
+
+
+    // OPERATOR(vid_t src) {
+    OPERATOR(int  i) {
+        bcd().d[bcd().root]=0;
+        bcd().sigma[bcd().root]=1.0;
+
+    }
+};
+ 
 
 
 // Used at the very beginning of every BC computation.
@@ -73,10 +85,8 @@ struct BC_BFSTopDown {
     HostDeviceVar<BCData> bcd;
 
     OPERATOR(Vertex& src, Edge& edge){
-
-        degree_t nextLevel = bcd().currLevel + 1;
-
         vid_t v = src.id(), w = edge.dst_id();        
+        degree_t nextLevel = bcd().d[v] + 1;
 
         degree_t prev = atomicCAS(bcd().d + w, INT32_MAX, nextLevel);
         if (prev == INT32_MAX) {
@@ -97,12 +107,16 @@ struct BC_DepAccumulation {
         vid_t v = src.id(), w = edge.dst_id();        
 
         degree_t *d = bcd().d;  // depth
-        degree_t *sigma = bcd().sigma;
+        paths_t *sigma = bcd().sigma;
         bc_t *delta = bcd().delta;
 
-        if (d[w] == d[v] + 1)
-        {
-            atomicAdd(delta + v, ((bc_t) sigma[v] / (bc_t) sigma[w]) * (1 + delta[w]));
+        if (d[w] == (d[v] + 1))
+        {   
+            // bc_t sigv=sigma[v];
+            // bc_t sigw=sigma[w];
+
+            // atomicAdd(delta + v, (sigv/sigw) * (1.0 + delta[w]));
+            atomicAdd(delta + v, ((bc_t) sigma[v] / (bc_t) sigma[w]) * (1.0 + delta[w]));
         }
     }
 };
@@ -118,6 +132,19 @@ struct IncrementBC {
         if(src != bcd().root)
             bcd().bc[src]+=bcd().delta[src];
     }
+};
+
+// Used at the very beginning of every BC computation.
+// Once per root
+struct IncrementBCNew {
+    HostDeviceVar<BCData> bcd;
+
+    // Used at the very beginning
+    OPERATOR(Vertex& sr) {
+        vid_t src = sr.id();
+        if(src != bcd().root)
+            bcd().bc[src]+=bcd().delta[src];
+    }   
 };
 
 } // namespace hornets_nest

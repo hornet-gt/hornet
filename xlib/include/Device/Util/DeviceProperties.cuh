@@ -374,7 +374,7 @@ public:
     static int smem_per_block_occ(int num_blocks_per_SM) noexcept;
 
 private:
-    static constexpr int MAX_GPUS = 8;
+    static constexpr int MAX_GPUS = 16;
 
     static int  _num_sm[MAX_GPUS];
     static int  _smem_per_SM[MAX_GPUS];

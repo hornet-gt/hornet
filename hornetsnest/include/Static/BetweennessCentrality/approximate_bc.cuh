@@ -58,6 +58,11 @@ public:
 
 	static void generateRandomRootsUniform(vid_t nV,vid_t numRoots,
 	vid_t** returnRoots, int randSeed=-1);   
+
+    bc_t*    getBCScores();
+    paths_t* getSigmas();
+    bc_t*    getDeltas();
+
 private:
 
     vid_t* h_rootIDs;

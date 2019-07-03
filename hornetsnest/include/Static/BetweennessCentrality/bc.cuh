@@ -48,8 +48,8 @@ namespace hornets_nest {
   using HornetGraph = ::hornet::gpu::Hornet<vid_t>;
   using HornetInit  = ::hornet::HornetInit<vid_t>;
 
-using paths_t = degree_t;
-using bc_t = float;
+using paths_t = unsigned long long int;
+using bc_t = double;
 struct BCData {
     vid_t *d;
     vid_t *depth_indices;
@@ -64,7 +64,6 @@ struct BCData {
 class BCCentrality : public StaticAlgorithm<HornetGraph> {
 public:
     BCCentrality(HornetGraph& hornet);
-    // BCCentrality(HornetGraph& hornet, int k_roots, vid_t* roots);
 
     ~BCCentrality();
 
@@ -75,7 +74,11 @@ public:
     void release()  override;
     bool validate() override;
 
-    BCData bc_data();
+    BCData bc_data() {return hd_BCData;};
+
+    bc_t*    getBCScores();
+    paths_t* getSigmas();
+    bc_t*    getDeltas();
 
 
 
@@ -84,10 +87,6 @@ private:
 
     HostDeviceVar<BCData>       hd_BCData;    
 
-    // bool approx;
-
-
-    // void printKMostImportant();
 };
 
 } // hornetAlgs namespace

@@ -522,7 +522,7 @@ void forAllEdgesAdjUnionImbalanced(HornetClass &hornet, typename HornetClass::Ve
 }
 
 template<typename Operator>
-void forAll(size_t size, const Operator& op) {
+void forAll(int size, const Operator& op) {
     if (size == 0)
         return;
     detail::forAllKernel

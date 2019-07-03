@@ -58,7 +58,6 @@ struct InitRootData {
     HostDeviceVar<BCData> bcd;
 
 
-    // OPERATOR(vid_t src) {
     OPERATOR(int  i) {
         bcd().d[bcd().root]=0;
         bcd().sigma[bcd().root]=1.0;
@@ -112,10 +111,6 @@ struct BC_DepAccumulation {
 
         if (d[w] == (d[v] + 1))
         {   
-            // bc_t sigv=sigma[v];
-            // bc_t sigw=sigma[w];
-
-            // atomicAdd(delta + v, (sigv/sigw) * (1.0 + delta[w]));
             atomicAdd(delta + v, ((bc_t) sigma[v] / (bc_t) sigma[w]) * (1.0 + delta[w]));
         }
     }

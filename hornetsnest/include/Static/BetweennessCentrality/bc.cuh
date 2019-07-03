@@ -64,7 +64,6 @@ struct BCData {
 class BCCentrality : public StaticAlgorithm<HornetGraph> {
 public:
     BCCentrality(HornetGraph& hornet);
-    // BCCentrality(HornetGraph& hornet, int k_roots, vid_t* roots);
 
     ~BCCentrality();
 
@@ -88,10 +87,6 @@ private:
 
     HostDeviceVar<BCData>       hd_BCData;    
 
-    // bool approx;
-
-
-    // void printKMostImportant();
 };
 
 } // hornetAlgs namespace

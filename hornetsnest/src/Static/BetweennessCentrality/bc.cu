@@ -108,7 +108,6 @@ void BCCentrality::run() {
 
 
     cudaMemcpy(depArray,hd_BCData().queue.device_input_ptr(),sizeof(vid_t)*hd_BCData().queue.size(),cudaMemcpyDeviceToDevice);
-    // cout << hd_BCData().depth_indices[0] <<  " " <<  1 << endl;
 
     while (hd_BCData().queue.size() > 0) {
 
@@ -136,18 +135,8 @@ void BCCentrality::run() {
 
     // Reverse BFS - Dependency accumulation
     while (hd_BCData().currLevel>0) {
-        // int2 pos={hd_BCData().depth_indices[hd_BCData().currLevel],
-        //     hd_BCData().depth_indices[hd_BCData().currLevel + 1]};
         length_t prevLength = hd_BCData().depth_indices[hd_BCData().currLevel+1] - 
                               hd_BCData().depth_indices[hd_BCData().currLevel];
-
-
-        // cout << hd_BCData().depth_indices[hd_BCData().currLevel] <<  " " <<  prevLength << endl;
-
-
-
-        // forAllEdges(hornet, hd_BCData().queue, BC_DepAccumulation { hd_BCData }, load_balancing);
-
         forAllEdges(hornet, depArray+hd_BCData().depth_indices[hd_BCData().currLevel] ,prevLength, 
                     BC_DepAccumulation { hd_BCData }, load_balancing);
         hd_BCData().currLevel--;
@@ -156,16 +145,10 @@ void BCCentrality::run() {
     if(deepest>0)
         forAllVertices(hornet, depArray, hd_BCData().depth_indices[deepest],IncrementBCNew { hd_BCData });
 
-    // if(deepest>0)
-    //     forAllnumV(hornet, IncrementBC { hd_BCData });
     gpu::free(depArray);
 
 }
 
-
-// int BCCentrality::getDepth() {
-//     return hd_BCData();
-// }
 
 bool BCCentrality::validate() {
     return true;

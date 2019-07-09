@@ -98,6 +98,10 @@ private:
 
 public:
 
+    Hornet(void) noexcept;
+
+    Hornet(degree_t nV) noexcept;
+
     Hornet(HInitT& h_init) noexcept;
 
     void insert(gpu::BatchUpdate<vid_t, TypeList<EdgeMetaTypes...>, degree_t>& batch, bool removeBatchDuplicates = false, bool removeGraphDuplicates = false);
@@ -121,6 +125,9 @@ public:
 
     COO<DeviceType::DEVICE, vid_t, TypeList<EdgeMetaTypes...>, degree_t>
     getCOO(bool sortAdjacencyList = false) ;
+
+    void reset(HInitT& h_init) noexcept;
+
 };
 
 #define HORNET Hornet<vid_t,\

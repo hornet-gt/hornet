@@ -72,10 +72,7 @@ class SoAData<TypeList<Ts...>, device_t> {
 
     SoAData& operator=(const SoAData&) = delete;
 
-    SoAData& operator=(SoAData&&);
-
-    //template<DeviceType d_t>
-    //SoAData(const SoAData<TypeList<Ts...>, d_t>& other) noexcept;
+    SoAData& operator=(SoAData&& other);
 
     template<DeviceType d_t>
     SoAData(SoAData<TypeList<Ts...>, d_t>&& other) noexcept;

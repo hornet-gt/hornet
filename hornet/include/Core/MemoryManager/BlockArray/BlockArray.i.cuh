@@ -179,5 +179,12 @@ largest_edge_block_size(void) noexcept {
     return _largest_eb_size;
 }
 
+template<typename... Ts, DeviceType device_t, typename degree_t>
+void
+B_A_MANAGER::
+removeAll(void) noexcept {
+  for (auto &b : _ba_map) { b.clear(); }
+}
+
 #undef BLOCK_ARRAY
 }

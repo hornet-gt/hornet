@@ -118,6 +118,8 @@ class BlockArrayManager<TypeList<Ts...>, device_t, degree_t> {
         degree_t       vertex_offset) noexcept;
 
     degree_t largest_edge_block_size(void) noexcept;
+
+    void removeAll(void) noexcept;
 };
 
 }
